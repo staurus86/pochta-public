@@ -23,7 +23,7 @@ export class ProjectScheduler {
       this.tick().catch((error) => {
         this.logger.error("Scheduler tick failed:", error);
       });
-    }, 30_000);
+    }, 60 * 60 * 1000);
   }
 
   stop() {
