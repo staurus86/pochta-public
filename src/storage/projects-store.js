@@ -38,6 +38,8 @@ const DEFAULT_PROJECTS = [
       }
     ],
     recentAnalyses: [],
+    recentRuns: [],
+    recentMessages: [],
     schedule: normalizeSchedule({
       enabled: false,
       time: "12:00",
@@ -67,6 +69,7 @@ const DEFAULT_PROJECTS = [
     knownCompanies: [],
     recentAnalyses: [],
     recentRuns: [],
+    recentMessages: [],
     schedule: normalizeSchedule({
       enabled: true,
       time: "12:00",
@@ -94,6 +97,7 @@ const DEFAULT_PROJECTS = [
     knownCompanies: [],
     recentAnalyses: [],
     recentRuns: [],
+    recentMessages: [],
     schedule: normalizeSchedule({
       enabled: false,
       time: "12:00",
@@ -122,10 +126,12 @@ export class ProjectsStore {
       this.projects = JSON.parse(fileContents).map((project) => ({
         recentAnalyses: [],
         recentRuns: [],
+        recentMessages: [],
         schedule: normalizeSchedule(),
         ...project,
         recentAnalyses: project.recentAnalyses || [],
         recentRuns: project.recentRuns || [],
+        recentMessages: project.recentMessages || [],
         schedule: normalizeSchedule(project.schedule)
       }));
     } catch {
@@ -168,6 +174,7 @@ export class ProjectsStore {
       knownCompanies: [],
       recentAnalyses: [],
       recentRuns: [],
+      recentMessages: [],
       schedule: normalizeSchedule(payload.schedule)
     };
 
@@ -220,6 +227,18 @@ export class ProjectsStore {
     project.recentRuns = [summary, ...(project.recentRuns || [])].slice(0, 10);
     await this.persist();
     return summary;
+  }
+
+  async replaceRecentMessages(projectId, messages) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) {
+      return null;
+    }
+
+    project.recentMessages = (messages || []).slice(0, 100);
+    await this.persist();
+    return project.recentMessages;
   }
 
   async updateSchedule(projectId, scheduleInput) {

@@ -84,6 +84,30 @@ class DetectionKnowledgeBase {
         priority INTEGER NOT NULL DEFAULT 50,
         is_active INTEGER NOT NULL DEFAULT 1
       );
+
+      CREATE TABLE IF NOT EXISTS message_corpus (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        project_id TEXT NOT NULL,
+        message_key TEXT NOT NULL UNIQUE,
+        mailbox TEXT DEFAULT '',
+        sender_email TEXT DEFAULT '',
+        subject TEXT DEFAULT '',
+        classification TEXT NOT NULL,
+        confidence REAL NOT NULL DEFAULT 0,
+        company_name TEXT DEFAULT '',
+        brand_names TEXT DEFAULT '',
+        body_excerpt TEXT DEFAULT '',
+        created_at TEXT NOT NULL
+      );
+
+      CREATE TABLE IF NOT EXISTS extracted_fields (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        message_key TEXT NOT NULL,
+        field_name TEXT NOT NULL,
+        field_value TEXT DEFAULT '',
+        confidence REAL NOT NULL DEFAULT 0,
+        created_at TEXT NOT NULL
+      );
     `);
 
     this.seedIfEmpty();
@@ -180,8 +204,26 @@ class DetectionKnowledgeBase {
       ruleCount: this.db.prepare("SELECT COUNT(*) AS count FROM detection_rules WHERE is_active = 1").get().count,
       brandAliasCount: this.db.prepare("SELECT COUNT(*) AS count FROM brand_aliases WHERE is_active = 1").get().count,
       senderProfileCount: this.db.prepare("SELECT COUNT(*) AS count FROM sender_profiles WHERE is_active = 1").get().count,
-      fieldPatternCount: this.db.prepare("SELECT COUNT(*) AS count FROM field_patterns WHERE is_active = 1").get().count
+      fieldPatternCount: this.db.prepare("SELECT COUNT(*) AS count FROM field_patterns WHERE is_active = 1").get().count,
+      corpusCount: this.db.prepare("SELECT COUNT(*) AS count FROM message_corpus").get().count
     };
+  }
+
+  getCorpus(limit = 50, projectId = null) {
+    if (projectId) {
+      return this.db.prepare(`
+        SELECT * FROM message_corpus
+        WHERE project_id = ?
+        ORDER BY created_at DESC
+        LIMIT ?
+      `).all(projectId, Number(limit));
+    }
+
+    return this.db.prepare(`
+      SELECT * FROM message_corpus
+      ORDER BY created_at DESC
+      LIMIT ?
+    `).all(Number(limit));
   }
 
   classifyMessage({ subject = "", body = "", attachments = [], fromEmail = "", projectBrands = [] }) {
@@ -269,6 +311,68 @@ class DetectionKnowledgeBase {
       const byDomain = profile.sender_domain && profile.sender_domain.toLowerCase() === domain;
       return byEmail || byDomain;
     }) || null;
+  }
+
+  ingestAnalyzedMessages(projectId, messages = []) {
+    const insertCorpus = this.db.prepare(`
+      INSERT INTO message_corpus (
+        project_id, message_key, mailbox, sender_email, subject, classification,
+        confidence, company_name, brand_names, body_excerpt, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(message_key) DO UPDATE SET
+        classification=excluded.classification,
+        confidence=excluded.confidence,
+        company_name=excluded.company_name,
+        brand_names=excluded.brand_names,
+        body_excerpt=excluded.body_excerpt,
+        created_at=excluded.created_at
+    `);
+
+    const deleteFields = this.db.prepare(`DELETE FROM extracted_fields WHERE message_key = ?`);
+    const insertField = this.db.prepare(`
+      INSERT INTO extracted_fields (message_key, field_name, field_value, confidence, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `);
+
+    const now = new Date().toISOString();
+    for (const item of messages) {
+      if (!item.messageKey || item.pipelineStatus === "ignored_spam" || item.error) {
+        continue;
+      }
+
+      insertCorpus.run(
+        projectId,
+        item.messageKey,
+        item.mailbox || "",
+        item.analysis?.sender?.email || "",
+        item.subject || "",
+        item.analysis?.classification?.label || "Не определено",
+        Number(item.analysis?.classification?.confidence || 0),
+        item.analysis?.sender?.companyName || "",
+        JSON.stringify(item.analysis?.detectedBrands || []),
+        String(item.analysis?.lead?.freeText || "").slice(0, 500),
+        now
+      );
+
+      deleteFields.run(item.messageKey);
+      const fieldEntries = [
+        ["sender_email", item.analysis?.sender?.email],
+        ["sender_name", item.analysis?.sender?.fullName],
+        ["sender_position", item.analysis?.sender?.position],
+        ["company_name", item.analysis?.sender?.companyName],
+        ["website", item.analysis?.sender?.website],
+        ["city_phone", item.analysis?.sender?.cityPhone],
+        ["mobile_phone", item.analysis?.sender?.mobilePhone],
+        ["inn", item.analysis?.sender?.inn],
+        ["request_type", item.analysis?.lead?.requestType],
+        ["articles", JSON.stringify(item.analysis?.lead?.articles || [])],
+        ["brands", JSON.stringify(item.analysis?.detectedBrands || [])]
+      ].filter((entry) => entry[1]);
+
+      for (const [fieldName, fieldValue] of fieldEntries) {
+        insertField.run(item.messageKey, fieldName, String(fieldValue), Number(item.analysis?.classification?.confidence || 0), now);
+      }
+    }
   }
 }
 

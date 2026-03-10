@@ -1,10 +1,11 @@
-import { randomUUID } from "node:crypto";
+import { createHash, randomUUID } from "node:crypto";
 import { access, readFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
 import { analyzeEmail } from "./email-analyzer.js";
 import { parseMailboxConfigText } from "./mailbox-config-parser.js";
+import { detectionKb } from "./detection-kb.js";
 
 export async function getMailboxFileRuntime(project, rootDir) {
   const runtime = project.runtime || {};
@@ -71,32 +72,57 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
         attachments: item.attachments || []
       });
 
+      const pipelineStatus = item.error
+        ? "fetch_error"
+        : analysis.classification.label === "СПАМ"
+          ? "ignored_spam"
+          : analysis.classification.label === "Клиент"
+            ? "ready_for_crm"
+            : analysis.crm?.needsClarification
+              ? "needs_clarification"
+              : "review";
+
+      const messageKey = createMessageKey(item, fromEmail);
+
       return {
+        id: randomUUID(),
+        createdAt: new Date().toISOString(),
+        messageKey,
         mailbox: item.mailbox,
         brand: item.brand,
         siteUrl: item.siteUrl,
         subject: item.subject,
         from: item.from,
+        bodyPreview: String(item.body || item.error || "").slice(0, 500),
+        attachments: item.attachments || [],
         error: item.error || null,
+        pipelineStatus,
         analysis
       };
     });
+
+  const nonSpamMessages = analyzedEmails.filter((item) => item.pipelineStatus !== "ignored_spam" && item.pipelineStatus !== "fetch_error");
+  detectionKb.ingestAnalyzedMessages(project.id, nonSpamMessages);
 
   return {
     id: randomUUID(),
     createdAt: new Date(startedAt).toISOString(),
     status: result.exitCode === 0 ? "ok" : "error",
     days,
-    processed: analyzedEmails.length,
+    processed: nonSpamMessages.length,
     added: 0,
-    skipped: 0,
+    skipped: analyzedEmails.filter((item) => item.pipelineStatus === "ignored_spam").length,
     failed: payload.errorCount || 0,
     durationMs: Date.now() - startedAt,
     accountCount: payload.accountCount || 0,
     fetchedEmailCount: payload.fetchedEmailCount || 0,
+    spamCount: analyzedEmails.filter((item) => item.pipelineStatus === "ignored_spam").length,
+    readyForCrmCount: analyzedEmails.filter((item) => item.pipelineStatus === "ready_for_crm").length,
+    clarificationCount: analyzedEmails.filter((item) => item.pipelineStatus === "needs_clarification").length,
     stdout: tailLines(result.stdout, 20),
     stderr: tailLines(result.stderr, 20),
-    analysesPreview: analyzedEmails.slice(0, 20)
+    analysesPreview: nonSpamMessages.slice(0, 20),
+    recentMessages: analyzedEmails.slice(0, 100)
   };
 }
 
@@ -182,6 +208,12 @@ function tailLines(text, count) {
     .split(/\r?\n/)
     .filter(Boolean)
     .slice(-count);
+}
+
+function createMessageKey(item, fromEmail) {
+  return createHash("sha1")
+    .update([item.mailbox, fromEmail, item.subject, item.date].join("|"))
+    .digest("hex");
 }
 
 function unique(items) {

@@ -252,9 +252,76 @@ button:hover {
   background: var(--panel-strong);
 }
 
+.inbox-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(360px, 1.1fr);
+  gap: 18px;
+}
+
+.messages-list {
+  display: grid;
+  gap: 10px;
+  max-height: 620px;
+  overflow: auto;
+}
+
+.message-card {
+  padding: 14px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--panel-strong);
+  cursor: pointer;
+  text-align: left;
+}
+
+.message-card strong,
+.message-card span,
+.message-card small {
+  display: block;
+}
+
+.message-card span,
+.message-card small {
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+.message-card.active {
+  border-color: rgba(163, 76, 43, 0.42);
+  box-shadow: inset 0 0 0 1px rgba(163, 76, 43, 0.3);
+}
+
+.status-badge {
+  display: inline-flex;
+  align-items: center;
+  width: fit-content;
+  margin-top: 8px;
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  background: #ece2d6;
+  color: #7f2f18;
+}
+
+.status-badge.spam {
+  background: #f6d7d7;
+  color: #8d2d2d;
+}
+
+.status-badge.ready {
+  background: #dbead7;
+  color: #305a32;
+}
+
+.status-badge.clarify {
+  background: #f2e6c4;
+  color: #7c5b13;
+}
+
 @media (max-width: 1080px) {
   .page-shell,
-  .grid {
+  .grid,
+  .inbox-grid {
     grid-template-columns: 1fr;
   }
 }

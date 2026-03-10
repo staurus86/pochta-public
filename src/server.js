@@ -49,7 +49,8 @@ async function handleApi(req, res, url) {
       stats: detectionKb.getStats(),
       rules: detectionKb.getRules(),
       brandAliases: detectionKb.getBrandAliases(),
-      senderProfiles: detectionKb.getSenderProfiles()
+      senderProfiles: detectionKb.getSenderProfiles(),
+      corpus: detectionKb.getCorpus(25)
     });
   }
 
@@ -144,7 +145,20 @@ async function handleApi(req, res, url) {
     }
 
     await store.appendRun(project.id, run);
+    if (Array.isArray(run.recentMessages)) {
+      await store.replaceRecentMessages(project.id, run.recentMessages);
+    }
     return sendJson(res, 200, { run });
+  }
+
+  const messagesMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages$/);
+  if (req.method === "GET" && messagesMatch) {
+    const project = await store.getProject(messagesMatch[1]);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    return sendJson(res, 200, { messages: project.recentMessages || [] });
   }
 
   const scheduleMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/schedule$/);

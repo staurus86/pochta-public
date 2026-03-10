@@ -11,9 +11,14 @@ const workspaceTitle = document.querySelector("#workspace-title");
 const emailWorkspace = document.querySelector("#email-parser-workspace");
 const tenderWorkspace = document.querySelector("#tender-importer-workspace");
 const refreshRuntimeButton = document.querySelector("#refresh-runtime");
+const runnerInboxPanel = document.querySelector("#runner-inbox-panel");
+const runnerMessagesList = document.querySelector("#runner-messages-list");
+const runnerMessageDetail = document.querySelector("#runner-message-detail");
 
 let projects = [];
 let selectedProjectId = null;
+let runnerMessages = [];
+let selectedRunnerMessageId = null;
 
 await refreshProjects();
 
@@ -120,6 +125,7 @@ tenderRunForm.addEventListener("submit", async (event) => {
   const data = await response.json();
   runtimeResult.textContent = JSON.stringify(data.run || data, null, 2);
   await refreshProjects();
+  await refreshRunnerMessages();
 });
 
 refreshRuntimeButton.addEventListener("click", async () => {
@@ -142,6 +148,7 @@ async function refreshProjects() {
 
   renderProjects();
   await refreshRuntime();
+  await refreshRunnerMessages();
 }
 
 function renderProjects() {
@@ -194,10 +201,33 @@ async function refreshRuntime() {
   runtimeResult.textContent = JSON.stringify(data.runtime || data, null, 2);
 }
 
+async function refreshRunnerMessages() {
+  const selectedProject = getSelectedProject();
+  if (selectedProject?.type !== "mailbox-file-parser") {
+    runnerMessages = [];
+    selectedRunnerMessageId = null;
+    renderRunnerInbox(selectedProject);
+    return;
+  }
+
+  const response = await fetch(`/api/projects/${selectedProjectId}/messages`);
+  const data = await response.json();
+  runnerMessages = (data.messages || [])
+    .filter((message) => !["ignored_spam", "fetch_error"].includes(message.pipelineStatus))
+    .sort((left, right) => new Date(right.createdAt || 0).getTime() - new Date(left.createdAt || 0).getTime());
+
+  if (!runnerMessages.some((message) => getMessageId(message) === selectedRunnerMessageId)) {
+    selectedRunnerMessageId = runnerMessages[0] ? getMessageId(runnerMessages[0]) : null;
+  }
+
+  renderRunnerInbox(selectedProject);
+}
+
 function renderWorkspace(project) {
   const isRunner = isRunnerProject(project);
   emailWorkspace.classList.toggle("hidden", isRunner);
   tenderWorkspace.classList.toggle("hidden", !isRunner);
+  runnerInboxPanel.classList.toggle("hidden", project?.type !== "mailbox-file-parser");
   workspaceTitle.textContent = isRunner ? `Запуск ${project?.name || "runner"}` : "Тест входящего письма";
 }
 
@@ -215,6 +245,169 @@ function getSelectedProject() {
 
 function isRunnerProject(project) {
   return ["tender-importer", "mailbox-file-parser"].includes(project?.type);
+}
+
+function renderRunnerInbox(project) {
+  if (project?.type !== "mailbox-file-parser") {
+    runnerMessagesList.innerHTML = "";
+    runnerMessageDetail.textContent = "Inbox доступен только для проекта чтения почты из 1.txt.";
+    return;
+  }
+
+  runnerMessagesList.innerHTML = "";
+  if (runnerMessages.length === 0) {
+    runnerMessagesList.textContent = "После запуска здесь появятся письма, подходящие под CRM-разбор.";
+    runnerMessageDetail.textContent = "Запустите project 3. Спам и ошибки чтения в inbox не показываются.";
+    return;
+  }
+
+  for (const message of runnerMessages) {
+    const card = document.createElement("button");
+    const messageId = getMessageId(message);
+    card.type = "button";
+    card.className = `message-card${messageId === selectedRunnerMessageId ? " active" : ""}`;
+    card.innerHTML = `
+      <strong>${escapeHtml(message.subject || "Без темы")}</strong>
+      <span>${escapeHtml(message.from || "Неизвестный отправитель")}</span>
+      <span>${escapeHtml(message.mailbox || "")}</span>
+      <small>${escapeHtml(formatCardMeta(message))}</small>
+      <span class="status-badge ${statusClassName(message.pipelineStatus)}">${escapeHtml(statusLabel(message.pipelineStatus))}</span>
+    `;
+    card.addEventListener("click", () => {
+      selectedRunnerMessageId = messageId;
+      renderRunnerInbox(project);
+    });
+    runnerMessagesList.appendChild(card);
+  }
+
+  const selectedMessage = runnerMessages.find((message) => getMessageId(message) === selectedRunnerMessageId) || runnerMessages[0];
+  runnerMessageDetail.textContent = formatMessageDetail(selectedMessage);
+}
+
+function formatMessageDetail(message) {
+  if (!message) {
+    return "Письмо не выбрано.";
+  }
+
+  const analysis = message.analysis || {};
+  const sender = analysis.sender || {};
+  const lead = analysis.lead || {};
+  const crm = analysis.crm || {};
+  const intakeFlow = analysis.intakeFlow || {};
+  const matchedRules = analysis.classification?.signals?.matchedRules || [];
+
+  return [
+    `Статус: ${statusLabel(message.pipelineStatus)}`,
+    `Классификация: ${analysis.classification?.label || "Не определено"} (${formatPercent(analysis.classification?.confidence)})`,
+    `Почтовый ящик: ${message.mailbox || "Не указано"}`,
+    `Отправитель: ${message.from || sender.email || "Не указано"}`,
+    `Тема: ${message.subject || "Без темы"}`,
+    `Дата фиксации: ${formatDate(message.createdAt)}`,
+    "",
+    "Отправитель",
+    `Email: ${sender.email || "Не найден"}`,
+    `ФИО: ${sender.fullName || "Не найдено"}`,
+    `Должность: ${sender.position || "Не найдено"}`,
+    `Компания: ${sender.companyName || "Не найдено"}`,
+    `Сайт: ${sender.website || "Не найден"}`,
+    `Городской телефон: ${sender.cityPhone || "Не найден"}`,
+    `Мобильный телефон: ${sender.mobilePhone || "Не найден"}`,
+    `ИНН: ${sender.inn || "Не найден"}`,
+    `Карточка реквизитов: ${sender.legalCardAttached ? "Да" : "Нет"}`,
+    "",
+    "Заявка",
+    `Тип: ${lead.requestType || "Не определён"}`,
+    `Бренды: ${formatArray(analysis.detectedBrands || lead.detectedBrands)}`,
+    `Артикулы: ${formatArray(lead.articles)}`,
+    `Позиций: ${lead.totalPositions || 0}`,
+    `Фото шильдика: ${lead.hasNameplatePhotos ? "Да" : "Нет"}`,
+    `Фото артикула: ${lead.hasArticlePhotos ? "Да" : "Нет"}`,
+    `Свободный текст: ${lead.freeText || message.bodyPreview || "Нет данных"}`,
+    "",
+    "CRM",
+    `Юрлицо найдено: ${crm.isExistingCompany ? "Да" : "Нет"}`,
+    `Компания CRM: ${crm.company?.legalName || "Не найдено"}`,
+    `Куратор MOP: ${crm.curatorMop || "Не назначен"}`,
+    `Куратор MOZ: ${crm.curatorMoz || "Не назначен"}`,
+    `Нужно уточнение: ${crm.needsClarification ? "Да" : "Нет"}`,
+    `Действия: ${formatArray(crm.actions)}`,
+    "",
+    "Пайплайн",
+    `Разложить по полям: ${intakeFlow.parseToFields ? "Да" : "Нет"}`,
+    `Запросить реквизиты: ${intakeFlow.requestClarification ? "Да" : "Нет"}`,
+    `Создать клиента в CRM: ${intakeFlow.createClientInCrm ? "Да" : "Нет"}`,
+    `Создать запрос в CRM: ${intakeFlow.createRequestInCrm ? "Да" : "Нет"}`,
+    "",
+    "Правила детекции",
+    matchedRules.length
+      ? matchedRules.map((rule) => `- ${rule.classifier} | ${rule.scope} | ${rule.pattern} | +${rule.weight}`).join("\n")
+      : "Совпадений по базе не найдено",
+    "",
+    "Вложения",
+    message.attachments?.length ? message.attachments.join(", ") : "Нет",
+    "",
+    "Техданные",
+    `messageKey: ${message.messageKey || "Нет"}`
+  ].join("\n");
+}
+
+function getMessageId(message) {
+  return message.messageKey || message.id;
+}
+
+function formatCardMeta(message) {
+  const company = message.analysis?.sender?.companyName || "Компания не найдена";
+  return `${company} · ${formatDate(message.createdAt)}`;
+}
+
+function statusLabel(status) {
+  const mapping = {
+    ready_for_crm: "Готово к CRM",
+    needs_clarification: "Нужно уточнение",
+    review: "Нужна проверка",
+    ignored_spam: "СПАМ",
+    fetch_error: "Ошибка чтения"
+  };
+  return mapping[status] || "Не определено";
+}
+
+function statusClassName(status) {
+  if (status === "ready_for_crm") {
+    return "ready";
+  }
+
+  if (status === "needs_clarification") {
+    return "clarify";
+  }
+
+  if (status === "ignored_spam" || status === "fetch_error") {
+    return "spam";
+  }
+
+  return "";
+}
+
+function formatDate(value) {
+  if (!value) {
+    return "Без даты";
+  }
+
+  return new Date(value).toLocaleString("ru-RU", {
+    dateStyle: "short",
+    timeStyle: "short"
+  });
+}
+
+function formatArray(items) {
+  return Array.isArray(items) && items.length ? items.join(", ") : "Нет";
+}
+
+function formatPercent(value) {
+  if (typeof value !== "number") {
+    return "0%";
+  }
+
+  return `${Math.round(value * 100)}%`;
 }
 
 function escapeHtml(value) {
