@@ -1,0 +1,11 @@
+node_modules/
+.DS_Store
+.env
+coverage/
+data/*.bak
+__pycache__/
+*.pyc
+project 2/credentials.json
+project 2/tender_parser.log
+project 2/seen_emails.json
+project 2/.runtime/

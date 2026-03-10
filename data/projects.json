@@ -1,0 +1,73 @@
+[
+  {
+    "id": "mailroom-primary",
+    "type": "email-parser",
+    "name": "Primary Mailroom",
+    "mailbox": "inbox@example.com",
+    "description": "Первичный проект для разбора входящих писем и маршрутизации заявок в CRM.",
+    "brands": [
+      "ABB",
+      "Schneider Electric",
+      "Legrand",
+      "IEK"
+    ],
+    "managerPool": {
+      "defaultMop": "Ольга Демидова",
+      "defaultMoz": "Андрей Назаров",
+      "brandOwners": [
+        {
+          "brand": "ABB",
+          "mop": "Иван Колесов",
+          "moz": "Мария Петрова"
+        },
+        {
+          "brand": "Schneider Electric",
+          "mop": "Елена Соколова",
+          "moz": "Роман Кравцов"
+        }
+      ]
+    },
+    "knownCompanies": [
+      {
+        "id": "client-1001",
+        "legalName": "ООО ПромСнаб",
+        "inn": "7701234567",
+        "website": "https://promsnab.ru",
+        "domain": "promsnab.ru",
+        "curatorMop": "Иван Колесов",
+        "curatorMoz": "Мария Петрова",
+        "contacts": [
+          {
+            "fullName": "Павел Ильин",
+            "email": "p.ilin@promsnab.ru",
+            "position": "Менеджер по закупкам"
+          }
+        ]
+      }
+    ],
+    "recentAnalyses": []
+  },
+  {
+    "id": "project-2-tender-parser",
+    "type": "tender-importer",
+    "name": "Project 2 Tender Parser",
+    "mailbox": "parsertender@siderus.online",
+    "description": "IMAP -> SAP SRM tender parsing -> Google Sheets import from folder 'project 2'.",
+    "brands": [],
+    "managerPool": {
+      "defaultMop": "Не назначен",
+      "defaultMoz": "Не назначен",
+      "brandOwners": []
+    },
+    "runtime": {
+      "scriptPath": "project 2/tender_parser.py",
+      "workingDirectory": "project 2",
+      "seenFile": "project 2/seen_emails.json",
+      "logFile": "project 2/tender_parser.log",
+      "credentialsFile": "project 2/credentials.json"
+    },
+    "knownCompanies": [],
+    "recentAnalyses": [],
+    "recentRuns": []
+  }
+]

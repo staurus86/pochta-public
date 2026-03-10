@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="ru">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pochta Platform</title>
+    <link rel="stylesheet" href="/styles.css" />
+  </head>
+  <body>
+    <div class="page-shell">
+      <aside class="sidebar">
+        <div>
+          <p class="eyebrow">Railway-ready CRM Mailroom</p>
+          <h1>Почтовая платформа</h1>
+          <p class="muted">
+            Дашборд проектов, разные ящики и микромодуль разбора входящих писем в поля CRM.
+          </p>
+        </div>
+
+        <section class="panel">
+          <h2>Новый проект</h2>
+          <form id="project-form" class="stack">
+            <label>
+              <span>Название</span>
+              <input name="name" placeholder="Например, Sales Inbox" required />
+            </label>
+            <label>
+              <span>Почтовый ящик</span>
+              <input name="mailbox" placeholder="sales@company.ru" required />
+            </label>
+            <label>
+              <span>Бренды</span>
+              <input name="brands" placeholder="ABB, Schneider Electric" />
+            </label>
+            <label>
+              <span>Default MOP</span>
+              <input name="defaultMop" placeholder="Ольга Демидова" />
+            </label>
+            <label>
+              <span>Default MOZ</span>
+              <input name="defaultMoz" placeholder="Андрей Назаров" />
+            </label>
+            <label>
+              <span>Описание</span>
+              <textarea name="description" rows="3" placeholder="Что делает проект"></textarea>
+            </label>
+            <button type="submit">Создать проект</button>
+          </form>
+        </section>
+      </aside>
+
+      <main class="content">
+        <section class="hero">
+          <div>
+            <p class="eyebrow">Dashboard</p>
+            <h2>Проекты и разбор писем</h2>
+          </div>
+          <div class="hero-stats">
+            <div class="stat">
+              <span>Проектов</span>
+              <strong id="projects-count">0</strong>
+            </div>
+            <div class="stat">
+              <span>Статус</span>
+              <strong>online</strong>
+            </div>
+          </div>
+        </section>
+
+        <section class="grid">
+          <div class="panel">
+            <div class="panel-header">
+              <h2>Список проектов</h2>
+              <span class="muted">Выберите mailbox для анализа письма</span>
+            </div>
+            <div id="projects-list" class="projects-list"></div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header">
+              <h2 id="workspace-title">Тест входящего письма</h2>
+              <span id="selected-project-label" class="muted">Проект не выбран</span>
+            </div>
+            <div id="email-parser-workspace">
+              <form id="analysis-form" class="stack">
+                <label>
+                  <span>Имя отправителя</span>
+                  <input name="fromName" value="Павел Ильин" />
+                </label>
+                <label>
+                  <span>Email отправителя</span>
+                  <input name="fromEmail" value="p.ilin@promsnab.ru" required />
+                </label>
+                <label>
+                  <span>Тема</span>
+                  <input name="subject" value="Заявка ABB по артикулам" />
+                </label>
+                <label>
+                  <span>Вложения</span>
+                  <input name="attachments" value="rekvizity.pdf, shildik_abb.jpg, article_1.jpg" />
+                </label>
+                <label>
+                  <span>Тело письма</span>
+                  <textarea name="body" rows="12">Добрый день.
+
+Прошу обработать заявку по ABB.
+ООО "ПромСнаб", ИНН 7701234567
+Артикул S201 C16 x 20 шт
+Нужны также фотографии шильдика и артикула.
+
+С уважением,
+Павел Ильин
+Менеджер по закупкам
++7 (495) 123-45-67
++7 916 000-11-22
+https://promsnab.ru</textarea>
+                </label>
+                <button type="submit">Разобрать письмо</button>
+              </form>
+            </div>
+
+            <div id="tender-importer-workspace" class="hidden stack">
+              <form id="tender-run-form" class="stack">
+                <label>
+                  <span>Глубина просмотра, дней</span>
+                  <input name="days" type="number" min="1" max="30" value="1" />
+                </label>
+                <label class="checkbox-row">
+                  <input name="reset" type="checkbox" />
+                  <span>Сбросить seen/log перед запуском</span>
+                </label>
+                <button type="submit">Запустить Project 2</button>
+              </form>
+
+              <div class="runtime-box">
+                <div class="panel-header">
+                  <h3>Runtime status</h3>
+                  <button id="refresh-runtime" type="button" class="secondary-button">Обновить статус</button>
+                </div>
+                <pre id="runtime-result" class="result-block compact">Выберите проект 2, чтобы увидеть runtime status.</pre>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section class="panel">
+          <div class="panel-header">
+            <h2>Результат разбора</h2>
+            <span class="muted">Классификация, CRM-действия, автоназначения</span>
+          </div>
+          <pre id="analysis-result" class="result-block">Выберите проект и отправьте письмо на разбор.</pre>
+        </section>
+      </main>
+    </div>
+
+    <script type="module" src="/app.js"></script>
+  </body>
+</html>
