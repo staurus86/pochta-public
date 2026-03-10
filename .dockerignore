@@ -1,0 +1,12 @@
+.git
+.gitignore
+node_modules
+npm-debug.log
+.env
+coverage
+project 2/credentials.json
+project 2/tender_parser.log
+project 2/seen_emails.json
+project 2/.runtime
+project 2/__pycache__
+tests
