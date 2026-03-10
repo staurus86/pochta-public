@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { ProjectsStore } from "./storage/projects-store.js";
 import { analyzeEmail } from "./services/email-analyzer.js";
 import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js";
+import { ProjectScheduler } from "./services/project-scheduler.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -13,6 +14,7 @@ const publicDir = path.join(rootDir, "public");
 const dataDir = path.resolve(rootDir, process.env.DATA_DIR || "data");
 const port = Number(process.env.PORT || 3000);
 const store = new ProjectsStore({ dataDir });
+const scheduler = new ProjectScheduler({ store, rootDir });
 
 const server = createServer(async (req, res) => {
   try {
@@ -32,6 +34,7 @@ const server = createServer(async (req, res) => {
 
 server.listen(port, () => {
   console.log(`Server listening on http://localhost:${port}`);
+  scheduler.start();
 });
 
 async function handleApi(req, res, url) {
@@ -95,6 +98,18 @@ async function handleApi(req, res, url) {
 
     await store.appendRun(project.id, run);
     return sendJson(res, 200, { run });
+  }
+
+  const scheduleMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/schedule$/);
+  if (req.method === "POST" && scheduleMatch) {
+    const project = await store.getProject(scheduleMatch[1]);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    const payload = await parseJsonBody(req);
+    const schedule = await store.updateSchedule(project.id, payload);
+    return sendJson(res, 200, { schedule });
   }
 
   const analyzeMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/analyze$/);

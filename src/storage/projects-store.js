@@ -1,6 +1,7 @@
 import { mkdir, readFile, writeFile } from "node:fs/promises";
 import path from "node:path";
 import { toSlug } from "../utils/slug.js";
+import { normalizeSchedule } from "../services/project-schedule.js";
 
 const DEFAULT_PROJECTS = [
   {
@@ -36,7 +37,13 @@ const DEFAULT_PROJECTS = [
         ]
       }
     ],
-    recentAnalyses: []
+    recentAnalyses: [],
+    schedule: normalizeSchedule({
+      enabled: false,
+      time: "12:00",
+      timezone: "Europe/Moscow",
+      days: 1
+    })
   },
   {
     id: "project-2-tender-parser",
@@ -59,7 +66,13 @@ const DEFAULT_PROJECTS = [
     },
     knownCompanies: [],
     recentAnalyses: [],
-    recentRuns: []
+    recentRuns: [],
+    schedule: normalizeSchedule({
+      enabled: true,
+      time: "12:00",
+      timezone: "Europe/Moscow",
+      days: 1
+    })
   }
 ];
 
@@ -79,7 +92,15 @@ export class ProjectsStore {
 
     try {
       const fileContents = await readFile(this.filePath, "utf-8");
-      this.projects = JSON.parse(fileContents);
+      this.projects = JSON.parse(fileContents).map((project) => ({
+        recentAnalyses: [],
+        recentRuns: [],
+        schedule: normalizeSchedule(),
+        ...project,
+        recentAnalyses: project.recentAnalyses || [],
+        recentRuns: project.recentRuns || [],
+        schedule: normalizeSchedule(project.schedule)
+      }));
     } catch {
       this.projects = DEFAULT_PROJECTS;
       await this.persist();
@@ -119,7 +140,8 @@ export class ProjectsStore {
       },
       knownCompanies: [],
       recentAnalyses: [],
-      recentRuns: []
+      recentRuns: [],
+      schedule: normalizeSchedule(payload.schedule)
     };
 
     this.projects.unshift(project);
@@ -164,12 +186,46 @@ export class ProjectsStore {
       added: runSummary.added,
       skipped: runSummary.skipped,
       failed: runSummary.failed,
-      durationMs: runSummary.durationMs
+      durationMs: runSummary.durationMs,
+      trigger: runSummary.trigger || "manual"
     };
 
     project.recentRuns = [summary, ...(project.recentRuns || [])].slice(0, 10);
     await this.persist();
     return summary;
+  }
+
+  async updateSchedule(projectId, scheduleInput) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) {
+      return null;
+    }
+
+    project.schedule = normalizeSchedule({
+      ...(project.schedule || {}),
+      ...(scheduleInput || {})
+    });
+
+    await this.persist();
+    return project.schedule;
+  }
+
+  async markScheduleTriggered(projectId, slot, triggeredAt) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) {
+      return null;
+    }
+
+    project.schedule = normalizeSchedule({
+      ...(project.schedule || {}),
+      lastTriggeredSlot: slot,
+      lastTriggeredAt: triggeredAt
+    });
+
+    await this.persist();
+    return project.schedule;
   }
 
   generateProjectId(baseId) {

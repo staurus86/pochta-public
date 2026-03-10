@@ -245,6 +245,13 @@ button:hover {
   margin: 0;
 }
 
+#schedule-form {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background: var(--panel-strong);
+}
+
 @media (max-width: 1080px) {
   .page-shell,
   .grid {

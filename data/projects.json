@@ -1,5 +1,15 @@
 [
   {
+    "recentAnalyses": [],
+    "recentRuns": [],
+    "schedule": {
+      "enabled": false,
+      "time": "12:00",
+      "timezone": "Europe/Moscow",
+      "days": 1,
+      "lastTriggeredSlot": null,
+      "lastTriggeredAt": null
+    },
     "id": "mailroom-primary",
     "type": "email-parser",
     "name": "Primary Mailroom",
@@ -44,10 +54,19 @@
           }
         ]
       }
-    ],
-    "recentAnalyses": []
+    ]
   },
   {
+    "recentAnalyses": [],
+    "recentRuns": [],
+    "schedule": {
+      "enabled": true,
+      "time": "12:00",
+      "timezone": "Europe/Moscow",
+      "days": 1,
+      "lastTriggeredSlot": null,
+      "lastTriggeredAt": null
+    },
     "id": "project-2-tender-parser",
     "type": "tender-importer",
     "name": "Project 2 Tender Parser",
@@ -66,8 +85,6 @@
       "logFile": "project 2/tender_parser.log",
       "credentialsFile": "project 2/credentials.json"
     },
-    "knownCompanies": [],
-    "recentAnalyses": [],
-    "recentRuns": []
+    "knownCompanies": []
   }
 ]

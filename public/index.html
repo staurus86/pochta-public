@@ -120,6 +120,30 @@ https://promsnab.ru</textarea>
             </div>
 
             <div id="tender-importer-workspace" class="hidden stack">
+              <form id="schedule-form" class="stack">
+                <div class="panel-header">
+                  <h3>Автозапуск</h3>
+                  <span class="muted">Ежедневный запуск по времени и таймзоне</span>
+                </div>
+                <label class="checkbox-row">
+                  <input name="enabled" type="checkbox" />
+                  <span>Включить расписание</span>
+                </label>
+                <label>
+                  <span>Время</span>
+                  <input name="time" type="time" value="12:00" />
+                </label>
+                <label>
+                  <span>Таймзона</span>
+                  <input name="timezone" value="Europe/Moscow" />
+                </label>
+                <label>
+                  <span>Глубина просмотра, дней</span>
+                  <input name="days" type="number" min="1" max="30" value="1" />
+                </label>
+                <button type="submit" class="secondary-button">Сохранить расписание</button>
+              </form>
+
               <form id="tender-run-form" class="stack">
                 <label>
                   <span>Глубина просмотра, дней</span>

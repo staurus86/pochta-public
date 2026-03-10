@@ -1,6 +1,7 @@
 const projectForm = document.querySelector("#project-form");
 const analysisForm = document.querySelector("#analysis-form");
 const tenderRunForm = document.querySelector("#tender-run-form");
+const scheduleForm = document.querySelector("#schedule-form");
 const projectsList = document.querySelector("#projects-list");
 const projectsCount = document.querySelector("#projects-count");
 const resultBlock = document.querySelector("#analysis-result");
@@ -59,6 +60,33 @@ analysisForm.addEventListener("submit", async (event) => {
 
   const data = await response.json();
   resultBlock.textContent = JSON.stringify(data.analysis || data, null, 2);
+  await refreshProjects();
+});
+
+scheduleForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+  const selectedProject = getSelectedProject();
+  if (!selectedProject || selectedProject.type !== "tender-importer") {
+    runtimeResult.textContent = "Расписание доступно только для runner-проектов.";
+    return;
+  }
+
+  const formData = new FormData(scheduleForm);
+  const payload = {
+    enabled: formData.get("enabled") === "on",
+    time: formData.get("time"),
+    timezone: formData.get("timezone"),
+    days: Number(formData.get("days") || 1)
+  };
+
+  const response = await fetch(`/api/projects/${selectedProjectId}/schedule`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(payload)
+  });
+
+  const data = await response.json();
+  runtimeResult.textContent = JSON.stringify(data.schedule || data, null, 2);
   await refreshProjects();
 });
 
@@ -125,6 +153,10 @@ function renderProjects() {
   }
 
   for (const project of projects) {
+    const scheduleLabel = project.schedule?.enabled
+      ? `Авто: ${project.schedule.time} ${project.schedule.timezone}`
+      : "Авто: выключено";
+
     const card = document.createElement("button");
     card.type = "button";
     card.className = `project-card${project.id === selectedProjectId ? " active" : ""}`;
@@ -132,7 +164,7 @@ function renderProjects() {
       <strong>${escapeHtml(project.name)}</strong>
       <span>${escapeHtml(project.mailbox)}</span>
       <span>Тип: ${escapeHtml(project.type || "email-parser")}</span>
-      <span>История: ${(project.recentAnalyses || []).length + (project.recentRuns || []).length}</span>
+      <span>${escapeHtml(scheduleLabel)}</span>
     `;
     card.addEventListener("click", async () => {
       selectedProjectId = project.id;
@@ -147,12 +179,13 @@ function renderProjects() {
     ? `${selectedProject.name} · ${selectedProject.mailbox}`
     : "Проект не выбран";
   renderWorkspace(selectedProject);
+  syncScheduleForm(selectedProject);
 }
 
 async function refreshRuntime() {
   const selectedProject = getSelectedProject();
   if (!selectedProject || selectedProject.type !== "tender-importer") {
-    runtimeResult.textContent = "Выберите проект 2, чтобы увидеть runtime status.";
+    runtimeResult.textContent = "Выберите project runner, чтобы увидеть runtime status.";
     return;
   }
 
@@ -166,6 +199,14 @@ function renderWorkspace(project) {
   emailWorkspace.classList.toggle("hidden", isTender);
   tenderWorkspace.classList.toggle("hidden", !isTender);
   workspaceTitle.textContent = isTender ? "Запуск tender parser" : "Тест входящего письма";
+}
+
+function syncScheduleForm(project) {
+  const schedule = project?.schedule || {};
+  scheduleForm.elements.enabled.checked = Boolean(schedule.enabled);
+  scheduleForm.elements.time.value = schedule.time || "12:00";
+  scheduleForm.elements.timezone.value = schedule.timezone || "Europe/Moscow";
+  scheduleForm.elements.days.value = String(schedule.days || 1);
 }
 
 function getSelectedProject() {
