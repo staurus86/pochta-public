@@ -3,6 +3,7 @@ node_modules/
 .env
 coverage/
 data/*.bak
+data/detection-kb.sqlite*
 __pycache__/
 *.pyc
 project 2/credentials.json

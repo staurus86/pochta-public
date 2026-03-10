@@ -4,6 +4,7 @@ node_modules
 npm-debug.log
 .env
 coverage
+data/detection-kb.sqlite*
 project 2/credentials.json
 project 2/tender_parser.log
 project 2/seen_emails.json

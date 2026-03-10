@@ -6,9 +6,9 @@
   "scripts": {
     "start": "node src/server.js",
     "dev": "node --watch src/server.js",
-    "test": "node tests/email-analyzer.test.js && node tests/project-schedule.test.js && node tests/mailbox-config-parser.test.js"
+    "test": "node tests/email-analyzer.test.js && node tests/project-schedule.test.js && node tests/mailbox-config-parser.test.js && node tests/detection-kb.test.js"
   },
   "engines": {
-    "node": ">=20"
+    "node": ">=25"
   }
 }

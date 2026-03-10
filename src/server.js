@@ -7,6 +7,7 @@ import { analyzeEmail } from "./services/email-analyzer.js";
 import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js";
 import { ProjectScheduler } from "./services/project-scheduler.js";
 import { getMailboxFileRuntime, runMailboxFileParser } from "./services/project3-runner.js";
+import { detectionKb } from "./services/detection-kb.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -41,6 +42,45 @@ server.listen(port, () => {
 async function handleApi(req, res, url) {
   if (req.method === "GET" && url.pathname === "/api/health") {
     return sendJson(res, 200, { ok: true });
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/detection-kb") {
+    return sendJson(res, 200, {
+      stats: detectionKb.getStats(),
+      rules: detectionKb.getRules(),
+      brandAliases: detectionKb.getBrandAliases(),
+      senderProfiles: detectionKb.getSenderProfiles()
+    });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/detection-kb/rules") {
+    const payload = await parseJsonBody(req);
+    if (!payload.scope || !payload.classifier || !payload.matchType || !payload.pattern) {
+      return sendJson(res, 400, { error: "Fields 'scope', 'classifier', 'matchType' and 'pattern' are required." });
+    }
+
+    const rule = detectionKb.addRule(payload);
+    return sendJson(res, 201, { rule });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/detection-kb/brand-aliases") {
+    const payload = await parseJsonBody(req);
+    if (!payload.canonicalBrand || !payload.alias) {
+      return sendJson(res, 400, { error: "Fields 'canonicalBrand' and 'alias' are required." });
+    }
+
+    const brandAlias = detectionKb.addBrandAlias(payload);
+    return sendJson(res, 201, { brandAlias });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/detection-kb/sender-profiles") {
+    const payload = await parseJsonBody(req);
+    if (!payload.classification) {
+      return sendJson(res, 400, { error: "Field 'classification' is required." });
+    }
+
+    const senderProfile = detectionKb.addSenderProfile(payload);
+    return sendJson(res, 201, { senderProfile });
   }
 
   if (req.method === "GET" && url.pathname === "/api/projects") {
