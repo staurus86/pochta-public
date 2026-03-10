@@ -142,7 +142,7 @@ def main():
     host = os.getenv("PROJECT3_IMAP_HOST", "mail.hosting.reg.ru")
     port = int(os.getenv("PROJECT3_IMAP_PORT", "993"))
     days = int(os.getenv("PROJECT3_DAYS", "1"))
-    max_emails = int(os.getenv("PROJECT3_MAX_EMAILS", "10"))
+    max_emails = int(os.getenv("PROJECT3_MAX_EMAILS", "100"))
 
     if len(sys.argv) > 1 and sys.argv[1].isdigit():
         days = int(sys.argv[1])

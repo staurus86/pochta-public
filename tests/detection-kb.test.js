@@ -30,3 +30,16 @@ runTest("detects brand aliases from knowledge base", () => {
   const brands = detectionKb.detectBrands("Запрос по endress и hauser на датчики", []);
   assert.ok(brands.includes("Endress & Hauser"));
 });
+
+runTest("classifies marketing newsletter as spam", () => {
+  const result = detectionKb.classifyMessage({
+    subject: "Весна, скидки до -70% на технику",
+    body: "Вы подписаны на рассылку. Кэшбэк 10%, акция, промокод и управление подпиской в личном кабинете.",
+    attachments: [],
+    fromEmail: "promo@shop.example",
+    projectBrands: []
+  });
+
+  assert.equal(result.label, "СПАМ");
+  assert.ok(result.scores.spam > result.scores.client);
+});

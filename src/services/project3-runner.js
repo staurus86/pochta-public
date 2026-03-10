@@ -38,7 +38,7 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
   const sourceFile = path.resolve(rootDir, runtime.sourceFile || "1.txt");
   const scriptPath = path.resolve(rootDir, runtime.scriptPath || "project 3/mailbox_file_runner.py");
   const days = Math.max(1, Number(options.days || project.schedule?.days || 1));
-  const maxEmails = Math.max(1, Number(options.maxEmails || 10));
+  const maxEmails = Math.max(1, Number(options.maxEmails || 100));
   const workingDirectory = path.resolve(rootDir, runtime.workingDirectory || "project 3");
   const startedAt = Date.now();
 
@@ -109,6 +109,7 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
     createdAt: new Date(startedAt).toISOString(),
     status: result.exitCode === 0 ? "ok" : "error",
     days,
+    maxEmails,
     processed: nonSpamMessages.length,
     added: 0,
     skipped: analyzedEmails.filter((item) => item.pipelineStatus === "ignored_spam").length,
@@ -116,6 +117,7 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
     durationMs: Date.now() - startedAt,
     accountCount: payload.accountCount || 0,
     fetchedEmailCount: payload.fetchedEmailCount || 0,
+    totalMessages: analyzedEmails.length,
     spamCount: analyzedEmails.filter((item) => item.pipelineStatus === "ignored_spam").length,
     readyForCrmCount: analyzedEmails.filter((item) => item.pipelineStatus === "ready_for_crm").length,
     clarificationCount: analyzedEmails.filter((item) => item.pipelineStatus === "needs_clarification").length,

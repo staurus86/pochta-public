@@ -6,8 +6,9 @@ const DEFAULT_DATA_DIR = path.resolve(process.cwd(), process.env.DATA_DIR || "da
 const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "mail.ru", "bk.ru", "list.ru", "inbox.ru", "yandex.ru", "ya.ru", "hotmail.com", "outlook.com"]);
 
 const DEFAULT_RULES = [
-  { scope: "body", classifier: "spam", matchType: "regex", pattern: "casino|crypto|легкий заработок|раскрут(ка|им)|seo[- ]?продвиж|unsubscr|viagra", weight: 5, notes: "Базовый spam filter" },
-  { scope: "body", classifier: "client", matchType: "regex", pattern: "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|цен", weight: 3, notes: "Клиентские сигналы" },
+  { scope: "body", classifier: "spam", matchType: "regex", pattern: "casino|crypto|легкий заработок|раскрут(ка|им)|seo[- ]?продвиж|unsubscr|viagra|скидк|распродаж|кэшбэк|отписа|подписк|рассылк|промокод|sale", weight: 6, notes: "Базовый spam filter" },
+  { scope: "subject", classifier: "spam", matchType: "regex", pattern: "скидк|распродаж|акци[яи]|кэшбэк|до\\s*-?\\d+%|промокод|sale", weight: 5, notes: "Маркетинговый spam subject" },
+  { scope: "body", classifier: "client", matchType: "regex", pattern: "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)", weight: 3, notes: "Клиентские сигналы" },
   { scope: "body", classifier: "vendor", matchType: "regex", pattern: "предлагаем|каталог|дилер|поставля|прайс|услуг", weight: 3, notes: "Поставщик услуг" },
   { scope: "subject", classifier: "client", matchType: "regex", pattern: "заявка|rfq|запрос|quotation|коммерческое", weight: 4, notes: "Клиентский subject" },
   { scope: "attachment", classifier: "client", matchType: "regex", pattern: "реквиз|шильд|артик|sku|label", weight: 2, notes: "Полезные вложения" },
@@ -110,33 +111,72 @@ class DetectionKnowledgeBase {
       );
     `);
 
-    this.seedIfEmpty();
+    this.seedDefaults();
+    this.migrateLegacyRules();
   }
 
-  seedIfEmpty() {
-    const hasRules = this.db.prepare("SELECT COUNT(*) AS count FROM detection_rules").get().count;
-    if (!hasRules) {
-      const statement = this.db.prepare("INSERT INTO detection_rules (scope, classifier, match_type, pattern, weight, notes) VALUES (?, ?, ?, ?, ?, ?)");
-      for (const rule of DEFAULT_RULES) {
-        statement.run(rule.scope, rule.classifier, rule.matchType, rule.pattern, rule.weight, rule.notes);
-      }
+  seedDefaults() {
+    const insertRule = this.db.prepare(`
+      INSERT INTO detection_rules (scope, classifier, match_type, pattern, weight, notes)
+      SELECT ?, ?, ?, ?, ?, ?
+      WHERE NOT EXISTS (
+        SELECT 1 FROM detection_rules
+        WHERE scope = ? AND classifier = ? AND match_type = ? AND pattern = ?
+      )
+    `);
+    for (const rule of DEFAULT_RULES) {
+      insertRule.run(
+        rule.scope,
+        rule.classifier,
+        rule.matchType,
+        rule.pattern,
+        rule.weight,
+        rule.notes,
+        rule.scope,
+        rule.classifier,
+        rule.matchType,
+        rule.pattern
+      );
     }
 
-    const hasBrands = this.db.prepare("SELECT COUNT(*) AS count FROM brand_aliases").get().count;
-    if (!hasBrands) {
-      const statement = this.db.prepare("INSERT INTO brand_aliases (canonical_brand, alias) VALUES (?, ?)");
-      for (const alias of DEFAULT_BRAND_ALIASES) {
-        statement.run(alias.canonicalBrand, alias.alias);
-      }
+    const insertBrand = this.db.prepare(`
+      INSERT INTO brand_aliases (canonical_brand, alias)
+      SELECT ?, ?
+      WHERE NOT EXISTS (
+        SELECT 1 FROM brand_aliases
+        WHERE canonical_brand = ? AND alias = ?
+      )
+    `);
+    for (const alias of DEFAULT_BRAND_ALIASES) {
+      insertBrand.run(alias.canonicalBrand, alias.alias, alias.canonicalBrand, alias.alias);
     }
 
-    const hasFields = this.db.prepare("SELECT COUNT(*) AS count FROM field_patterns").get().count;
-    if (!hasFields) {
-      const statement = this.db.prepare("INSERT INTO field_patterns (field_name, pattern, priority) VALUES (?, ?, ?)");
-      for (const field of DEFAULT_FIELD_PATTERNS) {
-        statement.run(field.fieldName, field.pattern, field.priority);
-      }
+    const insertField = this.db.prepare(`
+      INSERT INTO field_patterns (field_name, pattern, priority)
+      SELECT ?, ?, ?
+      WHERE NOT EXISTS (
+        SELECT 1 FROM field_patterns
+        WHERE field_name = ? AND pattern = ?
+      )
+    `);
+    for (const field of DEFAULT_FIELD_PATTERNS) {
+      insertField.run(field.fieldName, field.pattern, field.priority, field.fieldName, field.pattern);
     }
+  }
+
+  migrateLegacyRules() {
+    this.db.prepare(`
+      UPDATE detection_rules
+      SET pattern = ?, notes = ?
+      WHERE scope = 'body'
+        AND classifier = 'client'
+        AND match_type = 'regex'
+        AND pattern = ?
+    `).run(
+      "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+      "Клиентские сигналы",
+      "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|цен"
+    );
   }
 
   getRules() {

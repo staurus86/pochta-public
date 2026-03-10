@@ -14,10 +14,14 @@ const refreshRuntimeButton = document.querySelector("#refresh-runtime");
 const runnerInboxPanel = document.querySelector("#runner-inbox-panel");
 const runnerMessagesList = document.querySelector("#runner-messages-list");
 const runnerMessageDetail = document.querySelector("#runner-message-detail");
+const runnerSummary = document.querySelector("#runner-summary");
+const runnerRunButton = document.querySelector("#runner-run-button");
+const runnerResetRow = document.querySelector("#runner-reset-row");
 
 let projects = [];
 let selectedProjectId = null;
 let runnerMessages = [];
+let allRunnerMessages = [];
 let selectedRunnerMessageId = null;
 
 await refreshProjects();
@@ -111,6 +115,7 @@ tenderRunForm.addEventListener("submit", async (event) => {
   const formData = new FormData(tenderRunForm);
   const payload = {
     days: Number(formData.get("days") || 1),
+    maxEmails: Number(formData.get("maxEmails") || 100),
     reset: formData.get("reset") === "on"
   };
 
@@ -204,6 +209,7 @@ async function refreshRuntime() {
 async function refreshRunnerMessages() {
   const selectedProject = getSelectedProject();
   if (selectedProject?.type !== "mailbox-file-parser") {
+    allRunnerMessages = [];
     runnerMessages = [];
     selectedRunnerMessageId = null;
     renderRunnerInbox(selectedProject);
@@ -212,7 +218,8 @@ async function refreshRunnerMessages() {
 
   const response = await fetch(`/api/projects/${selectedProjectId}/messages`);
   const data = await response.json();
-  runnerMessages = (data.messages || [])
+  allRunnerMessages = data.messages || [];
+  runnerMessages = allRunnerMessages
     .filter((message) => !["ignored_spam", "fetch_error"].includes(message.pipelineStatus))
     .sort((left, right) => new Date(right.createdAt || 0).getTime() - new Date(left.createdAt || 0).getTime());
 
@@ -228,6 +235,8 @@ function renderWorkspace(project) {
   emailWorkspace.classList.toggle("hidden", isRunner);
   tenderWorkspace.classList.toggle("hidden", !isRunner);
   runnerInboxPanel.classList.toggle("hidden", project?.type !== "mailbox-file-parser");
+  runnerRunButton.textContent = isRunner ? `Запустить ${project?.name || "runner"}` : "Запустить runner";
+  runnerResetRow.classList.toggle("hidden", project?.type !== "tender-importer");
   workspaceTitle.textContent = isRunner ? `Запуск ${project?.name || "runner"}` : "Тест входящего письма";
 }
 
@@ -249,15 +258,17 @@ function isRunnerProject(project) {
 
 function renderRunnerInbox(project) {
   if (project?.type !== "mailbox-file-parser") {
+    runnerSummary.innerHTML = "";
     runnerMessagesList.innerHTML = "";
     runnerMessageDetail.textContent = "Inbox доступен только для проекта чтения почты из 1.txt.";
     return;
   }
 
+  renderRunnerSummary(project);
   runnerMessagesList.innerHTML = "";
   if (runnerMessages.length === 0) {
-    runnerMessagesList.textContent = "После запуска здесь появятся письма, подходящие под CRM-разбор.";
-    runnerMessageDetail.textContent = "Запустите project 3. Спам и ошибки чтения в inbox не показываются.";
+    runnerMessagesList.textContent = "Подходящих писем пока нет. Проверьте статистику выше: возможно, за запуск пришёл только spam.";
+    runnerMessageDetail.textContent = "Запустите project 3. В inbox показываются только хорошие письма, а spam и ошибки учитываются в статистике.";
     return;
   }
 
@@ -360,6 +371,55 @@ function formatCardMeta(message) {
   return `${company} · ${formatDate(message.createdAt)}`;
 }
 
+function renderRunnerSummary(project) {
+  const latestRun = project?.recentRuns?.[0] || {};
+  const stats = [
+    {
+      label: "Ящиков",
+      value: latestRun.accountCount ?? "?",
+      note: "Подключения из 1.txt"
+    },
+    {
+      label: "Получено писем",
+      value: latestRun.fetchedEmailCount ?? allRunnerMessages.length,
+      note: `Лимит ${latestRun.maxEmails || tenderRunForm.elements.maxEmails.value} на ящик`
+    },
+    {
+      label: "Всего разобрано",
+      value: latestRun.totalMessages ?? allRunnerMessages.length,
+      note: "После чтения IMAP"
+    },
+    {
+      label: "Удалено как spam",
+      value: latestRun.spamCount ?? allRunnerMessages.filter((message) => message.pipelineStatus === "ignored_spam").length,
+      note: "В inbox не попадает"
+    },
+    {
+      label: "Нужно уточнение",
+      value: latestRun.clarificationCount ?? allRunnerMessages.filter((message) => message.pipelineStatus === "needs_clarification").length,
+      note: "Запрос реквизитов и недостающих данных"
+    },
+    {
+      label: "Готово к CRM",
+      value: latestRun.readyForCrmCount ?? allRunnerMessages.filter((message) => message.pipelineStatus === "ready_for_crm").length,
+      note: "Автосоздание клиента/запроса"
+    },
+    {
+      label: "В inbox",
+      value: runnerMessages.length,
+      note: latestRun.createdAt ? `Последний запуск ${formatDate(latestRun.createdAt)}` : "Запусков пока не было"
+    }
+  ];
+
+  runnerSummary.innerHTML = stats.map((item) => `
+    <div class="summary-card">
+      <span>${escapeHtml(item.label)}</span>
+      <strong>${escapeHtml(item.value)}</strong>
+      <small>${escapeHtml(item.note)}</small>
+    </div>
+  `).join("");
+}
+
 function statusLabel(status) {
   const mapping = {
     ready_for_crm: "Готово к CRM",
@@ -392,7 +452,12 @@ function formatDate(value) {
     return "Без даты";
   }
 
-  return new Date(value).toLocaleString("ru-RU", {
+  const date = new Date(value);
+  if (Number.isNaN(date.getTime())) {
+    return String(value);
+  }
+
+  return date.toLocaleString("ru-RU", {
     dateStyle: "short",
     timeStyle: "short"
   });

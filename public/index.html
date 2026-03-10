@@ -139,7 +139,7 @@ https://promsnab.ru</textarea>
                 </label>
                 <label>
                   <span>Глубина просмотра, дней</span>
-                  <input name="days" type="number" min="1" max="30" value="1" />
+                  <input name="days" type="number" min="1" max="365" value="1" />
                 </label>
                 <button type="submit" class="secondary-button">Сохранить расписание</button>
               </form>
@@ -147,13 +147,17 @@ https://promsnab.ru</textarea>
               <form id="tender-run-form" class="stack">
                 <label>
                   <span>Глубина просмотра, дней</span>
-                  <input name="days" type="number" min="1" max="30" value="1" />
+                  <input name="days" type="number" min="1" max="365" value="1" />
                 </label>
-                <label class="checkbox-row">
+                <label>
+                  <span>Макс. писем на ящик</span>
+                  <input name="maxEmails" type="number" min="1" max="1000" value="100" />
+                </label>
+                <label id="runner-reset-row" class="checkbox-row">
                   <input name="reset" type="checkbox" />
                   <span>Сбросить seen/log перед запуском</span>
                 </label>
-                <button type="submit">Запустить Project 2</button>
+                <button id="runner-run-button" type="submit">Запустить runner</button>
               </form>
 
               <div class="runtime-box">
@@ -180,6 +184,7 @@ https://promsnab.ru</textarea>
             <h2>Inbox проекта</h2>
             <span class="muted">Список писем, пригодных для CRM-разбора, и удалённый спам</span>
           </div>
+          <div id="runner-summary" class="inbox-summary"></div>
           <div class="inbox-grid">
             <div id="runner-messages-list" class="messages-list"></div>
             <pre id="runner-message-detail" class="result-block compact">Запустите runner и выберите письмо.</pre>

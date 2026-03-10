@@ -258,6 +258,38 @@ button:hover {
   gap: 18px;
 }
 
+.inbox-summary {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.summary-card {
+  padding: 14px 16px;
+  border-radius: 16px;
+  border: 1px solid var(--line);
+  background: var(--panel-strong);
+}
+
+.summary-card span {
+  display: block;
+  font-size: 0.8rem;
+  color: var(--muted);
+}
+
+.summary-card strong {
+  display: block;
+  margin-top: 6px;
+  font-size: 1.35rem;
+}
+
+.summary-card small {
+  display: block;
+  margin-top: 6px;
+  color: var(--muted);
+}
+
 .messages-list {
   display: grid;
   gap: 10px;

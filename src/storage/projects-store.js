@@ -216,11 +216,18 @@ export class ProjectsStore {
       createdAt: runSummary.createdAt,
       status: runSummary.status,
       days: runSummary.days,
+      maxEmails: runSummary.maxEmails,
       processed: runSummary.processed,
       added: runSummary.added,
       skipped: runSummary.skipped,
       failed: runSummary.failed,
       durationMs: runSummary.durationMs,
+      accountCount: runSummary.accountCount,
+      fetchedEmailCount: runSummary.fetchedEmailCount,
+      totalMessages: runSummary.totalMessages,
+      spamCount: runSummary.spamCount,
+      readyForCrmCount: runSummary.readyForCrmCount,
+      clarificationCount: runSummary.clarificationCount,
       trigger: runSummary.trigger || "manual"
     };
 
