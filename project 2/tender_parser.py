@@ -44,6 +44,23 @@ def build_config() -> Dict:
         inline_path.write_text(credentials_json, encoding='utf-8')
         credentials_path = str(inline_path)
 
+    seen_path = Path(os.getenv('PROJECT2_SEEN_FILE', str(runtime_dir / 'seen_emails.json')))
+    log_path = Path(os.getenv('PROJECT2_LOG_FILE', str(runtime_dir / 'tender_parser.log')))
+
+    if not seen_path.exists():
+        seen_b64 = os.getenv('PROJECT2_SEEN_B64')
+        if seen_b64:
+            seen_path.write_text(base64.b64decode(seen_b64).decode('utf-8'), encoding='utf-8')
+        else:
+            seen_path.write_text('{}', encoding='utf-8')
+
+    if not log_path.exists():
+        log_b64 = os.getenv('PROJECT2_LOG_B64')
+        if log_b64:
+            log_path.write_text(base64.b64decode(log_b64).decode('utf-8'), encoding='utf-8')
+        else:
+            log_path.write_text('', encoding='utf-8')
+
     def env_or_default(name: str, default: str) -> str:
         value = os.getenv(name)
         return value if value not in (None, '') else default
@@ -55,8 +72,8 @@ def build_config() -> Dict:
         'IMAP_PORT': int(env_or_default('PROJECT2_IMAP_PORT', '993')),
         'GOOGLE_SHEETS_ID': env_or_default('PROJECT2_GOOGLE_SHEETS_ID', '1dLZxH5WcuriSSKRjR6xg1LiB7Hu6q-qVMWycGh2OQsM'),
         'GOOGLE_CREDENTIALS': credentials_path,
-        'SEEN_FILE': env_or_default('PROJECT2_SEEN_FILE', str(runtime_dir / 'seen_emails.json')),
-        'LOG_FILE': env_or_default('PROJECT2_LOG_FILE', str(runtime_dir / 'tender_parser.log')),
+        'SEEN_FILE': str(seen_path),
+        'LOG_FILE': str(log_path),
     }
 
 

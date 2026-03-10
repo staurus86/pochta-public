@@ -11,6 +11,7 @@ export async function getTenderRuntime(project, rootDir) {
   const seenFile = path.resolve(rootDir, runtime.seenFile || "project 2/seen_emails.json");
   const logFile = path.resolve(rootDir, runtime.logFile || "project 2/tender_parser.log");
   const credentialsFile = path.resolve(rootDir, runtime.credentialsFile || "project 2/credentials.json");
+  await ensureSeededFiles({ seenFile, logFile });
 
   const [scriptExists, credentialsExists] = await Promise.all([
     exists(scriptPath),
@@ -86,6 +87,8 @@ async function buildRuntimeEnv(project, rootDir, runtimeDir) {
   const logFile = path.resolve(rootDir, runtime.logFile || "project 2/tender_parser.log");
   const env = { ...process.env };
 
+  await ensureSeededFiles({ seenFile, logFile });
+
   env.PROJECT2_RUNTIME_DIR = runtimeDir;
   env.PROJECT2_GOOGLE_CREDENTIALS = credentialsFile;
   env.PROJECT2_SEEN_FILE = seenFile;
@@ -111,6 +114,29 @@ async function buildRuntimeEnv(project, rootDir, runtimeDir) {
   }
 
   return env;
+}
+
+async function ensureSeededFiles({ seenFile, logFile }) {
+  await Promise.all([
+    seedFileIfMissing(seenFile, process.env.PROJECT2_SEEN_B64, "{}"),
+    seedFileIfMissing(logFile, process.env.PROJECT2_LOG_B64, "")
+  ]);
+}
+
+async function seedFileIfMissing(filePath, base64Value, fallbackContents) {
+  if (await exists(filePath)) {
+    return;
+  }
+
+  await mkdir(path.dirname(filePath), { recursive: true });
+
+  if (base64Value) {
+    const decoded = Buffer.from(base64Value, "base64").toString("utf-8");
+    await writeFile(filePath, decoded, "utf-8");
+    return;
+  }
+
+  await writeFile(filePath, fallbackContents, "utf-8");
 }
 
 function setEnvIfPresent(target, name) {
