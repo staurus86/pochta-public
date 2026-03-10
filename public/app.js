@@ -66,7 +66,7 @@ analysisForm.addEventListener("submit", async (event) => {
 scheduleForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const selectedProject = getSelectedProject();
-  if (!selectedProject || selectedProject.type !== "tender-importer") {
+  if (!selectedProject || !isRunnerProject(selectedProject)) {
     runtimeResult.textContent = "Расписание доступно только для runner-проектов.";
     return;
   }
@@ -98,7 +98,7 @@ tenderRunForm.addEventListener("submit", async (event) => {
   }
 
   const selectedProject = getSelectedProject();
-  if (selectedProject?.type !== "tender-importer") {
+  if (!selectedProject || !isRunnerProject(selectedProject)) {
     runtimeResult.textContent = "Этот проект не поддерживает Python-runner.";
     return;
   }
@@ -184,8 +184,8 @@ function renderProjects() {
 
 async function refreshRuntime() {
   const selectedProject = getSelectedProject();
-  if (!selectedProject || selectedProject.type !== "tender-importer") {
-    runtimeResult.textContent = "Выберите project runner, чтобы увидеть runtime status.";
+  if (!selectedProject || !isRunnerProject(selectedProject)) {
+    runtimeResult.textContent = "Выберите runner-проект, чтобы увидеть runtime status.";
     return;
   }
 
@@ -195,10 +195,10 @@ async function refreshRuntime() {
 }
 
 function renderWorkspace(project) {
-  const isTender = project?.type === "tender-importer";
-  emailWorkspace.classList.toggle("hidden", isTender);
-  tenderWorkspace.classList.toggle("hidden", !isTender);
-  workspaceTitle.textContent = isTender ? "Запуск tender parser" : "Тест входящего письма";
+  const isRunner = isRunnerProject(project);
+  emailWorkspace.classList.toggle("hidden", isRunner);
+  tenderWorkspace.classList.toggle("hidden", !isRunner);
+  workspaceTitle.textContent = isRunner ? `Запуск ${project?.name || "runner"}` : "Тест входящего письма";
 }
 
 function syncScheduleForm(project) {
@@ -211,6 +211,10 @@ function syncScheduleForm(project) {
 
 function getSelectedProject() {
   return projects.find((project) => project.id === selectedProjectId) || null;
+}
+
+function isRunnerProject(project) {
+  return ["tender-importer", "mailbox-file-parser"].includes(project?.type);
 }
 
 function escapeHtml(value) {

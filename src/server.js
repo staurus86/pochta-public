@@ -6,6 +6,7 @@ import { ProjectsStore } from "./storage/projects-store.js";
 import { analyzeEmail } from "./services/email-analyzer.js";
 import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js";
 import { ProjectScheduler } from "./services/project-scheduler.js";
+import { getMailboxFileRuntime, runMailboxFileParser } from "./services/project3-runner.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -64,11 +65,15 @@ async function handleApi(req, res, url) {
       return sendJson(res, 404, { error: "Project not found." });
     }
 
-    if (project.type !== "tender-importer") {
-      return sendJson(res, 400, { error: "Runtime is available only for tender-importer projects." });
+    let runtime;
+    if (project.type === "tender-importer") {
+      runtime = await getTenderRuntime(project, rootDir);
+    } else if (project.type === "mailbox-file-parser") {
+      runtime = await getMailboxFileRuntime(project, rootDir);
+    } else {
+      return sendJson(res, 400, { error: "Runtime is available only for runner projects." });
     }
 
-    const runtime = await getTenderRuntime(project, rootDir);
     return sendJson(res, 200, { runtime });
   }
 
@@ -79,17 +84,19 @@ async function handleApi(req, res, url) {
       return sendJson(res, 404, { error: "Project not found." });
     }
 
-    if (project.type !== "tender-importer") {
-      return sendJson(res, 400, { error: "Run action is available only for tender-importer projects." });
+    if (!["tender-importer", "mailbox-file-parser"].includes(project.type)) {
+      return sendJson(res, 400, { error: "Run action is available only for runner projects." });
     }
 
     const payload = await parseJsonBody(req);
     let run;
     try {
-      run = await runTenderImporter(project, rootDir, payload);
+      run = project.type === "tender-importer"
+        ? await runTenderImporter(project, rootDir, payload)
+        : await runMailboxFileParser(project, rootDir, payload);
     } catch (error) {
       return sendJson(res, 500, {
-        error: "Tender runner failed to start.",
+        error: "Project runner failed to start.",
         details: error.code === "EPERM"
           ? "Process spawning is blocked in the current sandbox. Run locally or on Railway."
           : error.message

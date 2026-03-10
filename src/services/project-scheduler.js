@@ -1,5 +1,6 @@
 import { getCurrentScheduleSlot, isScheduleDue } from "./project-schedule.js";
 import { runTenderImporter } from "./tender-runner.js";
+import { runMailboxFileParser } from "./project3-runner.js";
 
 export class ProjectScheduler {
   constructor({ store, rootDir, logger = console }) {
@@ -74,6 +75,16 @@ export class ProjectScheduler {
   async executeProject(project) {
     if (project.type === "tender-importer") {
       const run = await runTenderImporter(project, this.rootDir, {
+        days: Number(project.schedule?.days || 1)
+      });
+
+      run.trigger = "schedule";
+      await this.store.appendRun(project.id, run);
+      return;
+    }
+
+    if (project.type === "mailbox-file-parser") {
+      const run = await runMailboxFileParser(project, this.rootDir, {
         days: Number(project.schedule?.days || 1)
       });
 

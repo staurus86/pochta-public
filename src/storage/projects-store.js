@@ -73,6 +73,33 @@ const DEFAULT_PROJECTS = [
       timezone: "Europe/Moscow",
       days: 1
     })
+  },
+  {
+    id: "project-3-mailbox-file",
+    type: "mailbox-file-parser",
+    name: "Project 3 Mailbox File Parser",
+    mailbox: "multi-mailbox@project3.local",
+    description: "Читает mailbox-конфигурации из 1.txt, забирает письма и прогоняет тела через CRM-анализатор первого проекта.",
+    brands: [],
+    managerPool: {
+      defaultMop: "Не назначен",
+      defaultMoz: "Не назначен",
+      brandOwners: []
+    },
+    runtime: {
+      scriptPath: "project 3/mailbox_file_runner.py",
+      workingDirectory: "project 3",
+      sourceFile: "1.txt"
+    },
+    knownCompanies: [],
+    recentAnalyses: [],
+    recentRuns: [],
+    schedule: normalizeSchedule({
+      enabled: false,
+      time: "12:00",
+      timezone: "Europe/Moscow",
+      days: 1
+    })
   }
 ];
 

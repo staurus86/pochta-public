@@ -1,0 +1,28 @@
+Настройки шифрованного SSL/TLS соединения
+Сервер входящей почты: mail.hosting.reg.ru:
+для настройки POP3 используйте порт 995,
+для настройки IMAP используйте порт 993.
+
+Настройки нешифрованного соединения
+Сервер входящей почты: mail.hosting.reg.ru:
+для настройки POP3 используйте порт 110,
+для настройки IMAP используйте порт 143.
+
+Почта	Админка почты	Пароль	Сборщик почты	Сайт EMD	Бренд
+info@ersab2b.ru	https://webmail.hosting.reg.ru/	yY3xN3sI8uwQ9yF5	emd@siderus.su	https://ersab2b.ru	Ersa
+info@itec-rus.ru	https://webmail.hosting.reg.ru/	zG3yG9pK7xgK1gR9	emd@siderus.su	https://itec-rus.ru	Itec
+info@paulvahle.ru	https://webmail.hosting.reg.ru/	nI4gQ5oZ5tsB1kL8	emd@siderus.su	https://paulvahle.ru	Paul vahle
+info@petersime-rus.ru	https://webmail.hosting.reg.ru/	uX5hT6lO3tpN4yS2	emd@siderus.su	https://petersime-rus.ru	Petersime
+info@rstahl.ru	https://webmail.hosting.reg.ru/	kX6iS7vH2jkP8sD3	emd@siderus.su	https://rstahl.ru	R. Stahl
+info@schimpfdrive.ru	https://webmail.hosting.reg.ru/	gF4zM6mV2agL2tV4	emd@siderus.su	https://schimpfdrive.ru	Schimpf
+info@schischekrus.ru	https://webmail.hosting.reg.ru/	uV8vB8pR8wtP9cS6	emd@siderus.su	https://schischekrus.ru	Schischek
+info@sera-rus.ru	https://webmail.hosting.reg.ru/	jD6rA4rU9ihU0iX5	emd@siderus.su	https://sera-rus.ru	Sera
+info@serfilco-ru.ru	https://webmail.hosting.reg.ru/	xV6xR9nH8skN1jJ9	emd@siderus.su	https://serfilco-ru.ru	Serfilco
+info@vega-automation.ru	https://webmail.hosting.reg.ru/	xJ5kG0bI2buI1lW9	emd@siderus.su	https://vega-automation.ru	Vega
+info@waldner-ru.ru	https://webmail.hosting.reg.ru/	cB2uI0eQ7eqF7zC3	emd@siderus.su	https://waldner-ru.ru	Waldner
+info@kiesel-rus.ru	https://webmail.hosting.reg.ru/	wH2kW4hY7ygI4aF4	emd@siderus.su	https://kiesel-rus.ru	Kiesel
+info@maximator-ru.ru	https://webmail.hosting.reg.ru/	nE6zS7jX1dtB6cF0	emd@siderus.su	https://maximator-ru.ru	Maximator
+info@stromag-ru.ru	https://webmail.hosting.reg.ru/	pD6kK9zE4jyZ4sX7	emd@siderus.su	https://stromag-ru.ru.ru	Stromag
+zakaz@endress-hauser.pro	https://webmail.hosting.reg.ru/	camzov-0tyzpo-Punhac	zakaz@endress-hauser.pro	https://endress-hauser.pro	Endress & Hauser
+zakaz1@endress-hauser.pro	https://webmail.hosting.reg.ru/	oW8iT7vA5etN0zR0	zakaz@endress-hauser.pro	https://endress-hauser.pro	Endress & Hauser
+zakaz2@endress-hauser.pro	https://webmail.hosting.reg.ru/	bP0dE1rC4hrQ1xJ3	zakaz@endress-hauser.pro	https://endress-hauser.pro	Endress & Hauser

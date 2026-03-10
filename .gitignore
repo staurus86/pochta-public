@@ -8,4 +8,5 @@ __pycache__/
 project 2/credentials.json
 project 2/tender_parser.log
 project 2/seen_emails.json
+project 2/*_b64.txt
 project 2/.runtime/
