@@ -98,9 +98,15 @@ async function buildRuntimeEnv(project, rootDir, runtimeDir) {
   setEnvIfPresent(env, "PROJECT2_GOOGLE_SHEETS_ID");
 
   const inlineCredentials = process.env.PROJECT2_GOOGLE_CREDENTIALS_JSON;
+  const inlineCredentialsB64 = process.env.PROJECT2_GOOGLE_CREDENTIALS_B64;
   if (inlineCredentials) {
     const inlinePath = path.join(runtimeDir, "credentials.runtime.json");
     await writeFile(inlinePath, inlineCredentials, "utf-8");
+    env.PROJECT2_GOOGLE_CREDENTIALS = inlinePath;
+  } else if (inlineCredentialsB64) {
+    const inlinePath = path.join(runtimeDir, "credentials.runtime.json");
+    const decoded = Buffer.from(inlineCredentialsB64, "base64").toString("utf-8");
+    await writeFile(inlinePath, decoded, "utf-8");
     env.PROJECT2_GOOGLE_CREDENTIALS = inlinePath;
   }
 

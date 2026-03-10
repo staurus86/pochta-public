@@ -10,6 +10,7 @@ import sys
 import hashlib
 import re
 import time
+import base64
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
 from pathlib import Path
@@ -30,6 +31,19 @@ def build_config() -> Dict:
     runtime_dir = Path(os.getenv('PROJECT2_RUNTIME_DIR', BASE_DIR))
     runtime_dir.mkdir(parents=True, exist_ok=True)
 
+    credentials_b64 = os.getenv('PROJECT2_GOOGLE_CREDENTIALS_B64')
+    credentials_json = os.getenv('PROJECT2_GOOGLE_CREDENTIALS_JSON')
+    credentials_path = os.getenv('PROJECT2_GOOGLE_CREDENTIALS', str(BASE_DIR / 'credentials.json'))
+
+    if credentials_b64:
+        inline_path = runtime_dir / 'credentials.runtime.json'
+        inline_path.write_text(base64.b64decode(credentials_b64).decode('utf-8'), encoding='utf-8')
+        credentials_path = str(inline_path)
+    elif credentials_json:
+        inline_path = runtime_dir / 'credentials.runtime.json'
+        inline_path.write_text(credentials_json, encoding='utf-8')
+        credentials_path = str(inline_path)
+
     def env_or_default(name: str, default: str) -> str:
         value = os.getenv(name)
         return value if value not in (None, '') else default
@@ -40,7 +54,7 @@ def build_config() -> Dict:
         'IMAP_HOST': env_or_default('PROJECT2_IMAP_HOST', 'mail.klvrt.ru'),
         'IMAP_PORT': int(env_or_default('PROJECT2_IMAP_PORT', '993')),
         'GOOGLE_SHEETS_ID': env_or_default('PROJECT2_GOOGLE_SHEETS_ID', '1dLZxH5WcuriSSKRjR6xg1LiB7Hu6q-qVMWycGh2OQsM'),
-        'GOOGLE_CREDENTIALS': env_or_default('PROJECT2_GOOGLE_CREDENTIALS', str(BASE_DIR / 'credentials.json')),
+        'GOOGLE_CREDENTIALS': credentials_path,
         'SEEN_FILE': env_or_default('PROJECT2_SEEN_FILE', str(runtime_dir / 'seen_emails.json')),
         'LOG_FILE': env_or_default('PROJECT2_LOG_FILE', str(runtime_dir / 'tender_parser.log')),
     }
