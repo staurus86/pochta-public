@@ -169,26 +169,10 @@ function setupForms() {
     const fd = new FormData(e.target);
     const btn = $('#p3-run-btn');
     btn.disabled = true;
-    btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;"></div> Получаю письма...';
-    try {
-      const res = await fetch(`/api/projects/${P3_ID}/run`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          days: Number(fd.get('days') || 1),
-          maxEmails: Number(fd.get('maxEmails') || 100)
-        })
-      });
-      const data = await res.json();
-      $('#p3-runtime-result').textContent = JSON.stringify(data.run || data, null, 2);
-    } catch (err) {
-      $('#p3-runtime-result').textContent = 'Ошибка: ' + err.message;
-    }
-    btn.disabled = false;
-    btn.textContent = 'Получить и разобрать письма';
-    await refreshProjects();
-    await refreshP3Messages();
-    renderP3Kpis();
+    await startP3Job({
+      days: Number(fd.get('days') || 1),
+      maxEmails: Number(fd.get('maxEmails') || 100)
+    }, btn, 'Получить и разобрать письма', '#p3-runtime-result');
   });
 
   $('#p3-schedule-form').addEventListener('submit', async (e) => {
@@ -214,24 +198,12 @@ function setupForms() {
   $('#inbox-fetch-btn').addEventListener('click', async () => {
     const btn = $('#inbox-fetch-btn');
     btn.disabled = true;
-    btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;"></div> Получаю...';
     $('#inbox-status-text').textContent = 'Подключение к почтовым ящикам...';
-    try {
-      const res = await fetch(`/api/projects/${P3_ID}/run`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ days: 1, maxEmails: 100 })
-      });
-      const data = await res.json();
-      const run = data.run || {};
-      $('#inbox-status-text').textContent = `Получено ${run.fetchedEmailCount || 0} писем, CRM-готовых: ${run.readyForCrmCount || 0}, спам: ${run.spamCount || 0}`;
-    } catch (err) {
-      $('#inbox-status-text').textContent = 'Ошибка: ' + err.message;
-    }
-    btn.disabled = false;
-    btn.innerHTML = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Получить письма';
-    await refreshProjects();
-    await refreshP3Messages();
+    await startP3Job({ days: 1, maxEmails: 100 }, btn, '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Получить письма', null, (run) => {
+      if (run) {
+        $('#inbox-status-text').textContent = `Получено ${run.fetchedEmailCount || 0} писем, CRM-готовых: ${run.readyForCrmCount || 0}, спам: ${run.spamCount || 0}`;
+      }
+    });
   });
 
   $('#inbox-delete-all-btn').addEventListener('click', async () => {
@@ -320,6 +292,78 @@ async function refreshKb() {
   } catch { kbData = null; }
   renderKb();
 }
+
+// ═══ P3 async job launcher with polling & timer ═══
+async function startP3Job(payload, btn, resetLabel, runtimeEl, onDone) {
+  const timerEl = $('#p3-job-timer') || createJobTimer();
+  let elapsed = 0;
+  const timerInterval = setInterval(() => {
+    elapsed++;
+    timerEl.textContent = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
+    timerEl.style.display = 'inline-block';
+    if (btn) btn.innerHTML = `<div class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;"></div> Выполняется... ${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
+  }, 1000);
+
+  try {
+    const res = await fetch(`/api/projects/${P3_ID}/run`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+
+    // Async job (202) — poll for completion
+    if (data.jobId) {
+      const jobId = data.jobId;
+      if (runtimeEl) $(runtimeEl).textContent = 'Задача запущена в фоне, ожидаю результат...';
+
+      let job = null;
+      while (true) {
+        await sleep(3000);
+        try {
+          const jr = await fetch(`/api/projects/${P3_ID}/job/${jobId}`);
+          const jd = await jr.json();
+          job = jd.job;
+          if (job.status !== 'running') break;
+        } catch { /* retry */ }
+      }
+
+      if (job.status === 'done' && job.run) {
+        if (runtimeEl) $(runtimeEl).textContent = JSON.stringify(job.run, null, 2);
+        if (onDone) onDone(job.run);
+      } else {
+        if (runtimeEl) $(runtimeEl).textContent = 'Ошибка: ' + (job.error || 'Неизвестная ошибка');
+        if (onDone) onDone(null);
+      }
+    } else {
+      // Sync response (shouldn't happen for P3, but handle gracefully)
+      if (runtimeEl) $(runtimeEl).textContent = JSON.stringify(data.run || data, null, 2);
+      if (onDone) onDone(data.run);
+    }
+  } catch (err) {
+    if (runtimeEl) $(runtimeEl).textContent = 'Ошибка: ' + err.message;
+    if (onDone) onDone(null);
+  }
+
+  clearInterval(timerInterval);
+  timerEl.style.display = 'none';
+  if (btn) { btn.disabled = false; btn.innerHTML = resetLabel; }
+  await refreshProjects();
+  await refreshP3Messages();
+  renderP3Kpis();
+}
+
+function createJobTimer() {
+  const el = document.createElement('span');
+  el.id = 'p3-job-timer';
+  el.className = 'badge badge-system';
+  el.style.cssText = 'display:none;margin-left:8px;font-family:"JetBrains Mono",monospace;font-size:12px;';
+  const header = document.querySelector('#page-project3 .panel-header') || document.body;
+  header.appendChild(el);
+  return el;
+}
+
+function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
 async function deleteMessage(messageKey) {
   await fetch(`/api/projects/${P3_ID}/messages/${encodeURIComponent(messageKey)}`, { method: 'DELETE' });

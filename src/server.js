@@ -18,6 +18,9 @@ const port = Number(process.env.PORT || 3000);
 const store = new ProjectsStore({ dataDir });
 const scheduler = new ProjectScheduler({ store, rootDir });
 
+// Background job tracking for long-running tasks
+const backgroundJobs = new Map();
+
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
@@ -118,6 +121,16 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, { runtime });
   }
 
+  const jobMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/job\/([^/]+)$/);
+  if (req.method === "GET" && jobMatch) {
+    const job = backgroundJobs.get(jobMatch[2]);
+    if (!job || job.projectId !== jobMatch[1]) {
+      return sendJson(res, 404, { error: "Job not found." });
+    }
+
+    return sendJson(res, 200, { job: { id: job.id, status: job.status, run: job.run || null, error: job.error || null, startedAt: job.startedAt } });
+  }
+
   const runMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/run$/);
   if (req.method === "POST" && runMatch) {
     const project = await store.getProject(runMatch[1]);
@@ -130,11 +143,35 @@ async function handleApi(req, res, url) {
     }
 
     const payload = await parseJsonBody(req);
+
+    // mailbox-file-parser runs async to avoid Railway HTTP timeout
+    if (project.type === "mailbox-file-parser") {
+      const jobId = `job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+      const job = { id: jobId, projectId: project.id, status: "running", run: null, error: null, startedAt: new Date().toISOString() };
+      backgroundJobs.set(jobId, job);
+
+      // Fire and forget — process runs in background
+      runMailboxFileParser(project, rootDir, payload)
+        .then(async (run) => {
+          await store.appendRun(project.id, run);
+          if (Array.isArray(run.recentMessages)) {
+            await store.replaceRecentMessages(project.id, run.recentMessages);
+          }
+          job.status = "done";
+          job.run = run;
+        })
+        .catch((error) => {
+          job.status = "error";
+          job.error = error.message;
+        });
+
+      return sendJson(res, 202, { jobId, message: "Запуск начат в фоновом режиме. Проверяйте статус через /api/projects/" + project.id + "/job/" + jobId });
+    }
+
+    // tender-importer runs synchronously (fast)
     let run;
     try {
-      run = project.type === "tender-importer"
-        ? await runTenderImporter(project, rootDir, payload)
-        : await runMailboxFileParser(project, rootDir, payload);
+      run = await runTenderImporter(project, rootDir, payload);
     } catch (error) {
       return sendJson(res, 500, {
         error: "Project runner failed to start.",
