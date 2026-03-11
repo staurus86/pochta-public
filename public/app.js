@@ -668,10 +668,20 @@ function renderEmailView(msg, viewEl, detailEl) {
     ${rules.length ? `<div class="detail-section"><div class="detail-section-title">Правила</div>${rules.map((r) => `<div style="font-size:11px;padding:3px 0;display:flex;gap:6px;align-items:center;"><span class="badge ${r.classifier === 'spam' ? 'badge-spam' : r.classifier === 'client' ? 'badge-client' : 'badge-vendor'}" style="font-size:9px;">${esc(r.classifier)}</span><span style="color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:10px;">${esc(truncate(r.pattern, 30))}</span><span style="color:var(--green);font-weight:600;margin-left:auto;">+${r.weight}</span></div>`).join('')}</div>` : ''}
     <div class="detail-section">
       <div class="detail-section-title">Обучение классификатора</div>
-      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
         <button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green)" onclick="window.__trainSender('${esc(sender.email)}','client','${esc(sender.companyName || '')}')">Это заявка</button>
         <button class="btn btn-sm" style="background:var(--rose-dim);color:var(--rose);border:1px solid var(--rose)" onclick="window.__trainSender('${esc(sender.email)}','spam','')">Это спам</button>
         <button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)" onclick="window.__trainSender('${esc(sender.email)}','vendor','${esc(sender.companyName || '')}')">Поставщик</button>
+      </div>
+      <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
+        <label class="form-check" style="font-size:11px;color:var(--text-muted);margin:0;">
+          <input type="radio" name="train-scope-${esc(msgKey)}" value="domain" checked style="margin-right:4px;" />
+          <span>Весь домен @${esc((sender.email || '').split('@')[1] || '')}</span>
+        </label>
+        <label class="form-check" style="font-size:11px;color:var(--text-muted);margin:0;">
+          <input type="radio" name="train-scope-${esc(msgKey)}" value="email" style="margin-right:4px;" />
+          <span>Только ${esc(sender.email || '')}</span>
+        </label>
       </div>
       <div style="margin-bottom:8px;">
         <button class="btn btn-ghost btn-sm" style="width:100%" onclick="window.__showRuleForm('${esc(msgKey)}')">+ Добавить правило из этого письма</button>
@@ -713,21 +723,34 @@ window.__deleteMsg = async (key) => {
 window.__trainSender = async (email, classification, companyHint) => {
   const domain = email.split('@')[1] || '';
   const label = { client: 'заявка', spam: 'спам', vendor: 'поставщик' }[classification] || classification;
-  if (!confirm(`Обучить: все письма с домена @${domain} → ${label}?`)) return;
+
+  // Find which scope radio is selected for this message
+  const selectedMsg = runnerMessages.find((m) => {
+    const s = m.analysis?.sender?.email;
+    return s === email;
+  });
+  const msgKey = selectedMsg ? mid(selectedMsg) : '';
+  const scopeRadio = document.querySelector(`input[name="train-scope-${msgKey}"]:checked`);
+  const scope = scopeRadio?.value || 'domain';
+
+  const byEmail = scope === 'email';
+  const target = byEmail ? email : `@${domain}`;
+  if (!confirm(`Обучить: ${byEmail ? 'письма от' : 'все письма с'} ${target} → ${label}?`)) return;
 
   try {
     const res = await fetch('/api/detection-kb/sender-profiles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        senderDomain: domain,
+        senderEmail: byEmail ? email : '',
+        senderDomain: byEmail ? '' : domain,
         classification,
         companyHint: companyHint || '',
-        notes: `Обучено из inbox: ${email} → ${classification}`
+        notes: `Обучено из inbox: ${target} → ${classification}`
       })
     });
     if (res.ok) {
-      showToast(`Домен @${domain} обучен как "${label}"`);
+      showToast(`${target} обучен как "${label}"`);
       await refreshKb();
     } else {
       showToast('Ошибка сохранения профиля', true);
