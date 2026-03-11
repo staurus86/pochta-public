@@ -43,8 +43,9 @@ async function init() {
   setupNavigation();
   setupForms();
   await refreshProjects();
-  await refreshKb();
-  await refreshAllMailboxMessages();
+  await Promise.all([refreshKb(), refreshAllMailboxMessages()]);
+  // Re-render dashboard now that messages are loaded
+  renderDashboard();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -221,7 +222,7 @@ function setupForms() {
   $('#p3-refresh-runtime').addEventListener('click', () => refreshP3Runtime());
 
   // ═══ PROJECT 4 ═══
-  $('#p4-run-form').addEventListener('submit', async (e) => {
+  $('#p4-run-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
     const btn = $('#p4-run-btn');
@@ -232,7 +233,7 @@ function setupForms() {
     }, btn, 'Получить и разобрать письма', '#p4-runtime-result');
   });
 
-  $('#p4-schedule-form').addEventListener('submit', async (e) => {
+  $('#p4-schedule-form')?.addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
     await fetch(`/api/projects/${P4_ID}/schedule`, {
@@ -249,7 +250,7 @@ function setupForms() {
     renderP4Schedule();
   });
 
-  $('#p4-refresh-runtime').addEventListener('click', () => refreshP4Runtime());
+  $('#p4-refresh-runtime')?.addEventListener('click', () => refreshP4Runtime());
 
   // ═══ INBOX actions ═══
   $('#inbox-fetch-btn').addEventListener('click', async () => {
