@@ -720,6 +720,134 @@ function renderDashboard() {
       <span style="font-size:11px;color:var(--accent);font-weight:700;">${count}</span>
     </div>`
   ).join('') : '<div style="color:var(--text-muted);font-size:12px;">Нет данных о брендах</div>';
+
+  // ═══ Request Analytics ═══
+  renderRequestAnalytics();
+}
+
+function renderRequestAnalytics() {
+  const requests = allRunnerMessages.filter((m) => m.pipelineStatus === 'ready_for_crm' || m.pipelineStatus === 'needs_clarification');
+
+  // Collect brands
+  const brandCount = new Map();
+  // Collect articles
+  const articleCount = new Map();
+  // Collect companies (customers)
+  const companyCount = new Map();
+  // Collect request types
+  const typeCount = new Map();
+  // Collect attachment types
+  const attTypeCount = new Map();
+  // Totals
+  let totalPositions = 0;
+
+  requests.forEach((m) => {
+    const a = m.analysis;
+    if (!a) return;
+
+    // Brands
+    (a.detectedBrands || a.lead?.detectedBrands || []).forEach((b) => {
+      brandCount.set(b, (brandCount.get(b) || 0) + 1);
+    });
+
+    // Articles
+    const arts = a.lead?.articles || [];
+    const items = a.lead?.lineItems || [];
+    arts.forEach((art) => articleCount.set(art, (articleCount.get(art) || 0) + 1));
+    items.forEach((item) => {
+      if (item.article && !arts.includes(item.article)) {
+        articleCount.set(item.article, (articleCount.get(item.article) || 0) + 1);
+      }
+    });
+
+    // Positions count
+    totalPositions += a.lead?.totalPositions || items.length || arts.length || 0;
+
+    // Company
+    const company = a.sender?.companyName || a.crm?.company?.legalName;
+    if (company) companyCount.set(company, (companyCount.get(company) || 0) + 1);
+
+    // Request type
+    const rtype = a.lead?.requestType || a.intakeFlow?.requestType || 'Не определено';
+    typeCount.set(rtype, (typeCount.get(rtype) || 0) + 1);
+
+    // Attachment types
+    (a.lead?.attachmentHints || []).forEach((h) => {
+      attTypeCount.set(h.type, (attTypeCount.get(h.type) || 0) + 1);
+    });
+  });
+
+  // ═══ KPI cards ═══
+  const reqKpis = [
+    { label: 'Заявок', value: requests.length, cls: 'green' },
+    { label: 'Уник. брендов', value: brandCount.size, cls: 'accent' },
+    { label: 'Уник. артикулов', value: articleCount.size, cls: 'accent' },
+    { label: 'Всего позиций', value: totalPositions, cls: '' },
+    { label: 'Заказчиков', value: companyCount.size, cls: 'green' },
+    { label: 'С вложениями', value: requests.filter((m) => m.attachments?.length > 0).length, cls: '' }
+  ];
+  $('#request-kpi-grid').innerHTML = reqKpis.map((k) => `
+    <div class="kpi-card">
+      <div class="kpi-label">${esc(k.label)}</div>
+      <div class="kpi-value ${k.cls}">${esc(String(k.value))}</div>
+    </div>
+  `).join('');
+
+  // ═══ Top customers ═══
+  const topCustomers = [...companyCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const custMax = Math.max(1, topCustomers[0]?.[1] || 1);
+  $('#top-customers').innerHTML = topCustomers.length ? `<table class="data-table"><tbody>${topCustomers.map(([name, count]) => {
+    const pct = Math.round(count / custMax * 100);
+    return `<tr><td style="font-size:11px;position:relative;">
+      <div style="position:absolute;inset:0;background:var(--green);opacity:0.08;width:${pct}%;border-radius:3px;"></div>
+      <span style="position:relative;">${esc(name)}</span>
+    </td><td style="text-align:right;font-weight:700;color:var(--green);width:40px;">${count}</td></tr>`;
+  }).join('')}</tbody></table>` : noData();
+
+  // ═══ Top articles ═══
+  const topArticles = [...articleCount.entries()].sort((a, b) => b[1] - a[1]).slice(0, 10);
+  const artMax = Math.max(1, topArticles[0]?.[1] || 1);
+  $('#top-articles').innerHTML = topArticles.length ? `<table class="data-table"><tbody>${topArticles.map(([art, count]) => {
+    const pct = Math.round(count / artMax * 100);
+    return `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;position:relative;">
+      <div style="position:absolute;inset:0;background:var(--accent);opacity:0.08;width:${pct}%;border-radius:3px;"></div>
+      <span style="position:relative;">${esc(art)}</span>
+    </td><td style="text-align:right;font-weight:700;color:var(--accent);width:40px;">${count}</td></tr>`;
+  }).join('')}</tbody></table>` : noData();
+
+  // ═══ Request types ═══
+  const typeEntries = [...typeCount.entries()].sort((a, b) => b[1] - a[1]);
+  const typeMax = Math.max(1, requests.length);
+  const typeColors = { 'Монобрендовая': 'var(--green)', 'Мультибрендовая': 'var(--accent)', 'Не определено': 'var(--text-muted)' };
+  $('#request-types-chart').innerHTML = typeEntries.length ? typeEntries.map(([type, count]) => {
+    const pct = Math.round(count / typeMax * 100);
+    const color = typeColors[type] || 'var(--text-secondary)';
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <span style="width:110px;font-size:11px;color:var(--text-secondary);text-align:right;">${esc(type)}</span>
+      <div style="flex:1;height:22px;background:var(--surface-0);border-radius:4px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;min-width:${count > 0 ? '2px' : '0'};display:flex;align-items:center;justify-content:flex-end;padding-right:6px;">
+          ${pct > 20 ? `<span style="font-size:10px;font-weight:700;color:#fff;">${count}</span>` : ''}
+        </div>
+      </div>
+      ${pct <= 20 ? `<span style="font-size:11px;font-weight:600;color:${color};">${count}</span>` : ''}
+    </div>`;
+  }).join('') : noData();
+
+  // ═══ Attachment types ═══
+  const attEntries = [...attTypeCount.entries()].sort((a, b) => b[1] - a[1]);
+  const attIcons = { request: '📋', requisites: '📄', pricelist: '💰', photo: '📷', document: '📁', other: '📎' };
+  const attLabels = { request: 'Заявка', requisites: 'Реквизиты', pricelist: 'Прайс', photo: 'Фото', document: 'Документ', other: 'Другое' };
+  $('#attachment-types-chart').innerHTML = attEntries.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${attEntries.map(([type, count]) =>
+    `<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:8px 14px;display:flex;gap:8px;align-items:center;">
+      <span>${attIcons[type] || '📎'}</span>
+      <span style="font-size:12px;">${esc(attLabels[type] || type)}</span>
+      <span style="font-size:11px;color:var(--accent);font-weight:700;">${count}</span>
+    </div>`
+  ).join('')}</div>` : noData();
+}
+
+function noData() {
+  return '<div style="padding:16px;color:var(--text-muted);font-size:12px;text-align:center;">Нет данных</div>';
 }
 
 function renderProjectsTable() {
