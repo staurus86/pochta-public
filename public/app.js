@@ -827,8 +827,14 @@ function renderEmailView(msg, viewEl, detailEl) {
         <span><strong>Дата:</strong> ${fmtDate(msg.createdAt)}</span>
       </div>
     </div>
-    <div class="email-body-content">${esc(msg.bodyPreview || lead.freeText || 'Нет текста')}</div>
-    ${msg.attachments?.length ? `<div class="attachment-list">${msg.attachments.map((att) => `<span class="attachment-chip"><span class="att-icon">📎</span> ${esc(att)}</span>`).join('')}</div>` : ''}
+    <div class="email-body-content" id="email-body-text" style="max-height:300px;overflow-y:auto;position:relative;">${esc(msg.bodyPreview || lead.freeText || 'Нет текста')}</div>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:4px;" onclick="const el=$('#email-body-text');if(el.style.maxHeight==='300px'){el.style.maxHeight='none';this.textContent='Свернуть'}else{el.style.maxHeight='300px';this.textContent='Показать полностью'}">Показать полностью</button>
+    ${msg.attachments?.length ? `<div class="attachment-list">${msg.attachments.map((att) => {
+      const hints = lead.attachmentHints || [];
+      const hint = hints.find((h) => h.name === att);
+      const typeIcon = { request: '📋', requisites: '📄', pricelist: '💰', photo: '📷', document: '📁', other: '📎' };
+      return `<span class="attachment-chip"><span class="att-icon">${typeIcon[hint?.type] || '📎'}</span> ${esc(att)}</span>`;
+    }).join('')}</div>` : ''}
   `;
 
   const fields = [['Email', sender.email], ['ФИО', sender.fullName], ['Должность', sender.position], ['Компания', sender.companyName], ['Сайт', sender.website], ['Гор. телефон', sender.cityPhone], ['Моб. телефон', sender.mobilePhone], ['ИНН', sender.inn], ['Реквизиты', sender.legalCardAttached ? 'Приложены' : null]];
@@ -1082,7 +1088,32 @@ function renderKb() {
   }
   if (kbTab === 'senders') {
     const senders = kbData.senderProfiles || [];
-    container.innerHTML = senders.length ? `<table class="data-table"><thead><tr><th>Email</th><th>Домен</th><th>Класс</th><th>Компания</th><th>Бренд</th></tr></thead><tbody>${senders.map((s) => `<tr><td>${esc(s.sender_email || '—')}</td><td>${esc(s.sender_domain || '—')}</td><td>${classificationBadge(s.classification)}</td><td>${esc(s.company_hint || '—')}</td><td>${esc(s.brand_hint || '—')}</td></tr>`).join('')}</tbody></table>` : '<div class="empty-state" style="padding:32px"><h4>Нет профилей</h4></div>';
+    const spamProfiles = senders.filter((s) => s.classification === 'spam');
+    const clientProfiles = senders.filter((s) => s.classification === 'client');
+    const vendorProfiles = senders.filter((s) => s.classification === 'vendor');
+    const otherProfiles = senders.filter((s) => !['spam', 'client', 'vendor'].includes(s.classification));
+
+    const renderGroup = (title, profiles, badgeCls) => {
+      if (!profiles.length) return '';
+      return `<div style="margin-bottom:16px;">
+        <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
+          ${title} <span class="badge ${badgeCls}" style="font-size:10px;">${profiles.length}</span>
+        </div>
+        <table class="data-table"><thead><tr><th>Email / Домен</th><th>Компания</th><th>Заметки</th></tr></thead>
+        <tbody>${profiles.map((s) => `<tr>
+          <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${esc(s.sender_email || `@${s.sender_domain}` || '—')}</td>
+          <td>${esc(s.company_hint || '—')}</td>
+          <td style="font-size:11px;color:var(--text-muted);">${esc(s.notes || '')}</td>
+        </tr>`).join('')}</tbody></table>
+      </div>`;
+    };
+
+    container.innerHTML = senders.length
+      ? renderGroup('Спам (чёрный список)', spamProfiles, 'badge-spam')
+        + renderGroup('Клиенты (белый список)', clientProfiles, 'badge-client')
+        + renderGroup('Поставщики', vendorProfiles, 'badge-vendor')
+        + renderGroup('Другие', otherProfiles, 'badge-unknown')
+      : '<div class="empty-state" style="padding:32px"><h4>Нет профилей</h4><p>Обучайте систему из вкладки Входящие</p></div>';
   }
 }
 
