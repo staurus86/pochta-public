@@ -938,10 +938,153 @@ body {
 
 .attachment-chip .att-icon { font-size: 13px; }
 
+/* ═══════ PAGINATION ═══════ */
+#inbox-pagination {
+  user-select: none;
+}
+
+#inbox-pagination button:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+
+/* ═══════ KEYBOARD HINT ═══════ */
+.keyboard-hint {
+  position: fixed;
+  bottom: 24px;
+  left: 260px;
+  font-size: 10px;
+  color: var(--text-muted);
+  display: flex;
+  gap: 12px;
+  z-index: 10;
+}
+
+.keyboard-hint kbd {
+  background: var(--surface-3);
+  border: 1px solid var(--border);
+  border-radius: 4px;
+  padding: 1px 5px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
+}
+
+/* ═══════ UNREAD DOT animation ═══════ */
+@keyframes pulse-dot {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.5; }
+}
+
+/* ═══════ PROGRESS BAR ═══════ */
+.progress-bar {
+  position: fixed;
+  top: 0;
+  left: 240px;
+  right: 0;
+  height: 3px;
+  z-index: 100;
+  background: transparent;
+  pointer-events: none;
+}
+
+.progress-bar.active .progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--accent), var(--green), var(--accent));
+  background-size: 200% 100%;
+  animation: progress-slide 1.5s linear infinite;
+  border-radius: 0 2px 2px 0;
+}
+
+@keyframes progress-slide {
+  0% { width: 0; background-position: 0 0; }
+  50% { width: 70%; }
+  100% { width: 100%; background-position: 200% 0; }
+}
+
+/* ═══════ PAGE TRANSITION ═══════ */
+.page {
+  display: none;
+  animation: page-fade-in 0.2s ease;
+}
+
+.page.active { display: block; }
+
+@keyframes page-fade-in {
+  from { opacity: 0; transform: translateY(4px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ═══════ MESSAGE ITEM HOVER TRANSITION ═══════ */
+.message-item-wrap {
+  transition: background var(--transition);
+}
+
+.message-item-wrap:hover {
+  background: var(--surface-2);
+}
+
+/* ═══════ SIDEBAR STATS ═══════ */
+.sidebar-stats {
+  padding: 12px 20px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.sidebar-stat {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.sidebar-stat-value {
+  font-weight: 700;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.sidebar-stat-value.green { color: var(--green); }
+.sidebar-stat-value.rose { color: var(--rose); }
+.sidebar-stat-value.amber { color: var(--amber); }
+
+/* ═══════ TOAST ANIMATION ═══════ */
+@keyframes toast-in {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+#toast-notification {
+  animation: toast-in 0.2s ease;
+}
+
+/* ═══════ SELECT ALL CHECKBOX ═══════ */
+.select-all-wrap {
+  display: flex;
+  align-items: center;
+  padding: 8px 12px;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-0);
+  gap: 8px;
+  font-size: 11px;
+  color: var(--text-muted);
+  position: sticky;
+  top: 0;
+  z-index: 2;
+}
+
+.select-all-wrap input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
 /* ═══════ RESPONSIVE ═══════ */
 @media (max-width: 1100px) {
   .app { grid-template-columns: 1fr; }
   .sidebar { display: none; }
   .grid-3col { grid-template-columns: 1fr; height: auto; }
   .grid-2col { grid-template-columns: 1fr; }
+  .progress-bar { left: 0; }
 }

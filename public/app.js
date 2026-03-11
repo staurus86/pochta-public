@@ -26,6 +26,12 @@ let inboxTab = 'all';
 let selectedMsgKeys = new Set();
 let inboxSearch = '';
 let inboxSort = 'date-desc';
+let inboxMailboxFilter = '';
+let inboxPage = 0;
+const INBOX_PAGE_SIZE = 50;
+let autoRefreshInterval = null;
+let autoRefreshSec = 0;
+let readMessages = new Set(JSON.parse(localStorage.getItem('pochta_read') || '[]'));
 
 await init();
 
@@ -227,9 +233,24 @@ function setupForms() {
     $('#inbox-status-text').textContent = 'Все письма удалены.';
   });
 
-  // ═══ Search & Sort ═══
-  $('#inbox-search').addEventListener('input', (e) => { inboxSearch = e.target.value.toLowerCase(); renderInbox(); });
+  // ═══ Search & Sort & Filter ═══
+  $('#inbox-search').addEventListener('input', (e) => { inboxSearch = e.target.value.toLowerCase(); inboxPage = 0; renderInbox(); });
   $('#inbox-sort').addEventListener('change', (e) => { inboxSort = e.target.value; renderInbox(); });
+  $('#inbox-mailbox-filter').addEventListener('change', (e) => { inboxMailboxFilter = e.target.value; inboxPage = 0; renderInbox(); });
+  $('#inbox-auto-refresh').addEventListener('change', (e) => {
+    const sec = Number(e.target.value);
+    if (autoRefreshInterval) clearInterval(autoRefreshInterval);
+    autoRefreshInterval = null;
+    autoRefreshSec = sec;
+    if (sec > 0) {
+      autoRefreshInterval = setInterval(async () => {
+        const oldCount = allRunnerMessages.length;
+        await refreshP3Messages();
+        const newCount = allRunnerMessages.length;
+        if (newCount > oldCount) showToast(`+${newCount - oldCount} новых писем`);
+      }, sec * 1000);
+    }
+  });
 
   // ═══ Bulk actions ═══
   $('#bulk-request-btn').addEventListener('click', () => bulkTrain('client'));
@@ -271,6 +292,7 @@ async function refreshProjects() {
 }
 
 async function refreshP3Messages() {
+  showProgress(true);
   try {
     const res = await fetch(`/api/projects/${P3_ID}/messages`);
     const data = await res.json();
@@ -278,6 +300,7 @@ async function refreshP3Messages() {
   } catch {
     allRunnerMessages = [];
   }
+  showProgress(false);
 
   // Compute filtered lists
   runnerMessages = filterInboxMessages(inboxTab);
@@ -290,6 +313,8 @@ async function refreshP3Messages() {
   const nonSpam = allRunnerMessages.filter((m) => m.pipelineStatus !== 'ignored_spam' && m.pipelineStatus !== 'fetch_error');
   inboxBadge.textContent = nonSpam.length;
   updateInboxTabCounts();
+  updateMailboxFilter();
+  renderSidebarStats();
   renderInbox();
 }
 
@@ -316,6 +341,11 @@ function filterInboxMessages(tab) {
   else if (tab === 'spam') msgs = allRunnerMessages.filter(isSpam);
   else msgs = allRunnerMessages.filter((m) => m.pipelineStatus !== 'fetch_error');
 
+  // Mailbox filter
+  if (inboxMailboxFilter) {
+    msgs = msgs.filter((m) => m.mailbox === inboxMailboxFilter);
+  }
+
   // Search
   if (inboxSearch) {
     msgs = msgs.filter((m) => {
@@ -341,6 +371,25 @@ function updateInboxTabCounts() {
   $('#tab-count-requests').textContent = allRunnerMessages.filter(isRequest).length;
   $('#tab-count-moderation').textContent = allRunnerMessages.filter(isModeration).length;
   $('#tab-count-spam').textContent = allRunnerMessages.filter(isSpam).length;
+}
+
+function updateMailboxFilter() {
+  const mailboxes = [...new Set(allRunnerMessages.map((m) => m.mailbox).filter(Boolean))].sort();
+  const sel = $('#inbox-mailbox-filter');
+  const prev = sel.value;
+  sel.innerHTML = '<option value="">Все ящики (' + mailboxes.length + ')</option>' +
+    mailboxes.map((mb) => {
+      const count = allRunnerMessages.filter((m) => m.mailbox === mb).length;
+      return `<option value="${esc(mb)}" ${mb === prev ? 'selected' : ''}>${esc(mb.split('@')[0])} (${count})</option>`;
+    }).join('');
+  inboxMailboxFilter = sel.value;
+}
+
+function markAsRead(msgId) {
+  if (!readMessages.has(msgId)) {
+    readMessages.add(msgId);
+    try { localStorage.setItem('pochta_read', JSON.stringify([...readMessages].slice(-500))); } catch {}
+  }
 }
 
 async function refreshP2() {
@@ -689,6 +738,32 @@ function renderProjectsTable() {
   });
 }
 
+// ═══ Sidebar stats ═══
+function renderSidebarStats() {
+  const total = allRunnerMessages.length;
+  const spam = allRunnerMessages.filter((m) => m.pipelineStatus === 'ignored_spam').length;
+  const ready = allRunnerMessages.filter((m) => m.pipelineStatus === 'ready_for_crm').length;
+  const clarify = allRunnerMessages.filter((m) => m.pipelineStatus === 'needs_clarification').length;
+  const unread = allRunnerMessages.filter((m) => !readMessages.has(mid(m))).length;
+
+  const el = $('#sidebar-stats');
+  if (el) {
+    el.innerHTML = `
+      <div class="sidebar-stat"><span>Всего писем</span><span class="sidebar-stat-value">${total}</span></div>
+      <div class="sidebar-stat"><span>Непрочитанных</span><span class="sidebar-stat-value" style="color:var(--accent);">${unread}</span></div>
+      <div class="sidebar-stat"><span>CRM-готово</span><span class="sidebar-stat-value green">${ready}</span></div>
+      <div class="sidebar-stat"><span>Уточнение</span><span class="sidebar-stat-value amber">${clarify}</span></div>
+      <div class="sidebar-stat"><span>Спам</span><span class="sidebar-stat-value rose">${spam}</span></div>
+    `;
+  }
+}
+
+// ═══ Progress bar ═══
+function showProgress(show) {
+  const bar = $('#progress-bar');
+  if (bar) bar.classList.toggle('active', show);
+}
+
 // ═══ P2 KPIs & Schedule ═══
 function renderP2Kpis() {
   const p = getProject(P2_ID);
@@ -752,6 +827,25 @@ function renderInbox() {
   const viewEl = $('#email-view');
   const detailEl = $('#detail-panel');
 
+  // Pagination
+  const totalPages = Math.max(1, Math.ceil(runnerMessages.length / INBOX_PAGE_SIZE));
+  if (inboxPage >= totalPages) inboxPage = totalPages - 1;
+  if (inboxPage < 0) inboxPage = 0;
+  const pageStart = inboxPage * INBOX_PAGE_SIZE;
+  const pageMessages = runnerMessages.slice(pageStart, pageStart + INBOX_PAGE_SIZE);
+
+  const pagEl = $('#inbox-pagination');
+  if (runnerMessages.length > INBOX_PAGE_SIZE) {
+    pagEl.innerHTML = `<button class="btn btn-ghost btn-sm" ${inboxPage <= 0 ? 'disabled' : ''} id="page-prev">&larr;</button>
+      <span>${inboxPage + 1} / ${totalPages}</span>
+      <span style="color:var(--text-muted);">(${runnerMessages.length} писем)</span>
+      <button class="btn btn-ghost btn-sm" ${inboxPage >= totalPages - 1 ? 'disabled' : ''} id="page-next">&rarr;</button>`;
+    $('#page-prev')?.addEventListener('click', () => { inboxPage--; renderInbox(); });
+    $('#page-next')?.addEventListener('click', () => { inboxPage++; renderInbox(); });
+  } else {
+    pagEl.innerHTML = runnerMessages.length > 0 ? `<span style="color:var(--text-muted);">${runnerMessages.length} писем</span>` : '';
+  }
+
   const emptyLabels = { all: 'Нет писем', requests: 'Нет заявок', moderation: 'Нет писем на модерации', spam: 'Нет спама' };
   if (runnerMessages.length === 0) {
     listEl.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h4>${emptyLabels[inboxTab] || 'Нет писем'}</h4><p>Нажмите «Получить письма»</p></div>`;
@@ -760,20 +854,22 @@ function renderInbox() {
     return;
   }
 
-  listEl.innerHTML = runnerMessages.map((m) => {
+  const allChecked = pageMessages.length > 0 && pageMessages.every((m) => selectedMsgKeys.has(mid(m)));
+  listEl.innerHTML = `<div class="select-all-wrap"><input type="checkbox" id="select-all-cb" ${allChecked ? 'checked' : ''} /><span>${pageMessages.length} на странице</span></div>` + pageMessages.map((m) => {
     const id = mid(m);
     const active = id === selectedMessageId ? 'active' : '';
     const checked = selectedMsgKeys.has(id) ? 'checked' : '';
+    const isRead = readMessages.has(id);
     const a = m.analysis || {};
     const conf = a.classification?.confidence;
     return `<div class="message-item-wrap ${active}" data-mid="${esc(id)}">
       <label class="msg-checkbox" onclick="event.stopPropagation()"><input type="checkbox" ${checked} data-check-mid="${esc(id)}" /></label>
       <button class="message-item ${active}" data-mid="${esc(id)}">
         <div class="message-from">
-          <span>${esc(m.from || a.sender?.email || 'Неизвестный')}</span>
+          <span style="${isRead ? '' : 'font-weight:700;color:var(--text);'}">${!isRead ? '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:6px;"></span>' : ''}${esc(m.from || a.sender?.email || 'Неизвестный')}</span>
           <span class="message-time">${fmtDate(m.createdAt)}</span>
         </div>
-        <div class="message-subject">${esc(m.subject || 'Без темы')}</div>
+        <div class="message-subject" style="${isRead ? '' : 'font-weight:600;color:var(--text);'}">${esc(m.subject || 'Без темы')}</div>
         <div class="message-meta">
           ${statusBadge(m.pipelineStatus)}
           ${conf != null ? confidenceBadge(conf) : ''}
@@ -782,6 +878,20 @@ function renderInbox() {
       </button>
     </div>`;
   }).join('');
+
+  // Select all handler
+  const selectAllCb = listEl.querySelector('#select-all-cb');
+  if (selectAllCb) {
+    selectAllCb.addEventListener('change', () => {
+      if (selectAllCb.checked) {
+        pageMessages.forEach((m) => selectedMsgKeys.add(mid(m)));
+      } else {
+        pageMessages.forEach((m) => selectedMsgKeys.delete(mid(m)));
+      }
+      listEl.querySelectorAll('input[data-check-mid]').forEach((cb) => { cb.checked = selectAllCb.checked; });
+      updateBulkBar();
+    });
+  }
 
   // Checkbox handlers
   listEl.querySelectorAll('input[data-check-mid]').forEach((cb) => {
@@ -796,15 +906,55 @@ function renderInbox() {
   listEl.querySelectorAll('.message-item').forEach((item) => {
     item.addEventListener('click', () => {
       selectedMessageId = item.dataset.mid;
+      markAsRead(selectedMessageId);
       renderInbox();
     });
   });
 
   updateBulkBar();
 
-  const msg = runnerMessages.find((m) => mid(m) === selectedMessageId) || runnerMessages[0];
-  if (msg) renderEmailView(msg, viewEl, detailEl);
+  const msg = pageMessages.find((m) => mid(m) === selectedMessageId) || pageMessages[0];
+  if (msg) {
+    markAsRead(mid(msg));
+    renderEmailView(msg, viewEl, detailEl);
+  }
 }
+
+// ═══ Keyboard shortcuts for inbox ═══
+document.addEventListener('keydown', (e) => {
+  if (currentPage !== 'inbox') return;
+  if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA' || e.target.tagName === 'SELECT') return;
+
+  const idx = runnerMessages.findIndex((m) => mid(m) === selectedMessageId);
+
+  if (e.key === 'j' || e.key === 'ArrowDown') {
+    e.preventDefault();
+    if (idx < runnerMessages.length - 1) {
+      const nextIdx = idx + 1;
+      const nextPage = Math.floor(nextIdx / INBOX_PAGE_SIZE);
+      if (nextPage !== inboxPage) inboxPage = nextPage;
+      selectedMessageId = mid(runnerMessages[nextIdx]);
+      markAsRead(selectedMessageId);
+      renderInbox();
+    }
+  } else if (e.key === 'k' || e.key === 'ArrowUp') {
+    e.preventDefault();
+    if (idx > 0) {
+      const prevIdx = idx - 1;
+      const prevPage = Math.floor(prevIdx / INBOX_PAGE_SIZE);
+      if (prevPage !== inboxPage) inboxPage = prevPage;
+      selectedMessageId = mid(runnerMessages[prevIdx]);
+      markAsRead(selectedMessageId);
+      renderInbox();
+    }
+  } else if (e.key === 'Delete' || e.key === 'Backspace') {
+    if (selectedMessageId) {
+      window.__deleteMsg(selectedMessageId);
+    }
+  } else if (e.key === 'r') {
+    refreshP3Messages();
+  }
+});
 
 function renderEmailView(msg, viewEl, detailEl) {
   const a = msg.analysis || {};
@@ -904,6 +1054,20 @@ function renderEmailView(msg, viewEl, detailEl) {
         <button class="btn btn-primary btn-sm" style="width:100%" onclick="window.__addRule('${escAttr(msgKey)}')">Сохранить правило</button>
       </div>
     </div>
+    ${a.suggestedReply ? `<div class="detail-section">
+      <div class="detail-section-title" style="display:flex;align-items:center;justify-content:space-between;">
+        Шаблон ответа
+        <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;" onclick="window.__copyField(\`${escAttr(a.suggestedReply)}\`);this.textContent='Скопировано';setTimeout(()=>this.textContent='Копировать',1500)">Копировать</button>
+      </div>
+      <div style="background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius-sm);padding:12px;font-size:12px;white-space:pre-wrap;color:var(--text-secondary);line-height:1.6;max-height:200px;overflow-y:auto;">${esc(a.suggestedReply)}</div>
+    </div>` : ''}
+    ${msg.auditLog?.length ? `<div class="detail-section">
+      <div class="detail-section-title">Аудит</div>
+      ${msg.auditLog.slice(-5).map((log) => `<div style="font-size:10px;color:var(--text-muted);padding:2px 0;display:flex;gap:6px;">
+        <span style="color:var(--text-secondary);">${fmtDate(log.at)}</span>
+        <span>${esc(log.from || '?')} → ${esc(log.to || '?')}</span>
+      </div>`).join('')}
+    </div>` : ''}
     <div class="detail-actions">
       ${crm.isExistingCompany === false ? '<button class="btn btn-primary btn-sm" style="width:100%">Создать клиента в CRM</button>' : ''}
       ${cls.label === 'Клиент' ? '<button class="btn btn-success btn-sm" style="width:100%">Создать запрос в CRM</button>' : ''}
@@ -1064,7 +1228,7 @@ function showAnalysisResult(data) {
     </div>
     ${lead.lineItems?.length ? `<div style="margin-top:16px;"><div class="detail-section-title" style="margin-bottom:8px;">Позиции</div><table class="data-table" style="font-size:12px;"><thead><tr><th>Артикул</th><th>Кол-во</th><th>Ед.</th><th>Описание</th></tr></thead><tbody>${lead.lineItems.map((li) => `<tr><td><strong>${esc(li.article)}</strong></td><td>${li.quantity}</td><td>${esc(li.unit)}</td><td style="color:var(--text-muted);font-size:11px;">${esc(truncate(li.descriptionRu, 60))}</td></tr>`).join('')}</tbody></table></div>` : ''}
     ${rules.length ? `<div style="margin-top:16px;"><div class="detail-section-title" style="margin-bottom:8px;">Правила</div>${rules.map((r) => `<div style="font-size:11px;padding:3px 0;display:flex;gap:6px;align-items:center;"><span class="badge ${r.classifier === 'spam' ? 'badge-spam' : r.classifier === 'client' ? 'badge-client' : 'badge-vendor'}" style="font-size:9px;">${esc(r.classifier)}</span><span style="color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:10px;">${esc(truncate(r.pattern, 40))}</span><span style="color:var(--green);font-weight:600;margin-left:auto;">+${r.weight}</span></div>`).join('')}</div>` : ''}
-    ${crm.suggestedReply ? `<div style="margin-top:16px;"><div class="detail-section-title" style="margin-bottom:8px;">Предложенный ответ</div><div style="background:var(--surface-0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:12px;white-space:pre-wrap;color:var(--text-secondary);">${esc(crm.suggestedReply)}</div></div>` : ''}
+    ${data.suggestedReply || crm.suggestedReply ? `<div style="margin-top:16px;"><div class="detail-section-title" style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">Шаблон ответа <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;" onclick="window.__copyField(\`${escAttr(data.suggestedReply || crm.suggestedReply)}\`);this.textContent='Скопировано';setTimeout(()=>this.textContent='Копировать',1500)">Копировать</button></div><div style="background:var(--surface-0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:12px;white-space:pre-wrap;color:var(--text-secondary);">${esc(data.suggestedReply || crm.suggestedReply)}</div></div>` : ''}
   `;
 }
 
@@ -1079,7 +1243,15 @@ function renderKb() {
   }
   if (kbTab === 'rules') {
     const rules = kbData.rules || [];
-    container.innerHTML = `<table class="data-table"><thead><tr><th>ID</th><th>Scope</th><th>Classifier</th><th>Тип</th><th>Паттерн</th><th>Вес</th><th>Заметки</th></tr></thead><tbody>${rules.map((r) => `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${r.id}</td><td><span class="badge badge-unknown">${esc(r.scope)}</span></td><td>${classificationBadge(r.classifier === 'client' ? 'Клиент' : r.classifier === 'spam' ? 'СПАМ' : 'Поставщик услуг')}</td><td style="font-size:11px;">${esc(r.match_type)}</td><td style="font-family:'JetBrains Mono',monospace;font-size:10px;max-width:300px;overflow:hidden;text-overflow:ellipsis;" title="${esc(r.pattern)}">${esc(truncate(r.pattern, 50))}</td><td><strong>${r.weight}</strong></td><td style="font-size:11px;color:var(--text-muted);">${esc(r.notes || '')}</td></tr>`).join('')}</tbody></table>`;
+    container.innerHTML = `<table class="data-table"><thead><tr><th>ID</th><th>Scope</th><th>Classifier</th><th>Тип</th><th>Паттерн</th><th>Вес</th><th>Заметки</th><th></th></tr></thead><tbody>${rules.map((r) => `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${r.id}</td><td><span class="badge badge-unknown">${esc(r.scope)}</span></td><td>${classificationBadge(r.classifier === 'client' ? 'Клиент' : r.classifier === 'spam' ? 'СПАМ' : 'Поставщик услуг')}</td><td style="font-size:11px;">${esc(r.match_type)}</td><td style="font-family:'JetBrains Mono',monospace;font-size:10px;max-width:300px;overflow:hidden;text-overflow:ellipsis;" title="${esc(r.pattern)}">${esc(truncate(r.pattern, 50))}</td><td><strong>${r.weight}</strong></td><td style="font-size:11px;color:var(--text-muted);">${esc(r.notes || '')}</td><td><button class="btn btn-danger btn-sm" style="padding:2px 6px;font-size:10px;" data-del-rule="${r.id}">×</button></td></tr>`).join('')}</tbody></table>`;
+    container.querySelectorAll('[data-del-rule]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Деактивировать это правило?')) return;
+        await fetch(`/api/detection-kb/rules/${btn.dataset.delRule}`, { method: 'DELETE' });
+        await refreshKb();
+        showToast('Правило деактивировано');
+      });
+    });
     return;
   }
   if (kbTab === 'brands') {
@@ -1099,11 +1271,12 @@ function renderKb() {
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
           ${title} <span class="badge ${badgeCls}" style="font-size:10px;">${profiles.length}</span>
         </div>
-        <table class="data-table"><thead><tr><th>Email / Домен</th><th>Компания</th><th>Заметки</th></tr></thead>
+        <table class="data-table"><thead><tr><th>Email / Домен</th><th>Компания</th><th>Заметки</th><th></th></tr></thead>
         <tbody>${profiles.map((s) => `<tr>
           <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${esc(s.sender_email || `@${s.sender_domain}` || '—')}</td>
           <td>${esc(s.company_hint || '—')}</td>
           <td style="font-size:11px;color:var(--text-muted);">${esc(s.notes || '')}</td>
+          <td><button class="btn btn-danger btn-sm" style="padding:2px 6px;font-size:10px;" data-del-sender="${s.id}">×</button></td>
         </tr>`).join('')}</tbody></table>
       </div>`;
     };
@@ -1114,6 +1287,14 @@ function renderKb() {
         + renderGroup('Поставщики', vendorProfiles, 'badge-vendor')
         + renderGroup('Другие', otherProfiles, 'badge-unknown')
       : '<div class="empty-state" style="padding:32px"><h4>Нет профилей</h4><p>Обучайте систему из вкладки Входящие</p></div>';
+    container.querySelectorAll('[data-del-sender]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Удалить этот профиль отправителя?')) return;
+        await fetch(`/api/detection-kb/sender-profiles/${btn.dataset.delSender}`, { method: 'DELETE' });
+        await refreshKb();
+        showToast('Профиль удалён');
+      });
+    });
   }
 }
 

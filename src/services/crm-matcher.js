@@ -14,15 +14,10 @@ function inferWebsite(domain) {
 }
 
 const FREE_EMAIL_DOMAINS = new Set([
-  "gmail.com",
-  "mail.ru",
-  "bk.ru",
-  "list.ru",
-  "inbox.ru",
-  "yandex.ru",
-  "ya.ru",
-  "hotmail.com",
-  "outlook.com"
+  "gmail.com", "mail.ru", "bk.ru", "list.ru", "inbox.ru", "yandex.ru", "ya.ru",
+  "hotmail.com", "outlook.com", "icloud.com", "me.com", "live.com", "yahoo.com",
+  "rambler.ru", "ro.ru", "autorambler.ru", "myrambler.ru", "lenta.ru",
+  "aol.com", "protonmail.com", "proton.me", "zoho.com"
 ]);
 
 export function matchCompanyInCrm(project, analysis) {
@@ -31,14 +26,34 @@ export function matchCompanyInCrm(project, analysis) {
   const normalizedCompany = String(analysis.sender.companyName || "").toLowerCase();
   const senderName = String(analysis.sender.fullName || "").toLowerCase();
 
+  const senderEmail = String(analysis.sender.email || "").toLowerCase();
+  const senderInn = analysis.sender.inn;
+
   const match =
-    companyCandidates.find((company) => company.inn && company.inn === analysis.sender.inn) ||
-    companyCandidates.find((company) => company.domain && company.domain === senderDomain) ||
-    companyCandidates.find((company) => normalizedCompany && company.legalName.toLowerCase().includes(normalizedCompany)) ||
+    // 1. Exact INN match (most reliable)
+    companyCandidates.find((company) => senderInn && company.inn && company.inn === senderInn) ||
+    // 2. Exact domain match
+    companyCandidates.find((company) => senderDomain && company.domain && company.domain === senderDomain) ||
+    // 3. Website domain match (extract domain from website URL)
+    companyCandidates.find((company) => {
+      if (!senderDomain || !company.website) return false;
+      try {
+        const wsHost = new URL(company.website).hostname.replace(/^www\./, "");
+        return wsHost === senderDomain;
+      } catch { return false; }
+    }) ||
+    // 4. Company name contains match
+    companyCandidates.find((company) => normalizedCompany && normalizedCompany.length > 3 && company.legalName.toLowerCase().includes(normalizedCompany)) ||
+    // 5. Reverse: CRM company name found in sender company name
+    companyCandidates.find((company) => {
+      const crmName = company.legalName.toLowerCase().replace(/[ооо|ао|зао|пао|ип]\s*/i, "").replace(/[«»"]/g, "").trim();
+      return crmName.length > 3 && normalizedCompany.includes(crmName);
+    }) ||
+    // 6. Contact email or name match
     companyCandidates.find((company) =>
       (company.contacts || []).some((contact) => {
-        const sameEmail = contact.email?.toLowerCase() === analysis.sender.email.toLowerCase();
-        const sameName = contact.fullName?.toLowerCase() === senderName;
+        const sameEmail = senderEmail && contact.email?.toLowerCase() === senderEmail;
+        const sameName = senderName.length > 4 && contact.fullName?.toLowerCase() === senderName;
         return sameEmail || sameName;
       })
     );

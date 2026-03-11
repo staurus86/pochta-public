@@ -3,7 +3,7 @@ import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
 const DEFAULT_DATA_DIR = path.resolve(process.cwd(), process.env.DATA_DIR || "data");
-const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "mail.ru", "bk.ru", "list.ru", "inbox.ru", "yandex.ru", "ya.ru", "hotmail.com", "outlook.com"]);
+const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "mail.ru", "bk.ru", "list.ru", "inbox.ru", "yandex.ru", "ya.ru", "hotmail.com", "outlook.com", "icloud.com", "me.com", "live.com", "yahoo.com", "rambler.ru", "ro.ru", "autorambler.ru", "myrambler.ru", "lenta.ru", "aol.com", "protonmail.com", "proton.me", "zoho.com"]);
 
 const DEFAULT_RULES = [
   { scope: "body", classifier: "spam", matchType: "regex", pattern: "casino|crypto|легкий заработок|раскрут(ка|им)|seo[- ]?продвиж|unsubscr|viagra|скидк|распродаж|кэшбэк|отписа|подписк|рассылк|промокод|sale", weight: 6, notes: "Базовый spam filter" },
@@ -24,7 +24,25 @@ const DEFAULT_BRAND_ALIASES = [
   { canonicalBrand: "R. Stahl", alias: "r. stahl" },
   { canonicalBrand: "R. Stahl", alias: "rstahl" },
   { canonicalBrand: "Endress & Hauser", alias: "endress" },
-  { canonicalBrand: "Endress & Hauser", alias: "hauser" }
+  { canonicalBrand: "Endress & Hauser", alias: "hauser" },
+  { canonicalBrand: "Siemens", alias: "siemens" },
+  { canonicalBrand: "Eaton", alias: "eaton" },
+  { canonicalBrand: "Phoenix Contact", alias: "phoenix contact" },
+  { canonicalBrand: "Phoenix Contact", alias: "phoenix" },
+  { canonicalBrand: "Weidmuller", alias: "weidmuller" },
+  { canonicalBrand: "Weidmuller", alias: "weidmüller" },
+  { canonicalBrand: "Rittal", alias: "rittal" },
+  { canonicalBrand: "Pepperl+Fuchs", alias: "pepperl" },
+  { canonicalBrand: "Pepperl+Fuchs", alias: "fuchs" },
+  { canonicalBrand: "Festo", alias: "festo" },
+  { canonicalBrand: "Danfoss", alias: "danfoss" },
+  { canonicalBrand: "Kiesel", alias: "kiesel" },
+  { canonicalBrand: "Turck", alias: "turck" },
+  { canonicalBrand: "Pilz", alias: "pilz" },
+  { canonicalBrand: "WAGO", alias: "wago" },
+  { canonicalBrand: "Omron", alias: "omron" },
+  { canonicalBrand: "Sick", alias: "sick" },
+  { canonicalBrand: "Balluff", alias: "balluff" }
 ];
 
 const DEFAULT_FIELD_PATTERNS = [
@@ -251,6 +269,21 @@ class DetectionKnowledgeBase {
       payload.notes || ""
     );
     return this.db.prepare("SELECT * FROM sender_profiles WHERE id = ?").get(Number(result.lastInsertRowid));
+  }
+
+  deactivateRule(id) {
+    this.db.prepare("UPDATE detection_rules SET is_active = 0 WHERE id = ?").run(Number(id));
+    return { id, deactivated: true };
+  }
+
+  deactivateSenderProfile(id) {
+    this.db.prepare("UPDATE sender_profiles SET is_active = 0 WHERE id = ?").run(Number(id));
+    return { id, deactivated: true };
+  }
+
+  deactivateBrandAlias(id) {
+    this.db.prepare("UPDATE brand_aliases SET is_active = 0 WHERE id = ?").run(Number(id));
+    return { id, deactivated: true };
   }
 
   getStats() {

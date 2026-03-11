@@ -77,6 +77,24 @@ async function handleApi(req, res, url) {
     return sendJson(res, 201, { brandAlias });
   }
 
+  const deleteRuleMatch = url.pathname.match(/^\/api\/detection-kb\/rules\/(\d+)$/);
+  if (req.method === "DELETE" && deleteRuleMatch) {
+    const result = detectionKb.deactivateRule(deleteRuleMatch[1]);
+    return sendJson(res, 200, result);
+  }
+
+  const deleteSenderMatch = url.pathname.match(/^\/api\/detection-kb\/sender-profiles\/(\d+)$/);
+  if (req.method === "DELETE" && deleteSenderMatch) {
+    const result = detectionKb.deactivateSenderProfile(deleteSenderMatch[1]);
+    return sendJson(res, 200, result);
+  }
+
+  const deleteBrandMatch = url.pathname.match(/^\/api\/detection-kb\/brand-aliases\/(\d+)$/);
+  if (req.method === "DELETE" && deleteBrandMatch) {
+    const result = detectionKb.deactivateBrandAlias(deleteBrandMatch[1]);
+    return sendJson(res, 200, result);
+  }
+
   if (req.method === "POST" && url.pathname === "/api/detection-kb/sender-profiles") {
     const payload = await parseJsonBody(req);
     if (!payload.classification) {

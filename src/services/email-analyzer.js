@@ -10,7 +10,8 @@ const STANDALONE_CODE_PATTERN = /\b([A-Z][A-Z0-9]{2,}[-/]?[A-Z0-9]{2,}(?:[-/][A-
 
 export function analyzeEmail(project, payload) {
   const subject = String(payload.subject || "");
-  const body = String(payload.body || "");
+  const rawBody = String(payload.body || "");
+  const body = stripHtml(rawBody);
   const fromEmail = String(payload.fromEmail || "").trim().toLowerCase();
   const fromName = String(payload.fromName || "").trim();
   const attachments = normalizeAttachments(payload.attachments);
@@ -202,6 +203,18 @@ function extractLineItems(body) {
       return { article: dashMatch[1], quantity: Number(dashMatch[2]), unit: dashMatch[3] || "шт", descriptionRu: line };
     }
 
+    // Format: tabular — ARTICLE\tQTY or ARTICLE;QTY;UNIT
+    const tabMatch = line.match(/([A-Za-z0-9][A-Za-z0-9-/_]{2,})[\t;,]\s*(\d+)(?:[\t;,]\s*([A-Za-zА-Яа-я.]+))?/);
+    if (tabMatch && tabMatch[2] !== "0") {
+      return { article: tabMatch[1], quantity: Number(tabMatch[2]), unit: tabMatch[3] || "шт", descriptionRu: line };
+    }
+
+    // Format: N шт ARTICLE / N штук ARTICLE (reversed order)
+    const reverseMatch = line.match(/(\d+)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?)\s+([A-Za-z0-9][A-Za-z0-9-/_]{2,})/i);
+    if (reverseMatch) {
+      return { article: reverseMatch[3], quantity: Number(reverseMatch[1]), unit: reverseMatch[2] || "шт", descriptionRu: line };
+    }
+
     return null;
   }).filter(Boolean);
 }
@@ -267,4 +280,21 @@ function unique(items) {
 
 function cleanup(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function stripHtml(text) {
+  if (!/<[a-zA-Z]/.test(text)) return text;
+  return text
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(?:p|div|tr|li|h[1-6])>/gi, "\n")
+    .replace(/<[^>]+>/g, " ")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#(\d+);/g, (_, c) => String.fromCharCode(Number(c)))
+    .replace(/[ \t]+/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
