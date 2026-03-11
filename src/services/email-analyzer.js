@@ -12,9 +12,19 @@ export function analyzeEmail(project, payload) {
   const subject = String(payload.subject || "");
   const rawBody = String(payload.body || "");
   const body = stripHtml(rawBody);
-  const fromEmail = String(payload.fromEmail || "").trim().toLowerCase();
-  const fromName = String(payload.fromName || "").trim();
+  let fromEmail = String(payload.fromEmail || "").trim().toLowerCase();
+  let fromName = String(payload.fromName || "").trim();
   const attachments = normalizeAttachments(payload.attachments);
+
+  // If this is a forwarded email, extract original sender from body
+  const fwdInfo = extractForwardedSender(body);
+  if (fwdInfo) {
+    if (fwdInfo.email && !fromEmail.includes(fwdInfo.email.split("@")[1])) {
+      fromEmail = fwdInfo.email;
+      if (fwdInfo.name) fromName = fwdInfo.name;
+    }
+  }
+
   const normalizedText = [subject, body, attachments.join(" ")].join("\n");
 
   const classification = classifyMessage({
@@ -280,6 +290,36 @@ function unique(items) {
 
 function cleanup(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function extractForwardedSender(body) {
+  // Match forwarded message headers in various formats
+  const fwdPatterns = [
+    // Gmail: "---------- Forwarded message ----------\nFrom: Name <email>"
+    /[-—–]{3,}\s*(?:Forwarded message|Пересланное сообщение|Исходное сообщение|Пересланное письмо)\s*[-—–]*\s*\n[\s\S]*?(?:From|От|from)\s*:\s*(.+)/i,
+    // Outlook: "> From: Name <email>"
+    /(?:^|\n)\s*>?\s*(?:From|От)\s*:\s*(.+)/im,
+    // Python marker from our extract: "--- Пересланное письмо ---\nОт: ..."
+    /---\s*Пересланное письмо\s*---\s*\n\s*От:\s*(.+)/i
+  ];
+
+  for (const pattern of fwdPatterns) {
+    const match = body.match(pattern);
+    if (match) {
+      const fromLine = match[1].trim();
+      // Parse "Name <email>" or just "email"
+      const angleMatch = fromLine.match(/^(.*?)\s*<([^>]+@[^>]+)>/);
+      if (angleMatch) {
+        return { name: angleMatch[1].replace(/["']/g, "").trim(), email: angleMatch[2].trim().toLowerCase() };
+      }
+      const emailOnly = fromLine.match(/([^\s<>"]+@[^\s<>"]+)/);
+      if (emailOnly) {
+        return { name: "", email: emailOnly[1].trim().toLowerCase() };
+      }
+    }
+  }
+
+  return null;
 }
 
 function stripHtml(text) {

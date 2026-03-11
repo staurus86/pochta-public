@@ -1218,8 +1218,8 @@ function renderEmailView(msg, viewEl, detailEl) {
         <span><strong>Дата:</strong> ${fmtDate(msg.createdAt)}</span>
       </div>
     </div>
-    <div class="email-body-content" id="email-body-text" style="max-height:300px;overflow-y:auto;position:relative;">${esc(msg.bodyPreview || lead.freeText || 'Нет текста')}</div>
-    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:4px;" onclick="const el=document.querySelector('#email-body-text');if(el.style.maxHeight==='300px'){el.style.maxHeight='none';this.textContent='Свернуть'}else{el.style.maxHeight='300px';this.textContent='Показать полностью'}">Показать полностью</button>
+    <div class="email-body-content" id="email-body-text" style="max-height:300px;overflow-y:auto;position:relative;white-space:pre-wrap;word-break:break-word;">${esc(msg.bodyPreview || lead.freeText || 'Нет текста')}</div>
+    <button class="btn btn-ghost btn-sm" id="email-body-toggle" style="width:100%;margin-top:4px;">Показать полностью</button>
     ${msg.attachments?.length ? `<div class="attachment-list">${msg.attachments.map((att) => {
       const hints = lead.attachmentHints || [];
       const hint = hints.find((h) => h.name === att);
@@ -1227,6 +1227,21 @@ function renderEmailView(msg, viewEl, detailEl) {
       return `<span class="attachment-chip"><span class="att-icon">${typeIcon[hint?.type] || '📎'}</span> ${esc(att)}</span>`;
     }).join('')}</div>` : ''}
   `;
+
+  // Toggle body expand/collapse
+  const toggleBtn = viewEl.querySelector('#email-body-toggle');
+  const bodyEl = viewEl.querySelector('#email-body-text');
+  if (toggleBtn && bodyEl) {
+    toggleBtn.addEventListener('click', () => {
+      if (bodyEl.style.maxHeight === '300px') {
+        bodyEl.style.maxHeight = 'none';
+        toggleBtn.textContent = 'Свернуть';
+      } else {
+        bodyEl.style.maxHeight = '300px';
+        toggleBtn.textContent = 'Показать полностью';
+      }
+    });
+  }
 
   const fields = [['Email', sender.email], ['ФИО', sender.fullName], ['Должность', sender.position], ['Компания', sender.companyName], ['Сайт', sender.website], ['Гор. телефон', sender.cityPhone], ['Моб. телефон', sender.mobilePhone], ['ИНН', sender.inn], ['Реквизиты', sender.legalCardAttached ? 'Приложены' : null]];
   const leadFields = [['Тип запроса', lead.requestType], ['Бренды', formatArr(a.detectedBrands || lead.detectedBrands)], ['Артикулы', formatArr(lead.articles)], ['Позиций', lead.totalPositions], ['Фото шильдика', lead.hasNameplatePhotos ? 'Да' : null], ['Фото артикула', lead.hasArticlePhotos ? 'Да' : null]];

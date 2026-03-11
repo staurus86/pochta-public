@@ -51,20 +51,39 @@ def decode_value(raw_value):
 def extract_body_and_attachments(message):
     body = ""
     attachments = []
+    forwarded_body = ""
 
     if message.is_multipart():
         for part in message.walk():
+            content_type = part.get_content_type()
             disposition = part.get("Content-Disposition", "")
             filename = decode_value(part.get_filename())
             if filename:
                 attachments.append(filename)
 
-            if part.get_content_type() == "text/plain" and "attachment" not in disposition.lower():
+            # Handle forwarded message (message/rfc822)
+            if content_type == "message/rfc822":
+                try:
+                    inner = part.get_payload()
+                    if isinstance(inner, list):
+                        inner = inner[0]
+                    if inner:
+                        fwd_body, fwd_att = extract_body_and_attachments(inner)
+                        if fwd_body:
+                            fwd_from = decode_value(inner.get("From", ""))
+                            fwd_subj = decode_value(inner.get("Subject", ""))
+                            forwarded_body = f"--- Пересланное письмо ---\nОт: {fwd_from}\nТема: {fwd_subj}\n\n{fwd_body}"
+                        attachments.extend(fwd_att)
+                except Exception:
+                    pass
+                continue
+
+            if content_type == "text/plain" and "attachment" not in disposition.lower():
                 try:
                     body = part.get_payload(decode=True).decode(part.get_content_charset() or "utf-8", errors="ignore")
                 except Exception:
                     pass
-            elif part.get_content_type() == "text/html" and not body:
+            elif content_type == "text/html" and not body:
                 try:
                     html = part.get_payload(decode=True).decode(part.get_content_charset() or "utf-8", errors="ignore")
                     body = re.sub(r"<[^>]+>", " ", html)
@@ -76,7 +95,16 @@ def extract_body_and_attachments(message):
         except Exception:
             body = ""
 
-    body = re.sub(r"\s+", " ", body).strip()
+    # Append forwarded body if main body is short or empty
+    if forwarded_body:
+        if body:
+            body = body + "\n\n" + forwarded_body
+        else:
+            body = forwarded_body
+
+    body = re.sub(r"[ \t]+", " ", body).strip()
+    # Preserve line breaks for readability but collapse excessive blank lines
+    body = re.sub(r"\n{3,}", "\n\n", body)
     return body, attachments
 
 
