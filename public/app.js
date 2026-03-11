@@ -669,17 +669,17 @@ function renderEmailView(msg, viewEl, detailEl) {
     <div class="detail-section">
       <div class="detail-section-title">Обучение классификатора</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-        <button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green)" onclick="window.__trainSender('${esc(sender.email)}','client','${esc(sender.companyName || '')}')">Это заявка</button>
-        <button class="btn btn-sm" style="background:var(--rose-dim);color:var(--rose);border:1px solid var(--rose)" onclick="window.__trainSender('${esc(sender.email)}','spam','')">Это спам</button>
-        <button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)" onclick="window.__trainSender('${esc(sender.email)}','vendor','${esc(sender.companyName || '')}')">Поставщик</button>
+        <button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green)" onclick="window.__trainSender('${esc(sender.email)}','client','${esc(sender.companyName || '')}','${esc(msgKey)}')">Это заявка</button>
+        <button class="btn btn-sm" style="background:var(--rose-dim);color:var(--rose);border:1px solid var(--rose)" onclick="window.__trainSender('${esc(sender.email)}','spam','','${esc(msgKey)}')">Это спам</button>
+        <button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)" onclick="window.__trainSender('${esc(sender.email)}','vendor','${esc(sender.companyName || '')}','${esc(msgKey)}')">Поставщик</button>
       </div>
       <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
         <label class="form-check" style="font-size:11px;color:var(--text-muted);margin:0;">
-          <input type="radio" name="train-scope-${esc(msgKey)}" value="domain" checked style="margin-right:4px;" />
+          <input type="radio" name="train-scope-${esc(msgKey)}" value="domain" ${isFreeDomain((sender.email || '').split('@')[1] || '') ? '' : 'checked'} style="margin-right:4px;" />
           <span>Весь домен @${esc((sender.email || '').split('@')[1] || '')}</span>
         </label>
         <label class="form-check" style="font-size:11px;color:var(--text-muted);margin:0;">
-          <input type="radio" name="train-scope-${esc(msgKey)}" value="email" style="margin-right:4px;" />
+          <input type="radio" name="train-scope-${esc(msgKey)}" value="email" ${isFreeDomain((sender.email || '').split('@')[1] || '') ? 'checked' : ''} style="margin-right:4px;" />
           <span>Только ${esc(sender.email || '')}</span>
         </label>
       </div>
@@ -720,24 +720,24 @@ window.__deleteMsg = async (key) => {
 };
 
 // ═══ TRAINING handlers ═══
-window.__trainSender = async (email, classification, companyHint) => {
+const FREE_DOMAINS = new Set(['gmail.com','mail.ru','bk.ru','list.ru','inbox.ru','yandex.ru','ya.ru','hotmail.com','outlook.com','icloud.com','me.com','live.com','yahoo.com','rambler.ru','ro.ru','autorambler.ru','myrambler.ru','lenta.ru','aol.com','protonmail.com','proton.me','zoho.com']);
+
+function isFreeDomain(domain) { return FREE_DOMAINS.has((domain || '').toLowerCase()); }
+
+window.__trainSender = async (email, classification, companyHint, msgKey) => {
   const domain = email.split('@')[1] || '';
   const label = { client: 'заявка', spam: 'спам', vendor: 'поставщик' }[classification] || classification;
+  const statusMap = { client: 'ready_for_crm', spam: 'ignored_spam', vendor: 'review' };
 
-  // Find which scope radio is selected for this message
-  const selectedMsg = runnerMessages.find((m) => {
-    const s = m.analysis?.sender?.email;
-    return s === email;
-  });
-  const msgKey = selectedMsg ? mid(selectedMsg) : '';
   const scopeRadio = document.querySelector(`input[name="train-scope-${msgKey}"]:checked`);
-  const scope = scopeRadio?.value || 'domain';
+  const scope = scopeRadio?.value || (isFreeDomain(domain) ? 'email' : 'domain');
 
   const byEmail = scope === 'email';
   const target = byEmail ? email : `@${domain}`;
   if (!confirm(`Обучить: ${byEmail ? 'письма от' : 'все письма с'} ${target} → ${label}?`)) return;
 
   try {
+    // 1. Save sender profile for future emails
     const res = await fetch('/api/detection-kb/sender-profiles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -749,12 +749,38 @@ window.__trainSender = async (email, classification, companyHint) => {
         notes: `Обучено из inbox: ${target} → ${classification}`
       })
     });
-    if (res.ok) {
-      showToast(`${target} обучен как "${label}"`);
-      await refreshKb();
-    } else {
-      showToast('Ошибка сохранения профиля', true);
+
+    if (!res.ok) { showToast('Ошибка сохранения профиля', true); return; }
+
+    // 2. Update current message status so it moves to correct tab
+    if (msgKey) {
+      await fetch(`/api/projects/${P3_ID}/messages/${encodeURIComponent(msgKey)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pipelineStatus: statusMap[classification] || 'review' })
+      });
+
+      // Also update matching messages from same sender in local data
+      const matchFn = byEmail
+        ? (m) => (m.analysis?.sender?.email || m.from || '').toLowerCase() === email.toLowerCase()
+        : (m) => (m.analysis?.sender?.email || m.from || '').toLowerCase().endsWith(`@${domain.toLowerCase()}`);
+
+      for (const m of allRunnerMessages.filter(matchFn)) {
+        const key = mid(m);
+        m.pipelineStatus = statusMap[classification] || 'review';
+        if (key !== msgKey) {
+          fetch(`/api/projects/${P3_ID}/messages/${encodeURIComponent(key)}`, {
+            method: 'PATCH',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ pipelineStatus: statusMap[classification] || 'review' })
+          });
+        }
+      }
     }
+
+    showToast(`${target} → "${label}" (${allRunnerMessages.filter((m) => byEmail ? (m.analysis?.sender?.email || '').toLowerCase() === email.toLowerCase() : (m.analysis?.sender?.email || '').toLowerCase().endsWith(`@${domain}`)).length} писем перемещено)`);
+    await refreshKb();
+    renderInbox();
   } catch (err) {
     showToast('Ошибка: ' + err.message, true);
   }

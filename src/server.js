@@ -208,6 +208,26 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, result);
   }
 
+  const messagePatchMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages\/([^/]+)$/);
+  if (req.method === "PATCH" && messagePatchMatch) {
+    const project = await store.getProject(messagePatchMatch[1]);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    const payload = await parseJsonBody(req);
+    if (!payload.pipelineStatus) {
+      return sendJson(res, 400, { error: "Field 'pipelineStatus' is required." });
+    }
+
+    const result = await store.updateMessageStatus(project.id, decodeURIComponent(messagePatchMatch[2]), payload.pipelineStatus);
+    if (!result) {
+      return sendJson(res, 404, { error: "Message not found." });
+    }
+
+    return sendJson(res, 200, result);
+  }
+
   const messageDeleteMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages\/([^/]+)$/);
   if (req.method === "DELETE" && messageDeleteMatch) {
     const project = await store.getProject(messageDeleteMatch[1]);

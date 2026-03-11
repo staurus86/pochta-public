@@ -236,6 +236,25 @@ export class ProjectsStore {
     return summary;
   }
 
+  async updateMessageStatus(projectId, messageKey, newStatus) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) {
+      return null;
+    }
+
+    const msg = (project.recentMessages || []).find(
+      (m) => (m.messageKey || m.id) === messageKey
+    );
+    if (!msg) {
+      return null;
+    }
+
+    msg.pipelineStatus = newStatus;
+    await this.persist();
+    return { messageKey, pipelineStatus: newStatus };
+  }
+
   async deleteMessage(projectId, messageKey) {
     await this.ensureLoaded();
     const project = await this.getProject(projectId);
