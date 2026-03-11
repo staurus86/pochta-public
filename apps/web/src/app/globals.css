@@ -1,0 +1,139 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+
+@layer base {
+  * {
+    @apply border-steel-200;
+  }
+
+  body {
+    @apply bg-surface-primary text-steel-900 font-sans antialiased;
+    font-feature-settings: 'cv02', 'cv03', 'cv04', 'cv11';
+  }
+
+  ::selection {
+    @apply bg-accent-blue/20 text-steel-900;
+  }
+
+  ::-webkit-scrollbar {
+    @apply w-1.5 h-1.5;
+  }
+
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    @apply bg-steel-300 rounded-full;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    @apply bg-steel-400;
+  }
+
+  /* Dark scrollbars for sidebar */
+  .dark-scrollbar::-webkit-scrollbar-thumb {
+    @apply bg-steel-700;
+  }
+
+  .dark-scrollbar::-webkit-scrollbar-thumb:hover {
+    @apply bg-steel-600;
+  }
+}
+
+@layer components {
+  .steel-card {
+    @apply bg-white rounded-steel border border-steel-100 shadow-steel;
+  }
+
+  .steel-card-hover {
+    @apply steel-card transition-all duration-150 hover:shadow-steel-md hover:border-steel-200;
+  }
+
+  .steel-input {
+    @apply w-full rounded-steel border border-steel-200 bg-white px-3 py-2 text-sm
+           placeholder:text-steel-400 focus:outline-none focus:ring-2 focus:ring-accent-blue/20
+           focus:border-accent-blue transition-colors;
+  }
+
+  .steel-select {
+    @apply steel-input appearance-none cursor-pointer pr-8;
+  }
+
+  .steel-table {
+    @apply w-full text-sm;
+  }
+
+  .steel-table thead {
+    @apply bg-steel-50 border-b border-steel-200;
+  }
+
+  .steel-table th {
+    @apply px-4 py-3 text-left text-xs font-semibold text-steel-500 uppercase tracking-wider;
+  }
+
+  .steel-table td {
+    @apply px-4 py-3 border-b border-steel-100;
+  }
+
+  .steel-table tbody tr {
+    @apply transition-colors hover:bg-steel-50/50;
+  }
+
+  .steel-badge {
+    @apply inline-flex items-center rounded-full px-2 py-0.5 text-xs font-medium;
+  }
+
+  .steel-sidebar-item {
+    @apply flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium
+           text-steel-400 transition-all duration-150 cursor-pointer
+           hover:text-steel-100 hover:bg-steel-800;
+  }
+
+  .steel-sidebar-item-active {
+    @apply steel-sidebar-item text-white bg-steel-800;
+  }
+
+  .steel-kbd {
+    @apply inline-flex items-center justify-center min-w-[1.25rem] h-5 px-1
+           rounded border border-steel-200 bg-steel-50 text-2xs font-mono
+           text-steel-500;
+  }
+
+  .confidence-bar {
+    @apply h-1.5 rounded-full bg-steel-100 overflow-hidden;
+  }
+
+  .confidence-fill {
+    @apply h-full rounded-full transition-all duration-500;
+  }
+
+  .heatmap-cell {
+    @apply rounded-sm transition-all duration-200 cursor-pointer hover:ring-2 hover:ring-accent-blue/40;
+  }
+}
+
+@layer utilities {
+  .text-balance {
+    text-wrap: balance;
+  }
+
+  .gradient-steel {
+    @apply bg-gradient-to-b from-steel-900 to-steel-950;
+  }
+
+  .gradient-surface {
+    @apply bg-gradient-to-b from-surface-primary to-white;
+  }
+
+  .border-steel-subtle {
+    @apply border-steel-100/80;
+  }
+
+  .animate-in {
+    @apply animate-fade-in;
+  }
+}

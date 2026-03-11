@@ -11,3 +11,12 @@ project 2/tender_parser.log
 project 2/seen_emails.json
 project 2/*_b64.txt
 project 2/.runtime/
+
+# New email module
+apps/web/.next/
+apps/web/out/
+apps/api/dist/
+apps/worker/dist/
+*.tsbuildinfo
+.turbo/
+.vercel/

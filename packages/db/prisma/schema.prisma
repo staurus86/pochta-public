@@ -1,0 +1,781 @@
+// =============================================================================
+// Prisma Schema — Email Parsing CRM Module
+// Provider: PostgreSQL
+// =============================================================================
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// =============================================================================
+// ENUMS
+// =============================================================================
+
+enum EmailStatus {
+  received
+  normalized
+  parsed
+  classified
+  entities_extracted
+  crm_matched
+  awaiting_review
+  awaiting_client_details
+  ready_to_sync
+  synced
+  failed
+  quarantined
+}
+
+enum ClassificationLabel {
+  new_client_request
+  existing_client
+  spam
+  vendor_offer
+  system_notification
+  clarification_reply
+  attachment_only
+  multi_brand_request
+  mono_brand_request
+  unclassified
+}
+
+enum ProcessingMode {
+  automatic
+  semi_automatic
+  manual
+}
+
+enum UserRole {
+  admin
+  operator
+  mop
+  sales_head
+  analyst
+  integrator
+}
+
+enum AttachmentType {
+  pdf
+  doc
+  docx
+  xls
+  xlsx
+  jpg
+  png
+  webp
+  archive
+  other
+}
+
+enum AttachmentCategory {
+  requisites
+  company_card
+  nameplate_photo
+  article_photo
+  price_list
+  specification
+  commercial_offer
+  other
+}
+
+enum JobStatus {
+  pending
+  active
+  completed
+  failed
+  stalled
+}
+
+enum CrmSyncStatus {
+  pending
+  synced
+  failed
+  skipped
+}
+
+enum ClarificationStatus {
+  pending
+  sent
+  replied
+  expired
+}
+
+enum MatchConfidence {
+  high
+  medium
+  low
+  none
+}
+
+enum AssignmentMethod {
+  brand_rule
+  region_rule
+  round_robin
+  manual
+  fallback
+}
+
+// =============================================================================
+// MODELS
+// =============================================================================
+
+/// Application user (operator, manager, admin, etc.)
+model User {
+  id           Int      @id @default(autoincrement())
+  email        String   @unique
+  name         String
+  role         UserRole
+  passwordHash String   @map("password_hash")
+  isActive     Boolean  @default(true) @map("is_active")
+  createdAt    DateTime @default(now()) @map("created_at")
+  updatedAt    DateTime @updatedAt @map("updated_at")
+
+  // Reverse relations
+  defaultMopInboxAccounts InboxAccount[]        @relation("InboxDefaultMop")
+  defaultMozInboxAccounts InboxAccount[]        @relation("InboxDefaultMoz")
+  classificationOverrides EmailClassification[] @relation("ClassificationOverriddenBy")
+  confirmedEntities       ExtractedEntity[]     @relation("EntityConfirmedBy")
+  assignedMopCrmMatches   CrmMatch[]            @relation("CrmMatchMop")
+  assignedMozCrmMatches   CrmMatch[]            @relation("CrmMatchMoz")
+  curatorMopClients       Client[]              @relation("ClientCuratorMop")
+  curatorMozClients       Client[]              @relation("ClientCuratorMoz")
+  assignedMopRequests     Request[]             @relation("RequestMop")
+  assignedMozRequests     Request[]             @relation("RequestMoz")
+  createdTemplateRules    TemplateRule[]        @relation("TemplateRuleCreatedBy")
+  createdTemplateVersions TemplateVersion[]     @relation("TemplateVersionCreatedBy")
+  operatorReviews         OperatorReview[]
+  learningFeedbacks       LearningFeedback[]
+  auditLogs               AuditLog[]
+  defaultMopBrands        BrandDictionary[]     @relation("BrandDefaultMop")
+  defaultMozBrands        BrandDictionary[]     @relation("BrandDefaultMoz")
+  assignMopRules          AssignmentRule[]      @relation("AssignmentRuleMop")
+  assignMozRules          AssignmentRule[]      @relation("AssignmentRuleMoz")
+
+  @@map("users")
+}
+
+/// Monitored IMAP mailbox configuration
+model InboxAccount {
+  id                    Int            @id @default(autoincrement())
+  email                 String         @unique
+  displayName           String?        @map("display_name")
+  imapHost              String         @map("imap_host")
+  imapPort              Int            @map("imap_port")
+  imapUser              String         @map("imap_user")
+  imapPasswordEncrypted String         @map("imap_password_encrypted")
+  isActive              Boolean        @default(true) @map("is_active")
+  processingMode        ProcessingMode @default(automatic) @map("processing_mode")
+  defaultBrands         String[]       @map("default_brands")
+  routingRules          Json?          @map("routing_rules")
+  signatureTemplate     String?        @map("signature_template") @db.Text
+  assignedTeam          String?        @map("assigned_team")
+  defaultMopId          Int?           @map("default_mop_id")
+  defaultMop            User?          @relation("InboxDefaultMop", fields: [defaultMopId], references: [id], onDelete: SetNull)
+  defaultMozId          Int?           @map("default_moz_id")
+  defaultMoz            User?          @relation("InboxDefaultMoz", fields: [defaultMozId], references: [id], onDelete: SetNull)
+  lastSyncAt            DateTime?      @map("last_sync_at")
+  lastSyncError         String?        @map("last_sync_error")
+  syncIntervalMinutes   Int            @default(5) @map("sync_interval_minutes")
+  createdAt             DateTime       @default(now()) @map("created_at")
+  updatedAt             DateTime       @updatedAt @map("updated_at")
+
+  // Reverse relations
+  syncStates      MailboxSyncState[]
+  emailThreads    EmailThread[]
+  emails          Email[]
+  automationRuns  AutomationRun[]
+  outboundMessages OutboundMessage[]
+  requests        Request[]
+
+  @@index([isActive])
+  @@map("inbox_accounts")
+}
+
+/// Tracks IMAP sync cursor per mailbox
+model MailboxSyncState {
+  id               Int       @id @default(autoincrement())
+  inboxAccountId   Int       @map("inbox_account_id")
+  inboxAccount     InboxAccount @relation(fields: [inboxAccountId], references: [id], onDelete: Cascade)
+  lastUid          Int?      @map("last_uid")
+  lastMessageId    String?   @map("last_message_id")
+  syncCursor       String?   @map("sync_cursor")
+  errorCount       Int       @default(0) @map("error_count")
+  lastErrorAt      DateTime? @map("last_error_at")
+  lastErrorMessage String?   @map("last_error_message")
+  createdAt        DateTime  @default(now()) @map("created_at")
+  updatedAt        DateTime  @updatedAt @map("updated_at")
+
+  @@index([inboxAccountId])
+  @@map("mailbox_sync_states")
+}
+
+/// Groups related emails into a conversation thread
+model EmailThread {
+  id                String   @id @default(uuid())
+  threadId          String   @unique @map("thread_id")
+  subject           String?
+  participantEmails String[] @map("participant_emails")
+  messageCount      Int      @default(0) @map("message_count")
+  lastMessageAt     DateTime? @map("last_message_at")
+  inboxAccountId    Int       @map("inbox_account_id")
+  inboxAccount      InboxAccount @relation(fields: [inboxAccountId], references: [id], onDelete: Cascade)
+  createdAt         DateTime @default(now()) @map("created_at")
+  updatedAt         DateTime @updatedAt @map("updated_at")
+
+  // Reverse relations
+  emails   Email[]
+  requests Request[]
+
+  @@index([inboxAccountId])
+  @@index([lastMessageAt])
+  @@map("email_threads")
+}
+
+/// Core email record — one row per fetched message
+model Email {
+  id                      String        @id @default(uuid())
+  externalMessageId       String        @unique @map("external_message_id")
+  inboxAccountId          Int           @map("inbox_account_id")
+  inboxAccount            InboxAccount  @relation(fields: [inboxAccountId], references: [id], onDelete: Cascade)
+  threadId                String?       @map("thread_id")
+  thread                  EmailThread?  @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  fromEmail               String        @map("from_email")
+  fromName                String?       @map("from_name")
+  toEmails                String[]      @map("to_emails")
+  ccEmails                String[]      @map("cc_emails")
+  bccEmails               String[]      @map("bcc_emails")
+  subject                 String?
+  receivedAt              DateTime      @map("received_at")
+  rawHeaders              Json?         @map("raw_headers")
+  status                  EmailStatus   @default(received)
+  processingMode          ProcessingMode @default(automatic) @map("processing_mode")
+  confidenceScore         Float?        @map("confidence_score")
+  idempotencyKey          String        @unique @map("idempotency_key")
+  rawStoragePath          String?       @map("raw_storage_path")
+  processingStartedAt     DateTime?     @map("processing_started_at")
+  processingCompletedAt   DateTime?     @map("processing_completed_at")
+  errorMessage            String?       @map("error_message")
+  retryCount              Int           @default(0) @map("retry_count")
+  lastRetryAt             DateTime?     @map("last_retry_at")
+  createdAt               DateTime      @default(now()) @map("created_at")
+  updatedAt               DateTime      @updatedAt @map("updated_at")
+
+  // One-to-one / one-to-many reverse relations
+  body                   EmailBody?
+  attachments            EmailAttachment[]
+  classification         EmailClassification?
+  extractedEntities      ExtractedEntity[]
+  entityCandidates       EntityCandidate[]
+  crmMatch               CrmMatch?
+  createdClients         Client[]              @relation("ClientCreatedFromEmail")
+  requests               Request[]
+  operatorReviews        OperatorReview[]
+  learningFeedbacks      LearningFeedback[]
+  outboundMessages       OutboundMessage[]
+  clarificationRequests  ClarificationRequest[] @relation("ClarificationSourceEmail")
+  clarificationReplies   ClarificationRequest[] @relation("ClarificationReplyEmail")
+  processingJobs         ProcessingJob[]
+  tags                   EmailTag[]
+
+  @@index([status])
+  @@index([inboxAccountId])
+  @@index([receivedAt])
+  @@index([fromEmail])
+  @@index([idempotencyKey])
+  @@index([threadId])
+  @@map("emails")
+}
+
+/// Parsed body content of an email
+model EmailBody {
+  id                  Int      @id @default(autoincrement())
+  emailId             String   @unique @map("email_id")
+  email               Email    @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  textPlain           String?  @map("text_plain") @db.Text
+  textHtml            String?  @map("text_html") @db.Text
+  sanitizedHtml       String?  @map("sanitized_html") @db.Text
+  language            String?
+  quotedTextSeparated String?  @map("quoted_text_separated") @db.Text
+  signatureBlock      String?  @map("signature_block") @db.Text
+  createdAt           DateTime @default(now()) @map("created_at")
+
+  @@map("email_bodies")
+}
+
+/// File attached to an email
+model EmailAttachment {
+  id              Int                @id @default(autoincrement())
+  emailId         String             @map("email_id")
+  email           Email              @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  filename        String
+  mimeType        String?            @map("mime_type")
+  sizeBytes       Int?               @map("size_bytes")
+  storagePath     String?            @map("storage_path")
+  attachmentType  AttachmentType     @default(other) @map("attachment_type")
+  category        AttachmentCategory @default(other)
+  extractedText   String?            @map("extracted_text") @db.Text
+  ocrText         String?            @map("ocr_text") @db.Text
+  ocrConfidence   Float?             @map("ocr_confidence")
+  isQuarantined   Boolean            @default(false) @map("is_quarantined")
+  scanResult      Json?              @map("scan_result")
+  thumbnailPath   String?            @map("thumbnail_path")
+  createdAt       DateTime           @default(now()) @map("created_at")
+
+  @@index([emailId])
+  @@map("email_attachments")
+}
+
+/// AI/rule-based classification result for an email
+model EmailClassification {
+  id             Int                  @id @default(autoincrement())
+  emailId        String               @unique @map("email_id")
+  email          Email                @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  label          ClassificationLabel  @default(unclassified)
+  confidence     Float?
+  scores         Json?
+  matchedRules   Json?                @map("matched_rules")
+  aiReasoning    String?              @map("ai_reasoning") @db.Text
+  isOverridden   Boolean              @default(false) @map("is_overridden")
+  overriddenById Int?                 @map("overridden_by_id")
+  overriddenBy   User?                @relation("ClassificationOverriddenBy", fields: [overriddenById], references: [id], onDelete: SetNull)
+  overriddenAt   DateTime?            @map("overridden_at")
+  previousLabel  ClassificationLabel? @map("previous_label")
+  createdAt      DateTime             @default(now()) @map("created_at")
+
+  @@map("email_classifications")
+}
+
+/// A single extracted data field from an email
+model ExtractedEntity {
+  id               Int      @id @default(autoincrement())
+  emailId          String   @map("email_id")
+  email            Email    @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  fieldName        String   @map("field_name")
+  fieldValue       String?  @map("field_value") @db.Text
+  confidence       Float?
+  extractionMethod String?  @map("extraction_method") // rule, regex, llm, template, manual
+  sourceSnippet    String?  @map("source_snippet") @db.Text
+  isConfirmed      Boolean  @default(false) @map("is_confirmed")
+  confirmedById    Int?     @map("confirmed_by_id")
+  confirmedBy      User?    @relation("EntityConfirmedBy", fields: [confirmedById], references: [id], onDelete: SetNull)
+  confirmedAt      DateTime? @map("confirmed_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([emailId])
+  @@index([fieldName])
+  @@map("extracted_entities")
+}
+
+/// Candidate values for an extracted entity field (ranked alternatives)
+model EntityCandidate {
+  id             Int      @id @default(autoincrement())
+  emailId        String   @map("email_id")
+  email          Email    @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  fieldName      String   @map("field_name")
+  candidateValue String?  @map("candidate_value") @db.Text
+  confidence     Float?
+  source         String?
+  rank           Int
+  isSelected     Boolean  @default(false) @map("is_selected")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@index([emailId])
+  @@map("entity_candidates")
+}
+
+/// Result of matching an email to a CRM client
+model CrmMatch {
+  id                 Int              @id @default(autoincrement())
+  emailId            String           @unique @map("email_id")
+  email              Email            @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  matchedClientId    Int?             @map("matched_client_id")
+  matchedClient      Client?          @relation(fields: [matchedClientId], references: [id], onDelete: SetNull)
+  matchMethod        String?          @map("match_method")
+  matchConfidence    MatchConfidence  @default(none) @map("match_confidence")
+  candidateClients   Json?            @map("candidate_clients")
+  needsClarification Boolean          @default(false) @map("needs_clarification")
+  assignedMopId      Int?             @map("assigned_mop_id")
+  assignedMop        User?            @relation("CrmMatchMop", fields: [assignedMopId], references: [id], onDelete: SetNull)
+  assignedMozId      Int?             @map("assigned_moz_id")
+  assignedMoz        User?            @relation("CrmMatchMoz", fields: [assignedMozId], references: [id], onDelete: SetNull)
+  assignmentMethod   AssignmentMethod? @map("assignment_method")
+  syncStatus         CrmSyncStatus    @default(pending) @map("sync_status")
+  syncedAt           DateTime?        @map("synced_at")
+  syncError          String?          @map("sync_error")
+  actions            Json?
+  createdAt          DateTime         @default(now()) @map("created_at")
+  updatedAt          DateTime         @updatedAt @map("updated_at")
+
+  @@index([syncStatus])
+  @@index([matchedClientId])
+  @@map("crm_matches")
+}
+
+/// CRM client record (may be draft or verified)
+model Client {
+  id                 Int       @id @default(autoincrement())
+  externalCrmId      String?   @unique @map("external_crm_id")
+  legalName          String?   @map("legal_name")
+  inn                String?
+  kpp                String?
+  ogrn               String?
+  website            String?
+  domain             String?
+  address            String?
+  isVerified         Boolean   @default(false) @map("is_verified")
+  isDraft            Boolean   @default(true) @map("is_draft")
+  createdFromEmailId String?   @map("created_from_email_id")
+  createdFromEmail   Email?    @relation("ClientCreatedFromEmail", fields: [createdFromEmailId], references: [id], onDelete: SetNull)
+  curatorMopId       Int?      @map("curator_mop_id")
+  curatorMop         User?     @relation("ClientCuratorMop", fields: [curatorMopId], references: [id], onDelete: SetNull)
+  curatorMozId       Int?      @map("curator_moz_id")
+  curatorMoz         User?     @relation("ClientCuratorMoz", fields: [curatorMozId], references: [id], onDelete: SetNull)
+  createdAt          DateTime  @default(now()) @map("created_at")
+  updatedAt          DateTime  @updatedAt @map("updated_at")
+
+  // Reverse relations
+  contacts   ClientContact[]
+  crmMatches CrmMatch[]
+  requests   Request[]
+
+  @@index([inn])
+  @@index([domain])
+  @@index([legalName])
+  @@map("clients")
+}
+
+/// Contact person belonging to a client
+model ClientContact {
+  id          Int      @id @default(autoincrement())
+  clientId    Int      @map("client_id")
+  client      Client   @relation(fields: [clientId], references: [id], onDelete: Cascade)
+  fullName    String?  @map("full_name")
+  position    String?
+  email       String?
+  cityPhone   String?  @map("city_phone")
+  mobilePhone String?  @map("mobile_phone")
+  isMain      Boolean  @default(false) @map("is_main")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([clientId])
+  @@index([email])
+  @@map("client_contacts")
+}
+
+/// A commercial request (inquiry) parsed from an email
+model Request {
+  id                   Int          @id @default(autoincrement())
+  clientId             Int?         @map("client_id")
+  client               Client?      @relation(fields: [clientId], references: [id], onDelete: SetNull)
+  emailId              String       @map("email_id")
+  email                Email        @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  title                String?
+  requestType          String?      @map("request_type") // mono_brand, multi_brand
+  status               String?      @default("new")
+  totalPositions       Int?         @map("total_positions")
+  detectedBrands       String[]     @map("detected_brands")
+  assignedMopId        Int?         @map("assigned_mop_id")
+  assignedMop          User?        @relation("RequestMop", fields: [assignedMopId], references: [id], onDelete: SetNull)
+  assignedMozId        Int?         @map("assigned_moz_id")
+  assignedMoz          User?        @relation("RequestMoz", fields: [assignedMozId], references: [id], onDelete: SetNull)
+  sourceInboxAccountId Int?         @map("source_inbox_account_id")
+  sourceInboxAccount   InboxAccount? @relation(fields: [sourceInboxAccountId], references: [id], onDelete: SetNull)
+  threadId             String?      @map("thread_id")
+  thread               EmailThread? @relation(fields: [threadId], references: [id], onDelete: SetNull)
+  confidenceScore      Float?       @map("confidence_score")
+  createdAt            DateTime     @default(now()) @map("created_at")
+  updatedAt            DateTime     @updatedAt @map("updated_at")
+
+  // Reverse relations
+  items RequestItem[]
+
+  @@index([clientId])
+  @@index([emailId])
+  @@index([status])
+  @@map("requests")
+}
+
+/// Individual line item within a request
+model RequestItem {
+  id            Int      @id @default(autoincrement())
+  requestId     Int      @map("request_id")
+  request       Request  @relation(fields: [requestId], references: [id], onDelete: Cascade)
+  article       String?
+  descriptionRu String?  @map("description_ru") @db.Text
+  quantity      Float?
+  unit          String?
+  brand         String?
+  confidence    Float?
+  sourceSnippet String?  @map("source_snippet") @db.Text
+  createdAt     DateTime @default(now()) @map("created_at")
+
+  @@index([requestId])
+  @@index([brand])
+  @@map("request_items")
+}
+
+/// Rule template for structured extraction from known senders/domains
+model TemplateRule {
+  id              Int      @id @default(autoincrement())
+  name            String
+  domain          String?
+  senderPattern   String?  @map("sender_pattern")
+  bodyPattern     String?  @map("body_pattern") @db.Text
+  extractionRules Json?    @map("extraction_rules")
+  isActive        Boolean  @default(true) @map("is_active")
+  version         Int      @default(1)
+  precision       Float?
+  recall          Float?
+  f1Score         Float?   @map("f1_score")
+  testSampleSize  Int?     @map("test_sample_size")
+  createdById     Int?     @map("created_by_id")
+  createdBy       User?    @relation("TemplateRuleCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt       DateTime @default(now()) @map("created_at")
+  updatedAt       DateTime @updatedAt @map("updated_at")
+
+  // Reverse relations
+  versions          TemplateVersion[]
+  learningFeedbacks LearningFeedback[]
+
+  @@index([domain])
+  @@index([isActive])
+  @@map("template_rules")
+}
+
+/// Versioned snapshot of a template rule's extraction config
+model TemplateVersion {
+  id              Int       @id @default(autoincrement())
+  templateRuleId  Int       @map("template_rule_id")
+  templateRule    TemplateRule @relation(fields: [templateRuleId], references: [id], onDelete: Cascade)
+  version         Int
+  extractionRules Json?     @map("extraction_rules")
+  precision       Float?
+  recall          Float?
+  f1Score         Float?    @map("f1_score")
+  publishedAt     DateTime? @map("published_at")
+  isActive        Boolean   @default(false) @map("is_active")
+  createdById     Int?      @map("created_by_id")
+  createdBy       User?     @relation("TemplateVersionCreatedBy", fields: [createdById], references: [id], onDelete: SetNull)
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  @@unique([templateRuleId, version])
+  @@map("template_versions")
+}
+
+/// Operator's review decision for a processed email
+model OperatorReview {
+  id               Int      @id @default(autoincrement())
+  emailId          String   @map("email_id")
+  email            Email    @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  reviewerId       Int      @map("reviewer_id")
+  reviewer         User     @relation(fields: [reviewerId], references: [id], onDelete: Cascade)
+  originalFields   Json?    @map("original_fields")
+  correctedFields  Json?    @map("corrected_fields")
+  diff             Json?
+  decision         String   // approve, reject, edit, escalate
+  notes            String?  @db.Text
+  reviewDurationMs Int?     @map("review_duration_ms")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  @@index([emailId])
+  @@index([reviewerId])
+  @@map("operator_reviews")
+}
+
+/// Feedback from operators used for continuous learning
+model LearningFeedback {
+  id              Int           @id @default(autoincrement())
+  emailId         String        @map("email_id")
+  email           Email         @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  templateRuleId  Int?          @map("template_rule_id")
+  templateRule    TemplateRule? @relation(fields: [templateRuleId], references: [id], onDelete: SetNull)
+  feedbackType    String        @map("feedback_type") // correction, confirmation, new_pattern
+  fieldName       String?       @map("field_name")
+  originalValue   String?       @map("original_value")
+  correctedValue  String?       @map("corrected_value")
+  operatorId      Int           @map("operator_id")
+  operator        User          @relation(fields: [operatorId], references: [id], onDelete: Cascade)
+  isApplied       Boolean       @default(false) @map("is_applied")
+  appliedAt       DateTime?     @map("applied_at")
+  createdAt       DateTime      @default(now()) @map("created_at")
+
+  @@index([emailId])
+  @@index([templateRuleId])
+  @@map("learning_feedbacks")
+}
+
+/// Record of an automated mailbox processing run
+model AutomationRun {
+  id                Int          @id @default(autoincrement())
+  inboxAccountId    Int          @map("inbox_account_id")
+  inboxAccount      InboxAccount @relation(fields: [inboxAccountId], references: [id], onDelete: Cascade)
+  triggeredBy       String       @map("triggered_by") // schedule, manual, webhook
+  startedAt         DateTime     @map("started_at")
+  completedAt       DateTime?    @map("completed_at")
+  totalFetched      Int          @default(0) @map("total_fetched")
+  totalProcessed    Int          @default(0) @map("total_processed")
+  totalAutoSynced   Int          @default(0) @map("total_auto_synced")
+  totalSentToReview Int          @default(0) @map("total_sent_to_review")
+  totalFailed       Int          @default(0) @map("total_failed")
+  totalSpam         Int          @default(0) @map("total_spam")
+  durationMs        Int?         @map("duration_ms")
+  errorMessage      String?      @map("error_message")
+  createdAt         DateTime     @default(now()) @map("created_at")
+
+  @@index([inboxAccountId])
+  @@index([startedAt])
+  @@map("automation_runs")
+}
+
+/// Immutable audit trail for all significant actions
+model AuditLog {
+  id         Int      @id @default(autoincrement())
+  userId     Int?     @map("user_id")
+  user       User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  action     String
+  entityType String   @map("entity_type")
+  entityId   String   @map("entity_id")
+  details    Json?
+  ipAddress  String?  @map("ip_address")
+  userAgent  String?  @map("user_agent")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  @@index([entityType, entityId])
+  @@index([userId])
+  @@index([createdAt])
+  @@map("audit_logs")
+}
+
+/// Outbound email sent from the system (clarifications, auto-replies)
+model OutboundMessage {
+  id             Int          @id @default(autoincrement())
+  emailId        String?      @map("email_id")
+  email          Email?       @relation(fields: [emailId], references: [id], onDelete: SetNull)
+  inboxAccountId Int          @map("inbox_account_id")
+  inboxAccount   InboxAccount @relation(fields: [inboxAccountId], references: [id], onDelete: Cascade)
+  toEmail        String       @map("to_email")
+  subject        String?
+  body           String?      @db.Text
+  sentAt         DateTime?    @map("sent_at")
+  status         String       @default("draft") // draft, pending, sent, failed
+  messageType    String       @map("message_type") // clarification_request, auto_reply
+  createdAt      DateTime     @default(now()) @map("created_at")
+
+  // Reverse relations
+  clarificationRequests ClarificationRequest[]
+
+  @@index([emailId])
+  @@index([status])
+  @@map("outbound_messages")
+}
+
+/// Tracks a clarification request sent to a client and its reply
+model ClarificationRequest {
+  id                 Int                  @id @default(autoincrement())
+  emailId            String               @map("email_id")
+  email              Email                @relation("ClarificationSourceEmail", fields: [emailId], references: [id], onDelete: Cascade)
+  outboundMessageId  Int?                 @map("outbound_message_id")
+  outboundMessage    OutboundMessage?     @relation(fields: [outboundMessageId], references: [id], onDelete: SetNull)
+  status             ClarificationStatus  @default(pending)
+  requestedFields    String[]             @map("requested_fields")
+  sentAt             DateTime?            @map("sent_at")
+  repliedAt          DateTime?            @map("replied_at")
+  replyEmailId       String?              @map("reply_email_id")
+  replyEmail         Email?               @relation("ClarificationReplyEmail", fields: [replyEmailId], references: [id], onDelete: SetNull)
+  createdAt          DateTime             @default(now()) @map("created_at")
+  updatedAt          DateTime             @updatedAt @map("updated_at")
+
+  @@index([emailId])
+  @@index([status])
+  @@map("clarification_requests")
+}
+
+/// Background job tracking for email processing pipeline
+model ProcessingJob {
+  id          Int       @id @default(autoincrement())
+  emailId     String    @map("email_id")
+  email       Email     @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  queue       String
+  jobId       String    @map("job_id")
+  status      JobStatus @default(pending)
+  attempts    Int       @default(0)
+  maxAttempts Int       @default(3) @map("max_attempts")
+  lastError   String?   @map("last_error") @db.Text
+  startedAt   DateTime? @map("started_at")
+  completedAt DateTime? @map("completed_at")
+  createdAt   DateTime  @default(now()) @map("created_at")
+  updatedAt   DateTime  @updatedAt @map("updated_at")
+
+  @@index([emailId])
+  @@index([status])
+  @@index([queue])
+  @@map("processing_jobs")
+}
+
+/// Tag label for email categorization
+model Tag {
+  id        Int        @id @default(autoincrement())
+  name      String     @unique
+  color     String?
+  createdAt DateTime   @default(now()) @map("created_at")
+
+  // Many-to-many via join table
+  emails EmailTag[]
+
+  @@map("tags")
+}
+
+/// Join table: Email <-> Tag (many-to-many)
+model EmailTag {
+  emailId String @map("email_id")
+  email   Email  @relation(fields: [emailId], references: [id], onDelete: Cascade)
+  tagId   Int    @map("tag_id")
+  tag     Tag    @relation(fields: [tagId], references: [id], onDelete: Cascade)
+
+  @@id([emailId, tagId])
+  @@index([tagId])
+  @@map("email_tags")
+}
+
+/// Canonical brand names with aliases for fuzzy matching
+model BrandDictionary {
+  id            Int      @id @default(autoincrement())
+  canonicalName String   @map("canonical_name")
+  aliases       String[]
+  defaultMopId  Int?     @map("default_mop_id")
+  defaultMop    User?    @relation("BrandDefaultMop", fields: [defaultMopId], references: [id], onDelete: SetNull)
+  defaultMozId  Int?     @map("default_moz_id")
+  defaultMoz    User?    @relation("BrandDefaultMoz", fields: [defaultMozId], references: [id], onDelete: SetNull)
+  isActive      Boolean  @default(true) @map("is_active")
+  createdAt     DateTime @default(now()) @map("created_at")
+  updatedAt     DateTime @updatedAt @map("updated_at")
+
+  @@index([canonicalName])
+  @@index([isActive])
+  @@map("brand_dictionaries")
+}
+
+/// Rule-based assignment of MOP/MOZ to emails/requests
+model AssignmentRule {
+  id          Int      @id @default(autoincrement())
+  name        String
+  priority    Int      @default(0)
+  condition   Json     // {field, operator, value}
+  assignMopId Int?     @map("assign_mop_id")
+  assignMop   User?    @relation("AssignmentRuleMop", fields: [assignMopId], references: [id], onDelete: SetNull)
+  assignMozId Int?     @map("assign_moz_id")
+  assignMoz   User?    @relation("AssignmentRuleMoz", fields: [assignMozId], references: [id], onDelete: SetNull)
+  isActive    Boolean  @default(true) @map("is_active")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  @@index([priority])
+  @@index([isActive])
+  @@map("assignment_rules")
+}
