@@ -32,16 +32,23 @@
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>
             Тест разбора
           </button>
-          <button class="nav-item" data-page="runner">
+        </div>
+        <div class="nav-section">
+          <div class="nav-section-label">Проекты</div>
+          <button class="nav-item" data-page="project2">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-            Runner
+            Project 2 — Tender
+          </button>
+          <button class="nav-item" data-page="project3">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Project 3 — Почта
           </button>
         </div>
         <div class="nav-section">
           <div class="nav-section-label">Управление</div>
           <button class="nav-item" data-page="projects">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
-            Проекты
+            Все проекты
           </button>
           <button class="nav-item" data-page="kb">
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
@@ -83,37 +90,17 @@
               </div>
               <div class="panel-body no-pad">
                 <table class="data-table" id="recent-analyses-table">
-                  <thead>
-                    <tr>
-                      <th>Email</th>
-                      <th>Категория</th>
-                      <th>Компания</th>
-                      <th>Дата</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th>Email</th><th>Категория</th><th>Компания</th><th>Дата</th></tr></thead>
                   <tbody id="recent-analyses-body"></tbody>
                 </table>
               </div>
             </div>
           </div>
           <div class="panel">
-            <div class="panel-header">
-              <h3>Последние запуски</h3>
-            </div>
+            <div class="panel-header"><h3>Последние запуски</h3></div>
             <div class="panel-body no-pad">
               <table class="data-table">
-                <thead>
-                  <tr>
-                    <th>Проект</th>
-                    <th>Статус</th>
-                    <th>Писем</th>
-                    <th>Спам</th>
-                    <th>CRM-готовых</th>
-                    <th>Уточнений</th>
-                    <th>Время</th>
-                    <th>Триггер</th>
-                  </tr>
-                </thead>
+                <thead><tr><th>Проект</th><th>Статус</th><th>Писем</th><th>Спам</th><th>CRM</th><th>Уточн.</th><th>Время</th><th>Триггер</th></tr></thead>
                 <tbody id="recent-runs-body"></tbody>
               </table>
             </div>
@@ -122,20 +109,28 @@
 
         <!-- ═══ PAGE: INBOX ═══ -->
         <div class="page" id="page-inbox">
-          <div class="grid-3col" style="height:calc(100vh - 120px);">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+            <button class="btn btn-primary" id="inbox-fetch-btn">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+              Получить письма
+            </button>
+            <button class="btn btn-danger btn-sm" id="inbox-delete-all-btn">Удалить все письма</button>
+            <span id="inbox-status-text" style="font-size:12px;color:var(--text-muted);margin-left:auto;"></span>
+          </div>
+          <div class="grid-3col" style="height:calc(100vh - 170px);">
             <div class="message-list" id="runner-messages-list"></div>
             <div class="email-view" id="email-view">
               <div class="empty-state">
                 <div class="empty-icon">📬</div>
                 <h4>Выберите письмо</h4>
-                <p>Запустите runner и выберите письмо из списка слева</p>
+                <p>Нажмите «Получить письма» и выберите письмо из списка слева</p>
               </div>
             </div>
             <div class="detail-panel" id="detail-panel">
               <div class="empty-state">
                 <div class="empty-icon">📋</div>
                 <h4>Извлечённые данные</h4>
-                <p>Здесь появятся результаты разбора выбранного письма</p>
+                <p>Здесь появятся результаты разбора</p>
               </div>
             </div>
           </div>
@@ -149,23 +144,11 @@
               <div class="panel-body">
                 <form id="analysis-form">
                   <div class="form-row">
-                    <div class="form-group">
-                      <label class="form-label">Имя отправителя</label>
-                      <input class="form-input" name="fromName" value="Павел Ильин" />
-                    </div>
-                    <div class="form-group">
-                      <label class="form-label">Email отправителя</label>
-                      <input class="form-input" name="fromEmail" value="p.ilin@promsnab.ru" required />
-                    </div>
+                    <div class="form-group"><label class="form-label">Имя отправителя</label><input class="form-input" name="fromName" value="Павел Ильин" /></div>
+                    <div class="form-group"><label class="form-label">Email отправителя</label><input class="form-input" name="fromEmail" value="p.ilin@promsnab.ru" required /></div>
                   </div>
-                  <div class="form-group">
-                    <label class="form-label">Тема</label>
-                    <input class="form-input" name="subject" value="Заявка ABB по артикулам" />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Вложения</label>
-                    <input class="form-input" name="attachments" value="rekvizity.pdf, shildik_abb.jpg, article_1.jpg" />
-                  </div>
+                  <div class="form-group"><label class="form-label">Тема</label><input class="form-input" name="subject" value="Заявка ABB по артикулам" /></div>
+                  <div class="form-group"><label class="form-label">Вложения</label><input class="form-input" name="attachments" value="rekvizity.pdf, shildik_abb.jpg, article_1.jpg" /></div>
                   <div class="form-group">
                     <label class="form-label">Тело письма</label>
                     <textarea class="form-textarea" name="body" rows="10">Добрый день.
@@ -173,7 +156,6 @@
 Прошу обработать заявку по ABB.
 ООО "ПромСнаб", ИНН 7701234567
 Артикул S201 C16 x 20 шт
-Нужны также фотографии шильдика и артикула.
 
 С уважением,
 Павел Ильин
@@ -189,79 +171,86 @@ https://promsnab.ru</textarea>
             <div class="panel" id="analysis-result-panel">
               <div class="panel-header"><h3>Результат разбора</h3></div>
               <div class="panel-body" id="analysis-result">
-                <div class="empty-state">
-                  <div class="empty-icon">🔍</div>
-                  <h4>Заполните форму и нажмите «Разобрать»</h4>
-                  <p>Результат классификации, извлечённые поля и CRM-действия появятся здесь</p>
-                </div>
+                <div class="empty-state"><div class="empty-icon">🔍</div><h4>Заполните и нажмите «Разобрать»</h4></div>
               </div>
             </div>
           </div>
         </div>
 
-        <!-- ═══ PAGE: RUNNER ═══ -->
-        <div class="page" id="page-runner">
-          <div class="kpi-grid" id="runner-kpi-grid"></div>
+        <!-- ═══ PAGE: PROJECT 2 ═══ -->
+        <div class="page" id="page-project2">
+          <div class="kpi-grid" id="p2-kpi-grid"></div>
           <div class="grid-2col">
             <div class="panel">
-              <div class="panel-header">
-                <h3>Запуск</h3>
-                <button class="btn btn-ghost btn-sm" id="refresh-runtime">Обновить статус</button>
-              </div>
+              <div class="panel-header"><h3>Запуск Project 2 — Tender Parser</h3></div>
               <div class="panel-body">
-                <form id="runner-form">
+                <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">IMAP → SAP SRM → Google Sheets. Парсинг тендеров из почтового ящика.</p>
+                <form id="p2-run-form">
                   <div class="form-row">
-                    <div class="form-group">
-                      <label class="form-label">Глубина, дней</label>
-                      <input class="form-input" name="days" type="number" min="1" max="365" value="1" />
-                    </div>
-                    <div class="form-group">
-                      <label class="form-label">Макс. писем</label>
-                      <input class="form-input" name="maxEmails" type="number" min="1" max="1000" value="100" />
-                    </div>
+                    <div class="form-group"><label class="form-label">Глубина, дней</label><input class="form-input" name="days" type="number" min="1" max="365" value="1" /></div>
+                    <div class="form-group"><label class="form-label">Макс. писем</label><input class="form-input" name="maxEmails" type="number" min="1" max="1000" value="100" /></div>
                   </div>
-                  <div class="form-group" id="reset-row" style="display:none">
-                    <label class="form-check">
-                      <input type="checkbox" name="reset" />
-                      <span>Сбросить seen/log</span>
-                    </label>
+                  <div class="form-group">
+                    <label class="form-check"><input type="checkbox" name="reset" /><span>Сбросить seen/log перед запуском</span></label>
                   </div>
-                  <button type="submit" class="btn btn-primary" style="width:100%" id="runner-run-btn">Запустить</button>
+                  <button type="submit" class="btn btn-primary" style="width:100%" id="p2-run-btn">Запустить Tender Parser</button>
                 </form>
               </div>
-              <div class="panel-header" style="border-top:1px solid var(--border)">
-                <h3>Расписание</h3>
-              </div>
+              <div class="panel-header" style="border-top:1px solid var(--border)"><h3>Расписание</h3></div>
               <div class="panel-body">
-                <form id="schedule-form">
-                  <div class="form-group">
-                    <label class="form-check">
-                      <input type="checkbox" name="enabled" />
-                      <span>Включить автозапуск</span>
-                    </label>
-                  </div>
+                <form id="p2-schedule-form">
+                  <div class="form-group"><label class="form-check"><input type="checkbox" name="enabled" /><span>Включить автозапуск</span></label></div>
                   <div class="form-row">
-                    <div class="form-group">
-                      <label class="form-label">Время</label>
-                      <input class="form-input" name="time" type="time" value="12:00" />
-                    </div>
-                    <div class="form-group">
-                      <label class="form-label">Таймзона</label>
-                      <input class="form-input" name="timezone" value="Europe/Moscow" />
-                    </div>
+                    <div class="form-group"><label class="form-label">Время</label><input class="form-input" name="time" type="time" value="12:00" /></div>
+                    <div class="form-group"><label class="form-label">Таймзона</label><input class="form-input" name="timezone" value="Europe/Moscow" /></div>
                   </div>
-                  <div class="form-group">
-                    <label class="form-label">Дней</label>
-                    <input class="form-input" name="days" type="number" min="1" max="365" value="1" />
-                  </div>
+                  <div class="form-group"><label class="form-label">Дней</label><input class="form-input" name="days" type="number" min="1" max="365" value="1" /></div>
                   <button type="submit" class="btn btn-ghost" style="width:100%">Сохранить расписание</button>
                 </form>
               </div>
             </div>
             <div class="panel">
-              <div class="panel-header"><h3>Runtime статус</h3></div>
+              <div class="panel-header"><h3>Runtime статус</h3><button class="btn btn-ghost btn-sm" id="p2-refresh-runtime">Обновить</button></div>
               <div class="panel-body">
-                <pre id="runtime-result" style="margin:0;padding:16px;background:var(--surface-0);border-radius:var(--radius-sm);color:var(--text-secondary);font-size:12px;font-family:'JetBrains Mono',monospace;overflow:auto;max-height:500px;white-space:pre-wrap;">Выберите runner-проект для отображения статуса.</pre>
+                <pre id="p2-runtime-result" style="margin:0;padding:16px;background:var(--surface-0);border-radius:var(--radius-sm);color:var(--text-secondary);font-size:12px;font-family:'JetBrains Mono',monospace;overflow:auto;max-height:500px;white-space:pre-wrap;">Загрузка...</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ PAGE: PROJECT 3 ═══ -->
+        <div class="page" id="page-project3">
+          <div class="kpi-grid" id="p3-kpi-grid"></div>
+          <div class="grid-2col">
+            <div class="panel">
+              <div class="panel-header"><h3>Запуск Project 3 — Mailbox Parser</h3></div>
+              <div class="panel-body">
+                <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">Чтение писем из 28 почтовых ящиков (1.txt), разбор и классификация каждого письма.</p>
+                <form id="p3-run-form">
+                  <div class="form-row">
+                    <div class="form-group"><label class="form-label">Глубина, дней</label><input class="form-input" name="days" type="number" min="1" max="365" value="1" /></div>
+                    <div class="form-group"><label class="form-label">Макс. писем на ящик</label><input class="form-input" name="maxEmails" type="number" min="1" max="1000" value="100" /></div>
+                  </div>
+                  <button type="submit" class="btn btn-primary" style="width:100%" id="p3-run-btn">Получить и разобрать письма</button>
+                </form>
+              </div>
+              <div class="panel-header" style="border-top:1px solid var(--border)"><h3>Расписание</h3></div>
+              <div class="panel-body">
+                <form id="p3-schedule-form">
+                  <div class="form-group"><label class="form-check"><input type="checkbox" name="enabled" /><span>Включить автозапуск</span></label></div>
+                  <div class="form-row">
+                    <div class="form-group"><label class="form-label">Время</label><input class="form-input" name="time" type="time" value="12:00" /></div>
+                    <div class="form-group"><label class="form-label">Таймзона</label><input class="form-input" name="timezone" value="Europe/Moscow" /></div>
+                  </div>
+                  <div class="form-group"><label class="form-label">Дней</label><input class="form-input" name="days" type="number" min="1" max="365" value="1" /></div>
+                  <button type="submit" class="btn btn-ghost" style="width:100%">Сохранить расписание</button>
+                </form>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header"><h3>Runtime статус</h3><button class="btn btn-ghost btn-sm" id="p3-refresh-runtime">Обновить</button></div>
+              <div class="panel-body">
+                <pre id="p3-runtime-result" style="margin:0;padding:16px;background:var(--surface-0);border-radius:var(--radius-sm);color:var(--text-secondary);font-size:12px;font-family:'JetBrains Mono',monospace;overflow:auto;max-height:500px;white-space:pre-wrap;">Загрузка...</pre>
               </div>
             </div>
           </div>
@@ -274,51 +263,23 @@ https://promsnab.ru</textarea>
               <div class="panel-header"><h3>Новый проект</h3></div>
               <div class="panel-body">
                 <form id="project-form">
-                  <div class="form-group">
-                    <label class="form-label">Название</label>
-                    <input class="form-input" name="name" placeholder="Sales Inbox" required />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Почтовый ящик</label>
-                    <input class="form-input" name="mailbox" placeholder="sales@company.ru" required />
-                  </div>
-                  <div class="form-group">
-                    <label class="form-label">Бренды</label>
-                    <input class="form-input" name="brands" placeholder="ABB, Schneider Electric" />
-                  </div>
+                  <div class="form-group"><label class="form-label">Название</label><input class="form-input" name="name" placeholder="Sales Inbox" required /></div>
+                  <div class="form-group"><label class="form-label">Почтовый ящик</label><input class="form-input" name="mailbox" placeholder="sales@company.ru" required /></div>
+                  <div class="form-group"><label class="form-label">Бренды</label><input class="form-input" name="brands" placeholder="ABB, Schneider Electric" /></div>
                   <div class="form-row">
-                    <div class="form-group">
-                      <label class="form-label">МОП по умолчанию</label>
-                      <input class="form-input" name="defaultMop" placeholder="Ольга Демидова" />
-                    </div>
-                    <div class="form-group">
-                      <label class="form-label">МОЗ по умолчанию</label>
-                      <input class="form-input" name="defaultMoz" placeholder="Андрей Назаров" />
-                    </div>
+                    <div class="form-group"><label class="form-label">МОП</label><input class="form-input" name="defaultMop" /></div>
+                    <div class="form-group"><label class="form-label">МОЗ</label><input class="form-input" name="defaultMoz" /></div>
                   </div>
-                  <div class="form-group">
-                    <label class="form-label">Описание</label>
-                    <textarea class="form-textarea" name="description" rows="3" placeholder="Описание проекта"></textarea>
-                  </div>
+                  <div class="form-group"><label class="form-label">Описание</label><textarea class="form-textarea" name="description" rows="3"></textarea></div>
                   <button type="submit" class="btn btn-primary" style="width:100%">Создать проект</button>
                 </form>
               </div>
             </div>
             <div class="panel">
-              <div class="panel-header">
-                <h3>Проекты</h3>
-                <span class="badge-count" id="projects-count-label">0</span>
-              </div>
-              <div class="panel-body no-pad" id="projects-table-wrap">
+              <div class="panel-header"><h3>Проекты</h3><span class="badge-count" id="projects-count-label">0</span></div>
+              <div class="panel-body no-pad">
                 <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th>Название</th>
-                      <th>Тип</th>
-                      <th>Ящик</th>
-                      <th>Расписание</th>
-                    </tr>
-                  </thead>
+                  <thead><tr><th>Название</th><th>Тип</th><th>Ящик</th><th>Расписание</th></tr></thead>
                   <tbody id="projects-table-body"></tbody>
                 </table>
               </div>
@@ -329,14 +290,11 @@ https://promsnab.ru</textarea>
         <!-- ═══ PAGE: KB ═══ -->
         <div class="page" id="page-kb">
           <div class="panel">
-            <div class="panel-header">
-              <h3>База знаний — Detection KB</h3>
-              <button class="btn btn-ghost btn-sm" id="refresh-kb">Обновить</button>
-            </div>
+            <div class="panel-header"><h3>База знаний — Detection KB</h3><button class="btn btn-ghost btn-sm" id="refresh-kb">Обновить</button></div>
             <div class="tabs" id="kb-tabs">
               <button class="tab active" data-kb-tab="rules">Правила</button>
               <button class="tab" data-kb-tab="brands">Бренды</button>
-              <button class="tab" data-kb-tab="senders">Профили отправителей</button>
+              <button class="tab" data-kb-tab="senders">Профили</button>
               <button class="tab" data-kb-tab="stats">Статистика</button>
             </div>
             <div class="panel-body no-pad" id="kb-content"></div>
@@ -345,10 +303,6 @@ https://promsnab.ru</textarea>
 
       </div>
     </div>
-  </div>
-
-  <div class="modal-overlay hidden" id="modal-overlay">
-    <div class="modal" id="modal"></div>
   </div>
 
   <script type="module" src="/app.js"></script>

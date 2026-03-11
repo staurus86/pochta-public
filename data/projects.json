@@ -1,5 +1,28 @@
 [
   {
+    "recentAnalyses": [
+      {
+        "id": "b92f4f99-617a-4b24-aea6-65f3ea764164",
+        "createdAt": "2026-03-10T16:18:50.831Z",
+        "senderEmail": "buyer@factory.ru",
+        "category": "Клиент",
+        "company": "ООО ПромСнаб",
+        "actions": [
+          "Разложить письмо по полям CRM",
+          "Привязать заявку к существующему юрлицу",
+          "Создать запрос и назначить менеджеров"
+        ]
+      }
+    ],
+    "recentRuns": [],
+    "schedule": {
+      "enabled": false,
+      "time": "12:00",
+      "timezone": "Europe/Moscow",
+      "days": 1,
+      "lastTriggeredSlot": null,
+      "lastTriggeredAt": null
+    },
     "id": "mailroom-primary",
     "type": "email-parser",
     "name": "Primary Mailroom",
@@ -44,19 +67,19 @@
           }
         ]
       }
-    ],
+    ]
+  },
+  {
     "recentAnalyses": [],
     "recentRuns": [],
     "schedule": {
-      "enabled": false,
+      "enabled": true,
       "time": "12:00",
       "timezone": "Europe/Moscow",
       "days": 1,
       "lastTriggeredSlot": null,
       "lastTriggeredAt": null
-    }
-  },
-  {
+    },
     "id": "project-2-tender-parser",
     "type": "tender-importer",
     "name": "Project 2 Tender Parser",
@@ -75,19 +98,19 @@
       "logFile": "project 2/tender_parser.log",
       "credentialsFile": "project 2/credentials.json"
     },
-    "knownCompanies": [],
+    "knownCompanies": []
+  },
+  {
     "recentAnalyses": [],
     "recentRuns": [],
     "schedule": {
-      "enabled": true,
+      "enabled": false,
       "time": "12:00",
       "timezone": "Europe/Moscow",
       "days": 1,
       "lastTriggeredSlot": null,
       "lastTriggeredAt": null
-    }
-  },
-  {
+    },
     "id": "project-3-mailbox-file",
     "type": "mailbox-file-parser",
     "name": "Project 3 Mailbox File Parser",
@@ -104,16 +127,6 @@
       "workingDirectory": "project 3",
       "sourceFile": "1.txt"
     },
-    "knownCompanies": [],
-    "recentAnalyses": [],
-    "recentRuns": [],
-    "schedule": {
-      "enabled": false,
-      "time": "12:00",
-      "timezone": "Europe/Moscow",
-      "days": 1,
-      "lastTriggeredSlot": null,
-      "lastTriggeredAt": null
-    }
+    "knownCompanies": []
   }
 ]

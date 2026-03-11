@@ -161,6 +161,27 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, { messages: project.recentMessages || [] });
   }
 
+  if (req.method === "DELETE" && messagesMatch) {
+    const project = await store.getProject(messagesMatch[1]);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    const result = await store.deleteAllMessages(project.id);
+    return sendJson(res, 200, result);
+  }
+
+  const messageDeleteMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages\/([^/]+)$/);
+  if (req.method === "DELETE" && messageDeleteMatch) {
+    const project = await store.getProject(messageDeleteMatch[1]);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    const result = await store.deleteMessage(project.id, decodeURIComponent(messageDeleteMatch[2]));
+    return sendJson(res, 200, result);
+  }
+
   const scheduleMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/schedule$/);
   if (req.method === "POST" && scheduleMatch) {
     const project = await store.getProject(scheduleMatch[1]);

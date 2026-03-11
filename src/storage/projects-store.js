@@ -236,6 +236,37 @@ export class ProjectsStore {
     return summary;
   }
 
+  async deleteMessage(projectId, messageKey) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) {
+      return null;
+    }
+
+    const before = (project.recentMessages || []).length;
+    project.recentMessages = (project.recentMessages || []).filter(
+      (msg) => (msg.messageKey || msg.id) !== messageKey
+    );
+    const deleted = before - project.recentMessages.length;
+    if (deleted > 0) {
+      await this.persist();
+    }
+    return { deleted, remaining: project.recentMessages.length };
+  }
+
+  async deleteAllMessages(projectId) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) {
+      return null;
+    }
+
+    const deleted = (project.recentMessages || []).length;
+    project.recentMessages = [];
+    await this.persist();
+    return { deleted, remaining: 0 };
+  }
+
   async replaceRecentMessages(projectId, messages) {
     await this.ensureLoaded();
     const project = await this.getProject(projectId);
