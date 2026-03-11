@@ -104,6 +104,36 @@ const DEFAULT_PROJECTS = [
       timezone: "Europe/Moscow",
       days: 1
     })
+  },
+  {
+    id: "project-4-klvrt-mail",
+    type: "mailbox-file-parser",
+    name: "Project 4 — Klvrt Mail",
+    mailbox: "robot-mail-siderus@klvrt.ru",
+    description: "Забор писем из ящика robot-mail-siderus@klvrt.ru (mail.klvrt.ru), разбор и классификация.",
+    brands: [],
+    managerPool: {
+      defaultMop: "Не назначен",
+      defaultMoz: "Не назначен",
+      brandOwners: []
+    },
+    runtime: {
+      scriptPath: "project 3/mailbox_file_runner.py",
+      workingDirectory: "project 3",
+      sourceFile: "2.txt",
+      imapHost: "mail.klvrt.ru",
+      imapPort: "993"
+    },
+    knownCompanies: [],
+    recentAnalyses: [],
+    recentRuns: [],
+    recentMessages: [],
+    schedule: normalizeSchedule({
+      enabled: false,
+      time: "12:00",
+      timezone: "Europe/Moscow",
+      days: 1
+    })
   }
 ];
 
@@ -134,6 +164,19 @@ export class ProjectsStore {
         recentMessages: project.recentMessages || [],
         schedule: normalizeSchedule(project.schedule)
       }));
+
+      // Migration: add any missing default projects
+      const existingIds = new Set(this.projects.map((p) => p.id));
+      let added = false;
+      for (const dp of DEFAULT_PROJECTS) {
+        if (!existingIds.has(dp.id)) {
+          this.projects.push(dp);
+          added = true;
+        }
+      }
+      if (added) {
+        await this.persist();
+      }
     } catch {
       this.projects = DEFAULT_PROJECTS;
       await this.persist();
