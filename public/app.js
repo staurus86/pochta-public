@@ -5,6 +5,9 @@
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
 
+const FREE_DOMAINS = new Set(['gmail.com','mail.ru','bk.ru','list.ru','inbox.ru','yandex.ru','ya.ru','hotmail.com','outlook.com','icloud.com','me.com','live.com','yahoo.com','rambler.ru','ro.ru','autorambler.ru','myrambler.ru','lenta.ru','aol.com','protonmail.com','proton.me','zoho.com']);
+function isFreeDomain(domain) { return FREE_DOMAINS.has((domain || '').toLowerCase()); }
+
 const projectSelect = $('#project-select');
 const pageTitle = $('#page-title');
 const inboxBadge = $('#inbox-badge');
@@ -1088,10 +1091,6 @@ window.__deleteMsg = async (key) => {
 };
 
 // ═══ TRAINING handlers ═══
-const FREE_DOMAINS = new Set(['gmail.com','mail.ru','bk.ru','list.ru','inbox.ru','yandex.ru','ya.ru','hotmail.com','outlook.com','icloud.com','me.com','live.com','yahoo.com','rambler.ru','ro.ru','autorambler.ru','myrambler.ru','lenta.ru','aol.com','protonmail.com','proton.me','zoho.com']);
-
-function isFreeDomain(domain) { return FREE_DOMAINS.has((domain || '').toLowerCase()); }
-
 window.__trainSender = async (email, classification, companyHint, msgKey) => {
   const domain = email.split('@')[1] || '';
   const label = { client: 'заявка', spam: 'спам', vendor: 'поставщик' }[classification] || classification;
