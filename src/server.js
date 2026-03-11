@@ -42,6 +42,13 @@ server.listen(port, () => {
   scheduler.start();
 });
 
+process.on("SIGTERM", () => {
+    console.log("SIGTERM received, shutting down gracefully...");
+    scheduler.stop();
+    server.close(() => process.exit(0));
+    setTimeout(() => process.exit(1), 5000);
+});
+
 async function handleApi(req, res, url) {
   if (req.method === "GET" && url.pathname === "/api/health") {
     return sendJson(res, 200, { ok: true });

@@ -14,6 +14,9 @@ ENV PATH="/opt/venv/bin:${PATH}"
 COPY package.json ./
 COPY requirements.txt ./
 
+# Strip workspaces field — only the vanilla server is deployed here
+RUN node -e "const p=JSON.parse(require('fs').readFileSync('package.json','utf8')); delete p.workspaces; require('fs').writeFileSync('package.json',JSON.stringify(p,null,2));"
+
 RUN npm install \
   && python -m pip install --no-cache-dir -r requirements.txt
 

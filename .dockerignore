@@ -11,3 +11,6 @@ project 2/seen_emails.json
 project 2/.runtime
 project 2/__pycache__
 tests
+apps
+packages
+docs
