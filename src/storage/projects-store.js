@@ -344,7 +344,7 @@ export class ProjectsStore {
       return null;
     }
 
-    project.recentMessages = (messages || []).slice(0, 2000);
+    project.recentMessages = (messages || []).slice(0, 5000);
     await this.persist();
     return project.recentMessages;
   }

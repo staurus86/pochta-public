@@ -52,7 +52,7 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
     PROJECT3_MAX_EMAILS: String(maxEmails),
     PROJECT3_IMAP_HOST: imapHost,
     PROJECT3_IMAP_PORT: imapPort
-  }, Number(options.timeoutMs || 300000), days);
+  }, Number(options.timeoutMs || 900000), days);
 
   const payload = parsePayload(result.stdout) || { emails: [], accountCount: 0, fetchedEmailCount: 0, errorCount: 0 };
   const brands = unique((project.brands || []).concat(payload.emails.map((item) => item.brand).filter(Boolean)));
@@ -132,7 +132,7 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
   detectionKb.ingestAnalyzedMessages(project.id, nonSpamMessages);
 
   // Merge: keep existing messages + add new ones (cap at 2000)
-  const mergedMessages = [...newEmails, ...(project.recentMessages || [])].slice(0, 2000);
+  const mergedMessages = [...newEmails, ...(project.recentMessages || [])].slice(0, 5000);
 
   return {
     id: randomUUID(),
