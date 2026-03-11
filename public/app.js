@@ -978,7 +978,7 @@ function renderEmailView(msg, viewEl, detailEl) {
       </div>
     </div>
     <div class="email-body-content" id="email-body-text" style="max-height:300px;overflow-y:auto;position:relative;">${esc(msg.bodyPreview || lead.freeText || 'Нет текста')}</div>
-    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:4px;" onclick="const el=$('#email-body-text');if(el.style.maxHeight==='300px'){el.style.maxHeight='none';this.textContent='Свернуть'}else{el.style.maxHeight='300px';this.textContent='Показать полностью'}">Показать полностью</button>
+    <button class="btn btn-ghost btn-sm" style="width:100%;margin-top:4px;" onclick="const el=document.querySelector('#email-body-text');if(el.style.maxHeight==='300px'){el.style.maxHeight='none';this.textContent='Свернуть'}else{el.style.maxHeight='300px';this.textContent='Показать полностью'}">Показать полностью</button>
     ${msg.attachments?.length ? `<div class="attachment-list">${msg.attachments.map((att) => {
       const hints = lead.attachmentHints || [];
       const hint = hints.find((h) => h.name === att);
