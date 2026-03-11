@@ -5,7 +5,8 @@ import { detectionKb } from "./detection-kb.js";
 const URL_PATTERN = /https?:\/\/[^\s)]+/gi;
 const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}/g;
 const INN_PATTERN = /(?:ИНН|inn)[^0-9]{0,5}(\d{10,12})/i;
-const ARTICLE_PATTERN = /(?:арт(?:икул)?|sku)[^A-Za-zА-Яа-я0-9]{0,5}([A-Za-zА-Яа-я0-9-/_]+)/gi;
+const ARTICLE_PATTERN = /(?:арт(?:икул(?:а|у|ом|е|ы|ов|ам|ами|ах)?)?|sku)\b[^A-Za-zА-Яа-я0-9]{0,5}([A-Za-z0-9][A-Za-z0-9-/_]{2,})/gi;
+const STANDALONE_CODE_PATTERN = /\b([A-Z][A-Z0-9]{2,}[-/]?[A-Z0-9]{2,}(?:[-/][A-Z0-9]+)*)\b/g;
 
 export function analyzeEmail(project, payload) {
   const subject = String(payload.subject || "");
@@ -92,8 +93,10 @@ function extractSender(fromName, fromEmail, body, attachments) {
 }
 
 function extractLead(subject, body, attachments, brands, kbBrands = []) {
-  const freeText = body.trim().slice(0, 800);
-  const articles = Array.from(body.matchAll(ARTICLE_PATTERN)).map((match) => match[1]);
+  const freeText = body.trim().slice(0, 2000);
+  const prefixedArticles = Array.from(body.matchAll(ARTICLE_PATTERN)).map((match) => match[1]);
+  const standaloneArticles = extractStandaloneCodes(body);
+  const allArticles = unique([...prefixedArticles, ...standaloneArticles].filter(Boolean));
   const attachmentsText = attachments.join(" ");
   const hasNameplatePhotos = /шильд|nameplate/i.test(attachmentsText);
   const hasArticlePhotos = /артик|sku|label/i.test(attachmentsText);
@@ -104,9 +107,9 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     freeText,
     hasNameplatePhotos,
     hasArticlePhotos,
-    articles: unique(articles.concat(lineItems.map((item) => item.article)).filter(Boolean)),
+    articles: unique(allArticles.concat(lineItems.map((item) => item.article)).filter(Boolean)),
     lineItems,
-    totalPositions: lineItems.length || unique(articles).length,
+    totalPositions: lineItems.length || unique(allArticles).length,
     detectedBrands,
     requestType: detectedBrands.length > 1 ? "Мультибрендовая" : detectedBrands.length === 1 ? "Монобрендовая" : "Не определено"
   };
@@ -175,18 +178,40 @@ function splitPhones(phones) {
 
 function extractLineItems(body) {
   return body.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => {
+    // Format: ARTICLE x 20 / ARTICLE х 20 / ARTICLE * 20
     const itemMatch = line.match(/([A-Za-zА-Яа-я0-9-/_]{3,})\s+[xх*]\s*(\d+)(?:\s*([A-Za-zА-Яа-я.]+))?/i);
-    if (!itemMatch) {
-      return null;
+    if (itemMatch) {
+      return { article: itemMatch[1], quantity: Number(itemMatch[2]), unit: itemMatch[3] || "шт", descriptionRu: line };
     }
 
-    return {
-      article: itemMatch[1],
-      quantity: Number(itemMatch[2]),
-      unit: itemMatch[3] || "шт",
-      descriptionRu: line
-    };
+    // Format: ARTICLE (N штук/шт/единиц)
+    const parenMatch = line.match(/([A-Za-z0-9][A-Za-z0-9-/_]{2,})\s*\((\d+)\s*(штук[аи]?|шт|единиц[аы]?|компл|к-т|пар[аы]?)?\)/i);
+    if (parenMatch) {
+      return { article: parenMatch[1], quantity: Number(parenMatch[2]), unit: parenMatch[3] || "шт", descriptionRu: line };
+    }
+
+    // Format: ARTICLE — N шт / ARTICLE - N шт
+    const dashMatch = line.match(/([A-Za-z0-9][A-Za-z0-9-/_]{2,})\s*[—–-]\s*(\d+)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?/i);
+    if (dashMatch) {
+      return { article: dashMatch[1], quantity: Number(dashMatch[2]), unit: dashMatch[3] || "шт", descriptionRu: line };
+    }
+
+    return null;
   }).filter(Boolean);
+}
+
+function extractStandaloneCodes(text) {
+  // Common noise words to exclude from article matches
+  const noise = new Set(["HTTP", "HTTPS", "HTML", "JSON", "UTF", "ISBN", "IMAP", "SMTP", "MIME", "FROM", "DATE", "SENT", "INFO", "CONT", "SUBJ"]);
+  const matches = [];
+  for (const m of text.matchAll(STANDALONE_CODE_PATTERN)) {
+    const code = m[1];
+    // Must contain at least one digit and be 5+ chars
+    if (code.length >= 5 && /\d/.test(code) && !noise.has(code)) {
+      matches.push(code);
+    }
+  }
+  return matches;
 }
 
 function detectBrands(text, brands) {

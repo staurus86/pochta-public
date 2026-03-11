@@ -93,7 +93,7 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
         siteUrl: item.siteUrl,
         subject: item.subject,
         from: item.from,
-        bodyPreview: String(item.body || item.error || "").slice(0, 500),
+        bodyPreview: String(item.body || item.error || "").slice(0, 2000),
         attachments: item.attachments || [],
         error: item.error || null,
         pipelineStatus,
