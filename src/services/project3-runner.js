@@ -1,5 +1,5 @@
 import { createHash, randomUUID } from "node:crypto";
-import { access, readFile } from "node:fs/promises";
+import { access, readFile, mkdir, writeFile } from "node:fs/promises";
 import { constants } from "node:fs";
 import path from "node:path";
 import { spawn } from "node:child_process";
@@ -63,46 +63,65 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
     knownCompanies: project.knownCompanies || []
   };
 
-  const analyzedEmails = payload.emails
-    .filter((item) => item.body || item.error)
-    .map((item) => {
-      const { fromName, fromEmail } = splitFromHeader(item.from);
-      const analysis = analyzeEmail(analysisProject, {
-        fromName,
-        fromEmail,
-        subject: item.subject,
-        body: item.body || item.error,
-        attachments: item.attachments || []
-      });
-
-      const pipelineStatus = item.error
-        ? "fetch_error"
-        : analysis.classification.label === "СПАМ"
-          ? "ignored_spam"
-          : analysis.classification.label === "Клиент"
-            ? "ready_for_crm"
-            : analysis.crm?.needsClarification
-              ? "needs_clarification"
-              : "review";
-
-      const messageKey = createMessageKey(item, fromEmail);
-
-      return {
-        id: randomUUID(),
-        createdAt: new Date().toISOString(),
-        messageKey,
-        mailbox: item.mailbox,
-        brand: item.brand,
-        siteUrl: item.siteUrl,
-        subject: item.subject,
-        from: item.from,
-        bodyPreview: String(item.body || item.error || "").slice(0, 4000),
-        attachments: item.attachments || [],
-        error: item.error || null,
-        pipelineStatus,
-        analysis
-      };
+  const filteredEmails = payload.emails.filter((item) => item.body || item.error);
+  const analyzedEmails = [];
+  for (const item of filteredEmails) {
+    const { fromName, fromEmail } = splitFromHeader(item.from);
+    const analysis = analyzeEmail(analysisProject, {
+      fromName,
+      fromEmail,
+      subject: item.subject,
+      body: item.body || item.error,
+      attachments: item.attachments || []
     });
+
+    const pipelineStatus = item.error
+      ? "fetch_error"
+      : analysis.classification.label === "СПАМ"
+        ? "ignored_spam"
+        : analysis.classification.label === "Клиент"
+          ? "ready_for_crm"
+          : analysis.crm?.needsClarification
+            ? "needs_clarification"
+            : "review";
+
+    const messageKey = createMessageKey(item, fromEmail);
+
+    // Save attachment files to disk
+    const attachmentFiles = [];
+    if (Array.isArray(item.attachmentData)) {
+      for (const att of item.attachmentData) {
+        if (att.base64) {
+          try {
+            const attDir = path.resolve(rootDir, "data", "attachments", messageKey);
+            await mkdir(attDir, { recursive: true });
+            const safeName = att.filename.replace(/[<>:"/\\|?*]/g, "_");
+            await writeFile(path.join(attDir, safeName), Buffer.from(att.base64, "base64"));
+            attachmentFiles.push({ filename: att.filename, safeName, contentType: att.contentType, size: att.size });
+          } catch { /* skip failed save */ }
+        } else {
+          attachmentFiles.push({ filename: att.filename, contentType: att.contentType || "", size: att.size || 0, safeName: null });
+        }
+      }
+    }
+
+    analyzedEmails.push({
+      id: randomUUID(),
+      createdAt: new Date().toISOString(),
+      messageKey,
+      mailbox: item.mailbox,
+      brand: item.brand,
+      siteUrl: item.siteUrl,
+      subject: item.subject,
+      from: item.from,
+      bodyPreview: String(item.body || item.error || "").slice(0, 4000),
+      attachments: item.attachments || [],
+      attachmentFiles,
+      error: item.error || null,
+      pipelineStatus,
+      analysis
+    });
+  }
 
   // Deduplicate: skip emails that already exist in project messages
   const existingKeys = new Set((project.recentMessages || []).map((m) => m.messageKey));

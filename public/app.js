@@ -31,6 +31,7 @@ let selectedMsgKeys = new Set();
 let inboxSearch = '';
 let inboxSort = 'date-desc';
 let inboxMailboxFilter = '';
+let inboxAttachmentFilter = '';
 let inboxPage = 0;
 const INBOX_PAGE_SIZE = 50;
 let autoRefreshInterval = null;
@@ -285,6 +286,7 @@ function setupForms() {
   $('#inbox-search').addEventListener('input', (e) => { inboxSearch = e.target.value.toLowerCase(); inboxPage = 0; renderInbox(); });
   $('#inbox-sort').addEventListener('change', (e) => { inboxSort = e.target.value; renderInbox(); });
   $('#inbox-mailbox-filter').addEventListener('change', (e) => { inboxMailboxFilter = e.target.value; inboxPage = 0; renderInbox(); });
+  $('#inbox-attachment-filter')?.addEventListener('change', (e) => { inboxAttachmentFilter = e.target.value; inboxPage = 0; renderInbox(); });
   $('#inbox-auto-refresh').addEventListener('change', (e) => {
     const sec = Number(e.target.value);
     if (autoRefreshInterval) clearInterval(autoRefreshInterval);
@@ -403,6 +405,17 @@ function filterInboxMessages(tab) {
   // Mailbox filter
   if (inboxMailboxFilter) {
     msgs = msgs.filter((m) => m.mailbox === inboxMailboxFilter);
+  }
+
+  // Attachment filter
+  if (inboxAttachmentFilter) {
+    const af = inboxAttachmentFilter;
+    if (af === 'has') msgs = msgs.filter((m) => m.attachments?.length > 0);
+    else if (af === 'none') msgs = msgs.filter((m) => !m.attachments?.length);
+    else if (af === 'pdf') msgs = msgs.filter((m) => m.attachments?.some((a) => /\.pdf$/i.test(a)));
+    else if (af === 'xls') msgs = msgs.filter((m) => m.attachments?.some((a) => /\.xlsx?$/i.test(a)));
+    else if (af === 'doc') msgs = msgs.filter((m) => m.attachments?.some((a) => /\.docx?$/i.test(a)));
+    else if (af === 'img') msgs = msgs.filter((m) => m.attachments?.some((a) => /\.(jpe?g|png|gif|bmp|webp|tiff?)$/i.test(a)));
   }
 
   // Search
@@ -713,7 +726,8 @@ function renderDashboard() {
   $('#inbox-heatmap').innerHTML = Array.from(inboxAccounts.entries()).map(([mb, data]) => {
     const ratio = data.count / maxCount;
     const cls = ratio > 0.5 ? 'hot' : ratio > 0.15 ? 'warm' : 'cold';
-    return `<div class="heatmap-cell ${cls}"><div class="cell-name" title="${esc(mb)}">${esc(mb.split('@')[0])}</div><div class="cell-value">${data.count}</div></div>`;
+    const shortName = mb.includes('@') ? mb.split('@')[1].split('.')[0] : mb;
+    return `<div class="heatmap-cell ${cls}"><div class="cell-name" title="${esc(mb)}">${esc(shortName)}</div><div class="cell-value">${data.count}</div></div>`;
   }).join('');
 
   // Recent analyses
@@ -1225,7 +1239,14 @@ function renderEmailView(msg, viewEl, detailEl) {
       const hints = lead.attachmentHints || [];
       const hint = hints.find((h) => h.name === att);
       const typeIcon = { request: '📋', requisites: '📄', pricelist: '💰', photo: '📷', document: '📁', other: '📎' };
-      return `<span class="attachment-chip"><span class="att-icon">${typeIcon[hint?.type] || '📎'}</span> ${esc(att)}</span>`;
+      const attFile = (msg.attachmentFiles || []).find((f) => f.filename === att);
+      const hasFile = attFile?.safeName;
+      const attUrl = hasFile ? `/api/attachments/${encodeURIComponent(msgKey)}/${encodeURIComponent(att)}` : null;
+      const sizeStr = attFile?.size ? ` (${formatFileSize(attFile.size)})` : '';
+      if (attUrl) {
+        return `<a href="${attUrl}" target="_blank" class="attachment-chip" style="text-decoration:none;cursor:pointer;" title="Открыть ${esc(att)}"><span class="att-icon">${typeIcon[hint?.type] || '📎'}</span> ${esc(att)}${sizeStr}</a>`;
+      }
+      return `<span class="attachment-chip"><span class="att-icon">${typeIcon[hint?.type] || '📎'}</span> ${esc(att)}${sizeStr}</span>`;
     }).join('')}</div>` : ''}
   `;
 
@@ -1607,6 +1628,12 @@ function formatDuration(ms) {
   return s < 60 ? `${s}s` : `${Math.floor(s / 60)}m ${s % 60}s`;
 }
 
+function formatFileSize(bytes) {
+  if (!bytes) return '';
+  if (bytes < 1024) return bytes + ' B';
+  if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
+  return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
 function formatArr(items) { return Array.isArray(items) && items.length ? items.join(', ') : null; }
 function truncate(s, n) { return !s ? '' : s.length > n ? s.slice(0, n) + '...' : s; }
 function esc(v) { return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }

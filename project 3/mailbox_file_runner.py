@@ -6,9 +6,12 @@ import re
 import sys
 import imaplib
 import email
+import base64
 from pathlib import Path
 from datetime import datetime, timedelta
 from email.header import decode_header
+
+MAX_ATTACHMENT_SIZE = 2 * 1024 * 1024  # 2MB per file
 
 
 def parse_accounts(file_path: Path):
@@ -51,6 +54,7 @@ def decode_value(raw_value):
 def extract_body_and_attachments(message):
     body = ""
     attachments = []
+    attachment_data = []
     forwarded_body = ""
 
     if message.is_multipart():
@@ -58,8 +62,33 @@ def extract_body_and_attachments(message):
             content_type = part.get_content_type()
             disposition = part.get("Content-Disposition", "")
             filename = decode_value(part.get_filename())
+
             if filename:
                 attachments.append(filename)
+                # Save attachment content as base64 (up to MAX_ATTACHMENT_SIZE)
+                try:
+                    raw = part.get_payload(decode=True)
+                    if raw and len(raw) <= MAX_ATTACHMENT_SIZE:
+                        attachment_data.append({
+                            "filename": filename,
+                            "contentType": content_type,
+                            "size": len(raw),
+                            "base64": base64.b64encode(raw).decode("ascii"),
+                        })
+                    else:
+                        attachment_data.append({
+                            "filename": filename,
+                            "contentType": content_type,
+                            "size": len(raw) if raw else 0,
+                            "base64": None,
+                        })
+                except Exception:
+                    attachment_data.append({
+                        "filename": filename,
+                        "contentType": content_type,
+                        "size": 0,
+                        "base64": None,
+                    })
 
             # Handle forwarded message (message/rfc822)
             if content_type == "message/rfc822":
@@ -68,22 +97,23 @@ def extract_body_and_attachments(message):
                     if isinstance(inner, list):
                         inner = inner[0]
                     if inner:
-                        fwd_body, fwd_att = extract_body_and_attachments(inner)
+                        fwd_body, fwd_att, fwd_data = extract_body_and_attachments(inner)
                         if fwd_body:
                             fwd_from = decode_value(inner.get("From", ""))
                             fwd_subj = decode_value(inner.get("Subject", ""))
                             forwarded_body = f"--- Пересланное письмо ---\nОт: {fwd_from}\nТема: {fwd_subj}\n\n{fwd_body}"
                         attachments.extend(fwd_att)
+                        attachment_data.extend(fwd_data)
                 except Exception:
                     pass
                 continue
 
-            if content_type == "text/plain" and "attachment" not in disposition.lower():
+            if content_type == "text/plain" and "attachment" not in disposition.lower() and not filename:
                 try:
                     body = part.get_payload(decode=True).decode(part.get_content_charset() or "utf-8", errors="ignore")
                 except Exception:
                     pass
-            elif content_type == "text/html" and not body:
+            elif content_type == "text/html" and not body and not filename:
                 try:
                     html = part.get_payload(decode=True).decode(part.get_content_charset() or "utf-8", errors="ignore")
                     body = re.sub(r"<[^>]+>", " ", html)
@@ -105,7 +135,7 @@ def extract_body_and_attachments(message):
     body = re.sub(r"[ \t]+", " ", body).strip()
     # Preserve line breaks for readability but collapse excessive blank lines
     body = re.sub(r"\n{3,}", "\n\n", body)
-    return body, attachments
+    return body, attachments, attachment_data
 
 
 def fetch_account_emails(account, host, port, days, max_emails):
@@ -128,7 +158,7 @@ def fetch_account_emails(account, host, port, days, max_emails):
                 continue
 
             message = email.message_from_bytes(msg_data[0][1])
-            body, attachments = extract_body_and_attachments(message)
+            body, attachments, attachment_data = extract_body_and_attachments(message)
             result.append({
                 "mailbox": account["mailbox"],
                 "brand": account["brand"],
@@ -137,6 +167,7 @@ def fetch_account_emails(account, host, port, days, max_emails):
                 "from": decode_value(message.get("From")),
                 "date": decode_value(message.get("Date")),
                 "body": body,
+                "attachmentData": attachment_data,
                 "attachments": attachments,
             })
     except Exception as error:

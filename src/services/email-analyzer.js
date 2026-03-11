@@ -8,6 +8,22 @@ const INN_PATTERN = /(?:ИНН|inn)[^0-9]{0,5}(\d{10,12})/i;
 const ARTICLE_PATTERN = /(?:арт(?:икул(?:а|у|ом|е|ы|ов|ам|ами|ах)?)?|sku)\b[^A-Za-zА-Яа-я0-9]{0,5}([A-Za-z0-9][A-Za-z0-9-/_]{2,})/gi;
 const STANDALONE_CODE_PATTERN = /\b([A-Z][A-Z0-9]{2,}[-/]?[A-Z0-9]{2,}(?:[-/][A-Z0-9]+)*)\b/g;
 
+// Own company domains — emails FROM these are not customer companies
+const OWN_DOMAINS = new Set([
+  "siderus.su", "siderus.online", "siderus.ru", "klvrt.ru",
+  "ersab2b.ru", "itec-rus.ru", "paulvahle.ru", "petersime-rus.ru",
+  "rstahl.ru", "schimpfdrive.ru", "schischekrus.ru", "sera-rus.ru",
+  "serfilco-ru.ru", "vega-automation.ru", "waldner-ru.ru", "kiesel-rus.ru",
+  "maximator-ru.ru", "stromag-ru.ru", "endress-hauser.pro"
+]);
+
+// Brand names that should not be detected as articles or company names
+const BRAND_NOISE = new Set([
+  "SIDERUS", "ERSA", "ITEC", "SCHISCHEK", "SERA", "SERFILCO", "VEGA",
+  "WALDNER", "KIESEL", "MAXIMATOR", "STROMAG", "SCHIMPF", "PETERSIME",
+  "ENDRESS", "HAUSER", "STAHL", "VAHLE"
+]);
+
 export function analyzeEmail(project, payload) {
   const subject = String(payload.subject || "");
   const rawBody = String(payload.body || "");
@@ -96,10 +112,12 @@ function extractSender(fromName, fromEmail, body, attachments) {
   const urls = body.match(URL_PATTERN) || [];
   const phones = body.match(PHONE_PATTERN) || [];
   const inn = body.match(INN_PATTERN)?.[1] || null;
+  // Filter out own URLs from detected links
+  const externalUrls = urls.filter((u) => !OWN_DOMAINS.has(extractDomainFromUrl(u)));
   const companyName = extractCompanyName(body) || inferCompanyNameFromEmail(fromEmail);
   const fullName = fromName || extractFullNameFromBody(body) || "Не определено";
   const position = extractPosition(body) || null;
-  const website = urls[0] || inferWebsiteFromEmail(fromEmail);
+  const website = externalUrls[0] || inferWebsiteFromEmail(fromEmail);
   const { cityPhone, mobilePhone } = splitPhones(phones);
   const legalCardAttached = attachments.some((item) => /реквиз|card|details/i.test(item));
 
@@ -155,7 +173,7 @@ function extractCompanyName(body) {
 
 function inferCompanyNameFromEmail(email) {
   const domain = email.split("@")[1];
-  if (!domain || isFreeDomain(email)) {
+  if (!domain || isFreeDomain(email) || isOwnDomain(domain)) {
     return null;
   }
 
@@ -174,7 +192,25 @@ function inferWebsiteFromEmail(email) {
 
 function isFreeDomain(email) {
   const domain = email.split("@")[1];
-  return new Set(["gmail.com", "mail.ru", "bk.ru", "list.ru", "inbox.ru", "yandex.ru", "ya.ru"]).has(domain);
+  return new Set([
+    "gmail.com", "mail.ru", "bk.ru", "list.ru", "inbox.ru", "yandex.ru", "ya.ru",
+    "hotmail.com", "outlook.com", "icloud.com", "me.com", "live.com", "yahoo.com",
+    "rambler.ru", "ro.ru", "autorambler.ru", "myrambler.ru", "lenta.ru",
+    "aol.com", "protonmail.com", "proton.me", "zoho.com",
+    "tilda.ws", "tilda.cc", "snipermail.com"
+  ]).has(domain);
+}
+
+function isOwnDomain(domain) {
+  return OWN_DOMAINS.has(domain);
+}
+
+function extractDomainFromUrl(url) {
+  try {
+    return new URL(url).hostname.replace(/^www\./, "");
+  } catch {
+    return "";
+  }
 }
 
 function extractFullNameFromBody(body) {
@@ -236,7 +272,8 @@ function extractStandaloneCodes(text) {
   for (const m of text.matchAll(STANDALONE_CODE_PATTERN)) {
     const code = m[1];
     // Must contain at least one digit and be 5+ chars
-    if (code.length >= 5 && /\d/.test(code) && !noise.has(code)) {
+    // Exclude brand names and own company names
+    if (code.length >= 5 && /\d/.test(code) && !noise.has(code) && !BRAND_NOISE.has(code)) {
       matches.push(code);
     }
   }

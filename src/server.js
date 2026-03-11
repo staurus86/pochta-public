@@ -127,6 +127,42 @@ async function handleApi(req, res, url) {
     return sendJson(res, 201, { project });
   }
 
+  // Attachment download
+  const attachMatch = url.pathname.match(/^\/api\/attachments\/([^/]+)\/(.+)$/);
+  if (req.method === "GET" && attachMatch) {
+    const messageKey = decodeURIComponent(attachMatch[1]);
+    const filename = decodeURIComponent(attachMatch[2]);
+    const safeName = filename.replace(/[<>:"/\\|?*]/g, "_");
+    const filePath = path.join(dataDir, "attachments", messageKey, safeName);
+    try {
+      const contents = await readFile(filePath);
+      const ext = path.extname(safeName).toLowerCase();
+      const mimeTypes = {
+        ".pdf": "application/pdf",
+        ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+        ".png": "image/png", ".gif": "image/gif", ".webp": "image/webp",
+        ".bmp": "image/bmp", ".tiff": "image/tiff", ".tif": "image/tiff",
+        ".doc": "application/msword",
+        ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ".xls": "application/vnd.ms-excel",
+        ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ".csv": "text/csv",
+        ".txt": "text/plain",
+        ".zip": "application/zip",
+        ".rar": "application/x-rar-compressed"
+      };
+      const ct = mimeTypes[ext] || "application/octet-stream";
+      res.writeHead(200, {
+        "Content-Type": ct,
+        "Content-Disposition": `inline; filename="${encodeURIComponent(filename)}"`,
+        "Content-Length": contents.length
+      });
+      return res.end(contents);
+    } catch {
+      return sendJson(res, 404, { error: "Attachment not found." });
+    }
+  }
+
   const runtimeMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runtime$/);
   if (req.method === "GET" && runtimeMatch) {
     const project = await store.getProject(runtimeMatch[1]);
