@@ -830,6 +830,56 @@ body {
 .tab:hover { color: var(--text-secondary); }
 .tab.active { color: var(--accent); border-bottom-color: var(--accent); }
 
+/* ═══════ INBOX TABS ═══════ */
+.inbox-tabs {
+  display: flex;
+  gap: 4px;
+  margin-bottom: 10px;
+  background: var(--surface-0);
+  border-radius: var(--radius-sm);
+  padding: 4px;
+  border: 1px solid var(--border);
+}
+
+.inbox-tab {
+  padding: 8px 16px;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-muted);
+  border: none;
+  background: none;
+  cursor: pointer;
+  border-radius: 6px;
+  transition: all var(--transition);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.inbox-tab:hover { color: var(--text-secondary); background: var(--surface-2); }
+
+.inbox-tab.active { color: var(--text); background: var(--surface-3); }
+
+.inbox-tab[data-inbox-tab="requests"].active { color: var(--green); }
+.inbox-tab[data-inbox-tab="moderation"].active { color: var(--amber); }
+.inbox-tab[data-inbox-tab="spam"].active { color: var(--rose); }
+
+.inbox-tab-count {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 1px 6px;
+  border-radius: 10px;
+  background: var(--surface-3);
+  color: var(--text-muted);
+  min-width: 18px;
+  text-align: center;
+}
+
+.inbox-tab.active .inbox-tab-count {
+  background: rgba(255,255,255,0.1);
+  color: inherit;
+}
+
 /* ═══════ ATTACHMENT ═══════ */
 .attachment-list {
   display: flex;

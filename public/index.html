@@ -109,7 +109,7 @@
 
         <!-- ═══ PAGE: INBOX ═══ -->
         <div class="page" id="page-inbox">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:14px;">
+          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
             <button class="btn btn-primary" id="inbox-fetch-btn">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
               Получить письма
@@ -117,7 +117,13 @@
             <button class="btn btn-danger btn-sm" id="inbox-delete-all-btn">Удалить все письма</button>
             <span id="inbox-status-text" style="font-size:12px;color:var(--text-muted);margin-left:auto;"></span>
           </div>
-          <div class="grid-3col" style="height:calc(100vh - 170px);">
+          <div class="inbox-tabs" id="inbox-tabs">
+            <button class="inbox-tab active" data-inbox-tab="all">Все <span class="inbox-tab-count" id="tab-count-all">0</span></button>
+            <button class="inbox-tab" data-inbox-tab="requests">Заявки <span class="inbox-tab-count" id="tab-count-requests">0</span></button>
+            <button class="inbox-tab" data-inbox-tab="moderation">Модерация <span class="inbox-tab-count" id="tab-count-moderation">0</span></button>
+            <button class="inbox-tab" data-inbox-tab="spam">Спам <span class="inbox-tab-count" id="tab-count-spam">0</span></button>
+          </div>
+          <div class="grid-3col" style="height:calc(100vh - 220px);">
             <div class="message-list" id="runner-messages-list"></div>
             <div class="email-view" id="email-view">
               <div class="empty-state">

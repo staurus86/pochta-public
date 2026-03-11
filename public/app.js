@@ -22,6 +22,7 @@ let selectedMessageId = null;
 let currentPage = 'dashboard';
 let kbData = null;
 let kbTab = 'rules';
+let inboxTab = 'all';
 
 await init();
 
@@ -51,6 +52,15 @@ function setupNavigation() {
   });
 
   $('#refresh-kb').addEventListener('click', () => refreshKb());
+
+  // Inbox tabs
+  $$('#inbox-tabs .inbox-tab').forEach((tab) => {
+    tab.addEventListener('click', () => {
+      inboxTab = tab.dataset.inboxTab;
+      $$('#inbox-tabs .inbox-tab').forEach((t) => t.classList.toggle('active', t === tab));
+      renderInbox();
+    });
+  });
 }
 
 function navigateTo(page) {
@@ -239,21 +249,55 @@ async function refreshP3Messages() {
   try {
     const res = await fetch(`/api/projects/${P3_ID}/messages`);
     const data = await res.json();
-    allRunnerMessages = data.messages || [];
-    runnerMessages = allRunnerMessages
-      .filter((m) => !['ignored_spam', 'fetch_error'].includes(m.pipelineStatus))
-      .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-
-    if (!runnerMessages.some((m) => mid(m) === selectedMessageId)) {
-      selectedMessageId = runnerMessages[0] ? mid(runnerMessages[0]) : null;
-    }
+    allRunnerMessages = (data.messages || []).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   } catch {
     allRunnerMessages = [];
-    runnerMessages = [];
   }
 
-  inboxBadge.textContent = runnerMessages.length;
+  // Compute filtered lists
+  runnerMessages = filterInboxMessages(inboxTab);
+
+  if (!runnerMessages.some((m) => mid(m) === selectedMessageId)) {
+    selectedMessageId = runnerMessages[0] ? mid(runnerMessages[0]) : null;
+  }
+
+  // Update badge with non-spam count
+  const nonSpam = allRunnerMessages.filter((m) => m.pipelineStatus !== 'ignored_spam' && m.pipelineStatus !== 'fetch_error');
+  inboxBadge.textContent = nonSpam.length;
+  updateInboxTabCounts();
   renderInbox();
+}
+
+function isRequest(m) {
+  const rules = m.analysis?.classification?.signals?.matchedRules || [];
+  return rules.some((r) => r.weight >= 3);
+}
+
+function isSpam(m) {
+  return m.pipelineStatus === 'ignored_spam';
+}
+
+function isModeration(m) {
+  if (isSpam(m) || isRequest(m) || m.pipelineStatus === 'fetch_error') return false;
+  const label = m.analysis?.classification?.label || '';
+  const status = m.pipelineStatus || '';
+  return label === 'Клиент' || ['ready_for_crm', 'needs_clarification', 'review'].includes(status);
+}
+
+function filterInboxMessages(tab) {
+  if (tab === 'requests') return allRunnerMessages.filter(isRequest);
+  if (tab === 'moderation') return allRunnerMessages.filter(isModeration);
+  if (tab === 'spam') return allRunnerMessages.filter(isSpam);
+  // 'all' — everything except fetch_error
+  return allRunnerMessages.filter((m) => m.pipelineStatus !== 'fetch_error');
+}
+
+function updateInboxTabCounts() {
+  const all = allRunnerMessages.filter((m) => m.pipelineStatus !== 'fetch_error');
+  $('#tab-count-all').textContent = all.length;
+  $('#tab-count-requests').textContent = allRunnerMessages.filter(isRequest).length;
+  $('#tab-count-moderation').textContent = allRunnerMessages.filter(isModeration).length;
+  $('#tab-count-spam').textContent = allRunnerMessages.filter(isSpam).length;
 }
 
 async function refreshP2() {
@@ -520,12 +564,20 @@ function renderP3Schedule() {
 
 // ═══ INBOX ═══
 function renderInbox() {
+  // Re-filter based on current tab
+  runnerMessages = filterInboxMessages(inboxTab);
+  if (!runnerMessages.some((m) => mid(m) === selectedMessageId)) {
+    selectedMessageId = runnerMessages[0] ? mid(runnerMessages[0]) : null;
+  }
+  updateInboxTabCounts();
+
   const listEl = $('#runner-messages-list');
   const viewEl = $('#email-view');
   const detailEl = $('#detail-panel');
 
+  const emptyLabels = { all: 'Нет писем', requests: 'Нет заявок', moderation: 'Нет писем на модерации', spam: 'Нет спама' };
   if (runnerMessages.length === 0) {
-    listEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📭</div><h4>Нет писем</h4><p>Нажмите «Получить письма»</p></div>';
+    listEl.innerHTML = `<div class="empty-state"><div class="empty-icon">📭</div><h4>${emptyLabels[inboxTab] || 'Нет писем'}</h4><p>Нажмите «Получить письма»</p></div>`;
     viewEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📬</div><h4>Выберите письмо</h4></div>';
     detailEl.innerHTML = '<div class="empty-state"><div class="empty-icon">📋</div><h4>Данные разбора</h4></div>';
     return;
