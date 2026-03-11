@@ -43,6 +43,10 @@
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
             Project 3 — Почта
           </button>
+          <button class="nav-item" data-page="project4">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+            Project 4 — Klvrt
+          </button>
         </div>
         <div class="nav-section">
           <div class="nav-section-label">Управление</div>
@@ -350,6 +354,44 @@ https://promsnab.ru</textarea>
               <div class="panel-header"><h3>Runtime статус</h3><button class="btn btn-ghost btn-sm" id="p3-refresh-runtime">Обновить</button></div>
               <div class="panel-body">
                 <pre id="p3-runtime-result" style="margin:0;padding:16px;background:var(--surface-0);border-radius:var(--radius-sm);color:var(--text-secondary);font-size:12px;font-family:'JetBrains Mono',monospace;overflow:auto;max-height:500px;white-space:pre-wrap;">Загрузка...</pre>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ PAGE: PROJECT 4 ═══ -->
+        <div class="page" id="page-project4">
+          <div class="kpi-grid" id="p4-kpi-grid"></div>
+          <div class="grid-2col">
+            <div class="panel">
+              <div class="panel-header"><h3>Запуск Project 4 — Klvrt Mail</h3></div>
+              <div class="panel-body">
+                <p style="font-size:12px;color:var(--text-secondary);margin-bottom:14px;">Чтение писем из ящика robot-mail-siderus@klvrt.ru (mail.klvrt.ru), разбор и классификация.</p>
+                <form id="p4-run-form">
+                  <div class="form-row">
+                    <div class="form-group"><label class="form-label">Глубина, дней</label><input class="form-input" name="days" type="number" min="1" max="365" value="1" /></div>
+                    <div class="form-group"><label class="form-label">Макс. писем</label><input class="form-input" name="maxEmails" type="number" min="1" max="1000" value="100" /></div>
+                  </div>
+                  <button type="submit" class="btn btn-primary" style="width:100%" id="p4-run-btn">Получить и разобрать письма</button>
+                </form>
+              </div>
+              <div class="panel-header" style="border-top:1px solid var(--border)"><h3>Расписание</h3></div>
+              <div class="panel-body">
+                <form id="p4-schedule-form">
+                  <div class="form-group"><label class="form-check"><input type="checkbox" name="enabled" /><span>Включить автозапуск</span></label></div>
+                  <div class="form-row">
+                    <div class="form-group"><label class="form-label">Время</label><input class="form-input" name="time" type="time" value="12:00" /></div>
+                    <div class="form-group"><label class="form-label">Таймзона</label><input class="form-input" name="timezone" value="Europe/Moscow" /></div>
+                  </div>
+                  <div class="form-group"><label class="form-label">Дней</label><input class="form-input" name="days" type="number" min="1" max="365" value="1" /></div>
+                  <button type="submit" class="btn btn-ghost" style="width:100%">Сохранить расписание</button>
+                </form>
+              </div>
+            </div>
+            <div class="panel">
+              <div class="panel-header"><h3>Runtime статус</h3><button class="btn btn-ghost btn-sm" id="p4-refresh-runtime">Обновить</button></div>
+              <div class="panel-body">
+                <pre id="p4-runtime-result" style="margin:0;padding:16px;background:var(--surface-0);border-radius:var(--radius-sm);color:var(--text-secondary);font-size:12px;font-family:'JetBrains Mono',monospace;overflow:auto;max-height:500px;white-space:pre-wrap;">Загрузка...</pre>
               </div>
             </div>
           </div>

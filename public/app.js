@@ -15,6 +15,7 @@ const inboxBadge = $('#inbox-badge');
 // IDs проектов (из projects.json defaults)
 const P2_ID = 'project-2-tender-parser';
 const P3_ID = 'project-3-mailbox-file';
+const P4_ID = 'project-4-klvrt-mail';
 const P1_ID = 'mailroom-primary';
 
 let projects = [];
@@ -43,7 +44,7 @@ async function init() {
   setupForms();
   await refreshProjects();
   await refreshKb();
-  await refreshP3Messages();
+  await refreshAllMailboxMessages();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -87,14 +88,16 @@ function navigateTo(page) {
     analyze: 'Тест разбора',
     project2: 'Project 2 — Tender Parser',
     project3: 'Project 3 — Mailbox Parser',
+    project4: 'Project 4 — Klvrt Mail',
     projects: 'Все проекты',
     kb: 'База знаний'
   };
   pageTitle.textContent = titles[page] || 'Pochta';
 
-  if (page === 'inbox') refreshP3Messages();
+  if (page === 'inbox') refreshAllMailboxMessages();
   if (page === 'project2') refreshP2();
   if (page === 'project3') refreshP3();
+  if (page === 'project4') refreshP4();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -191,10 +194,11 @@ function setupForms() {
     const fd = new FormData(e.target);
     const btn = $('#p3-run-btn');
     btn.disabled = true;
-    await startP3Job({
+    await startMailboxJob(P3_ID, {
       days: Number(fd.get('days') || 1),
       maxEmails: Number(fd.get('maxEmails') || 100)
     }, btn, 'Получить и разобрать письма', '#p3-runtime-result');
+    renderP3Kpis();
   });
 
   $('#p3-schedule-form').addEventListener('submit', async (e) => {
@@ -216,22 +220,62 @@ function setupForms() {
 
   $('#p3-refresh-runtime').addEventListener('click', () => refreshP3Runtime());
 
+  // ═══ PROJECT 4 ═══
+  $('#p4-run-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const btn = $('#p4-run-btn');
+    btn.disabled = true;
+    await startMailboxJob(P4_ID, {
+      days: Number(fd.get('days') || 1),
+      maxEmails: Number(fd.get('maxEmails') || 100)
+    }, btn, 'Получить и разобрать письма', '#p4-runtime-result');
+  });
+
+  $('#p4-schedule-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    await fetch(`/api/projects/${P4_ID}/schedule`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        enabled: fd.get('enabled') === 'on',
+        time: fd.get('time'),
+        timezone: fd.get('timezone'),
+        days: Number(fd.get('days') || 1)
+      })
+    });
+    await refreshProjects();
+    renderP4Schedule();
+  });
+
+  $('#p4-refresh-runtime').addEventListener('click', () => refreshP4Runtime());
+
   // ═══ INBOX actions ═══
   $('#inbox-fetch-btn').addEventListener('click', async () => {
     const btn = $('#inbox-fetch-btn');
     btn.disabled = true;
     $('#inbox-status-text').textContent = 'Подключение к почтовым ящикам...';
-    await startP3Job({ days: 1, maxEmails: 100 }, btn, '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Получить письма', null, (run) => {
-      if (run) {
-        $('#inbox-status-text').textContent = `Получено ${run.fetchedEmailCount || 0} писем, CRM-готовых: ${run.readyForCrmCount || 0}, спам: ${run.spamCount || 0}`;
-      }
+    const resetLabel = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg> Получить письма';
+    let totalFetched = 0, totalCrm = 0, totalSpam = 0;
+    // Run P3 and P4 sequentially
+    await startMailboxJob(P3_ID, { days: 1, maxEmails: 100 }, null, null, null, (run) => {
+      if (run) { totalFetched += run.fetchedEmailCount || 0; totalCrm += run.readyForCrmCount || 0; totalSpam += run.spamCount || 0; }
     });
+    await startMailboxJob(P4_ID, { days: 1, maxEmails: 100 }, null, null, null, (run) => {
+      if (run) { totalFetched += run.fetchedEmailCount || 0; totalCrm += run.readyForCrmCount || 0; totalSpam += run.spamCount || 0; }
+    });
+    btn.disabled = false;
+    btn.innerHTML = resetLabel;
+    $('#inbox-status-text').textContent = `Получено ${totalFetched} писем, CRM-готовых: ${totalCrm}, спам: ${totalSpam}`;
+    await refreshAllMailboxMessages();
   });
 
   $('#inbox-delete-all-btn').addEventListener('click', async () => {
     if (!confirm('Удалить все письма из inbox? Это действие необратимо.')) return;
     await fetch(`/api/projects/${P3_ID}/messages`, { method: 'DELETE' });
-    await refreshP3Messages();
+    await fetch(`/api/projects/${P4_ID}/messages`, { method: 'DELETE' });
+    await refreshAllMailboxMessages();
     await refreshProjects();
     $('#inbox-status-text').textContent = 'Все письма удалены.';
   });
@@ -248,7 +292,7 @@ function setupForms() {
     if (sec > 0) {
       autoRefreshInterval = setInterval(async () => {
         const oldCount = allRunnerMessages.length;
-        await refreshP3Messages();
+        await refreshAllMailboxMessages();
         const newCount = allRunnerMessages.length;
         if (newCount > oldCount) showToast(`+${newCount - oldCount} новых писем`);
       }, sec * 1000);
@@ -262,10 +306,12 @@ function setupForms() {
   $('#bulk-delete-btn').addEventListener('click', async () => {
     if (!confirm(`Удалить ${selectedMsgKeys.size} писем?`)) return;
     for (const key of selectedMsgKeys) {
-      await fetch(`/api/projects/${P3_ID}/messages/${encodeURIComponent(key)}`, { method: 'DELETE' });
+      const msg = allRunnerMessages.find((m) => m.messageKey === key);
+      const pid = msg?._projectId || P3_ID;
+      await fetch(`/api/projects/${pid}/messages/${encodeURIComponent(key)}`, { method: 'DELETE' });
     }
     selectedMsgKeys.clear();
-    await refreshP3Messages();
+    await refreshAllMailboxMessages();
     await refreshProjects();
   });
   $('#bulk-clear-btn').addEventListener('click', () => { selectedMsgKeys.clear(); renderInbox(); });
@@ -294,12 +340,16 @@ async function refreshProjects() {
   renderProjectsTable();
 }
 
-async function refreshP3Messages() {
+async function refreshAllMailboxMessages() {
   showProgress(true);
   try {
-    const res = await fetch(`/api/projects/${P3_ID}/messages`);
-    const data = await res.json();
-    allRunnerMessages = (data.messages || []).sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    const [r3, r4] = await Promise.all([
+      fetch(`/api/projects/${P3_ID}/messages`).then((r) => r.json()).catch(() => ({ messages: [] })),
+      fetch(`/api/projects/${P4_ID}/messages`).then((r) => r.json()).catch(() => ({ messages: [] }))
+    ]);
+    const p3msgs = (r3.messages || []).map((m) => ({ ...m, _projectId: P3_ID }));
+    const p4msgs = (r4.messages || []).map((m) => ({ ...m, _projectId: P4_ID }));
+    allRunnerMessages = [...p3msgs, ...p4msgs].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
   } catch {
     allRunnerMessages = [];
   }
@@ -319,6 +369,11 @@ async function refreshP3Messages() {
   updateMailboxFilter();
   renderSidebarStats();
   renderInbox();
+}
+
+// Alias for backward compatibility
+async function refreshP3Messages() {
+  await refreshAllMailboxMessages();
 }
 
 function isRequest(m) {
@@ -402,10 +457,17 @@ async function refreshP2() {
 }
 
 async function refreshP3() {
-  await refreshP3Messages();
+  await refreshAllMailboxMessages();
   renderP3Kpis();
   renderP3Schedule();
   await refreshP3Runtime();
+}
+
+async function refreshP4() {
+  await refreshAllMailboxMessages();
+  renderP4Kpis();
+  renderP4Schedule();
+  await refreshP4Runtime();
 }
 
 async function refreshP2Runtime() {
@@ -424,6 +486,14 @@ async function refreshP3Runtime() {
   } catch { $('#p3-runtime-result').textContent = 'Ошибка загрузки.'; }
 }
 
+async function refreshP4Runtime() {
+  try {
+    const res = await fetch(`/api/projects/${P4_ID}/runtime`);
+    const data = await res.json();
+    $('#p4-runtime-result').textContent = JSON.stringify(data.runtime || data, null, 2);
+  } catch { $('#p4-runtime-result').textContent = 'Ошибка загрузки.'; }
+}
+
 async function refreshKb() {
   try {
     const res = await fetch('/api/detection-kb');
@@ -432,19 +502,23 @@ async function refreshKb() {
   renderKb();
 }
 
-// ═══ P3 async job launcher with polling & timer ═══
-async function startP3Job(payload, btn, resetLabel, runtimeEl, onDone) {
-  const timerEl = $('#p3-job-timer') || createJobTimer();
-  let elapsed = 0;
-  const timerInterval = setInterval(() => {
-    elapsed++;
-    timerEl.textContent = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
-    timerEl.style.display = 'inline-block';
-    if (btn) btn.innerHTML = `<div class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;"></div> Выполняется... ${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
-  }, 1000);
+// ═══ Generic async job launcher with polling & timer ═══
+async function startMailboxJob(projectId, payload, btn, resetLabel, runtimeEl, onDone) {
+  let timerEl = null;
+  let timerInterval = null;
+  if (btn) {
+    timerEl = createJobTimerFor(projectId);
+    let elapsed = 0;
+    timerInterval = setInterval(() => {
+      elapsed++;
+      timerEl.textContent = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
+      timerEl.style.display = 'inline-block';
+      if (btn) btn.innerHTML = `<div class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;"></div> Выполняется... ${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
+    }, 1000);
+  }
 
   try {
-    const res = await fetch(`/api/projects/${P3_ID}/run`, {
+    const res = await fetch(`/api/projects/${projectId}/run`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
@@ -460,7 +534,7 @@ async function startP3Job(payload, btn, resetLabel, runtimeEl, onDone) {
       while (true) {
         await sleep(3000);
         try {
-          const jr = await fetch(`/api/projects/${P3_ID}/job/${jobId}`);
+          const jr = await fetch(`/api/projects/${projectId}/job/${jobId}`);
           const jd = await jr.json();
           job = jd.job;
           if (job.status !== 'running') break;
@@ -475,7 +549,6 @@ async function startP3Job(payload, btn, resetLabel, runtimeEl, onDone) {
         if (onDone) onDone(null);
       }
     } else {
-      // Sync response (shouldn't happen for P3, but handle gracefully)
       if (runtimeEl) $(runtimeEl).textContent = JSON.stringify(data.run || data, null, 2);
       if (onDone) onDone(data.run);
     }
@@ -484,20 +557,29 @@ async function startP3Job(payload, btn, resetLabel, runtimeEl, onDone) {
     if (onDone) onDone(null);
   }
 
-  clearInterval(timerInterval);
-  timerEl.style.display = 'none';
+  if (timerInterval) clearInterval(timerInterval);
+  if (timerEl) timerEl.style.display = 'none';
   if (btn) { btn.disabled = false; btn.innerHTML = resetLabel; }
   await refreshProjects();
-  await refreshP3Messages();
+  await refreshAllMailboxMessages();
+}
+
+// Backward-compat wrapper
+async function startP3Job(payload, btn, resetLabel, runtimeEl, onDone) {
+  await startMailboxJob(P3_ID, payload, btn, resetLabel, runtimeEl, onDone);
   renderP3Kpis();
 }
 
-function createJobTimer() {
+function createJobTimerFor(projectId) {
+  const suffix = projectId === P4_ID ? 'p4' : 'p3';
+  const existing = $(`#${suffix}-job-timer`);
+  if (existing) return existing;
   const el = document.createElement('span');
-  el.id = 'p3-job-timer';
+  el.id = `${suffix}-job-timer`;
   el.className = 'badge badge-system';
   el.style.cssText = 'display:none;margin-left:8px;font-family:"JetBrains Mono",monospace;font-size:12px;';
-  const header = document.querySelector('#page-project3 .panel-header') || document.body;
+  const pageId = projectId === P4_ID ? '#page-project4' : '#page-project3';
+  const header = document.querySelector(`${pageId} .panel-header`) || document.body;
   header.appendChild(el);
   return el;
 }
@@ -505,8 +587,10 @@ function createJobTimer() {
 function sleep(ms) { return new Promise((r) => setTimeout(r, ms)); }
 
 async function deleteMessage(messageKey) {
-  await fetch(`/api/projects/${P3_ID}/messages/${encodeURIComponent(messageKey)}`, { method: 'DELETE' });
-  await refreshP3Messages();
+  const msg = allRunnerMessages.find((m) => m.messageKey === messageKey);
+  const pid = msg?._projectId || P3_ID;
+  await fetch(`/api/projects/${pid}/messages/${encodeURIComponent(messageKey)}`, { method: 'DELETE' });
+  await refreshAllMailboxMessages();
   await refreshProjects();
 }
 
@@ -532,7 +616,8 @@ async function bulkTrain(classification) {
     const m = allRunnerMessages.find((msg) => mid(msg) === key);
     if (m) {
       m.pipelineStatus = statusMap[classification];
-      fetch(`/api/projects/${P3_ID}/messages/${encodeURIComponent(key)}`, {
+      const pid = m._projectId || P3_ID;
+      fetch(`/api/projects/${pid}/messages/${encodeURIComponent(key)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pipelineStatus: statusMap[classification] })
@@ -945,6 +1030,31 @@ function renderP3Schedule() {
   sf.elements.days.value = String(p.schedule.days || 1);
 }
 
+// ═══ P4 KPIs & Schedule ═══
+function renderP4Kpis() {
+  const p = getProject(P4_ID);
+  const run = p?.recentRuns?.[0] || {};
+  const kpis = [
+    { label: 'Ящиков', value: run.accountCount ?? '—', cls: 'accent' },
+    { label: 'Получено', value: run.fetchedEmailCount ?? '—', cls: '' },
+    { label: 'Разобрано', value: run.totalMessages ?? '—', cls: '' },
+    { label: 'Спам', value: run.spamCount ?? '—', cls: 'rose' },
+    { label: 'Уточнение', value: run.clarificationCount ?? '—', cls: 'amber' },
+    { label: 'CRM-готовых', value: run.readyForCrmCount ?? '—', cls: 'green' }
+  ];
+  $('#p4-kpi-grid').innerHTML = kpis.map((k) => `<div class="kpi-card"><div class="kpi-label">${esc(k.label)}</div><div class="kpi-value ${k.cls}">${esc(k.value)}</div></div>`).join('');
+}
+
+function renderP4Schedule() {
+  const p = getProject(P4_ID);
+  if (!p?.schedule) return;
+  const sf = $('#p4-schedule-form');
+  sf.elements.enabled.checked = Boolean(p.schedule.enabled);
+  sf.elements.time.value = p.schedule.time || '12:00';
+  sf.elements.timezone.value = p.schedule.timezone || 'Europe/Moscow';
+  sf.elements.days.value = String(p.schedule.days || 1);
+}
+
 // ═══ INBOX ═══
 function renderInbox() {
   // Re-filter based on current tab
@@ -1249,7 +1359,9 @@ window.__trainSender = async (email, classification, companyHint, msgKey) => {
 
     // 2. Update current message status so it moves to correct tab
     if (msgKey) {
-      await fetch(`/api/projects/${P3_ID}/messages/${encodeURIComponent(msgKey)}`, {
+      const currentMsg = allRunnerMessages.find((m) => mid(m) === msgKey);
+      const currentPid = currentMsg?._projectId || P3_ID;
+      await fetch(`/api/projects/${currentPid}/messages/${encodeURIComponent(msgKey)}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ pipelineStatus: statusMap[classification] || 'review' })
@@ -1264,7 +1376,8 @@ window.__trainSender = async (email, classification, companyHint, msgKey) => {
         const key = mid(m);
         m.pipelineStatus = statusMap[classification] || 'review';
         if (key !== msgKey) {
-          fetch(`/api/projects/${P3_ID}/messages/${encodeURIComponent(key)}`, {
+          const pid = m._projectId || P3_ID;
+          fetch(`/api/projects/${pid}/messages/${encodeURIComponent(key)}`, {
             method: 'PATCH',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ pipelineStatus: statusMap[classification] || 'review' })

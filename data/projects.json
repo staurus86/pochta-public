@@ -128,5 +128,36 @@
       "sourceFile": "1.txt"
     },
     "knownCompanies": []
+  },
+  {
+    "recentAnalyses": [],
+    "recentRuns": [],
+    "schedule": {
+      "enabled": false,
+      "time": "12:00",
+      "timezone": "Europe/Moscow",
+      "days": 1,
+      "lastTriggeredSlot": null,
+      "lastTriggeredAt": null
+    },
+    "id": "project-4-klvrt-mail",
+    "type": "mailbox-file-parser",
+    "name": "Project 4 — Klvrt Mail",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "description": "Забор писем из ящика robot-mail-siderus@klvrt.ru (mail.klvrt.ru), разбор и классификация.",
+    "brands": [],
+    "managerPool": {
+      "defaultMop": "Не назначен",
+      "defaultMoz": "Не назначен",
+      "brandOwners": []
+    },
+    "runtime": {
+      "scriptPath": "project 3/mailbox_file_runner.py",
+      "workingDirectory": "project 3",
+      "sourceFile": "2.txt",
+      "imapHost": "mail.klvrt.ru",
+      "imapPort": "993"
+    },
+    "knownCompanies": []
   }
 ]

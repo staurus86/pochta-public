@@ -42,13 +42,16 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
   const workingDirectory = path.resolve(rootDir, runtime.workingDirectory || "project 3");
   const startedAt = Date.now();
 
+  const imapHost = runtime.imapHost || process.env.PROJECT3_IMAP_HOST || "mail.hosting.reg.ru";
+  const imapPort = runtime.imapPort || process.env.PROJECT3_IMAP_PORT || "993";
+
   const result = await runPythonProcess(scriptPath, workingDirectory, {
     ...process.env,
     PROJECT3_SOURCE_FILE: sourceFile,
     PROJECT3_DAYS: String(days),
     PROJECT3_MAX_EMAILS: String(maxEmails),
-    PROJECT3_IMAP_HOST: process.env.PROJECT3_IMAP_HOST || "mail.hosting.reg.ru",
-    PROJECT3_IMAP_PORT: process.env.PROJECT3_IMAP_PORT || "993"
+    PROJECT3_IMAP_HOST: imapHost,
+    PROJECT3_IMAP_PORT: imapPort
   }, Number(options.timeoutMs || 300000), days);
 
   const payload = parsePayload(result.stdout) || { emails: [], accountCount: 0, fetchedEmailCount: 0, errorCount: 0 };

@@ -1,0 +1,6 @@
+Настройки шифрованного SSL/TLS соединения
+Сервер входящей почты: mail.klvrt.ru:
+для настройки IMAP используйте порт 993.
+
+Почта	Админка почты	Пароль	Сборщик почты	Сайт EMD	Бренд
+robot-mail-siderus@klvrt.ru	https://mail.klvrt.ru/	ERLkDcC4	robot-mail-siderus@klvrt.ru	https://klvrt.ru	Siderus
