@@ -666,6 +666,34 @@ function renderEmailView(msg, viewEl, detailEl) {
       ${crm.actions?.length ? `<div style="margin-top:8px;">${crm.actions.map((ac) => `<div style="font-size:11px;color:var(--text-secondary);padding:3px 0;">→ ${esc(ac)}</div>`).join('')}</div>` : ''}
     </div>
     ${rules.length ? `<div class="detail-section"><div class="detail-section-title">Правила</div>${rules.map((r) => `<div style="font-size:11px;padding:3px 0;display:flex;gap:6px;align-items:center;"><span class="badge ${r.classifier === 'spam' ? 'badge-spam' : r.classifier === 'client' ? 'badge-client' : 'badge-vendor'}" style="font-size:9px;">${esc(r.classifier)}</span><span style="color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:10px;">${esc(truncate(r.pattern, 30))}</span><span style="color:var(--green);font-weight:600;margin-left:auto;">+${r.weight}</span></div>`).join('')}</div>` : ''}
+    <div class="detail-section">
+      <div class="detail-section-title">Обучение классификатора</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;">
+        <button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green)" onclick="window.__trainSender('${esc(sender.email)}','client','${esc(sender.companyName || '')}')">Это заявка</button>
+        <button class="btn btn-sm" style="background:var(--rose-dim);color:var(--rose);border:1px solid var(--rose)" onclick="window.__trainSender('${esc(sender.email)}','spam','')">Это спам</button>
+        <button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)" onclick="window.__trainSender('${esc(sender.email)}','vendor','${esc(sender.companyName || '')}')">Поставщик</button>
+      </div>
+      <div style="margin-bottom:8px;">
+        <button class="btn btn-ghost btn-sm" style="width:100%" onclick="window.__showRuleForm('${esc(msgKey)}')">+ Добавить правило из этого письма</button>
+      </div>
+      <div id="rule-form-${esc(msgKey)}" style="display:none;">
+        <div style="display:flex;gap:6px;margin-bottom:6px;">
+          <select id="rule-scope-${esc(msgKey)}" class="form-select" style="font-size:11px;padding:4px 8px;flex:1">
+            <option value="body">body</option>
+            <option value="subject">subject</option>
+            <option value="domain">domain</option>
+          </select>
+          <select id="rule-cls-${esc(msgKey)}" class="form-select" style="font-size:11px;padding:4px 8px;flex:1">
+            <option value="client">client</option>
+            <option value="spam">spam</option>
+            <option value="vendor">vendor</option>
+          </select>
+          <input id="rule-weight-${esc(msgKey)}" class="form-input" type="number" min="1" max="10" value="4" style="width:50px;font-size:11px;padding:4px 8px;" />
+        </div>
+        <input id="rule-pattern-${esc(msgKey)}" class="form-input" placeholder="Regex паттерн..." style="font-size:11px;padding:6px 8px;margin-bottom:6px;width:100%;" value="${esc(suggestPattern(msg))}" />
+        <button class="btn btn-primary btn-sm" style="width:100%" onclick="window.__addRule('${esc(msgKey)}')">Сохранить правило</button>
+      </div>
+    </div>
     <div class="detail-actions">
       ${crm.isExistingCompany === false ? '<button class="btn btn-primary btn-sm" style="width:100%">Создать клиента в CRM</button>' : ''}
       ${cls.label === 'Клиент' ? '<button class="btn btn-success btn-sm" style="width:100%">Создать запрос в CRM</button>' : ''}
@@ -680,6 +708,88 @@ window.__deleteMsg = async (key) => {
   if (!confirm('Удалить это письмо?')) return;
   await deleteMessage(key);
 };
+
+// ═══ TRAINING handlers ═══
+window.__trainSender = async (email, classification, companyHint) => {
+  const domain = email.split('@')[1] || '';
+  const label = { client: 'заявка', spam: 'спам', vendor: 'поставщик' }[classification] || classification;
+  if (!confirm(`Обучить: все письма с домена @${domain} → ${label}?`)) return;
+
+  try {
+    const res = await fetch('/api/detection-kb/sender-profiles', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        senderDomain: domain,
+        classification,
+        companyHint: companyHint || '',
+        notes: `Обучено из inbox: ${email} → ${classification}`
+      })
+    });
+    if (res.ok) {
+      showToast(`Домен @${domain} обучен как "${label}"`);
+      await refreshKb();
+    } else {
+      showToast('Ошибка сохранения профиля', true);
+    }
+  } catch (err) {
+    showToast('Ошибка: ' + err.message, true);
+  }
+};
+
+window.__showRuleForm = (msgKey) => {
+  const form = $(`#rule-form-${msgKey}`);
+  if (form) form.style.display = form.style.display === 'none' ? 'block' : 'none';
+};
+
+window.__addRule = async (msgKey) => {
+  const scope = $(`#rule-scope-${msgKey}`)?.value || 'body';
+  const classifier = $(`#rule-cls-${msgKey}`)?.value || 'client';
+  const weight = Number($(`#rule-weight-${msgKey}`)?.value || 4);
+  const pattern = $(`#rule-pattern-${msgKey}`)?.value?.trim();
+
+  if (!pattern) { showToast('Укажите паттерн', true); return; }
+
+  try {
+    const res = await fetch('/api/detection-kb/rules', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ scope, classifier, matchType: 'regex', pattern, weight, notes: `Из inbox: ${msgKey.slice(0, 8)}` })
+    });
+    if (res.ok) {
+      showToast(`Правило добавлено: ${classifier} +${weight}`);
+      $(`#rule-form-${msgKey}`).style.display = 'none';
+      await refreshKb();
+    } else {
+      showToast('Ошибка сохранения правила', true);
+    }
+  } catch (err) {
+    showToast('Ошибка: ' + err.message, true);
+  }
+};
+
+function suggestPattern(msg) {
+  // Extract unique meaningful words from subject as a starting pattern
+  const subject = (msg.subject || '').toLowerCase();
+  const stopWords = new Set(['и', 'в', 'на', 'от', 'по', 'с', 'из', 'для', 'не', 'за', 'к', 'до', 're:', 'fwd:', 'fw:']);
+  const words = subject.split(/[\s,.:;!?()\[\]{}]+/).filter((w) => w.length > 2 && !stopWords.has(w));
+  return words.slice(0, 4).join('|') || '';
+}
+
+function showToast(message, isError = false) {
+  let toast = $('#toast-notification');
+  if (!toast) {
+    toast = document.createElement('div');
+    toast.id = 'toast-notification';
+    toast.style.cssText = 'position:fixed;bottom:24px;right:24px;padding:12px 20px;border-radius:8px;font-size:13px;font-weight:600;z-index:9999;transition:opacity 0.3s;pointer-events:none;';
+    document.body.appendChild(toast);
+  }
+  toast.style.background = isError ? 'var(--rose)' : 'var(--green)';
+  toast.style.color = '#fff';
+  toast.textContent = message;
+  toast.style.opacity = '1';
+  setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+}
 
 function showAnalysisResult(data) {
   const container = $('#analysis-result');
