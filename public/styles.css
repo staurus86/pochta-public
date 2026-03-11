@@ -880,6 +880,42 @@ body {
   color: inherit;
 }
 
+/* ═══════ MESSAGE CHECKBOX ═══════ */
+.message-item-wrap {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.message-item-wrap.active { background: var(--surface-2); }
+
+.msg-checkbox {
+  display: flex;
+  align-items: center;
+  padding: 0 6px 0 8px;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.msg-checkbox input[type="checkbox"] {
+  accent-color: var(--accent);
+  width: 14px;
+  height: 14px;
+  cursor: pointer;
+}
+
+.message-item-wrap .message-item {
+  border-bottom: none;
+  flex: 1;
+  min-width: 0;
+}
+
+.detail-field:hover {
+  background: var(--surface-2);
+  border-radius: 4px;
+}
+
 /* ═══════ ATTACHMENT ═══════ */
 .attachment-list {
   display: flex;

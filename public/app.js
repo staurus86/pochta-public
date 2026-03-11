@@ -23,6 +23,9 @@ let currentPage = 'dashboard';
 let kbData = null;
 let kbTab = 'rules';
 let inboxTab = 'all';
+let selectedMsgKeys = new Set();
+let inboxSearch = '';
+let inboxSort = 'date-desc';
 
 await init();
 
@@ -223,6 +226,28 @@ function setupForms() {
     await refreshProjects();
     $('#inbox-status-text').textContent = 'Все письма удалены.';
   });
+
+  // ═══ Search & Sort ═══
+  $('#inbox-search').addEventListener('input', (e) => { inboxSearch = e.target.value.toLowerCase(); renderInbox(); });
+  $('#inbox-sort').addEventListener('change', (e) => { inboxSort = e.target.value; renderInbox(); });
+
+  // ═══ Bulk actions ═══
+  $('#bulk-request-btn').addEventListener('click', () => bulkTrain('client'));
+  $('#bulk-spam-btn').addEventListener('click', () => bulkTrain('spam'));
+  $('#bulk-vendor-btn').addEventListener('click', () => bulkTrain('vendor'));
+  $('#bulk-delete-btn').addEventListener('click', async () => {
+    if (!confirm(`Удалить ${selectedMsgKeys.size} писем?`)) return;
+    for (const key of selectedMsgKeys) {
+      await fetch(`/api/projects/${P3_ID}/messages/${encodeURIComponent(key)}`, { method: 'DELETE' });
+    }
+    selectedMsgKeys.clear();
+    await refreshP3Messages();
+    await refreshProjects();
+  });
+  $('#bulk-clear-btn').addEventListener('click', () => { selectedMsgKeys.clear(); renderInbox(); });
+
+  // ═══ CSV Export ═══
+  $('#inbox-export-csv-btn').addEventListener('click', exportInboxCsv);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -285,11 +310,29 @@ function isModeration(m) {
 }
 
 function filterInboxMessages(tab) {
-  if (tab === 'requests') return allRunnerMessages.filter(isRequest);
-  if (tab === 'moderation') return allRunnerMessages.filter(isModeration);
-  if (tab === 'spam') return allRunnerMessages.filter(isSpam);
-  // 'all' — everything except fetch_error
-  return allRunnerMessages.filter((m) => m.pipelineStatus !== 'fetch_error');
+  let msgs;
+  if (tab === 'requests') msgs = allRunnerMessages.filter(isRequest);
+  else if (tab === 'moderation') msgs = allRunnerMessages.filter(isModeration);
+  else if (tab === 'spam') msgs = allRunnerMessages.filter(isSpam);
+  else msgs = allRunnerMessages.filter((m) => m.pipelineStatus !== 'fetch_error');
+
+  // Search
+  if (inboxSearch) {
+    msgs = msgs.filter((m) => {
+      const haystack = [m.subject, m.from, m.mailbox, m.analysis?.sender?.email, m.analysis?.sender?.companyName, m.bodyPreview].join(' ').toLowerCase();
+      return haystack.includes(inboxSearch);
+    });
+  }
+
+  // Sort
+  msgs = [...msgs];
+  if (inboxSort === 'date-asc') msgs.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+  else if (inboxSort === 'confidence-asc') msgs.sort((a, b) => (a.analysis?.classification?.confidence || 0) - (b.analysis?.classification?.confidence || 0));
+  else if (inboxSort === 'confidence-desc') msgs.sort((a, b) => (b.analysis?.classification?.confidence || 0) - (a.analysis?.classification?.confidence || 0));
+  else if (inboxSort === 'mailbox') msgs.sort((a, b) => (a.mailbox || '').localeCompare(b.mailbox || ''));
+  else msgs.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+
+  return msgs;
 }
 
 function updateInboxTabCounts() {
@@ -415,6 +458,70 @@ async function deleteMessage(messageKey) {
   await refreshProjects();
 }
 
+// ═══ Bulk actions ═══
+function updateBulkBar() {
+  const bar = $('#bulk-actions');
+  if (selectedMsgKeys.size > 0) {
+    bar.style.display = 'flex';
+    bar.style.alignItems = 'center';
+    bar.style.gap = '6px';
+    $('#bulk-count').textContent = `${selectedMsgKeys.size} выбрано`;
+  } else {
+    bar.style.display = 'none';
+  }
+}
+
+async function bulkTrain(classification) {
+  const statusMap = { client: 'ready_for_crm', spam: 'ignored_spam', vendor: 'review' };
+  const label = { client: 'заявка', spam: 'спам', vendor: 'поставщик' }[classification];
+  if (!confirm(`Пометить ${selectedMsgKeys.size} писем как "${label}"?`)) return;
+
+  for (const key of selectedMsgKeys) {
+    const m = allRunnerMessages.find((msg) => mid(msg) === key);
+    if (m) {
+      m.pipelineStatus = statusMap[classification];
+      fetch(`/api/projects/${P3_ID}/messages/${encodeURIComponent(key)}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ pipelineStatus: statusMap[classification] })
+      });
+    }
+  }
+  selectedMsgKeys.clear();
+  showToast(`${label}: готово`);
+  renderInbox();
+}
+
+// ═══ CSV Export ═══
+function exportInboxCsv() {
+  const rows = [['Дата', 'От', 'Ящик', 'Тема', 'Статус', 'Категория', 'Confidence', 'Компания', 'ИНН', 'Телефон', 'Бренды', 'Артикулы']];
+  for (const m of runnerMessages) {
+    const a = m.analysis || {};
+    const s = a.sender || {};
+    const l = a.lead || {};
+    rows.push([
+      m.createdAt || '', m.from || s.email || '', m.mailbox || '', m.subject || '',
+      m.pipelineStatus || '', a.classification?.label || '', a.classification?.confidence || '',
+      s.companyName || '', s.inn || '', s.cityPhone || s.mobilePhone || '',
+      (a.detectedBrands || []).join('; '), (l.articles || []).join('; ')
+    ]);
+  }
+  const csv = rows.map((r) => r.map((c) => `"${String(c).replace(/"/g, '""')}"`).join(',')).join('\n');
+  const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `pochta-inbox-${new Date().toISOString().slice(0, 10)}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+  showToast(`Экспортировано ${runnerMessages.length} писем`);
+}
+
+// ═══ Copy to clipboard ═══
+window.__copyField = (text) => {
+  navigator.clipboard.writeText(text).then(() => showToast('Скопировано')).catch(() => {});
+};
+
 // ═══════════════════════════════════════════════════════
 //  RENDERERS
 // ═══════════════════════════════════════════════════════
@@ -491,6 +598,76 @@ function renderDashboard() {
     <td style="font-size:11px;color:var(--text-muted)">${formatDuration(r.durationMs)}</td>
     <td><span class="badge ${r.trigger === 'schedule' ? 'badge-system' : 'badge-unknown'}">${esc(r.trigger || 'manual')}</span></td></tr>`;
   }).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:24px;">Нет запусков</td></tr>';
+
+  // ═══ Funnel chart ═══
+  const totalMsg = allRunnerMessages.length;
+  const nonSpamMsg = allRunnerMessages.filter((m) => m.pipelineStatus !== 'ignored_spam' && m.pipelineStatus !== 'fetch_error').length;
+  const funnelData = [
+    { label: 'Получено', value: totalMsg, color: 'var(--accent)' },
+    { label: 'Не спам', value: nonSpamMsg, color: 'var(--text)' },
+    { label: 'Заявки', value: readyCount, color: 'var(--green)' },
+    { label: 'Уточнение', value: clarifyCount, color: 'var(--amber)' },
+    { label: 'Спам', value: spamCount, color: 'var(--rose)' }
+  ];
+  const funnelMax = Math.max(1, totalMsg);
+  $('#funnel-chart').innerHTML = funnelData.map((f) => {
+    const pct = Math.round(f.value / funnelMax * 100);
+    return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
+      <span style="width:80px;font-size:11px;color:var(--text-secondary);text-align:right;">${f.label}</span>
+      <div style="flex:1;height:24px;background:var(--surface-0);border-radius:4px;overflow:hidden;">
+        <div style="height:100%;width:${pct}%;background:${f.color};border-radius:4px;transition:width 0.3s;min-width:${f.value > 0 ? '2px' : '0'};display:flex;align-items:center;justify-content:flex-end;padding-right:6px;">
+          ${pct > 15 ? `<span style="font-size:10px;font-weight:700;color:#fff;">${f.value}</span>` : ''}
+        </div>
+      </div>
+      ${pct <= 15 ? `<span style="font-size:11px;font-weight:600;color:${f.color};">${f.value}</span>` : ''}
+    </div>`;
+  }).join('');
+
+  // ═══ Bar chart by day ═══
+  const dayMap = new Map();
+  allRunnerMessages.forEach((m) => {
+    const day = (m.createdAt || '').slice(0, 10);
+    if (day) dayMap.set(day, (dayMap.get(day) || 0) + 1);
+  });
+  const days = [...dayMap.entries()].sort((a, b) => a[0].localeCompare(b[0])).slice(-14);
+  const maxDay = Math.max(1, ...days.map((d) => d[1]));
+  if (days.length === 0) {
+    $('#day-chart').innerHTML = '<div style="color:var(--text-muted);font-size:12px;text-align:center;width:100%;">Нет данных</div>';
+  } else {
+    $('#day-chart').innerHTML = days.map(([day, count]) => {
+      const h = Math.max(4, Math.round(count / maxDay * 120));
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:4px;">
+        <span style="font-size:10px;font-weight:600;color:var(--accent);">${count}</span>
+        <div style="width:100%;max-width:32px;height:${h}px;background:var(--accent);border-radius:4px 4px 0 0;opacity:${0.4 + count / maxDay * 0.6};"></div>
+        <span style="font-size:9px;color:var(--text-muted);writing-mode:vertical-lr;transform:rotate(180deg);max-height:50px;overflow:hidden;">${day.slice(5)}</span>
+      </div>`;
+    }).join('');
+  }
+
+  // ═══ Top senders ═══
+  const senderMap = new Map();
+  allRunnerMessages.filter((m) => m.pipelineStatus !== 'ignored_spam').forEach((m) => {
+    const email = m.analysis?.sender?.email || m.from || 'unknown';
+    const domain = email.split('@')[1] || email;
+    senderMap.set(domain, (senderMap.get(domain) || 0) + 1);
+  });
+  const topSenders = [...senderMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
+  $('#top-senders').innerHTML = topSenders.length ? `<table class="data-table"><tbody>${topSenders.map(([domain, count]) =>
+    `<tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;">@${esc(domain)}</td><td style="text-align:right;font-weight:700;color:var(--accent);">${count}</td></tr>`
+  ).join('')}</tbody></table>` : '<div style="padding:20px;color:var(--text-muted);font-size:12px;text-align:center;">Нет данных</div>';
+
+  // ═══ Brand stats ═══
+  const brandMap = new Map();
+  allRunnerMessages.forEach((m) => {
+    (m.analysis?.detectedBrands || []).forEach((b) => brandMap.set(b, (brandMap.get(b) || 0) + 1));
+  });
+  const topBrands = [...brandMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12);
+  $('#brand-stats').innerHTML = topBrands.length ? topBrands.map(([brand, count]) =>
+    `<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:8px 14px;display:flex;gap:8px;align-items:center;">
+      <span style="font-weight:600;font-size:12px;">${esc(brand)}</span>
+      <span style="font-size:11px;color:var(--accent);font-weight:700;">${count}</span>
+    </div>`
+  ).join('') : '<div style="color:var(--text-muted);font-size:12px;">Нет данных о брендах</div>';
 }
 
 function renderProjectsTable() {
@@ -586,28 +763,44 @@ function renderInbox() {
   listEl.innerHTML = runnerMessages.map((m) => {
     const id = mid(m);
     const active = id === selectedMessageId ? 'active' : '';
+    const checked = selectedMsgKeys.has(id) ? 'checked' : '';
     const a = m.analysis || {};
     const conf = a.classification?.confidence;
-    return `<button class="message-item ${active}" data-mid="${esc(id)}">
-      <div class="message-from">
-        <span>${esc(m.from || a.sender?.email || 'Неизвестный')}</span>
-        <span class="message-time">${fmtDate(m.createdAt)}</span>
-      </div>
-      <div class="message-subject">${esc(m.subject || 'Без темы')}</div>
-      <div class="message-meta">
-        ${statusBadge(m.pipelineStatus)}
-        ${conf != null ? confidenceBadge(conf) : ''}
-        <span class="message-mailbox">${esc((m.mailbox || '').split('@')[0])}</span>
-      </div>
-    </button>`;
+    return `<div class="message-item-wrap ${active}" data-mid="${esc(id)}">
+      <label class="msg-checkbox" onclick="event.stopPropagation()"><input type="checkbox" ${checked} data-check-mid="${esc(id)}" /></label>
+      <button class="message-item ${active}" data-mid="${esc(id)}">
+        <div class="message-from">
+          <span>${esc(m.from || a.sender?.email || 'Неизвестный')}</span>
+          <span class="message-time">${fmtDate(m.createdAt)}</span>
+        </div>
+        <div class="message-subject">${esc(m.subject || 'Без темы')}</div>
+        <div class="message-meta">
+          ${statusBadge(m.pipelineStatus)}
+          ${conf != null ? confidenceBadge(conf) : ''}
+          <span class="message-mailbox">${esc((m.mailbox || '').split('@')[0])}</span>
+        </div>
+      </button>
+    </div>`;
   }).join('');
 
+  // Checkbox handlers
+  listEl.querySelectorAll('input[data-check-mid]').forEach((cb) => {
+    cb.addEventListener('change', () => {
+      if (cb.checked) selectedMsgKeys.add(cb.dataset.checkMid);
+      else selectedMsgKeys.delete(cb.dataset.checkMid);
+      updateBulkBar();
+    });
+  });
+
+  // Click handlers
   listEl.querySelectorAll('.message-item').forEach((item) => {
     item.addEventListener('click', () => {
       selectedMessageId = item.dataset.mid;
       renderInbox();
     });
   });
+
+  updateBulkBar();
 
   const msg = runnerMessages.find((m) => mid(m) === selectedMessageId) || runnerMessages[0];
   if (msg) renderEmailView(msg, viewEl, detailEl);
@@ -927,7 +1120,9 @@ function renderConfBar(conf) {
 }
 
 function detailField(label, value) {
-  return `<div class="detail-field"><span class="detail-field-label">${esc(label)}</span><span class="detail-field-value">${esc(value || '—')}</span></div>`;
+  const v = value || '—';
+  const copyable = v !== '—' ? `onclick="window.__copyField('${escAttr(v)}')" title="Нажмите чтобы скопировать" style="cursor:pointer;"` : '';
+  return `<div class="detail-field" ${copyable}><span class="detail-field-label">${esc(label)}</span><span class="detail-field-value">${esc(v)}</span></div>`;
 }
 
 function fmtDate(v) {

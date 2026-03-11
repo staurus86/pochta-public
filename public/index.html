@@ -76,6 +76,33 @@
         <!-- ═══ PAGE: DASHBOARD ═══ -->
         <div class="page active" id="page-dashboard">
           <div class="kpi-grid" id="kpi-grid"></div>
+
+          <div class="grid-2" style="margin-bottom:16px;">
+            <!-- Funnel -->
+            <div class="panel">
+              <div class="panel-header"><h3>Воронка обработки</h3></div>
+              <div class="panel-body" id="funnel-chart" style="min-height:140px;"></div>
+            </div>
+            <!-- Bar chart by day -->
+            <div class="panel">
+              <div class="panel-header"><h3>Письма по дням</h3></div>
+              <div class="panel-body" id="day-chart" style="min-height:140px;display:flex;align-items:flex-end;gap:4px;padding-bottom:8px;"></div>
+            </div>
+          </div>
+
+          <div class="grid-2" style="margin-bottom:16px;">
+            <!-- Top senders -->
+            <div class="panel">
+              <div class="panel-header"><h3>Топ отправители</h3></div>
+              <div class="panel-body no-pad" id="top-senders"></div>
+            </div>
+            <!-- Top brands -->
+            <div class="panel">
+              <div class="panel-header"><h3>Бренды в запросах</h3></div>
+              <div class="panel-body" id="brand-stats" style="display:flex;flex-wrap:wrap;gap:8px;"></div>
+            </div>
+          </div>
+
           <div class="grid-2" style="margin-bottom:16px;">
             <div class="panel">
               <div class="panel-header">
@@ -109,13 +136,32 @@
 
         <!-- ═══ PAGE: INBOX ═══ -->
         <div class="page" id="page-inbox">
-          <div style="display:flex;align-items:center;gap:10px;margin-bottom:10px;">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
             <button class="btn btn-primary" id="inbox-fetch-btn">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
               Получить письма
             </button>
-            <button class="btn btn-danger btn-sm" id="inbox-delete-all-btn">Удалить все письма</button>
-            <span id="inbox-status-text" style="font-size:12px;color:var(--text-muted);margin-left:auto;"></span>
+            <div class="bulk-actions" id="bulk-actions" style="display:none;">
+              <span id="bulk-count" style="font-size:11px;color:var(--text-secondary);font-weight:600;"></span>
+              <button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green)" id="bulk-request-btn">Заявка</button>
+              <button class="btn btn-sm" style="background:var(--rose-dim);color:var(--rose);border:1px solid var(--rose)" id="bulk-spam-btn">Спам</button>
+              <button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)" id="bulk-vendor-btn">Поставщик</button>
+              <button class="btn btn-danger btn-sm" id="bulk-delete-btn">Удалить</button>
+              <button class="btn btn-ghost btn-sm" id="bulk-clear-btn">Снять</button>
+            </div>
+            <button class="btn btn-danger btn-sm" id="inbox-delete-all-btn">Удалить все</button>
+            <button class="btn btn-ghost btn-sm" id="inbox-export-csv-btn">CSV</button>
+            <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
+              <input class="form-input" id="inbox-search" placeholder="Поиск по теме, email..." style="width:200px;font-size:11px;padding:6px 10px;" />
+              <select class="form-select" id="inbox-sort" style="font-size:11px;padding:6px 8px;width:130px;">
+                <option value="date-desc">Новые</option>
+                <option value="date-asc">Старые</option>
+                <option value="confidence-asc">Низкий conf.</option>
+                <option value="confidence-desc">Высокий conf.</option>
+                <option value="mailbox">По ящику</option>
+              </select>
+            </div>
+            <span id="inbox-status-text" style="font-size:12px;color:var(--text-muted);"></span>
           </div>
           <div class="inbox-tabs" id="inbox-tabs">
             <button class="inbox-tab active" data-inbox-tab="all">Все <span class="inbox-tab-count" id="tab-count-all">0</span></button>
@@ -123,7 +169,7 @@
             <button class="inbox-tab" data-inbox-tab="moderation">Модерация <span class="inbox-tab-count" id="tab-count-moderation">0</span></button>
             <button class="inbox-tab" data-inbox-tab="spam">Спам <span class="inbox-tab-count" id="tab-count-spam">0</span></button>
           </div>
-          <div class="grid-3col" style="height:calc(100vh - 220px);">
+          <div class="grid-3col" style="height:calc(100vh - 240px);">
             <div class="message-list" id="runner-messages-list"></div>
             <div class="email-view" id="email-view">
               <div class="empty-state">
