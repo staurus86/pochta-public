@@ -101,8 +101,16 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
       };
     });
 
-  const nonSpamMessages = analyzedEmails.filter((item) => item.pipelineStatus !== "ignored_spam" && item.pipelineStatus !== "fetch_error");
+  // Deduplicate: skip emails that already exist in project messages
+  const existingKeys = new Set((project.recentMessages || []).map((m) => m.messageKey));
+  const newEmails = analyzedEmails.filter((item) => !existingKeys.has(item.messageKey));
+  const duplicateCount = analyzedEmails.length - newEmails.length;
+
+  const nonSpamMessages = newEmails.filter((item) => item.pipelineStatus !== "ignored_spam" && item.pipelineStatus !== "fetch_error");
   detectionKb.ingestAnalyzedMessages(project.id, nonSpamMessages);
+
+  // Merge: keep existing messages + add new ones (cap at 200)
+  const mergedMessages = [...newEmails, ...(project.recentMessages || [])].slice(0, 200);
 
   return {
     id: randomUUID(),
@@ -111,8 +119,9 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
     days,
     maxEmails,
     processed: nonSpamMessages.length,
-    added: 0,
+    added: newEmails.length,
     skipped: analyzedEmails.filter((item) => item.pipelineStatus === "ignored_spam").length,
+    duplicates: duplicateCount,
     failed: payload.errorCount || 0,
     durationMs: Date.now() - startedAt,
     accountCount: payload.accountCount || 0,
@@ -124,7 +133,7 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
     stdout: tailLines(result.stdout, 20),
     stderr: tailLines(result.stderr, 20),
     analysesPreview: nonSpamMessages.slice(0, 20),
-    recentMessages: analyzedEmails.slice(0, 100)
+    recentMessages: mergedMessages
   };
 }
 

@@ -250,9 +250,17 @@ export class ProjectsStore {
       return null;
     }
 
+    const oldStatus = msg.pipelineStatus;
     msg.pipelineStatus = newStatus;
+    if (!msg.auditLog) msg.auditLog = [];
+    msg.auditLog.push({
+      action: "status_change",
+      from: oldStatus,
+      to: newStatus,
+      at: new Date().toISOString()
+    });
     await this.persist();
-    return { messageKey, pipelineStatus: newStatus };
+    return { messageKey, pipelineStatus: newStatus, previousStatus: oldStatus };
   }
 
   async deleteMessage(projectId, messageKey) {
