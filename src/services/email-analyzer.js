@@ -27,6 +27,8 @@ export function analyzeEmail(project, payload) {
   const lead = extractLead(subject, body, attachments, project.brands || [], classification.detectedBrands || []);
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands });
 
+  const suggestedReply = buildSuggestedReply(classification.label, sender, lead, crm);
+
   return {
     analysisId: randomUUID(),
     createdAt: new Date().toISOString(),
@@ -37,6 +39,7 @@ export function analyzeEmail(project, payload) {
     crm,
     detectedBrands: lead.detectedBrands,
     intakeFlow: buildIntakeFlow(classification.label, crm, lead),
+    suggestedReply,
     rawInput: {
       subject,
       attachments
@@ -215,6 +218,29 @@ function extractStandaloneCodes(text) {
     }
   }
   return matches;
+}
+
+function buildSuggestedReply(label, sender, lead, crm) {
+  const name = sender.fullName && sender.fullName !== "Не определено" ? sender.fullName.split(" ")[0] : "";
+  const greeting = name ? `${name}, добрый день!` : "Добрый день!";
+
+  if (label === "СПАМ") return null;
+
+  if (label === "Клиент" && crm.needsClarification) {
+    return `${greeting}\n\nСпасибо за обращение.\nДля подготовки коммерческого предложения, пожалуйста, уточните:\n- Полные реквизиты компании (ИНН, КПП, юридический адрес)\n- Точные артикулы и количество\n- Желаемые сроки поставки\n\nС уважением,\nОтдел продаж`;
+  }
+
+  if (label === "Клиент") {
+    const articles = (lead.articles || []).slice(0, 5).join(", ");
+    const brandStr = (lead.detectedBrands || []).join(", ");
+    return `${greeting}\n\nСпасибо за заявку${brandStr ? ` по ${brandStr}` : ""}.\n${articles ? `Артикулы: ${articles}\n` : ""}Мы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\n${crm.curatorMop || "Отдел продаж"}`;
+  }
+
+  if (label === "Поставщик услуг") {
+    return `${greeting}\n\nСпасибо за предложение. Мы рассмотрим информацию и свяжемся при необходимости.\n\nС уважением,\nОтдел закупок`;
+  }
+
+  return null;
 }
 
 function parseAttachmentHints(attachments) {
