@@ -626,7 +626,7 @@ function renderEmailView(msg, viewEl, detailEl) {
     <div class="email-view-header">
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
         <h3>${esc(msg.subject || 'Без темы')}</h3>
-        <button class="btn btn-danger btn-sm" onclick="window.__deleteMsg('${esc(msgKey)}')" title="Удалить письмо" style="flex-shrink:0;">Удалить</button>
+        <button class="btn btn-danger btn-sm" onclick="window.__deleteMsg('${escAttr(msgKey)}')" title="Удалить письмо" style="flex-shrink:0;">Удалить</button>
       </div>
       <div class="email-view-meta">
         <span><strong>От:</strong> ${esc(msg.from || sender.email)}</span>
@@ -642,6 +642,7 @@ function renderEmailView(msg, viewEl, detailEl) {
   const leadFields = [['Тип запроса', lead.requestType], ['Бренды', formatArr(a.detectedBrands || lead.detectedBrands)], ['Артикулы', formatArr(lead.articles)], ['Позиций', lead.totalPositions], ['Фото шильдика', lead.hasNameplatePhotos ? 'Да' : null], ['Фото артикула', lead.hasArticlePhotos ? 'Да' : null]];
   const crmFields = [['Юрлицо найдено', crm.isExistingCompany ? 'Да' : 'Нет'], ['Компания CRM', crm.company?.legalName], ['МОП', crm.curatorMop], ['МОЗ', crm.curatorMoz], ['Уточнение', crm.needsClarification ? 'Требуется' : 'Нет']];
 
+  try {
   detailEl.innerHTML = `
     <div class="detail-section">
       <div class="detail-section-title">Классификация</div>
@@ -669,9 +670,9 @@ function renderEmailView(msg, viewEl, detailEl) {
     <div class="detail-section">
       <div class="detail-section-title">Обучение классификатора</div>
       <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px;">
-        <button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green)" onclick="window.__trainSender('${esc(sender.email)}','client','${esc(sender.companyName || '')}','${esc(msgKey)}')">Это заявка</button>
-        <button class="btn btn-sm" style="background:var(--rose-dim);color:var(--rose);border:1px solid var(--rose)" onclick="window.__trainSender('${esc(sender.email)}','spam','','${esc(msgKey)}')">Это спам</button>
-        <button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)" onclick="window.__trainSender('${esc(sender.email)}','vendor','${esc(sender.companyName || '')}','${esc(msgKey)}')">Поставщик</button>
+        <button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green)" onclick="window.__trainSender('${escAttr(sender.email)}','client','${escAttr(sender.companyName || '')}','${escAttr(msgKey)}')">Это заявка</button>
+        <button class="btn btn-sm" style="background:var(--rose-dim);color:var(--rose);border:1px solid var(--rose)" onclick="window.__trainSender('${escAttr(sender.email)}','spam','','${escAttr(msgKey)}')">Это спам</button>
+        <button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)" onclick="window.__trainSender('${escAttr(sender.email)}','vendor','${escAttr(sender.companyName || '')}','${escAttr(msgKey)}')">Поставщик</button>
       </div>
       <div style="display:flex;gap:6px;align-items:center;margin-bottom:8px;">
         <label class="form-check" style="font-size:11px;color:var(--text-muted);margin:0;">
@@ -684,7 +685,7 @@ function renderEmailView(msg, viewEl, detailEl) {
         </label>
       </div>
       <div style="margin-bottom:8px;">
-        <button class="btn btn-ghost btn-sm" style="width:100%" onclick="window.__showRuleForm('${esc(msgKey)}')">+ Добавить правило из этого письма</button>
+        <button class="btn btn-ghost btn-sm" style="width:100%" onclick="window.__showRuleForm('${escAttr(msgKey)}')">+ Добавить правило из этого письма</button>
       </div>
       <div id="rule-form-${esc(msgKey)}" style="display:none;">
         <div style="display:flex;gap:6px;margin-bottom:6px;">
@@ -701,16 +702,20 @@ function renderEmailView(msg, viewEl, detailEl) {
           <input id="rule-weight-${esc(msgKey)}" class="form-input" type="number" min="1" max="10" value="4" style="width:50px;font-size:11px;padding:4px 8px;" />
         </div>
         <input id="rule-pattern-${esc(msgKey)}" class="form-input" placeholder="Regex паттерн..." style="font-size:11px;padding:6px 8px;margin-bottom:6px;width:100%;" value="${esc(suggestPattern(msg))}" />
-        <button class="btn btn-primary btn-sm" style="width:100%" onclick="window.__addRule('${esc(msgKey)}')">Сохранить правило</button>
+        <button class="btn btn-primary btn-sm" style="width:100%" onclick="window.__addRule('${escAttr(msgKey)}')">Сохранить правило</button>
       </div>
     </div>
     <div class="detail-actions">
       ${crm.isExistingCompany === false ? '<button class="btn btn-primary btn-sm" style="width:100%">Создать клиента в CRM</button>' : ''}
       ${cls.label === 'Клиент' ? '<button class="btn btn-success btn-sm" style="width:100%">Создать запрос в CRM</button>' : ''}
       ${crm.needsClarification ? '<button class="btn btn-ghost btn-sm" style="width:100%">Запросить реквизиты</button>' : ''}
-      <button class="btn btn-danger btn-sm" style="width:100%" onclick="window.__deleteMsg('${esc(msgKey)}')">Удалить письмо</button>
+      <button class="btn btn-danger btn-sm" style="width:100%" onclick="window.__deleteMsg('${escAttr(msgKey)}')">Удалить письмо</button>
     </div>
   `;
+  } catch (err) {
+    detailEl.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><h4>Ошибка отрисовки</h4><p style="font-size:11px;color:var(--text-muted);">${esc(err.message)}</p></div>`;
+    console.error('renderEmailView detail error:', err);
+  }
 }
 
 // Global delete handler
@@ -942,3 +947,4 @@ function formatDuration(ms) {
 function formatArr(items) { return Array.isArray(items) && items.length ? items.join(', ') : null; }
 function truncate(s, n) { return !s ? '' : s.length > n ? s.slice(0, n) + '...' : s; }
 function esc(v) { return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function escAttr(v) { return String(v ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/</g, '\\x3c'); }
