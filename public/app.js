@@ -141,6 +141,7 @@ function setupForms() {
     btn.disabled = false;
     btn.textContent = 'Запустить Tender Parser';
     await refreshProjects();
+    renderP2Kpis();
   });
 
   $('#p2-schedule-form').addEventListener('submit', async (e) => {
@@ -391,14 +392,17 @@ function renderDashboard() {
 
   // Recent runs
   const allRunsSorted = allRuns.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-  $('#recent-runs-body').innerHTML = allRunsSorted.slice(0, 6).map((r) => `
-    <tr><td style="font-size:12px;">${esc(findProjectName(r))}</td>
+  $('#recent-runs-body').innerHTML = allRunsSorted.slice(0, 6).map((r) => {
+    const isTender = r.added != null && r.totalMessages == null;
+    return `<tr><td style="font-size:12px;">${esc(findProjectName(r))}</td>
     <td>${r.status === 'ok' ? '<span class="badge badge-ready">OK</span>' : '<span class="badge badge-error">Ошибка</span>'}</td>
-    <td>${r.totalMessages ?? r.processed ?? '—'}</td><td>${r.spamCount ?? r.skipped ?? '—'}</td>
-    <td>${r.readyForCrmCount ?? '—'}</td><td>${r.clarificationCount ?? '—'}</td>
+    <td>${isTender ? (r.processed ?? '—') : (r.totalMessages ?? r.processed ?? '—')}</td>
+    <td>${isTender ? `<span title="Добавлено">${r.added ?? '—'}</span>` : (r.spamCount ?? r.skipped ?? '—')}</td>
+    <td>${isTender ? `<span title="Пропущено">${r.skipped ?? '—'}</span>` : (r.readyForCrmCount ?? '—')}</td>
+    <td>${isTender ? (r.failed ?? '—') : (r.clarificationCount ?? '—')}</td>
     <td style="font-size:11px;color:var(--text-muted)">${formatDuration(r.durationMs)}</td>
-    <td><span class="badge ${r.trigger === 'schedule' ? 'badge-system' : 'badge-unknown'}">${esc(r.trigger || 'manual')}</span></td></tr>
-  `).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:24px;">Нет запусков</td></tr>';
+    <td><span class="badge ${r.trigger === 'schedule' ? 'badge-system' : 'badge-unknown'}">${esc(r.trigger || 'manual')}</span></td></tr>`;
+  }).join('') || '<tr><td colspan="8" style="text-align:center;color:var(--text-muted);padding:24px;">Нет запусков</td></tr>';
 }
 
 function renderProjectsTable() {
