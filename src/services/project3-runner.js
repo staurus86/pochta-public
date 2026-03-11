@@ -109,8 +109,8 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
   const nonSpamMessages = newEmails.filter((item) => item.pipelineStatus !== "ignored_spam" && item.pipelineStatus !== "fetch_error");
   detectionKb.ingestAnalyzedMessages(project.id, nonSpamMessages);
 
-  // Merge: keep existing messages + add new ones (cap at 200)
-  const mergedMessages = [...newEmails, ...(project.recentMessages || [])].slice(0, 200);
+  // Merge: keep existing messages + add new ones (cap at 2000)
+  const mergedMessages = [...newEmails, ...(project.recentMessages || [])].slice(0, 2000);
 
   return {
     id: randomUUID(),

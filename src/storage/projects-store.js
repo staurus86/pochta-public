@@ -301,7 +301,7 @@ export class ProjectsStore {
       return null;
     }
 
-    project.recentMessages = (messages || []).slice(0, 100);
+    project.recentMessages = (messages || []).slice(0, 2000);
     await this.persist();
     return project.recentMessages;
   }
