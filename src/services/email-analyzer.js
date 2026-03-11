@@ -103,6 +103,8 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const lineItems = extractLineItems(body);
   const detectedBrands = unique(kbBrands.concat(detectBrands([subject, body, attachmentsText].join("\n"), brands)));
 
+  const attachmentHints = parseAttachmentHints(attachments);
+
   return {
     freeText,
     hasNameplatePhotos,
@@ -111,6 +113,7 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     lineItems,
     totalPositions: lineItems.length || unique(allArticles).length,
     detectedBrands,
+    attachmentHints,
     requestType: detectedBrands.length > 1 ? "Мультибрендовая" : detectedBrands.length === 1 ? "Монобрендовая" : "Не определено"
   };
 }
@@ -212,6 +215,19 @@ function extractStandaloneCodes(text) {
     }
   }
   return matches;
+}
+
+function parseAttachmentHints(attachments) {
+  return attachments.map((name) => {
+    const lower = name.toLowerCase();
+    let type = "other";
+    if (/заявк|request|rfq|запрос/i.test(lower)) type = "request";
+    else if (/реквизит|details|card|инн/i.test(lower)) type = "requisites";
+    else if (/прайс|price|каталог|catalog/i.test(lower)) type = "pricelist";
+    else if (/шильд|nameplate|label|фото|photo|img|jpg|jpeg|png/i.test(lower)) type = "photo";
+    else if (/pdf|doc|xls|xlsx|csv/i.test(lower)) type = "document";
+    return { name, type };
+  });
 }
 
 function detectBrands(text, brands) {

@@ -30,12 +30,27 @@ const DEFAULT_BRAND_ALIASES = [
 const DEFAULT_FIELD_PATTERNS = [
   { fieldName: "company_name", pattern: "(ООО\\s+[\"«][^\"»]+[\"»])", priority: 100 },
   { fieldName: "company_name", pattern: "(АО\\s+[\"«][^\"»]+[\"»])", priority: 90 },
+  { fieldName: "company_name", pattern: "(ЗАО\\s+[\"«][^\"»]+[\"»])", priority: 90 },
+  { fieldName: "company_name", pattern: "(ПАО\\s+[\"«][^\"»]+[\"»])", priority: 90 },
   { fieldName: "company_name", pattern: "(ИП\\s+[А-ЯЁ][а-яё]+(?:\\s+[А-ЯЁ][а-яё]+){1,2})", priority: 80 },
+  { fieldName: "company_name", pattern: "((?:ООО|АО|ЗАО|ПАО)\\s+[A-Za-zА-Яа-яЁё][A-Za-zА-Яа-яЁё0-9\\s-]{2,30})", priority: 70 },
+  { fieldName: "company_name", pattern: "([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){0,3}\\s+(?:GmbH|AG|Ltd|LLC|Inc|SE|S\\.A\\.|B\\.V\\.))", priority: 85 },
   { fieldName: "position", pattern: "генеральный директор", priority: 100 },
+  { fieldName: "position", pattern: "коммерческий директор", priority: 95 },
+  { fieldName: "position", pattern: "технический директор", priority: 95 },
+  { fieldName: "position", pattern: "заместитель директора", priority: 90 },
   { fieldName: "position", pattern: "менеджер по закупкам", priority: 90 },
+  { fieldName: "position", pattern: "начальник отдела", priority: 85 },
+  { fieldName: "position", pattern: "руководитель отдела", priority: 85 },
+  { fieldName: "position", pattern: "главный инженер", priority: 85 },
+  { fieldName: "position", pattern: "ведущий инженер", priority: 80 },
+  { fieldName: "position", pattern: "специалист по закупкам", priority: 80 },
   { fieldName: "position", pattern: "менеджер", priority: 70 },
   { fieldName: "position", pattern: "инженер", priority: 60 },
-  { fieldName: "signature_hint", pattern: "(?:с уважением|best regards|спасибо)[,\\s]*\\n+([А-ЯЁ][а-яё]+(?:\\s+[А-ЯЁ][а-яё]+){1,2})", priority: 100 }
+  { fieldName: "position", pattern: "специалист", priority: 55 },
+  { fieldName: "position", pattern: "снабженец", priority: 50 },
+  { fieldName: "signature_hint", pattern: "(?:с уважением|best regards|спасибо|kind regards|regards)[,\\s]*\\n+([А-ЯЁ][а-яё]+(?:\\s+[А-ЯЁ][а-яё]+){1,2})", priority: 100 },
+  { fieldName: "signature_hint", pattern: "(?:--|_{3,}|={3,})\\s*\\n+([А-ЯЁ][а-яё]+(?:\\s+[А-ЯЁ][а-яё]+){1,2})", priority: 80 }
 ];
 
 class DetectionKnowledgeBase {
