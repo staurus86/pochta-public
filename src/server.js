@@ -8,12 +8,13 @@ import { normalizeBackgroundRole, shouldRunScheduler, shouldRunWebhooks } from "
 import { HttpError, parseJsonBody, resolveJsonBodyLimit } from "./services/http-json.js";
 import { resolveIdempotencyKey } from "./services/idempotency.js";
 import { canClientAccessProject, loadIntegrationClients, resolveIntegrationClient } from "./services/integration-clients.js";
+import { buildLegacyIntegrationChangelogDocument, getLegacyIntegrationApiVersion } from "./services/integration-contract.js";
 import { buildLegacyIntegrationOpenApi } from "./services/integration-openapi.js";
 import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js";
 import { ProjectScheduler } from "./services/project-scheduler.js";
 import { getMailboxFileRuntime, runMailboxFileParser } from "./services/project3-runner.js";
 import { detectionKb } from "./services/detection-kb.js";
-import { findIntegrationDelivery, findIntegrationMessage, listIntegrationDeliveries, listIntegrationMessages, parseIntegrationCursor } from "./services/integration-api.js";
+import { findIntegrationDelivery, findIntegrationMessage, listIntegrationDeliveries, listIntegrationMessages, parseIntegrationCursor, summarizeIntegrationDeliveries } from "./services/integration-api.js";
 import { LegacyWebhookDispatcher } from "./services/webhook-dispatcher.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -432,6 +433,11 @@ async function handleIntegrationApi(req, res, url) {
     }));
   }
 
+  if (req.method === "GET" && (url.pathname === "/api/integration/changelog" || url.pathname === "/api/integration/changelog.v1.json")) {
+    const baseUrl = `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`;
+    return sendJson(res, 200, buildLegacyIntegrationChangelogDocument(baseUrl));
+  }
+
   if (integrationClients.length === 0) {
     return sendJson(res, 503, { error: "Integration API is not configured." });
   }
@@ -449,6 +455,11 @@ async function handleIntegrationApi(req, res, url) {
         id: currentClient.id,
         name: currentClient.name,
         project_ids: currentClient.projectIds
+      },
+      contract: {
+        version: getLegacyIntegrationApiVersion(),
+        changelog_url: "/api/integration/changelog",
+        openapi_url: "/api/integration/openapi.v1.json"
       },
       background: {
         role: backgroundRole,
@@ -539,6 +550,25 @@ async function handleIntegrationApi(req, res, url) {
     return sendJson(res, 200, listIntegrationDeliveries(project, {
       status: url.searchParams.get("status"),
       limit: url.searchParams.get("limit")
+    }, {
+      clientId: currentClient.id
+    }));
+  }
+
+  const integrationDeliveryStatsMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/deliveries\/stats$/);
+  if (req.method === "GET" && integrationDeliveryStatsMatch) {
+    const projectId = decodeURIComponent(integrationDeliveryStatsMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
+    const project = await store.getProject(projectId);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    return sendJson(res, 200, summarizeIntegrationDeliveries(project, {
+      status: url.searchParams.get("status"),
+      failure_limit: url.searchParams.get("failure_limit")
     }, {
       clientId: currentClient.id
     }));

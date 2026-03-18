@@ -1,3 +1,5 @@
+import { buildLegacyIntegrationChangelogDocument, getLegacyIntegrationApiVersion } from "./integration-contract.js";
+
 export function buildLegacyIntegrationOpenApi(options = {}) {
   const baseUrl = String(options.baseUrl || "https://pochta-production.up.railway.app").trim();
 
@@ -5,7 +7,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
     openapi: "3.1.0",
     info: {
       title: "Pochta Legacy Integration API",
-      version: "1.1.0",
+      version: getLegacyIntegrationApiVersion(),
       description: "Versioned contract for polling parsed email results, acknowledging exports, and managing webhook deliveries."
     },
     servers: [
@@ -34,6 +36,22 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
             },
             401: unauthorizedResponse(),
             503: errorResponse("Integration API is not configured.")
+          }
+        }
+      },
+      "/api/integration/changelog": {
+        get: {
+          tags: ["Integration"],
+          summary: "Get integration API version policy and changelog",
+          responses: {
+            200: {
+              description: "Version policy and recent changelog entries",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/IntegrationChangelogDocument" }
+                }
+              }
+            }
           }
         }
       },
@@ -162,6 +180,30 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           }
         }
       },
+      "/api/integration/projects/{projectId}/deliveries/stats": {
+        get: {
+          tags: ["Integration"],
+          summary: "Get webhook delivery diagnostics for the current client",
+          parameters: [
+            pathParameter("projectId", "Project identifier"),
+            queryParameter("status", "string", "Optional comma-separated delivery statuses to scope diagnostics"),
+            queryParameter("failure_limit", "integer", "Maximum number of recent failures to include")
+          ],
+          responses: {
+            200: {
+              description: "Webhook delivery backlog and failure diagnostics",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/IntegrationDeliveryDiagnosticsResponse" }
+                }
+              }
+            },
+            401: unauthorizedResponse(),
+            403: errorResponse("Client is not allowed to access this project."),
+            404: errorResponse("Project not found.")
+          }
+        }
+      },
       "/api/integration/projects/{projectId}/deliveries/{deliveryId}/requeue": {
         post: {
           tags: ["Integration"],
@@ -232,6 +274,14 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
                 }
               }
             },
+            contract: {
+              type: "object",
+              properties: {
+                version: { type: "string" },
+                changelog_url: { type: "string" },
+                openapi_url: { type: "string" }
+              }
+            },
             background: {
               type: "object",
               properties: {
@@ -260,6 +310,48 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
               items: { $ref: "#/components/schemas/IntegrationProject" }
             }
           }
+        },
+        IntegrationVersionPolicy: {
+          type: "object",
+          properties: {
+            stability: { type: "string" },
+            additive_changes: { type: "string" },
+            breaking_changes: { type: "string" },
+            deprecation_notice_days: { type: "integer" },
+            retry_safety: {
+              type: "object",
+              properties: {
+                ack: { type: "string" },
+                requeue: { type: "string" }
+              }
+            }
+          }
+        },
+        IntegrationChangelogEntry: {
+          type: "object",
+          properties: {
+            version: { type: "string" },
+            released_at: { type: "string", format: "date" },
+            changes: {
+              type: "array",
+              items: { type: "string" }
+            }
+          }
+        },
+        IntegrationChangelogDocument: {
+          type: "object",
+          properties: {
+            name: { type: "string" },
+            current_version: { type: "string" },
+            openapi_url: { type: "string" },
+            changelog_url: { type: "string" },
+            policy: { $ref: "#/components/schemas/IntegrationVersionPolicy" },
+            changelog: {
+              type: "array",
+              items: { $ref: "#/components/schemas/IntegrationChangelogEntry" }
+            }
+          },
+          example: buildLegacyIntegrationChangelogDocument()
         },
         IntegrationAttachment: {
           type: "object",
@@ -471,6 +563,54 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
                   type: "array",
                   items: { type: "string" }
                 }
+              }
+            }
+          }
+        },
+        IntegrationDeliveryDiagnostics: {
+          type: "object",
+          properties: {
+            total_deliveries: { type: "integer" },
+            by_status: {
+              type: "object",
+              additionalProperties: { type: "integer" }
+            },
+            pending_backlog: { type: "integer" },
+            failed_backlog: { type: "integer" },
+            delivered_count: { type: "integer" },
+            success_rate: { type: ["number", "null"] },
+            total_attempts: { type: "integer" },
+            max_attempts: { type: "integer" },
+            last_attempt_at: { type: ["string", "null"], format: "date-time" },
+            last_delivered_at: { type: ["string", "null"], format: "date-time" },
+            next_attempt_at: { type: ["string", "null"], format: "date-time" },
+            oldest_pending_created_at: { type: ["string", "null"], format: "date-time" },
+            response_statuses: {
+              type: "object",
+              additionalProperties: { type: "integer" }
+            },
+            failure_reasons: {
+              type: "object",
+              additionalProperties: { type: "integer" }
+            },
+            recent_failures: {
+              type: "array",
+              items: { $ref: "#/components/schemas/IntegrationDelivery" }
+            }
+          }
+        },
+        IntegrationDeliveryDiagnosticsResponse: {
+          type: "object",
+          properties: {
+            data: { $ref: "#/components/schemas/IntegrationDeliveryDiagnostics" },
+            meta: {
+              type: "object",
+              properties: {
+                statuses: {
+                  type: "array",
+                  items: { type: "string" }
+                },
+                recent_failures_limit: { type: "integer" }
               }
             }
           }

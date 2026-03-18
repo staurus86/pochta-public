@@ -180,6 +180,71 @@ export function listIntegrationDeliveries(project, query = {}, options = {}) {
   };
 }
 
+export function summarizeIntegrationDeliveries(project, query = {}, options = {}) {
+  const statuses = parseStatuses(query.status);
+  const recentFailuresLimit = Math.min(normalizePositiveInt(query.failuresLimit || query.failure_limit, 5), 20);
+
+  const deliveries = (project.webhookDeliveries || [])
+    .filter((item) => !options.clientId || item.clientId === options.clientId)
+    .filter((item) => statuses.length === 0 || statuses.includes(item.status));
+
+  const byStatus = deliveries.reduce((acc, item) => {
+    const status = String(item.status || "unknown");
+    acc[status] = (acc[status] || 0) + 1;
+    return acc;
+  }, {});
+
+  const responseStatuses = deliveries.reduce((acc, item) => {
+    if (item.responseStatus == null) {
+      return acc;
+    }
+
+    const key = String(item.responseStatus);
+    acc[key] = (acc[key] || 0) + 1;
+    return acc;
+  }, {});
+  const failureReasons = deliveries
+    .filter((item) => item.status === "failed" || item.lastError)
+    .reduce((acc, item) => {
+      const key = String(item.lastError || "Unknown error").trim();
+      acc[key] = (acc[key] || 0) + 1;
+      return acc;
+    }, {});
+
+  const recentFailures = deliveries
+    .filter((item) => item.status === "failed" || item.lastError)
+    .sort((a, b) => String(b.updatedAt || "").localeCompare(String(a.updatedAt || "")))
+    .slice(0, recentFailuresLimit)
+    .map(normalizeIntegrationDelivery);
+
+  const pendingDeliveries = deliveries.filter((item) => item.status === "pending");
+  const deliveredCount = byStatus.delivered || 0;
+
+  return {
+    data: {
+      total_deliveries: deliveries.length,
+      by_status: byStatus,
+      pending_backlog: pendingDeliveries.length,
+      failed_backlog: byStatus.failed || 0,
+      delivered_count: deliveredCount,
+      success_rate: deliveries.length > 0
+        ? Number((deliveredCount / deliveries.length).toFixed(4))
+        : null,
+      response_statuses: responseStatuses,
+      failure_reasons: failureReasons,
+      last_attempt_at: latestIso(deliveries.map((item) => item.lastAttemptAt)),
+      last_delivered_at: latestIso(deliveries.map((item) => item.deliveredAt)),
+      next_attempt_at: earliestIso(pendingDeliveries.map((item) => item.nextAttemptAt)),
+      oldest_pending_created_at: earliestIso(pendingDeliveries.map((item) => item.createdAt)),
+      recent_failures: recentFailures
+    },
+    meta: {
+      statuses,
+      recent_failures_limit: recentFailuresLimit
+    }
+  };
+}
+
 export function findIntegrationDelivery(project, deliveryId, options = {}) {
   const delivery = (project.webhookDeliveries || []).find((item) => item.id === deliveryId && (!options.clientId || item.clientId === options.clientId));
   return delivery ? normalizeIntegrationDelivery(delivery) : null;
@@ -331,4 +396,12 @@ function resolveExportState(message, consumerId) {
   const exportsMap = message?.integrationExports || {};
   const firstKey = Object.keys(exportsMap)[0];
   return firstKey ? exportsMap[firstKey] : null;
+}
+
+function latestIso(values) {
+  return values.filter(Boolean).sort((a, b) => String(b).localeCompare(String(a)))[0] || null;
+}
+
+function earliestIso(values) {
+  return values.filter(Boolean).sort((a, b) => String(a).localeCompare(String(b)))[0] || null;
 }

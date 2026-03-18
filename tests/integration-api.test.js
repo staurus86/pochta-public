@@ -3,7 +3,8 @@ import {
   findIntegrationMessage,
   listIntegrationMessages,
   normalizeIntegrationMessage,
-  parseIntegrationCursor
+  parseIntegrationCursor,
+  summarizeIntegrationDeliveries
 } from "../src/services/integration-api.js";
 import { canClientAccessProject, isIntegrationAuthorized, loadIntegrationClients, resolveIntegrationClient } from "../src/services/integration-clients.js";
 
@@ -116,6 +117,80 @@ const project = {
         },
         crm: {}
       }
+    }
+  ],
+  webhookDeliveries: [
+    {
+      id: "delivery-1",
+      clientId: "crm-sync",
+      clientName: "CRM Sync",
+      key: "crm-sync:msg-1:ready_for_crm",
+      event: "message.updated",
+      messageKey: "msg-1",
+      pipelineStatus: "ready_for_crm",
+      status: "delivered",
+      attempts: 1,
+      createdAt: "2026-03-18T10:06:10.000Z",
+      updatedAt: "2026-03-18T10:06:15.000Z",
+      nextAttemptAt: null,
+      lastAttemptAt: "2026-03-18T10:06:15.000Z",
+      deliveredAt: "2026-03-18T10:06:15.000Z",
+      lastError: null,
+      responseStatus: 200
+    },
+    {
+      id: "delivery-2",
+      clientId: "crm-sync",
+      clientName: "CRM Sync",
+      key: "crm-sync:msg-3:needs_clarification",
+      event: "message.updated",
+      messageKey: "msg-3",
+      pipelineStatus: "needs_clarification",
+      status: "failed",
+      attempts: 5,
+      createdAt: "2026-03-18T10:08:00.000Z",
+      updatedAt: "2026-03-18T10:20:00.000Z",
+      nextAttemptAt: null,
+      lastAttemptAt: "2026-03-18T10:20:00.000Z",
+      deliveredAt: null,
+      lastError: "Webhook responded with status 500",
+      responseStatus: 500
+    },
+    {
+      id: "delivery-3",
+      clientId: "crm-sync",
+      clientName: "CRM Sync",
+      key: "crm-sync:msg-3:needs_clarification:retry",
+      event: "message.updated",
+      messageKey: "msg-3",
+      pipelineStatus: "needs_clarification",
+      status: "pending",
+      attempts: 2,
+      createdAt: "2026-03-18T10:30:00.000Z",
+      updatedAt: "2026-03-18T10:31:00.000Z",
+      nextAttemptAt: "2026-03-18T10:45:00.000Z",
+      lastAttemptAt: "2026-03-18T10:31:00.000Z",
+      deliveredAt: null,
+      lastError: "connect ETIMEDOUT",
+      responseStatus: null
+    },
+    {
+      id: "delivery-4",
+      clientId: "erp-sync",
+      clientName: "ERP Sync",
+      key: "erp-sync:msg-1:ready_for_crm",
+      event: "message.updated",
+      messageKey: "msg-1",
+      pipelineStatus: "ready_for_crm",
+      status: "pending",
+      attempts: 0,
+      createdAt: "2026-03-18T10:09:00.000Z",
+      updatedAt: "2026-03-18T10:09:00.000Z",
+      nextAttemptAt: "2026-03-18T10:10:00.000Z",
+      lastAttemptAt: null,
+      deliveredAt: null,
+      lastError: null,
+      responseStatus: null
     }
   ]
 };
@@ -237,4 +312,27 @@ runTest("finds a single normalized integration message", () => {
   assert.equal(message.message_key, "msg-1");
   assert.equal(message.sender.email, "ivan@example.com");
   assert.equal(message.export.external_id, "ERP-99");
+});
+
+runTest("summarizes integration delivery diagnostics for a scoped client", () => {
+  const result = summarizeIntegrationDeliveries(project, {
+    failuresLimit: "1"
+  }, {
+    clientId: "crm-sync"
+  });
+
+  assert.equal(result.data.total_deliveries, 3);
+  assert.equal(result.data.pending_backlog, 1);
+  assert.equal(result.data.delivered_count, 1);
+  assert.equal(result.data.by_status.failed, 1);
+  assert.equal(result.data.success_rate, 0.3333);
+  assert.equal(result.data.next_attempt_at, "2026-03-18T10:45:00.000Z");
+  assert.equal(result.data.oldest_pending_created_at, "2026-03-18T10:30:00.000Z");
+  assert.equal(result.data.response_statuses["200"], 1);
+  assert.equal(result.data.response_statuses["500"], 1);
+  assert.equal(result.data.failure_reasons["Webhook responded with status 500"], 1);
+  assert.equal(result.data.failure_reasons["connect ETIMEDOUT"], 1);
+  assert.equal(result.data.recent_failures.length, 1);
+  assert.equal(result.data.recent_failures[0].id, "delivery-3");
+  assert.equal(result.meta.recent_failures_limit, 1);
 });
