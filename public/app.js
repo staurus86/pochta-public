@@ -113,6 +113,25 @@ function setupForms() {
     selectedProjectId = projectSelect.value;
   });
 
+  $('#reanalyze-btn').addEventListener('click', async () => {
+    const pid = selectedProjectId;
+    if (!pid) return alert('Выберите проект');
+    if (!confirm(`Переанализировать все письма проекта? Это обновит бренды, артикулы и телефоны.`)) return;
+    const btn = $('#reanalyze-btn');
+    btn.disabled = true;
+    btn.textContent = 'Анализирую...';
+    try {
+      const res = await fetch(`/api/projects/${pid}/reanalyze`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
+      const data = await res.json();
+      btn.textContent = `Готово: ${data.updated}/${data.total}`;
+      setTimeout(() => { btn.textContent = 'Переанализировать'; btn.disabled = false; }, 3000);
+      refreshDashboard();
+    } catch (err) {
+      btn.textContent = 'Ошибка';
+      setTimeout(() => { btn.textContent = 'Переанализировать'; btn.disabled = false; }, 3000);
+    }
+  });
+
   // ── Create project ──
   $('#project-form').addEventListener('submit', async (e) => {
     e.preventDefault();

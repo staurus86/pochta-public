@@ -379,6 +379,44 @@ async function handleApi(req, res, url) {
     });
   }
 
+  const reanalyzeMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/reanalyze$/);
+  if (req.method === "POST" && reanalyzeMatch) {
+    const project = await store.getProject(reanalyzeMatch[1]);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    const messages = project.recentMessages || [];
+    let updated = 0;
+    for (const msg of messages) {
+      if (!msg.analysis && !msg.body && !msg.bodyPreview) continue;
+      try {
+        const body = msg.body || msg.bodyPreview || msg.analysis?.lead?.freeText || "";
+        const newAnalysis = analyzeEmail(project, {
+          fromEmail: msg.from || msg.analysis?.sender?.email || "",
+          fromName: msg.analysis?.sender?.fullName || "",
+          subject: msg.subject || "",
+          body,
+          attachments: (msg.attachmentFiles || msg.attachments || []).map((a) => typeof a === "string" ? a : a.filename || a.name || "")
+        });
+        newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
+        msg.analysis = newAnalysis;
+        msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
+        updated++;
+      } catch {
+        // skip broken messages
+      }
+    }
+
+    await store.persist();
+
+    return sendJson(res, 200, {
+      message: `Переанализировано ${updated} из ${messages.length} писем.`,
+      updated,
+      total: messages.length
+    });
+  }
+
   const messagesMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages$/);
   if (req.method === "GET" && messagesMatch) {
     const project = await store.getProject(messagesMatch[1]);
