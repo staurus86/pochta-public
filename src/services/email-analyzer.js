@@ -576,15 +576,13 @@ function isLikelyArticle(code, forbiddenDigits = new Set(), sourceLine = "") {
     return false;
   }
 
-  // Reject HTML entity names and hex color codes
-  if (/^(?:laquo|raquo|nbsp|quot|amp|lt|gt|mdash|ndash|hellip|rsquo|ldquo|rdquo)$/i.test(normalized)) {
+  // Reject HTML entity names and CSS artifacts
+  if (/^(?:laquo|raquo|nbsp|quot|amp|lt|gt|mdash|ndash|hellip|rsquo|ldquo|rdquo|margin|padding|border|width|height|color|style|class|align|tbody|thead|table)$/i.test(normalized)) {
     return false;
   }
-  if (/^[0-9A-Fa-f]{6}$/.test(normalized) && !/\d.*[A-Za-z]|[A-Za-z].*\d/.test(normalized) === false) {
-    // Potential hex color — reject if all hex chars and no clear alphanumeric mix
-    if (/^[0-9A-F]{6}$/i.test(normalized) && !normalized.match(/[G-Zg-z]/)) {
-      return false;
-    }
+  // Reject hex color codes (6 chars, only 0-9 A-F)
+  if (/^[0-9A-Fa-f]{6}$/.test(normalized)) {
+    return false;
   }
 
   const digits = normalized.replace(/\D/g, "");
