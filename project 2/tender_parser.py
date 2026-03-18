@@ -107,13 +107,16 @@ class MailReader:
             log(f"❌ Mail auth failed: {e}", "ERROR")
             raise
 
-    def get_new_emails(self, days: int = 1) -> List[Dict]:
+    def get_new_emails(self, days: int = 1, max_emails: int = 100) -> List[Dict]:
         try:
             self.mail.select('INBOX')
             since_date = (datetime.now() - timedelta(days=days)).strftime('%d-%b-%Y')
             status, messages = self.mail.search(None, f'SINCE {since_date}')
             email_ids = messages[0].split()
-            log(f"📧 Найдено писем: {len(email_ids)}")
+            total_found = len(email_ids)
+            if max_emails > 0:
+                email_ids = email_ids[-max_emails:]
+            log(f"📧 Найдено писем: {total_found} | Берём в обработку: {len(email_ids)}")
 
             emails = []
             for email_id in email_ids:
@@ -499,7 +502,7 @@ class TenderProcessor:
         self.sheets = SheetsManager(config['GOOGLE_CREDENTIALS'], config['GOOGLE_SHEETS_ID'])
         self.dedup = DuplicateChecker(config['SEEN_FILE'])
 
-    def run(self, days: int = 1):
+    def run(self, days: int = 1, max_emails: int = 100):
         """Главный процесс с проверкой в таблице"""
         log("=" * 80)
         log("🚀 TENDER PARSER V5 - С ПРОВЕРКОЙ НЕДОСТАЮЩИХ")
@@ -508,6 +511,7 @@ class TenderProcessor:
         summary = {
             'status': 'ok',
             'days': days,
+            'maxEmails': max_emails,
             'processed': 0,
             'added': 0,
             'skipped': 0,
@@ -516,7 +520,7 @@ class TenderProcessor:
 
         try:
             self.mail.connect()
-            emails = self.mail.get_new_emails(days)
+            emails = self.mail.get_new_emails(days, max_emails=max_emails)
 
             if not emails:
                 log("📭 Новых писем нет")
@@ -612,13 +616,22 @@ if __name__ == '__main__':
         print("\n🚀 Теперь запусти: python tender_parser.py")
         sys.exit(0)
 
-    # Парсим количество дней
+    # Парсим количество дней и лимит писем
     days = 1
-    for arg in sys.argv[1:]:
+    max_emails = int(os.getenv('PROJECT2_MAX_EMAILS', '100') or '100')
+    args = sys.argv[1:]
+    for index, arg in enumerate(args):
+        if arg == '--max-emails' and index + 1 < len(args):
+            try:
+                max_emails = max(1, int(args[index + 1]))
+            except ValueError:
+                pass
+            continue
+
         if arg.isdigit():
             days = int(arg)
             break
 
     processor = TenderProcessor(CONFIG)
-    result = processor.run(days=days)
+    result = processor.run(days=days, max_emails=max_emails)
     print(f"SUMMARY_JSON={json.dumps(result, ensure_ascii=False)}")

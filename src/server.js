@@ -99,6 +99,32 @@ async function parseRequestJson(req) {
   return parseJsonBody(req, { maxBytes: jsonBodyLimitBytes });
 }
 
+function createBackgroundJob(projectId) {
+  const jobId = `job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+  const job = {
+    id: jobId,
+    projectId,
+    status: "running",
+    run: null,
+    error: null,
+    startedAt: new Date().toISOString()
+  };
+  backgroundJobs.set(jobId, job);
+  return job;
+}
+
+async function finalizeProjectRun(job, project, run) {
+  await store.appendRun(project.id, run);
+  if (Array.isArray(run.recentMessages)) {
+    await store.replaceRecentMessages(project.id, run.recentMessages);
+  }
+  if (Array.isArray(run.newMessages) && run.newMessages.length > 0) {
+    await webhookDispatcher.enqueueProjectMessages(project.id, run.newMessages);
+  }
+  job.status = "done";
+  job.run = run;
+}
+
 async function handleApi(req, res, url) {
   if (req.method === "GET" && url.pathname === "/api/health") {
     return sendJson(res, 200, {
@@ -262,51 +288,28 @@ async function handleApi(req, res, url) {
 
     const payload = await parseRequestJson(req);
 
-    // mailbox-file-parser runs async to avoid Railway HTTP timeout
-    if (project.type === "mailbox-file-parser") {
-      const jobId = `job-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
-      const job = { id: jobId, projectId: project.id, status: "running", run: null, error: null, startedAt: new Date().toISOString() };
-      backgroundJobs.set(jobId, job);
+    if (["mailbox-file-parser", "tender-importer"].includes(project.type)) {
+      const job = createBackgroundJob(project.id);
+      const runner = project.type === "mailbox-file-parser"
+        ? () => runMailboxFileParser(project, rootDir, payload)
+        : () => runTenderImporter(project, rootDir, payload);
 
-      // Fire and forget — process runs in background
-      runMailboxFileParser(project, rootDir, payload)
+      runner()
         .then(async (run) => {
-          await store.appendRun(project.id, run);
-          if (Array.isArray(run.recentMessages)) {
-            await store.replaceRecentMessages(project.id, run.recentMessages);
-          }
-          if (Array.isArray(run.newMessages) && run.newMessages.length > 0) {
-            await webhookDispatcher.enqueueProjectMessages(project.id, run.newMessages);
-          }
-          job.status = "done";
-          job.run = run;
+          await finalizeProjectRun(job, project, run);
         })
         .catch((error) => {
           job.status = "error";
-          job.error = error.message;
+          job.error = error.code === "EPERM"
+            ? "Process spawning is blocked in the current sandbox. Run locally or on Railway."
+            : error.message;
         });
 
-      return sendJson(res, 202, { jobId, message: "Запуск начат в фоновом режиме. Проверяйте статус через /api/projects/" + project.id + "/job/" + jobId });
-    }
-
-    // tender-importer runs synchronously (fast)
-    let run;
-    try {
-      run = await runTenderImporter(project, rootDir, payload);
-    } catch (error) {
-      return sendJson(res, 500, {
-        error: "Project runner failed to start.",
-        details: error.code === "EPERM"
-          ? "Process spawning is blocked in the current sandbox. Run locally or on Railway."
-          : error.message
+      return sendJson(res, 202, {
+        jobId: job.id,
+        message: "Запуск начат в фоновом режиме. Проверяйте статус через /api/projects/" + project.id + "/job/" + job.id
       });
     }
-
-    await store.appendRun(project.id, run);
-    if (Array.isArray(run.recentMessages)) {
-      await store.replaceRecentMessages(project.id, run.recentMessages);
-    }
-    return sendJson(res, 200, { run });
   }
 
   const messagesMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages$/);

@@ -149,25 +149,11 @@ function setupForms() {
     const fd = new FormData(e.target);
     const btn = $('#p2-run-btn');
     btn.disabled = true;
-    btn.innerHTML = '<div class="spinner" style="width:14px;height:14px;border-width:2px;display:inline-block;"></div> Выполняется...';
-    try {
-      const res = await fetch(`/api/projects/${P2_ID}/run`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          days: Number(fd.get('days') || 1),
-          maxEmails: Number(fd.get('maxEmails') || 100),
-          reset: fd.get('reset') === 'on'
-        })
-      });
-      const data = await res.json();
-      $('#p2-runtime-result').textContent = JSON.stringify(data.run || data, null, 2);
-    } catch (err) {
-      $('#p2-runtime-result').textContent = 'Ошибка: ' + err.message;
-    }
-    btn.disabled = false;
-    btn.textContent = 'Запустить Tender Parser';
-    await refreshProjects();
+    await startMailboxJob(P2_ID, {
+      days: Number(fd.get('days') || 1),
+      maxEmails: Number(fd.get('maxEmails') || 100),
+      reset: fd.get('reset') === 'on'
+    }, btn, 'Запустить Tender Parser', '#p2-runtime-result', () => renderP2Kpis());
     renderP2Kpis();
   });
 
@@ -585,14 +571,14 @@ async function startP3Job(payload, btn, resetLabel, runtimeEl, onDone) {
 }
 
 function createJobTimerFor(projectId) {
-  const suffix = projectId === P4_ID ? 'p4' : 'p3';
+  const suffix = projectId === P2_ID ? 'p2' : projectId === P4_ID ? 'p4' : 'p3';
   const existing = $(`#${suffix}-job-timer`);
   if (existing) return existing;
   const el = document.createElement('span');
   el.id = `${suffix}-job-timer`;
   el.className = 'badge badge-system';
   el.style.cssText = 'display:none;margin-left:8px;font-family:"JetBrains Mono",monospace;font-size:12px;';
-  const pageId = projectId === P4_ID ? '#page-project4' : '#page-project3';
+  const pageId = projectId === P2_ID ? '#page-project2' : projectId === P4_ID ? '#page-project4' : '#page-project3';
   const header = document.querySelector(`${pageId} .panel-header`) || document.body;
   header.appendChild(el);
   return el;

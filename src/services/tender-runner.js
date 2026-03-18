@@ -48,15 +48,11 @@ export async function runTenderImporter(project, rootDir, options = {}) {
   await mkdir(runtimeDir, { recursive: true });
 
   const days = Number(options.days || 1);
+  const maxEmails = Math.max(1, Number(options.maxEmails || 100));
   const shouldReset = Boolean(options.reset);
   const env = await buildRuntimeEnv(project, rootDir, runtimeDir);
-  const args = [scriptPath];
-
-  if (shouldReset) {
-    args.push("--reset");
-  } else {
-    args.push(String(Math.max(1, days)));
-  }
+  env.PROJECT2_MAX_EMAILS = String(maxEmails);
+  const args = buildTenderRunArgs(scriptPath, { days, maxEmails, reset: shouldReset });
 
   const startedAt = Date.now();
   const result = await runPythonProcess(args, workingDirectory, env, Number(options.timeoutMs || 240000));
@@ -67,6 +63,7 @@ export async function runTenderImporter(project, rootDir, options = {}) {
     createdAt: new Date(startedAt).toISOString(),
     status: result.exitCode === 0 ? summary.status || "ok" : "error",
     days,
+    maxEmails,
     processed: Number(summary.processed || 0),
     added: Number(summary.added || 0),
     skipped: Number(summary.skipped || 0),
@@ -78,6 +75,21 @@ export async function runTenderImporter(project, rootDir, options = {}) {
     stderr: truncateLines(result.stderr, 30),
     message: summary.message || (result.exitCode === 0 ? "Выполнение завершено" : "Процесс завершился с ошибкой")
   };
+}
+
+export function buildTenderRunArgs(scriptPath, options = {}) {
+  const shouldReset = Boolean(options.reset);
+  const days = Math.max(1, Number(options.days || 1));
+  const maxEmails = Math.max(1, Number(options.maxEmails || 100));
+  const args = [scriptPath];
+
+  if (shouldReset) {
+    args.push("--reset");
+  } else {
+    args.push(String(days), "--max-emails", String(maxEmails));
+  }
+
+  return args;
 }
 
 async function buildRuntimeEnv(project, rootDir, runtimeDir) {
