@@ -401,10 +401,16 @@ async function handleIntegrationApi(req, res, url) {
       return sendJson(res, 404, { error: "Project not found." });
     }
 
+    const since = String(url.searchParams.get("since") || "").trim();
+    if (since && Number.isNaN(Date.parse(since))) {
+      return sendJson(res, 400, { error: "Query parameter 'since' must be a valid ISO datetime." });
+    }
+
     return sendJson(res, 200, listIntegrationMessages(project, {
       page: url.searchParams.get("page"),
       limit: url.searchParams.get("limit"),
-      status: url.searchParams.get("status")
+      status: url.searchParams.get("status"),
+      since
     }));
   }
 

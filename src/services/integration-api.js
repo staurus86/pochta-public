@@ -17,12 +17,15 @@ export function normalizeIntegrationMessage(project, message) {
   const sender = analysis.sender || {};
   const lead = analysis.lead || {};
   const crm = analysis.crm || {};
+  const messageKey = message.messageKey || message.id;
+  const updatedAt = resolveMessageUpdatedAt(message);
 
   return {
     project_id: project.id,
     project_name: project.name,
-    message_key: message.messageKey || message.id,
+    message_key: messageKey,
     created_at: message.createdAt || null,
+    updated_at: updatedAt,
     mailbox: message.mailbox || project.mailbox || null,
     brand: message.brand || null,
     subject: message.subject || "",
@@ -32,14 +35,22 @@ export function normalizeIntegrationMessage(project, message) {
     error: message.error || null,
     attachments: (message.attachmentFiles || message.attachments || []).map((item) => {
       if (typeof item === "string") {
-        return { filename: item };
+        return {
+          filename: item,
+          download_url: `/api/attachments/${encodeURIComponent(messageKey)}/${encodeURIComponent(item)}`
+        };
       }
 
+      const filename = item.filename || item.name || "";
+      const safeName = item.safeName || filename;
       return {
-        filename: item.filename || item.name || "",
+        filename,
         content_type: item.contentType || null,
         size: item.size || null,
-        safe_name: item.safeName || null
+        safe_name: item.safeName || null,
+        download_url: safeName
+          ? `/api/attachments/${encodeURIComponent(messageKey)}/${encodeURIComponent(safeName)}`
+          : null
       };
     }),
     classification: {
@@ -93,11 +104,20 @@ export function normalizeIntegrationMessage(project, message) {
 export function listIntegrationMessages(project, query = {}) {
   const page = normalizePositiveInt(query.page, 1);
   const limit = Math.min(normalizePositiveInt(query.limit, 50), 200);
-  const status = String(query.status || "").trim();
+  const statuses = parseStatuses(query.status);
+  const since = parseSince(query.since);
 
   const allMessages = (project.recentMessages || [])
-    .filter((item) => !status || item.pipelineStatus === status)
-    .sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+    .filter((item) => statuses.length === 0 || statuses.includes(item.pipelineStatus))
+    .filter((item) => {
+      if (!since) {
+        return true;
+      }
+
+      const updatedAt = resolveMessageUpdatedAt(item);
+      return updatedAt ? Date.parse(updatedAt) >= since.getTime() : false;
+    })
+    .sort((a, b) => String(resolveMessageUpdatedAt(b) || "").localeCompare(String(resolveMessageUpdatedAt(a) || "")));
 
   const total = allMessages.length;
   const offset = (page - 1) * limit;
@@ -112,6 +132,17 @@ export function listIntegrationMessages(project, query = {}) {
       limit,
       total,
       total_pages: Math.max(1, Math.ceil(total / limit))
+    },
+    meta: {
+      statuses,
+      since: since ? since.toISOString() : null,
+      next_since: data.reduce((latest, item) => {
+        if (!item.updated_at) {
+          return latest;
+        }
+
+        return !latest || item.updated_at > latest ? item.updated_at : latest;
+      }, null)
     }
   };
 }
@@ -124,4 +155,39 @@ export function findIntegrationMessage(project, messageKey) {
 function normalizePositiveInt(value, fallback) {
   const normalized = Number(value);
   return Number.isInteger(normalized) && normalized > 0 ? normalized : fallback;
+}
+
+function parseStatuses(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function parseSince(value) {
+  const text = String(value || "").trim();
+  if (!text) {
+    return null;
+  }
+
+  const timestamp = Date.parse(text);
+  if (Number.isNaN(timestamp)) {
+    return null;
+  }
+
+  return new Date(timestamp);
+}
+
+function resolveMessageUpdatedAt(message) {
+  const auditEntries = Array.isArray(message.auditLog) ? message.auditLog : [];
+  const auditAt = auditEntries
+    .map((item) => item?.at)
+    .filter(Boolean)
+    .sort((a, b) => String(b).localeCompare(String(a)))[0];
+
+  return auditAt || message.updatedAt || message.createdAt || null;
 }

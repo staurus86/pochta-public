@@ -15,6 +15,7 @@ const project = {
     {
       messageKey: "msg-1",
       createdAt: "2026-03-18T10:00:00.000Z",
+      updatedAt: "2026-03-18T10:05:00.000Z",
       mailbox: "sales@example.com",
       brand: "ABB",
       subject: "Запрос по ABB",
@@ -22,6 +23,7 @@ const project = {
       bodyPreview: "Прошу КП",
       pipelineStatus: "ready_for_crm",
       attachments: ["spec.pdf"],
+      auditLog: [{ action: "status_change", at: "2026-03-18T10:06:00.000Z" }],
       analysis: {
         detectedBrands: ["ABB"],
         classification: { label: "Клиент", confidence: 0.91 },
@@ -66,6 +68,7 @@ const project = {
       subject: "Спам",
       from: "spam@example.com",
       pipelineStatus: "ignored_spam",
+      auditLog: [{ action: "status_change", at: "2026-03-17T10:15:00.000Z" }],
       analysis: {
         classification: { label: "СПАМ", confidence: 0.99 },
         sender: {},
@@ -98,9 +101,11 @@ runTest("normalizes integration message shape", () => {
 
   assert.equal(normalized.project_id, "project-3-mailbox-file");
   assert.equal(normalized.message_key, "msg-1");
+  assert.equal(normalized.updated_at, "2026-03-18T10:06:00.000Z");
   assert.equal(normalized.classification.label, "Клиент");
   assert.deepEqual(normalized.lead.articles, ["S201-C16"]);
   assert.equal(normalized.crm.company.legal_name, "ООО Ромашка");
+  assert.equal(normalized.attachments[0].download_url, "/api/attachments/msg-1/spec.pdf");
 });
 
 runTest("lists integration messages with pagination and status filter", () => {
@@ -109,6 +114,18 @@ runTest("lists integration messages with pagination and status filter", () => {
   assert.equal(result.data.length, 1);
   assert.equal(result.pagination.total, 1);
   assert.equal(result.data[0].message_key, "msg-1");
+  assert.equal(result.meta.next_since, "2026-03-18T10:06:00.000Z");
+});
+
+runTest("filters integration messages by since and multiple statuses", () => {
+  const result = listIntegrationMessages(project, {
+    since: "2026-03-18T00:00:00.000Z",
+    status: "ready_for_crm,needs_clarification"
+  });
+
+  assert.equal(result.data.length, 1);
+  assert.equal(result.data[0].message_key, "msg-1");
+  assert.deepEqual(result.meta.statuses, ["ready_for_crm", "needs_clarification"]);
 });
 
 runTest("finds a single normalized integration message", () => {
