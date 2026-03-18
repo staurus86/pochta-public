@@ -150,3 +150,45 @@ runTest("keeps valid line items from main body while ignoring signature noise", 
   assert.ok(!analysis.lead.articles.includes("4951234567"));
   assert.equal(analysis.lead.lineItems[0]?.article, "S201-C16");
 });
+
+runTest("rejects phone fragments from form-style lines as numeric-only articles", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "noreply@tilda.ws",
+    fromEmail: "noreply@tilda.ws",
+    subject: "Заявка с формы",
+    attachments: "",
+    body: `
+      Request details:
+      Name: Светлана Филатова
+      phone: +7 (351) 958-01-58
+      email: buyer@example.com
+      comment: Добрый день! Нужен комплект ABB S201-C16 - 1 шт.
+      Request ID: 15957456:8028853052
+    `
+  });
+
+  assert.ok(!analysis.lead.articles.includes("958-01"));
+  assert.ok(!analysis.lead.articles.includes("15957456"));
+  assert.ok(analysis.lead.articles.includes("S201-C16"));
+});
+
+runTest("does not treat inn and kpp fragments as articles", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Менеджер",
+    fromEmail: "sales@factory.ru",
+    subject: "Реквизиты и запрос",
+    attachments: "",
+    body: `
+      Добрый день.
+      ИНН 7701234567
+      КПП 770101001
+      ОГРН 1234567890123
+      Артикул A9N18346 x 2 шт
+    `
+  });
+
+  assert.ok(!analysis.lead.articles.includes("7701234567"));
+  assert.ok(!analysis.lead.articles.includes("770101001"));
+  assert.ok(!analysis.lead.articles.includes("1234567890123"));
+  assert.ok(analysis.lead.articles.includes("A9N18346"));
+});

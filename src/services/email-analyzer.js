@@ -5,6 +5,8 @@ import { detectionKb } from "./detection-kb.js";
 const URL_PATTERN = /https?:\/\/[^\s)]+/gi;
 const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}/g;
 const PHONE_LIKE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}/i;
+const CONTACT_CONTEXT_PATTERN = /\b(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber|email|e-mail|почта)\b/i;
+const IDENTIFIER_CONTEXT_PATTERN = /\b(?:инн|inn|кпп|kpp|огрн|ogrn|request\s*id|order\s*id|ticket\s*id|номер\s*заявки|идентификатор)\b/i;
 const INN_PATTERN = /(?:ИНН|inn)[^0-9]{0,5}(\d{10,12})/i;
 const KPP_PATTERN = /(?:КПП|kpp)[^0-9]{0,5}(\d{9})/i;
 const OGRN_PATTERN = /(?:ОГРН|ogrn)[^0-9]{0,5}(\d{13,15})/i;
@@ -165,7 +167,7 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const attachmentsText = attachments.join(" ");
   const hasNameplatePhotos = /шильд|nameplate/i.test(attachmentsText);
   const hasArticlePhotos = /артик|sku|label/i.test(attachmentsText);
-  const lineItems = extractLineItems(body).filter((item) => isLikelyArticle(item.article, forbiddenDigits));
+  const lineItems = extractLineItems(body).filter((item) => isLikelyArticle(item.article, forbiddenDigits, item.descriptionRu));
   const detectedBrands = unique(kbBrands.concat(detectBrands([subject, body, attachmentsText].join("\n"), brands)));
 
   const attachmentHints = parseAttachmentHints(attachments);
@@ -264,7 +266,7 @@ function splitPhones(phones) {
 
 function extractLineItems(body) {
   return body.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => {
-    if (PHONE_LIKE_PATTERN.test(line) || /\b(?:тел|телефон|phone|моб|mobile|факс)\b/i.test(line) || line.includes("@")) {
+    if (hasArticleNoiseContext(line)) {
       return null;
     }
 
@@ -368,9 +370,20 @@ function collectForbiddenArticleDigits(text) {
   for (const phone of text.match(PHONE_PATTERN) || []) {
     const normalized = phone.replace(/\D/g, "");
     if (normalized) {
-      digits.add(normalized);
+      addNumericFragments(digits, normalized, { minLength: 5, maxLength: 11 });
       if (normalized.length === 11 && normalized.startsWith("8")) {
-        digits.add(`7${normalized.slice(1)}`);
+        addNumericFragments(digits, `7${normalized.slice(1)}`, { minLength: 5, maxLength: 11 });
+      }
+    }
+
+    const groups = phone.split(/\D+/).filter(Boolean);
+    for (let start = 0; start < groups.length; start += 1) {
+      let combined = "";
+      for (let end = start; end < groups.length; end += 1) {
+        combined += groups[end];
+        if (combined.length >= 5 && combined.length <= 8) {
+          digits.add(combined);
+        }
       }
     }
   }
@@ -379,7 +392,7 @@ function collectForbiddenArticleDigits(text) {
     const match = text.match(pattern);
     const normalized = match?.[1]?.replace(/\D/g, "");
     if (normalized) {
-      digits.add(normalized);
+      addNumericFragments(digits, normalized, { minLength: 6, maxLength: normalized.length });
     }
   }
 
@@ -390,7 +403,7 @@ function normalizeArticleCode(value) {
   return cleanup(value).replace(/^[^A-Za-zА-Яа-я0-9]+|[^A-Za-zА-Яа-я0-9]+$/g, "");
 }
 
-function isLikelyArticle(code, forbiddenDigits = new Set()) {
+function isLikelyArticle(code, forbiddenDigits = new Set(), sourceLine = "") {
   const normalized = normalizeArticleCode(code);
   if (!normalized || normalized.length < 3 || normalized.length > 40) {
     return false;
@@ -402,17 +415,31 @@ function isLikelyArticle(code, forbiddenDigits = new Set()) {
 
   const digits = normalized.replace(/\D/g, "");
   const letters = normalized.replace(/[^A-Za-zА-Яа-я]/g, "");
+  const line = String(sourceLine || "").trim();
+  const digitOnlyWithSeparators = /^[\d-/_]+$/.test(normalized);
 
-  if (forbiddenDigits.has(digits) && digits.length >= 6) {
+  if (forbiddenDigits.has(digits) && digits.length >= 5) {
+    return false;
+  }
+
+  if (line && digitOnlyWithSeparators && hasArticleNoiseContext(line)) {
     return false;
   }
 
   if (!letters) {
+    if (digits.length < 5) {
+      return false;
+    }
+
     if (digits.length >= 10) {
       return false;
     }
 
     if (/^(?:7|8|9)\d{10}$/.test(digits)) {
+      return false;
+    }
+
+    if (/^\d{2,4}[-/]\d{2,4}$/.test(normalized)) {
       return false;
     }
   }
@@ -501,6 +528,30 @@ function extractForwardedSender(body) {
   }
 
   return null;
+}
+
+function hasArticleNoiseContext(line) {
+  return PHONE_LIKE_PATTERN.test(line)
+    || CONTACT_CONTEXT_PATTERN.test(line)
+    || IDENTIFIER_CONTEXT_PATTERN.test(line)
+    || line.includes("@");
+}
+
+function addNumericFragments(bucket, value, options = {}) {
+  const digits = String(value || "").replace(/\D/g, "");
+  const minLength = options.minLength || 5;
+  const maxLength = options.maxLength || digits.length;
+
+  if (!digits) {
+    return;
+  }
+
+  const upperBound = Math.min(maxLength, digits.length);
+  for (let length = minLength; length <= upperBound; length += 1) {
+    for (let offset = 0; offset <= digits.length - length; offset += 1) {
+      bucket.add(digits.slice(offset, offset + length));
+    }
+  }
 }
 
 function stripHtml(text) {
