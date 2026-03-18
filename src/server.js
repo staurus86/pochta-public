@@ -6,6 +6,7 @@ import { ProjectsStore } from "./storage/projects-store.js";
 import { analyzeEmail } from "./services/email-analyzer.js";
 import { normalizeBackgroundRole, shouldRunScheduler, shouldRunWebhooks } from "./services/background-role.js";
 import { HttpError, parseJsonBody, resolveJsonBodyLimit } from "./services/http-json.js";
+import { resolveIdempotencyKey } from "./services/idempotency.js";
 import { canClientAccessProject, loadIntegrationClients, resolveIntegrationClient } from "./services/integration-clients.js";
 import { buildLegacyIntegrationOpenApi } from "./services/integration-openapi.js";
 import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js";
@@ -510,9 +511,11 @@ async function handleIntegrationApi(req, res, url) {
     }
     const messageKey = decodeURIComponent(integrationAckMatch[2]);
     const payload = await parseRequestJson(req);
+    const idempotencyKey = resolveIdempotencyKey(req.headers, payload);
     const message = await store.acknowledgeMessageExport(projectId, messageKey, {
       ...payload,
-      consumer: currentClient.id
+      consumer: currentClient.id,
+      idempotencyKey
     });
     if (!message) {
       return sendJson(res, 404, { error: "Message not found." });
@@ -560,7 +563,11 @@ async function handleIntegrationApi(req, res, url) {
       return sendJson(res, 403, { error: "Client is not allowed to manage this delivery." });
     }
     const payload = await parseRequestJson(req);
-    await store.requeueWebhookDelivery(projectId, deliveryId, payload);
+    const idempotencyKey = resolveIdempotencyKey(req.headers, payload);
+    await store.requeueWebhookDelivery(projectId, deliveryId, {
+      ...payload,
+      idempotencyKey
+    });
     return sendJson(res, 200, { data: findIntegrationDelivery(project, deliveryId, { clientId: currentClient.id }) });
   }
 

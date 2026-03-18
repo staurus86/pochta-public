@@ -44,13 +44,26 @@ runTest("acknowledges message export and requeues webhook delivery", async () =>
     const acknowledged = await store.acknowledgeMessageExport(project.id, "msg-1", {
       consumer: "crm-sync",
       externalId: "REQ-77",
-      note: "Imported"
+      note: "Imported",
+      idempotencyKey: "ack-1"
     });
 
     assert.equal(acknowledged.integrationExport.consumer, "crm-sync");
     assert.equal(acknowledged.integrationExport.externalId, "REQ-77");
     assert.equal(acknowledged.integrationExports["crm-sync"].externalId, "REQ-77");
     assert.equal(acknowledged.auditLog.at(-1).action, "integration_ack");
+
+    const firstAckAt = acknowledged.integrationExport.acknowledgedAt;
+    const firstAuditCount = acknowledged.auditLog.length;
+    const repeatedAck = await store.acknowledgeMessageExport(project.id, "msg-1", {
+      consumer: "crm-sync",
+      externalId: "REQ-77",
+      note: "Imported",
+      idempotencyKey: "ack-1"
+    });
+
+    assert.equal(repeatedAck.integrationExport.acknowledgedAt, firstAckAt);
+    assert.equal(repeatedAck.auditLog.length, firstAuditCount);
 
     await store.enqueueWebhookDeliveries(project.id, [{
       id: "delivery-1",
@@ -71,13 +84,22 @@ runTest("acknowledges message export and requeues webhook delivery", async () =>
     }]);
 
     const requeued = await store.requeueWebhookDelivery(project.id, "delivery-1", {
-      reason: "Retry after client fix"
+      reason: "Retry after client fix",
+      idempotencyKey: "requeue-1"
     });
 
     assert.equal(requeued.status, "pending");
     assert.equal(requeued.responseStatus, null);
     assert.equal(requeued.lastError, null);
     assert.equal(requeued.lastManualAction.action, "requeue");
+
+    const firstRequeueAt = requeued.updatedAt;
+    const repeatedRequeue = await store.requeueWebhookDelivery(project.id, "delivery-1", {
+      reason: "Retry after client fix",
+      idempotencyKey: "requeue-1"
+    });
+
+    assert.equal(repeatedRequeue.updatedAt, firstRequeueAt);
   } finally {
     await rm(dataDir, { recursive: true, force: true });
   }

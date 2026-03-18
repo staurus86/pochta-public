@@ -5,7 +5,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
     openapi: "3.1.0",
     info: {
       title: "Pochta Legacy Integration API",
-      version: "1.0.0",
+      version: "1.1.0",
       description: "Versioned contract for polling parsed email results, acknowledging exports, and managing webhook deliveries."
     },
     servers: [
@@ -112,7 +112,8 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           summary: "Acknowledge export of a parsed message",
           parameters: [
             pathParameter("projectId", "Project identifier"),
-            pathParameter("messageKey", "Normalized message key")
+            pathParameter("messageKey", "Normalized message key"),
+            headerParameter("Idempotency-Key", "Optional idempotency key for safe client retries")
           ],
           requestBody: {
             required: false,
@@ -167,7 +168,8 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           summary: "Requeue a failed or pending webhook delivery",
           parameters: [
             pathParameter("projectId", "Project identifier"),
-            pathParameter("deliveryId", "Webhook delivery identifier")
+            pathParameter("deliveryId", "Webhook delivery identifier"),
+            headerParameter("Idempotency-Key", "Optional idempotency key for safe client retries")
           ],
           requestBody: {
             required: false,
@@ -415,6 +417,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
         IntegrationAckRequest: {
           type: "object",
           properties: {
+            idempotencyKey: { type: ["string", "null"] },
             externalId: { type: ["string", "null"] },
             note: { type: ["string", "null"] }
           }
@@ -475,6 +478,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
         IntegrationRequeueRequest: {
           type: "object",
           properties: {
+            idempotencyKey: { type: ["string", "null"] },
             reason: { type: ["string", "null"] }
           }
         }
@@ -500,6 +504,16 @@ function queryParameter(name, type, description, extra = {}) {
     required: false,
     description,
     schema: { type, ...extra }
+  };
+}
+
+function headerParameter(name, description) {
+  return {
+    name,
+    in: "header",
+    required: false,
+    description,
+    schema: { type: "string" }
   };
 }
 

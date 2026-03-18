@@ -165,7 +165,8 @@ export class ProjectsStore {
         recentMessages: (project.recentMessages || []).map((message) => ({
           ...message,
           integrationExport: message.integrationExport || null,
-          integrationExports: normalizeIntegrationExports(message)
+          integrationExports: normalizeIntegrationExports(message),
+          integrationIdempotency: normalizeIntegrationIdempotency(message)
         })),
         webhookDeliveries: project.webhookDeliveries || [],
         schedule: normalizeSchedule(project.schedule)
@@ -325,8 +326,15 @@ export class ProjectsStore {
       return null;
     }
 
+    message.integrationIdempotency = normalizeIntegrationIdempotency(message);
     const acknowledgedAt = new Date().toISOString();
     const consumerId = payload.consumer ? String(payload.consumer).trim() : "legacy-default";
+    const idempotencyKey = payload.idempotencyKey ? String(payload.idempotencyKey).trim() : null;
+    const ackBucket = message.integrationIdempotency.ack[consumerId] || {};
+    if (idempotencyKey && ackBucket[idempotencyKey]) {
+      return message;
+    }
+
     const exportState = {
       acknowledgedAt,
       consumer: consumerId,
@@ -336,6 +344,12 @@ export class ProjectsStore {
     message.integrationExports = normalizeIntegrationExports(message);
     message.integrationExports[consumerId] = exportState;
     message.integrationExport = exportState;
+    if (idempotencyKey) {
+      message.integrationIdempotency.ack[consumerId] = pushIdempotencyRecord(ackBucket, idempotencyKey, {
+        at: acknowledgedAt,
+        type: "integration_ack"
+      });
+    }
 
     if (!message.auditLog) message.auditLog = [];
     message.auditLog.push({
@@ -402,7 +416,8 @@ export class ProjectsStore {
         return {
           ...item,
           integrationExport: item.integrationExport || null,
-          integrationExports: normalizeIntegrationExports(item)
+          integrationExports: normalizeIntegrationExports(item),
+          integrationIdempotency: normalizeIntegrationIdempotency(item)
         };
       }
 
@@ -412,6 +427,10 @@ export class ProjectsStore {
         integrationExports: {
           ...existing.integrationExports,
           ...normalizeIntegrationExports(item)
+        },
+        integrationIdempotency: {
+          ...existing.integrationIdempotency,
+          ...normalizeIntegrationIdempotency(item)
         }
       };
     });
@@ -505,6 +524,12 @@ export class ProjectsStore {
       return null;
     }
 
+    delivery.idempotency = normalizeDeliveryIdempotency(delivery);
+    const idempotencyKey = payload.idempotencyKey ? String(payload.idempotencyKey).trim() : null;
+    if (idempotencyKey && delivery.idempotency.requeue[idempotencyKey]) {
+      return delivery;
+    }
+
     const now = new Date().toISOString();
     delivery.status = "pending";
     delivery.nextAttemptAt = now;
@@ -518,6 +543,12 @@ export class ProjectsStore {
         reason: String(payload.reason).trim(),
         at: now
       };
+    }
+    if (idempotencyKey) {
+      delivery.idempotency.requeue = pushIdempotencyRecord(delivery.idempotency.requeue, idempotencyKey, {
+        at: now,
+        type: "delivery_requeue"
+      });
     }
 
     await this.persist();
@@ -598,4 +629,33 @@ function normalizeIntegrationExports(message) {
   }
 
   return exportsMap;
+}
+
+function normalizeIntegrationIdempotency(message) {
+  const state = message?.integrationIdempotency && typeof message.integrationIdempotency === "object"
+    ? message.integrationIdempotency
+    : {};
+
+  return {
+    ack: state.ack && typeof state.ack === "object" ? { ...state.ack } : {}
+  };
+}
+
+function normalizeDeliveryIdempotency(delivery) {
+  const state = delivery?.idempotency && typeof delivery.idempotency === "object"
+    ? delivery.idempotency
+    : {};
+
+  return {
+    requeue: state.requeue && typeof state.requeue === "object" ? { ...state.requeue } : {}
+  };
+}
+
+function pushIdempotencyRecord(bucket, key, record) {
+  const entries = Object.entries({
+    ...(bucket || {}),
+    [key]: record
+  }).sort((a, b) => String(b[1]?.at || "").localeCompare(String(a[1]?.at || "")));
+
+  return Object.fromEntries(entries.slice(0, 20));
 }
