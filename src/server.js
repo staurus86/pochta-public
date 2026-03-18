@@ -270,6 +270,21 @@ async function handleApi(req, res, url) {
   }
 
   const messagePatchMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages\/([^/]+)$/);
+  if (req.method === "GET" && messagePatchMatch) {
+    const project = await store.getProject(messagePatchMatch[1]);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    const messageKey = decodeURIComponent(messagePatchMatch[2]);
+    const message = (project.recentMessages || []).find((item) => item.messageKey === messageKey);
+    if (!message) {
+      return sendJson(res, 404, { error: "Message not found." });
+    }
+
+    return sendJson(res, 200, { message });
+  }
+
   if (req.method === "PATCH" && messagePatchMatch) {
     const project = await store.getProject(messagePatchMatch[1]);
     if (!project) {

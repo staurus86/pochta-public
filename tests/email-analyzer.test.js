@@ -81,3 +81,72 @@ runTest("flags unknown company for clarification", () => {
   assert.equal(analysis.crm.needsClarification, true);
   assert.match(analysis.crm.suggestedReply, /реквизиты организации/i);
 });
+
+runTest("does not treat phone-like values as articles", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Елена Смирнова",
+    fromEmail: "buyer@factory.ru",
+    subject: "Запрос по ABB",
+    attachments: "",
+    body: `
+      Добрый день.
+      Для связи используйте номер 8 (495) 123-45-67.
+      В старом шаблоне ошибочно указан "Артикул 84951234567".
+
+      С уважением,
+      Елена Смирнова
+      +7 (495) 123-45-67
+    `
+  });
+
+  assert.deepEqual(analysis.lead.articles, []);
+  assert.equal(analysis.lead.totalPositions, 0);
+});
+
+runTest("ignores quoted thread and signature when extracting articles", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Ирина Петрова",
+    fromEmail: "buyer@factory.ru",
+    subject: "Нужна цена",
+    attachments: "",
+    body: `
+      Добрый день.
+      Прошу подготовить КП.
+
+      С уважением,
+      Ирина Петрова
+      Менеджер по закупкам
+      +7 (916) 555-44-33
+
+      -----Original Message-----
+      От: old@example.com
+      Тема: RE: старый запрос
+      Артикул OLD-777 x 10 шт
+    `
+  });
+
+  assert.deepEqual(analysis.lead.articles, []);
+  assert.equal(analysis.lead.totalPositions, 0);
+});
+
+runTest("keeps valid line items from main body while ignoring signature noise", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Павел Ильин",
+    fromEmail: "p.ilin@promsnab.ru",
+    subject: "Заявка ABB",
+    attachments: "",
+    body: `
+      Добрый день.
+      Артикул S201-C16 x 20 шт
+
+      С уважением,
+      Павел Ильин
+      Менеджер по закупкам
+      +7 (495) 123-45-67
+    `
+  });
+
+  assert.ok(analysis.lead.articles.includes("S201-C16"));
+  assert.ok(!analysis.lead.articles.includes("4951234567"));
+  assert.equal(analysis.lead.lineItems[0]?.article, "S201-C16");
+});

@@ -4,9 +4,32 @@ import { detectionKb } from "./detection-kb.js";
 
 const URL_PATTERN = /https?:\/\/[^\s)]+/gi;
 const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}/g;
+const PHONE_LIKE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}/i;
 const INN_PATTERN = /(?:ИНН|inn)[^0-9]{0,5}(\d{10,12})/i;
+const KPP_PATTERN = /(?:КПП|kpp)[^0-9]{0,5}(\d{9})/i;
+const OGRN_PATTERN = /(?:ОГРН|ogrn)[^0-9]{0,5}(\d{13,15})/i;
 const ARTICLE_PATTERN = /(?:арт(?:икул(?:а|у|ом|е|ы|ов|ам|ами|ах)?)?|sku)\b[^A-Za-zА-Яа-я0-9]{0,5}([A-Za-z0-9][A-Za-z0-9-/_]{2,})/gi;
 const STANDALONE_CODE_PATTERN = /\b([A-Z][A-Z0-9]{2,}[-/]?[A-Z0-9]{2,}(?:[-/][A-Z0-9]+)*)\b/g;
+const QUOTE_PATTERNS = [
+  /^>+\s?/,
+  /^On .+ wrote:$/i,
+  /^-{2,}\s*Original Message\s*-{2,}$/i,
+  /^-{2,}\s*Пересланное сообщение\s*-{2,}$/i,
+  /^-{2,}\s*Исходное сообщение\s*-{2,}$/i,
+  /^\d{1,2}[./]\d{1,2}[./]\d{2,4}.*(?:wrote|написал|пишет)/i,
+  /^(?:From|Sent|To|Cc|От|Отправлено|Кому|Тема):\s/i
+];
+const SIGNATURE_PATTERNS = [
+  /^--\s*$/,
+  /^_{3,}$/,
+  /^С уважением[,.]?\s*/i,
+  /^Best regards[,.]?\s*/i,
+  /^Kind regards[,.]?\s*/i,
+  /^Regards[,.]?\s*/i,
+  /^Спасибо[,.]?\s*/i,
+  /^Sent from my /i,
+  /^Отправлено с /i
+];
 
 // Own company domains — emails FROM these are not customer companies
 const OWN_DOMAINS = new Set([
@@ -28,6 +51,9 @@ export function analyzeEmail(project, payload) {
   const subject = String(payload.subject || "");
   const rawBody = String(payload.body || "");
   const body = stripHtml(rawBody);
+  const { newContent, quotedContent } = separateQuotedText(body);
+  const { body: primaryBody, signature } = extractSignature(newContent);
+  const bodyForSender = [primaryBody, signature].filter(Boolean).join("\n\n") || body;
   let fromEmail = String(payload.fromEmail || "").trim().toLowerCase();
   let fromName = String(payload.fromName || "").trim();
   const attachments = normalizeAttachments(payload.attachments);
@@ -45,13 +71,13 @@ export function analyzeEmail(project, payload) {
 
   const classification = classifyMessage({
     subject,
-    body,
+    body: primaryBody || body,
     attachments,
     fromEmail,
     projectBrands: project.brands || []
   });
-  const sender = extractSender(fromName, fromEmail, body, attachments);
-  const lead = extractLead(subject, body, attachments, project.brands || [], classification.detectedBrands || []);
+  const sender = extractSender(fromName, fromEmail, bodyForSender, attachments);
+  const lead = extractLead(subject, primaryBody || body, attachments, project.brands || [], classification.detectedBrands || []);
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands });
 
   const suggestedReply = buildSuggestedReply(classification.label, sender, lead, crm);
@@ -70,6 +96,10 @@ export function analyzeEmail(project, payload) {
     rawInput: {
       subject,
       attachments
+    },
+    extractionMeta: {
+      signatureDetected: Boolean(signature),
+      quotedTextDetected: Boolean(quotedContent)
     }
   };
 }
@@ -126,13 +156,16 @@ function extractSender(fromName, fromEmail, body, attachments) {
 
 function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const freeText = body.trim().slice(0, 2000);
-  const prefixedArticles = Array.from(body.matchAll(ARTICLE_PATTERN)).map((match) => match[1]);
-  const standaloneArticles = extractStandaloneCodes(body);
+  const forbiddenDigits = collectForbiddenArticleDigits(body);
+  const prefixedArticles = Array.from(body.matchAll(ARTICLE_PATTERN))
+    .map((match) => normalizeArticleCode(match[1]))
+    .filter((item) => isLikelyArticle(item, forbiddenDigits));
+  const standaloneArticles = extractStandaloneCodes(body, forbiddenDigits);
   const allArticles = unique([...prefixedArticles, ...standaloneArticles].filter(Boolean));
   const attachmentsText = attachments.join(" ");
   const hasNameplatePhotos = /шильд|nameplate/i.test(attachmentsText);
   const hasArticlePhotos = /артик|sku|label/i.test(attachmentsText);
-  const lineItems = extractLineItems(body);
+  const lineItems = extractLineItems(body).filter((item) => isLikelyArticle(item.article, forbiddenDigits));
   const detectedBrands = unique(kbBrands.concat(detectBrands([subject, body, attachmentsText].join("\n"), brands)));
 
   const attachmentHints = parseAttachmentHints(attachments);
@@ -141,7 +174,7 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     freeText,
     hasNameplatePhotos,
     hasArticlePhotos,
-    articles: unique(allArticles.concat(lineItems.map((item) => item.article)).filter(Boolean)),
+    articles: unique(allArticles.concat(lineItems.map((item) => normalizeArticleCode(item.article))).filter(Boolean)),
     lineItems,
     totalPositions: lineItems.length || unique(allArticles).length,
     detectedBrands,
@@ -231,53 +264,164 @@ function splitPhones(phones) {
 
 function extractLineItems(body) {
   return body.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => {
+    if (PHONE_LIKE_PATTERN.test(line) || /\b(?:тел|телефон|phone|моб|mobile|факс)\b/i.test(line) || line.includes("@")) {
+      return null;
+    }
+
     // Format: ARTICLE x 20 / ARTICLE х 20 / ARTICLE * 20
     const itemMatch = line.match(/([A-Za-zА-Яа-я0-9-/_]{3,})\s+[xх*]\s*(\d+)(?:\s*([A-Za-zА-Яа-я.]+))?/i);
     if (itemMatch) {
-      return { article: itemMatch[1], quantity: Number(itemMatch[2]), unit: itemMatch[3] || "шт", descriptionRu: line };
+      return { article: normalizeArticleCode(itemMatch[1]), quantity: Number(itemMatch[2]), unit: itemMatch[3] || "шт", descriptionRu: line };
     }
 
     // Format: ARTICLE (N штук/шт/единиц)
     const parenMatch = line.match(/([A-Za-z0-9][A-Za-z0-9-/_]{2,})\s*\((\d+)\s*(штук[аи]?|шт|единиц[аы]?|компл|к-т|пар[аы]?)?\)/i);
     if (parenMatch) {
-      return { article: parenMatch[1], quantity: Number(parenMatch[2]), unit: parenMatch[3] || "шт", descriptionRu: line };
+      return { article: normalizeArticleCode(parenMatch[1]), quantity: Number(parenMatch[2]), unit: parenMatch[3] || "шт", descriptionRu: line };
     }
 
     // Format: ARTICLE — N шт / ARTICLE - N шт
     const dashMatch = line.match(/([A-Za-z0-9][A-Za-z0-9-/_]{2,})\s*[—–-]\s*(\d+)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?/i);
     if (dashMatch) {
-      return { article: dashMatch[1], quantity: Number(dashMatch[2]), unit: dashMatch[3] || "шт", descriptionRu: line };
+      return { article: normalizeArticleCode(dashMatch[1]), quantity: Number(dashMatch[2]), unit: dashMatch[3] || "шт", descriptionRu: line };
     }
 
     // Format: tabular — ARTICLE\tQTY or ARTICLE;QTY;UNIT
     const tabMatch = line.match(/([A-Za-z0-9][A-Za-z0-9-/_]{2,})[\t;,]\s*(\d+)(?:[\t;,]\s*([A-Za-zА-Яа-я.]+))?/);
     if (tabMatch && tabMatch[2] !== "0") {
-      return { article: tabMatch[1], quantity: Number(tabMatch[2]), unit: tabMatch[3] || "шт", descriptionRu: line };
+      return { article: normalizeArticleCode(tabMatch[1]), quantity: Number(tabMatch[2]), unit: tabMatch[3] || "шт", descriptionRu: line };
     }
 
     // Format: N шт ARTICLE / N штук ARTICLE (reversed order)
     const reverseMatch = line.match(/(\d+)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?)\s+([A-Za-z0-9][A-Za-z0-9-/_]{2,})/i);
     if (reverseMatch) {
-      return { article: reverseMatch[3], quantity: Number(reverseMatch[1]), unit: reverseMatch[2] || "шт", descriptionRu: line };
+      return { article: normalizeArticleCode(reverseMatch[3]), quantity: Number(reverseMatch[1]), unit: reverseMatch[2] || "шт", descriptionRu: line };
     }
 
     return null;
   }).filter(Boolean);
 }
 
-function extractStandaloneCodes(text) {
+function extractStandaloneCodes(text, forbiddenDigits = new Set()) {
   // Common noise words to exclude from article matches
   const noise = new Set(["HTTP", "HTTPS", "HTML", "JSON", "UTF", "ISBN", "IMAP", "SMTP", "MIME", "FROM", "DATE", "SENT", "INFO", "CONT", "SUBJ"]);
   const matches = [];
   for (const m of text.matchAll(STANDALONE_CODE_PATTERN)) {
-    const code = m[1];
+    const code = normalizeArticleCode(m[1]);
     // Must contain at least one digit and be 5+ chars
     // Exclude brand names and own company names
-    if (code.length >= 5 && /\d/.test(code) && !noise.has(code) && !BRAND_NOISE.has(code)) {
+    if (code.length >= 5 && /\d/.test(code) && !noise.has(code) && !BRAND_NOISE.has(code) && isLikelyArticle(code, forbiddenDigits)) {
       matches.push(code);
     }
   }
   return matches;
+}
+
+function separateQuotedText(text) {
+  const lines = text.split(/\r?\n/);
+  const newLines = [];
+  const quotedLines = [];
+  let inQuote = false;
+
+  for (const line of lines) {
+    if (!inQuote && QUOTE_PATTERNS.some((pattern) => pattern.test(line.trim()))) {
+      inQuote = true;
+    }
+
+    if (inQuote) {
+      quotedLines.push(line);
+    } else {
+      newLines.push(line);
+    }
+  }
+
+  return {
+    newContent: newLines.join("\n").trim(),
+    quotedContent: quotedLines.join("\n").trim()
+  };
+}
+
+function extractSignature(text) {
+  const lines = text.split(/\r?\n/);
+  let signatureStart = -1;
+
+  for (let i = lines.length - 1; i >= 0; i -= 1) {
+    if (SIGNATURE_PATTERNS.some((pattern) => pattern.test(lines[i].trim()))) {
+      signatureStart = i;
+      break;
+    }
+  }
+
+  if (signatureStart === -1 || signatureStart < lines.length * 0.3) {
+    return { body: text, signature: "" };
+  }
+
+  return {
+    body: lines.slice(0, signatureStart).join("\n").trim(),
+    signature: lines.slice(signatureStart).join("\n").trim()
+  };
+}
+
+function collectForbiddenArticleDigits(text) {
+  const digits = new Set();
+
+  for (const phone of text.match(PHONE_PATTERN) || []) {
+    const normalized = phone.replace(/\D/g, "");
+    if (normalized) {
+      digits.add(normalized);
+      if (normalized.length === 11 && normalized.startsWith("8")) {
+        digits.add(`7${normalized.slice(1)}`);
+      }
+    }
+  }
+
+  for (const pattern of [INN_PATTERN, KPP_PATTERN, OGRN_PATTERN]) {
+    const match = text.match(pattern);
+    const normalized = match?.[1]?.replace(/\D/g, "");
+    if (normalized) {
+      digits.add(normalized);
+    }
+  }
+
+  return digits;
+}
+
+function normalizeArticleCode(value) {
+  return cleanup(value).replace(/^[^A-Za-zА-Яа-я0-9]+|[^A-Za-zА-Яа-я0-9]+$/g, "");
+}
+
+function isLikelyArticle(code, forbiddenDigits = new Set()) {
+  const normalized = normalizeArticleCode(code);
+  if (!normalized || normalized.length < 3 || normalized.length > 40) {
+    return false;
+  }
+
+  if (/^(?:https?|www)$/i.test(normalized) || normalized.includes("@")) {
+    return false;
+  }
+
+  const digits = normalized.replace(/\D/g, "");
+  const letters = normalized.replace(/[^A-Za-zА-Яа-я]/g, "");
+
+  if (forbiddenDigits.has(digits) && digits.length >= 6) {
+    return false;
+  }
+
+  if (!letters) {
+    if (digits.length >= 10) {
+      return false;
+    }
+
+    if (/^(?:7|8|9)\d{10}$/.test(digits)) {
+      return false;
+    }
+  }
+
+  if (/^\d{3,4}(?:-\d{2}){2,}$/.test(normalized)) {
+    return false;
+  }
+
+  return true;
 }
 
 function buildSuggestedReply(label, sender, lead, crm) {
