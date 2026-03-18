@@ -7,6 +7,7 @@ import { analyzeEmail } from "./services/email-analyzer.js";
 import { normalizeBackgroundRole, shouldRunScheduler, shouldRunWebhooks } from "./services/background-role.js";
 import { HttpError, parseJsonBody, resolveJsonBodyLimit } from "./services/http-json.js";
 import { canClientAccessProject, loadIntegrationClients, resolveIntegrationClient } from "./services/integration-clients.js";
+import { buildLegacyIntegrationOpenApi } from "./services/integration-openapi.js";
 import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js";
 import { ProjectScheduler } from "./services/project-scheduler.js";
 import { getMailboxFileRuntime, runMailboxFileParser } from "./services/project3-runner.js";
@@ -424,6 +425,12 @@ async function handleApi(req, res, url) {
 }
 
 async function handleIntegrationApi(req, res, url) {
+  if (req.method === "GET" && (url.pathname === "/api/integration/openapi.json" || url.pathname === "/api/integration/openapi.v1.json")) {
+    return sendJson(res, 200, buildLegacyIntegrationOpenApi({
+      baseUrl: `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`
+    }));
+  }
+
   if (integrationClients.length === 0) {
     return sendJson(res, 503, { error: "Integration API is not configured." });
   }
