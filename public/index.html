@@ -58,6 +58,10 @@
             <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
             База знаний
           </button>
+          <button class="nav-item" data-page="api-docs">
+            <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            API Docs
+          </button>
         </div>
       </nav>
 
@@ -457,6 +461,141 @@ https://promsnab.ru</textarea>
               <button class="tab" data-kb-tab="stats">Статистика</button>
             </div>
             <div class="panel-body no-pad" id="kb-content"></div>
+          </div>
+        </div>
+
+        <!-- ═══ PAGE: API DOCS ═══ -->
+        <div class="page" id="page-api-docs">
+          <div class="panel" style="margin-bottom:16px;">
+            <div class="panel-header">
+              <h3>Integration API v1.3.0</h3>
+              <div style="display:flex;gap:8px;">
+                <a class="btn btn-ghost btn-sm" href="/api/integration/openapi.v1.json" target="_blank">OpenAPI JSON</a>
+                <a class="btn btn-ghost btn-sm" href="/api/integration/changelog" target="_blank">Changelog</a>
+              </div>
+            </div>
+            <div class="panel-body" style="font-size:13px;line-height:1.7;">
+              <p style="margin:0 0 12px;color:var(--text-secondary);">REST API для получения разобранных писем внешними системами. Авторизация: <code>x-api-key</code> header или <code>Authorization: Bearer</code>.</p>
+              <div id="api-health-status" style="margin-bottom:16px;"></div>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-bottom:16px;">
+            <div class="panel-header"><h3>Integration Endpoints</h3><span class="badge" style="background:var(--blue-dim);color:var(--blue);font-size:10px;">AUTH REQUIRED</span></div>
+            <div class="panel-body no-pad">
+              <table class="data-table" id="api-integration-table">
+                <thead><tr><th style="width:80px">Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/integration/health</code></td><td>Статус API, авторизация, версия контракта</td></tr>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/integration/projects</code></td><td>Список доступных проектов для текущего клиента</td></tr>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/integration/projects/:id/messages</code></td><td>Список разобранных писем. Фильтры: <code>?status=ready_for_crm&amp;since=2026-03-01&amp;limit=50&amp;cursor=...</code></td></tr>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/integration/projects/:id/messages/:key</code></td><td>Одно разобранное письмо со всеми полями</td></tr>
+                  <tr><td><span class="badge" style="background:#1a2a3a;color:#60a5fa;">POST</span></td><td><code>/api/integration/projects/:id/messages/:key/ack</code></td><td>Подтвердить получение (export tracking). <code>Idempotency-Key</code> header</td></tr>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/integration/projects/:id/deliveries</code></td><td>Список webhook-доставок</td></tr>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/integration/projects/:id/deliveries/stats</code></td><td>Диагностика: backlog, success rate, failure reasons</td></tr>
+                  <tr><td><span class="badge" style="background:#1a2a3a;color:#60a5fa;">POST</span></td><td><code>/api/integration/projects/:id/deliveries/:id/requeue</code></td><td>Повторить неудавшуюся доставку</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-bottom:16px;">
+            <div class="panel-header"><h3>Internal Endpoints</h3><span class="badge" style="background:var(--rose-dim);color:var(--rose);font-size:10px;">NO AUTH</span></div>
+            <div class="panel-body no-pad">
+              <table class="data-table">
+                <thead><tr><th style="width:80px">Method</th><th>Endpoint</th><th>Description</th></tr></thead>
+                <tbody>
+                  <tr><td colspan="3" style="font-weight:600;color:var(--text-secondary);font-size:11px;text-transform:uppercase;padding:10px 12px;background:var(--bg-tertiary);">Проекты и письма</td></tr>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/projects</code></td><td>Список всех проектов</td></tr>
+                  <tr><td><span class="badge" style="background:#1a2a3a;color:#60a5fa;">POST</span></td><td><code>/api/projects/:id/analyze</code></td><td>Анализ одного письма (email-parser)</td></tr>
+                  <tr><td><span class="badge" style="background:#1a2a3a;color:#60a5fa;">POST</span></td><td><code>/api/projects/:id/run</code></td><td>Запуск забора писем (async, 202 + jobId)</td></tr>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/projects/:id/job/:jobId</code></td><td>Статус фоновой задачи</td></tr>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/projects/:id/messages</code></td><td>Все сообщения проекта (до 2000)</td></tr>
+                  <tr><td><span class="badge" style="background:#3a2a1a;color:#fbbf24;">PATCH</span></td><td><code>/api/projects/:id/messages/:key</code></td><td>Обновить pipelineStatus (ready_for_crm, ignored_spam, needs_clarification, review)</td></tr>
+                  <tr><td><span class="badge" style="background:#3a1a1a;color:#f87171;">DEL</span></td><td><code>/api/projects/:id/messages/:key</code></td><td>Удалить сообщение</td></tr>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/attachments/:key/:file</code></td><td>Скачать вложение</td></tr>
+
+                  <tr><td colspan="3" style="font-weight:600;color:var(--text-secondary);font-size:11px;text-transform:uppercase;padding:10px 12px;background:var(--bg-tertiary);">Detection Knowledge Base</td></tr>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/detection-kb</code></td><td>Правила, бренды, профили, статистика, корпус</td></tr>
+                  <tr><td><span class="badge" style="background:#1a2a3a;color:#60a5fa;">POST</span></td><td><code>/api/detection-kb/rules</code></td><td>Добавить правило классификации (scope, classifier, matchType, pattern, weight)</td></tr>
+                  <tr><td><span class="badge" style="background:#1a2a3a;color:#60a5fa;">POST</span></td><td><code>/api/detection-kb/brand-aliases</code></td><td>Добавить алиас бренда (canonicalBrand, alias)</td></tr>
+                  <tr><td><span class="badge" style="background:#1a2a3a;color:#60a5fa;">POST</span></td><td><code>/api/detection-kb/sender-profiles</code></td><td>Добавить профиль отправителя</td></tr>
+                  <tr><td><span class="badge" style="background:#1a2a3a;color:#60a5fa;">POST</span></td><td><code>/api/detection-kb/own-brands</code></td><td>Добавить собственный бренд (blacklist)</td></tr>
+                  <tr><td><span class="badge" style="background:#1a2a3a;color:#60a5fa;">POST</span></td><td><code>/api/detection-kb/brand-catalog/import</code></td><td>Массовый импорт каталога брендов (brands[])</td></tr>
+                  <tr><td><span class="badge" style="background:#3a1a1a;color:#f87171;">DEL</span></td><td><code>/api/detection-kb/brand-catalog</code></td><td>Очистить все алиасы брендов</td></tr>
+
+                  <tr><td colspan="3" style="font-weight:600;color:var(--text-secondary);font-size:11px;text-transform:uppercase;padding:10px 12px;background:var(--bg-tertiary);">Документация</td></tr>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/integration/openapi.v1.json</code></td><td>OpenAPI 3.1.0 спецификация</td></tr>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/integration/changelog</code></td><td>Changelog и version policy</td></tr>
+                  <tr><td><span class="badge" style="background:#1a3a2a;color:#4ade80;">GET</span></td><td><code>/api/health</code></td><td>Health check</td></tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-bottom:16px;">
+            <div class="panel-header"><h3>Message Response Schema</h3></div>
+            <div class="panel-body">
+              <pre style="font-size:11px;line-height:1.5;overflow-x:auto;color:var(--text-secondary);margin:0;white-space:pre-wrap;"><code>{
+  "message_key": "sha1-hash",
+  "pipeline_status": "ready_for_crm | ignored_spam | needs_clarification | review",
+  "subject": "Заявка ABB по артикулу S201-C16",
+  "from": "buyer@factory.ru",
+  "classification": {
+    "label": "Клиент | СПАМ | Поставщик услуг | Не определено",
+    "confidence": 0.95,
+    "detected_brands": ["ABB", "Schneider Electric"]
+  },
+  "sender": {
+    "email": "buyer@factory.ru",
+    "full_name": "Иванов Иван",
+    "company_name": "ООО \"ПромСнаб\"",
+    "city_phone": "+7 (495) 123-45-67",
+    "mobile_phone": "+7 (916) 555-44-33",
+    "inn": "7701234567", "kpp": "770101001"
+  },
+  "lead": {
+    "request_type": "Монобрендовая | Мультибрендовая | Не определено",
+    "articles": ["S201-C16", "509-1720"],
+    "line_items": [{ "article": "S201-C16", "quantity": 20, "unit": "шт" }],
+    "total_positions": 2,
+    "detected_brands": ["ABB"]
+  },
+  "crm": {
+    "is_existing_company": true,
+    "curator_mop": "Иван Колесов",
+    "curator_moz": "Мария Петрова",
+    "suggested_reply": "Спасибо за заявку..."
+  },
+  "export": { "acknowledged": false },
+  "attachments": [{ "filename": "rekvizity.pdf", "download_url": "/api/attachments/..." }]
+}</code></pre>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="panel-header"><h3>Pipeline Status Flow</h3></div>
+            <div class="panel-body" style="font-size:13px;">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;">
+                <span class="badge" style="background:var(--blue-dim);color:var(--blue);">received</span>
+                <span style="color:var(--text-tertiary);">→</span>
+                <span class="badge" style="background:var(--purple-dim);color:var(--purple);">analyzed</span>
+                <span style="color:var(--text-tertiary);">→</span>
+                <span class="badge" style="background:var(--green-dim);color:var(--green);">ready_for_crm</span>
+                <span style="color:var(--text-tertiary);">|</span>
+                <span class="badge" style="background:var(--rose-dim);color:var(--rose);">ignored_spam</span>
+                <span style="color:var(--text-tertiary);">|</span>
+                <span class="badge" style="background:var(--orange-dim);color:var(--orange);">needs_clarification</span>
+                <span style="color:var(--text-tertiary);">|</span>
+                <span class="badge" style="background:var(--text-tertiary);color:var(--text-primary);">review</span>
+              </div>
+              <div style="margin-top:16px;color:var(--text-secondary);">
+                <p style="margin:4px 0;"><strong>ready_for_crm</strong> — письмо разобрано, готово к передаче в CRM</p>
+                <p style="margin:4px 0;"><strong>ignored_spam</strong> — автоматически отфильтровано как спам</p>
+                <p style="margin:4px 0;"><strong>needs_clarification</strong> — не хватает данных (нет реквизитов, неизвестный отправитель)</p>
+                <p style="margin:4px 0;"><strong>review</strong> — требует ручной модерации</p>
+              </div>
+            </div>
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-import { mkdirSync } from "node:fs";
+import { mkdirSync, readFileSync, existsSync } from "node:fs";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
@@ -142,9 +142,18 @@ class DetectionKnowledgeBase {
         confidence REAL NOT NULL DEFAULT 0,
         created_at TEXT NOT NULL
       );
+
+      CREATE TABLE IF NOT EXISTS own_brands (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        name TEXT NOT NULL UNIQUE,
+        notes TEXT DEFAULT '',
+        is_active INTEGER NOT NULL DEFAULT 1
+      );
     `);
 
     this.seedDefaults();
+    this.seedOwnBrands();
+    this.seedBrandCatalog();
     this.migrateLegacyRules();
   }
 
@@ -195,6 +204,104 @@ class DetectionKnowledgeBase {
     for (const field of DEFAULT_FIELD_PATTERNS) {
       insertField.run(field.fieldName, field.pattern, field.priority, field.fieldName, field.pattern);
     }
+  }
+
+  seedOwnBrands() {
+    const defaults = [
+      "siderus", "сидерус", "klvrt", "коловрат",
+      "ersab2b", "ersa b2b", "ersa"
+    ];
+    const insert = this.db.prepare(`
+      INSERT INTO own_brands (name) SELECT ?
+      WHERE NOT EXISTS (SELECT 1 FROM own_brands WHERE name = ?)
+    `);
+    for (const name of defaults) {
+      insert.run(name, name);
+    }
+  }
+
+  seedBrandCatalog() {
+    const catalogPath = path.join(this.dataDir, "brand-catalog.json");
+    if (!existsSync(catalogPath)) return;
+    try {
+      const brands = JSON.parse(readFileSync(catalogPath, "utf8"));
+      const result = this.importBrandCatalog(brands);
+      if (result.added > 0) {
+        console.log(`[detection-kb] Brand catalog: +${result.added} aliases (${result.total} total)`);
+      }
+    } catch (err) {
+      console.error("[detection-kb] Failed to seed brand catalog:", err.message);
+    }
+  }
+
+  getOwnBrands() {
+    return this.db.prepare("SELECT * FROM own_brands WHERE is_active = 1 ORDER BY name").all();
+  }
+
+  getOwnBrandNames() {
+    return new Set(
+      this.db.prepare("SELECT name FROM own_brands WHERE is_active = 1").all()
+        .map((row) => row.name.toLowerCase())
+    );
+  }
+
+  addOwnBrand(payload) {
+    const name = String(payload.name || "").trim().toLowerCase();
+    if (!name) return null;
+    const statement = this.db.prepare(`
+      INSERT INTO own_brands (name, notes) VALUES (?, ?)
+      ON CONFLICT(name) DO UPDATE SET is_active = 1, notes = excluded.notes
+    `);
+    statement.run(name, payload.notes || "");
+    return this.db.prepare("SELECT * FROM own_brands WHERE name = ?").get(name);
+  }
+
+  deactivateOwnBrand(id) {
+    this.db.prepare("UPDATE own_brands SET is_active = 0 WHERE id = ?").run(Number(id));
+    return { id, deactivated: true };
+  }
+
+  isOwnBrand(brandName) {
+    const lowered = String(brandName || "").toLowerCase();
+    return this.getOwnBrandNames().has(lowered);
+  }
+
+  filterOwnBrands(brands) {
+    const ownNames = this.getOwnBrandNames();
+    return (brands || []).filter((b) => !ownNames.has(String(b).toLowerCase()));
+  }
+
+  importBrandCatalog(brands) {
+    const insertAlias = this.db.prepare(`
+      INSERT INTO brand_aliases (canonical_brand, alias)
+      SELECT ?, ?
+      WHERE NOT EXISTS (
+        SELECT 1 FROM brand_aliases WHERE canonical_brand = ? AND alias = ?
+      )
+    `);
+    let added = 0;
+    let skipped = 0;
+    for (const brand of brands) {
+      const canonical = String(brand.canonical || "").trim();
+      if (!canonical) continue;
+      for (const alias of (brand.aliases || [])) {
+        const a = String(alias || "").trim().toLowerCase();
+        if (!a || a.length < 2) continue;
+        const result = insertAlias.run(canonical, a, canonical, a);
+        if (Number(result.changes) > 0) {
+          added++;
+        } else {
+          skipped++;
+        }
+      }
+    }
+    return { added, skipped, total: this.db.prepare("SELECT COUNT(*) AS count FROM brand_aliases WHERE is_active = 1").get().count };
+  }
+
+  clearBrandAliases() {
+    const count = this.db.prepare("SELECT COUNT(*) AS count FROM brand_aliases WHERE is_active = 1").get().count;
+    this.db.prepare("UPDATE brand_aliases SET is_active = 0").run();
+    return { deactivated: count };
   }
 
   migrateLegacyRules() {
@@ -293,6 +400,7 @@ class DetectionKnowledgeBase {
       brandAliasCount: this.db.prepare("SELECT COUNT(*) AS count FROM brand_aliases WHERE is_active = 1").get().count,
       senderProfileCount: this.db.prepare("SELECT COUNT(*) AS count FROM sender_profiles WHERE is_active = 1").get().count,
       fieldPatternCount: this.db.prepare("SELECT COUNT(*) AS count FROM field_patterns WHERE is_active = 1").get().count,
+      ownBrandCount: this.db.prepare("SELECT COUNT(*) AS count FROM own_brands WHERE is_active = 1").get().count,
       corpusCount: this.db.prepare("SELECT COUNT(*) AS count FROM message_corpus").get().count
     };
   }
@@ -366,18 +474,32 @@ class DetectionKnowledgeBase {
       confidence: Number(confidence.toFixed(2)),
       scores,
       matchedRules: matchedRules.slice(0, 12),
-      detectedBrands: this.detectBrands(scopes.all, projectBrands)
+      detectedBrands: this.detectBrands([scopes.subject, scopes.body, scopes.attachment].join("\n"), projectBrands)
     };
   }
 
   detectBrands(text, projectBrands = []) {
     const lowered = String(text || "").toLowerCase();
+    const padded = ` ${lowered} `;
     const aliases = this.getBrandAliases();
     const matched = aliases
-      .filter((entry) => lowered.includes(entry.alias.toLowerCase()))
+      .filter((entry) => {
+        const alias = entry.alias.toLowerCase();
+        // Short aliases (< 4 chars like "ilt", "smc", "abb") require word boundary
+        if (alias.length < 4) {
+          return new RegExp(`\\b${escapeRegex(alias)}\\b`, "i").test(lowered);
+        }
+        return padded.includes(alias);
+      })
       .map((entry) => entry.canonical_brand);
 
-    const projectMatched = (projectBrands || []).filter((brand) => lowered.includes(String(brand).toLowerCase()));
+    const projectMatched = (projectBrands || []).filter((brand) => {
+      const b = String(brand).toLowerCase();
+      if (b.length < 4) {
+        return new RegExp(`\\b${escapeRegex(b)}\\b`, "i").test(lowered);
+      }
+      return padded.includes(b);
+    });
     return [...new Set([...matched, ...projectMatched])];
   }
 
@@ -504,6 +626,10 @@ function decideLabel(scores) {
 
 function getDomain(fromEmail) {
   return String(fromEmail || "").split("@")[1]?.toLowerCase().trim() || "";
+}
+
+function escapeRegex(str) {
+  return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
 }
 
 export const detectionKb = new DetectionKnowledgeBase();

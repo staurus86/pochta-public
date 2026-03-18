@@ -1,0 +1,2623 @@
+[
+  {
+    "canonical": "DODGE",
+    "ws_name": "DODGE",
+    "aliases": [
+      "dodge"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "SICK",
+    "ws_name": "SICK",
+    "aliases": [
+      "sick"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Parker",
+    "ws_name": "Parker",
+    "aliases": [
+      "parker"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Alfred Heyd",
+    "ws_name": "Alfred Heyd",
+    "aliases": [
+      "alfred heyd",
+      "alfred-heyd",
+      "alfredheyd"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "LINCOLN (SKF)",
+    "ws_name": "LINCOLN",
+    "aliases": [
+      "lincoln",
+      "lincoln (skf)",
+      "lincoln vogel lubrication",
+      "lincoln(skf)",
+      "lincoln-vogel-lubrication"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "SMC",
+    "ws_name": "SMC",
+    "aliases": [
+      "smc"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "FAG",
+    "ws_name": "FAG",
+    "aliases": [
+      "fag"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Festo",
+    "ws_name": "Festo",
+    "aliases": [
+      "festo"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "ENDRESS+HAUSER",
+    "ws_name": "ENDRESS HAUSER",
+    "aliases": [
+      "endress hauser",
+      "endress plus hauser",
+      "endress+hauser",
+      "endress-hauser"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "LENZE",
+    "ws_name": "LENZE",
+    "aliases": [
+      "lenze"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "SEW-EURODRIVE",
+    "ws_name": "SEW EURODRIVE",
+    "aliases": [
+      "sew eurodrive",
+      "sew-eurodrive"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "AMETEK",
+    "ws_name": "AMETEK",
+    "aliases": [
+      "ametek",
+      "ametek sensors test calibration",
+      "ametek-sensors-test-calibration"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "THERMO FISHER SCIENTIFIC",
+    "ws_name": "THERMO FISHER SCIENTIFIC",
+    "aliases": [
+      "thermo fisher scientific",
+      "thermo-fisher-scientific",
+      "thermofisherscientific"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "FLOWSERVE",
+    "ws_name": "FLOWSERVE",
+    "aliases": [
+      "flowserve"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "SPECTRO",
+    "ws_name": "SPECTRO",
+    "aliases": [
+      "spectro"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "LEWA (OEM)",
+    "ws_name": "LEWA",
+    "aliases": [
+      "lewa",
+      "lewa (oem)",
+      "lewa(oem)"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "INTERROLL",
+    "ws_name": "INTERROLL",
+    "aliases": [
+      "interroll"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "CONDUCTIX-WAMPFLER",
+    "ws_name": "CONDUCTIX WAMPFLER",
+    "aliases": [
+      "conductix wampfler",
+      "conductix-wampfler"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "A-RYUNG MACHINERY",
+    "ws_name": "A RYUNG",
+    "aliases": [
+      "a ryung",
+      "a ryung machinery",
+      "a-ryung machinery",
+      "a-ryung-machinery",
+      "a-ryungmachinery"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "BRAUN",
+    "ws_name": "BRAUN",
+    "aliases": [
+      "braun"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "ABB",
+    "ws_name": "ABB",
+    "aliases": [
+      "abb",
+      "abb motor",
+      "abb-motor"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "ALPMA",
+    "ws_name": "ALPMA",
+    "aliases": [
+      "alpma"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Danfoss",
+    "ws_name": "Danfoss",
+    "aliases": [
+      "danfoss"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "AMTEK",
+    "ws_name": "AMTEK",
+    "aliases": [
+      "amtek"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Schneider Electric",
+    "ws_name": "Schneider Electric",
+    "aliases": [
+      "schneider electric",
+      "schneider-electric",
+      "schneiderelectric"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Honeywell",
+    "ws_name": "Honeywell",
+    "aliases": [
+      "honeywell"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Phoenix Contact",
+    "ws_name": "Phoenix Contact",
+    "aliases": [
+      "phoenix contact",
+      "phoenix-contact",
+      "phoenixcontact"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Mitutoyo",
+    "ws_name": "Mitutoyo",
+    "aliases": [
+      "mitutoyo"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Heidenhain",
+    "ws_name": "Heidenhain",
+    "aliases": [
+      "heidenhain"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Bosch Rexroth",
+    "ws_name": "Bosch Rexroth",
+    "aliases": [
+      "bosch rexroth",
+      "bosch-rexroth",
+      "boschrexroth"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "YOKOGAWA",
+    "ws_name": "YOKOGAWA",
+    "aliases": [
+      "yokogawa"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "YASKAWA",
+    "ws_name": "YASKAWA",
+    "aliases": [
+      "yaskawa"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Rosemount",
+    "ws_name": "Rosemount",
+    "aliases": [
+      "rosemount"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Artech",
+    "ws_name": "Artech",
+    "aliases": [
+      "artech"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "AIRTAC",
+    "ws_name": "AIRTAC",
+    "aliases": [
+      "airtac"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Beckhoff",
+    "ws_name": "Beckhoff",
+    "aliases": [
+      "beckhoff"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Delta Electronics",
+    "ws_name": "Delta Electronics",
+    "aliases": [
+      "delta electronics",
+      "delta-electronics",
+      "deltaelectronics"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "BOPLA",
+    "ws_name": "BOPLA",
+    "aliases": [
+      "bopla"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "HAWE",
+    "ws_name": "HAWE",
+    "aliases": [
+      "hawe"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "CATERPILLAR",
+    "ws_name": "CATERPILLAR",
+    "aliases": [
+      "caterpillar"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Pepperl+Fuchs",
+    "ws_name": "Pepperl Fuchs",
+    "aliases": [
+      "pepperl fuchs",
+      "pepperl plus fuchs",
+      "pepperl+fuchs",
+      "pepperl-fuchs"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Lanbao",
+    "ws_name": "Lanbao",
+    "aliases": [
+      "lanbao"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Turck",
+    "ws_name": "Turck",
+    "aliases": [
+      "turck"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Nordson",
+    "ws_name": "Nordson",
+    "aliases": [
+      "nordson"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Micro Motion",
+    "ws_name": "Micro Motion",
+    "aliases": [
+      "micro motion",
+      "micro-motion",
+      "micromotion"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Bently Nevada",
+    "ws_name": "Bently Nevada",
+    "aliases": [
+      "bently nevada",
+      "bently-nevada",
+      "bentlynevada"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "CICSA",
+    "ws_name": "CICSA",
+    "aliases": [
+      "cicsa"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Clarex",
+    "ws_name": "Clarex",
+    "aliases": [
+      "clarex"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Teledyne",
+    "ws_name": "Teledyne",
+    "aliases": [
+      "teledyne",
+      "teledyne isco",
+      "teledyne-isco"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Fuji Electric",
+    "ws_name": "Fuji Electric",
+    "aliases": [
+      "fuji electric",
+      "fuji-electric",
+      "fujielectric"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Masoneilan",
+    "ws_name": "Masoneilan",
+    "aliases": [
+      "masoneilan"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Minco",
+    "ws_name": "Minco",
+    "aliases": [
+      "minco"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Interpump",
+    "ws_name": "Interpump",
+    "aliases": [
+      "interpump"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Curtiss Wright",
+    "ws_name": "Curtiss Wright",
+    "aliases": [
+      "curtiss wright",
+      "curtiss-wright",
+      "curtisswright"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Faulhaber",
+    "ws_name": "Faulhaber",
+    "aliases": [
+      "faulhaber"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Wittenstein",
+    "ws_name": "Wittenstein",
+    "aliases": [
+      "wittenstein"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "ABB Motor",
+    "ws_name": "ABB Motor",
+    "aliases": [
+      "abb motor",
+      "abb-motor",
+      "abbmotor"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Diesse",
+    "ws_name": "Diesse",
+    "aliases": [
+      "diesse"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Sterling SIHI",
+    "ws_name": "Sterling SIHI",
+    "aliases": [
+      "sterling sihi",
+      "sterling-sihi",
+      "sterlingsihi"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Steute",
+    "ws_name": "Steute",
+    "aliases": [
+      "steute"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "TE Instruments",
+    "ws_name": "TE Instruments",
+    "aliases": [
+      "te instruments",
+      "te-instruments",
+      "teinstruments"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Petersime",
+    "ws_name": "Petersime",
+    "aliases": [
+      "petersime"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Michell instruments",
+    "ws_name": "Michell instruments",
+    "aliases": [
+      "michell instruments",
+      "michell instruments easidew",
+      "michell-instruments-easidew",
+      "michellinstruments"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Goyen Mecair",
+    "ws_name": "Goyen",
+    "aliases": [
+      "goyen",
+      "goyen mecair",
+      "goyen mecair goyen mecair",
+      "goyen-mecair-goyen-mecair",
+      "goyenmecair"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Nachi Fujikoshi",
+    "ws_name": "Nachi Fujikoshi",
+    "aliases": [
+      "nachi fujikoshi",
+      "nachi-fujikoshi",
+      "nachifujikoshi"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Etipack",
+    "ws_name": "Etipack",
+    "aliases": [
+      "etipack"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Officine Orobiche",
+    "ws_name": "Officine Orobiche",
+    "aliases": [
+      "officine orobiche",
+      "officine-orobiche",
+      "officineorobiche"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Tedima",
+    "ws_name": "Tedima",
+    "aliases": [
+      "tedima"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Orbit Merret",
+    "ws_name": "Orbit Merret",
+    "aliases": [
+      "orbit merret",
+      "orbit-merret",
+      "orbitmerret"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Kroll & Ziller",
+    "ws_name": "Kroll Ziller",
+    "aliases": [
+      "kroll  and  ziller",
+      "kroll & ziller",
+      "kroll ziller",
+      "kroll&ziller",
+      "kroll-ziller"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Friedrichs Filtersysteme",
+    "ws_name": "Friedrichs Filtersysteme",
+    "aliases": [
+      "friedrichs filtersysteme",
+      "friedrichs-filtersysteme",
+      "friedrichsfiltersysteme"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Drive Systems",
+    "ws_name": "Drive Systems",
+    "aliases": [
+      "drive systems",
+      "drive-systems",
+      "drivesystems"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "VEGA",
+    "ws_name": "VEGA",
+    "aliases": [
+      "vega"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "SERA",
+    "ws_name": "SERA",
+    "aliases": [
+      "sera",
+      "sera prodos",
+      "sera-prodos"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Helios",
+    "ws_name": "Helios",
+    "aliases": [
+      "helios",
+      "helios ventilatoren",
+      "helios-ventilatoren"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "GLOBE",
+    "ws_name": "GLOBE",
+    "aliases": [
+      "globe",
+      "globe airmotors",
+      "globe-airmotors"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Comet",
+    "ws_name": "Comet",
+    "aliases": [
+      "comet",
+      "cometo"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Hamilton",
+    "ws_name": "Hamilton",
+    "aliases": [
+      "hamilton"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "BST",
+    "ws_name": "BST",
+    "aliases": [
+      "bst",
+      "bst eltromat",
+      "bst-eltromat"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "PEI / P.E.I.",
+    "ws_name": "PEI",
+    "aliases": [
+      "pei",
+      "pei / p.e.i.",
+      "pei p e i",
+      "pei-p-e-i",
+      "pei/p.e.i."
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Dellner Bubenzer",
+    "ws_name": "Dellner",
+    "aliases": [
+      "dellner",
+      "dellner bubenzer",
+      "dellner-bubenzer",
+      "dellnerbubenzer"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "PROMINENT",
+    "ws_name": "PROMINENT",
+    "aliases": [
+      "prominent"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "JUMO",
+    "ws_name": "JUMO",
+    "aliases": [
+      "jumo"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Esco",
+    "ws_name": "Esco",
+    "aliases": [
+      "esco"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "METTLER TOLEDO",
+    "ws_name": "METTLER TOLEDO",
+    "aliases": [
+      "mettler toledo",
+      "mettler-toledo",
+      "mettlertoledo"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "DUKANE",
+    "ws_name": "DUKANE",
+    "aliases": [
+      "dukane"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "FIKE",
+    "ws_name": "FIKE",
+    "aliases": [
+      "fike"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "WEISHAUPT",
+    "ws_name": "WEISHAUPT",
+    "aliases": [
+      "weishaupt"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "KNF",
+    "ws_name": "KNF",
+    "aliases": [
+      "knf",
+      "knf neuberger pumps",
+      "knf-neuberger-pumps"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Backer",
+    "ws_name": "Backer",
+    "aliases": [
+      "backer"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "DMN",
+    "ws_name": "DMN",
+    "aliases": [
+      "dmn"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "STABILUS",
+    "ws_name": "STABILUS",
+    "aliases": [
+      "stabilus"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "NIDEC",
+    "ws_name": "NIDEC",
+    "aliases": [
+      "nidec",
+      "nidec motor",
+      "nidec-motor"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ERSA",
+    "ws_name": "ERSA",
+    "aliases": [
+      "ersa"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "RECO",
+    "ws_name": "RECO",
+    "aliases": [
+      "reco"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ILT / UNIFIL",
+    "ws_name": "ILT",
+    "aliases": [
+      "ilt",
+      "ilt / unifil",
+      "ilt unifil",
+      "ilt-unifil",
+      "ilt/unifil"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ELTRA",
+    "ws_name": "ELTRA",
+    "aliases": [
+      "eltra"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Erichsen",
+    "ws_name": "Erichsen",
+    "aliases": [
+      "erichsen"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Fife",
+    "ws_name": "Fife",
+    "aliases": [
+      "fife"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Procon Trommelmotor",
+    "ws_name": "Procon",
+    "aliases": [
+      "procon",
+      "procon trommelmotor",
+      "procon-trommelmotor",
+      "procontrommelmotor"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Evoguard",
+    "ws_name": "Evoguard",
+    "aliases": [
+      "evoguard"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "PRESSOL",
+    "ws_name": "PRESSOL",
+    "aliases": [
+      "pressol"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "WALDNER",
+    "ws_name": "WALDNER",
+    "aliases": [
+      "waldner"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "FOTOELEKTRIK PAULY",
+    "ws_name": "FOTOELEKTRIK",
+    "aliases": [
+      "fotoelektrik",
+      "fotoelektrik pauly",
+      "fotoelektrik-pauly",
+      "fotoelektrikpauly"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "AWH ARMATURENWERK HOETENSLEBEN",
+    "ws_name": "AWH",
+    "aliases": [
+      "awh",
+      "awh armaturenwerk hoetensleben",
+      "awharmaturenwerkhoetensleben"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ROBOPAC",
+    "ws_name": "ROBOPAC",
+    "aliases": [
+      "robopac"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ELSO",
+    "ws_name": "ELSO",
+    "aliases": [
+      "elso",
+      "elso elbe",
+      "elso-elbe"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "M PUMPS",
+    "ws_name": "M PUMPS",
+    "aliases": [
+      "m pumps",
+      "m-pumps",
+      "mpumps"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "GE Grid Solutions",
+    "ws_name": "GE Grid",
+    "aliases": [
+      "ge grid",
+      "ge grid solutions",
+      "ge-grid-solutions",
+      "gegridsolutions"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "TIMMER",
+    "ws_name": "TIMMER",
+    "aliases": [
+      "timmer"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Anton Paar",
+    "ws_name": "Anton Paar",
+    "aliases": [
+      "anton paar",
+      "anton-paar",
+      "antonpaar"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "BOFA",
+    "ws_name": "BOFA",
+    "aliases": [
+      "bofa",
+      "bofab"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "KIESEL",
+    "ws_name": "KIESEL",
+    "aliases": [
+      "kiesel"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "GEMUE",
+    "ws_name": "GEMUE",
+    "aliases": [
+      "gemue"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "GIRARD TRANSMISSIONS",
+    "ws_name": "GIRARD TRANSMISSIONS",
+    "aliases": [
+      "girard transmissions",
+      "girard-transmissions",
+      "girardtransmissions"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "KRACHT",
+    "ws_name": "KRACHT",
+    "aliases": [
+      "kracht"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ELOBAU",
+    "ws_name": "ELOBAU",
+    "aliases": [
+      "elobau"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "KUEBLER",
+    "ws_name": "KUEBLER",
+    "aliases": [
+      "kuebler",
+      "kuebler k bler",
+      "kuebler-k-bler"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Autotech Controls",
+    "ws_name": "Autotech",
+    "aliases": [
+      "autotech",
+      "autotech controls",
+      "autotech controls avg",
+      "autotech-controls-avg",
+      "autotechcontrols"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "FAULHABER",
+    "ws_name": "FAULHABER",
+    "aliases": [
+      "faulhaber"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Rotronic",
+    "ws_name": "Rotronic",
+    "aliases": [
+      "rotronic"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Glentek",
+    "ws_name": "Glentek",
+    "aliases": [
+      "glentek"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "GARLOCK",
+    "ws_name": "GARLOCK",
+    "aliases": [
+      "garlock"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Hepco",
+    "ws_name": "Hepco",
+    "aliases": [
+      "hepco"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "GO Regulator",
+    "ws_name": "GO Regulator",
+    "aliases": [
+      "go regulator",
+      "go-regulator",
+      "goregulator"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "HNP Mikrosysteme",
+    "ws_name": "HNP",
+    "aliases": [
+      "hnp",
+      "hnp mikrosysteme",
+      "hnp-mikrosysteme",
+      "hnpmikrosysteme"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Kason Industries",
+    "ws_name": "Kason",
+    "aliases": [
+      "kason",
+      "kason industries",
+      "kason-industries",
+      "kasonindustries"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "BIJUR DELIMON",
+    "ws_name": "BIJUR DELIMON",
+    "aliases": [
+      "bijur delimon",
+      "bijurdelimon",
+      "delimon bijur delimon",
+      "delimon-bijur-delimon"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "KENDRION",
+    "ws_name": "KENDRION",
+    "aliases": [
+      "kendrion"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "MAXIMATOR",
+    "ws_name": "MAXIMATOR",
+    "aliases": [
+      "maximator"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Gold Probe",
+    "ws_name": "Gold Probe",
+    "aliases": [
+      "gold probe",
+      "gold-probe",
+      "goldprobe"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "DEBEM",
+    "ws_name": "DEBEM",
+    "aliases": [
+      "debem",
+      "debem srl",
+      "debem-srl"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "SPECK PUMPEN",
+    "ws_name": "SPECK PUMPEN",
+    "aliases": [
+      "speck pumpen",
+      "speck-pumpen",
+      "speckpumpen"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Dr. Brandt",
+    "ws_name": "Dr Brandt",
+    "aliases": [
+      "dr brandt",
+      "dr-brandt",
+      "dr. brandt",
+      "dr.brandt"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "TURIAN",
+    "ws_name": "TURIAN",
+    "aliases": [
+      "turian"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Grafotec",
+    "ws_name": "Grafotec",
+    "aliases": [
+      "grafotec"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Bekaert",
+    "ws_name": "Bekaert",
+    "aliases": [
+      "bekaert"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "TOOL-TEMP",
+    "ws_name": "TOOL TEMP",
+    "aliases": [
+      "tool temp",
+      "tool-temp"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "RULMECA",
+    "ws_name": "RULMECA",
+    "aliases": [
+      "rulmeca"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Rotary Power",
+    "ws_name": "Rotary Power",
+    "aliases": [
+      "rotary power",
+      "rotary-power",
+      "rotarypower"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "GUEDEL",
+    "ws_name": "GUEDEL",
+    "aliases": [
+      "guedel"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "SCHIMPF",
+    "ws_name": "SCHIMPF",
+    "aliases": [
+      "schimpf"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "R. STAHL SCHALTGERAETE",
+    "ws_name": "R STAHL",
+    "aliases": [
+      "r stahl",
+      "r-stahl",
+      "r. stahl schaltgeraete",
+      "r.stahlschaltgeraete"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "SCHISCHEK",
+    "ws_name": "SCHISCHEK",
+    "aliases": [
+      "schischek"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "END-ARMATUREN",
+    "ws_name": "END ARMATUREN",
+    "aliases": [
+      "end armaturen",
+      "end-armaturen"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "GWB",
+    "ws_name": "GWB",
+    "aliases": [
+      "gwb"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Boschert",
+    "ws_name": "Boschert",
+    "aliases": [
+      "boschert"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Hardy Process Solutions",
+    "ws_name": "Hardy Process Solutions",
+    "aliases": [
+      "hardy process solutions",
+      "hardy-process-solutions",
+      "hardyprocesssolutions"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "INDAG",
+    "ws_name": "INDAG",
+    "aliases": [
+      "indag",
+      "indag pouch",
+      "indag-pouch"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Silea",
+    "ws_name": "Silea",
+    "aliases": [
+      "silea"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Burster Präzisionsmesstechnik",
+    "ws_name": "Burster",
+    "aliases": [
+      "burster",
+      "burster pr zisionsmesstechnik",
+      "burster präzisionsmesstechnik",
+      "burster-pr-zisionsmesstechnik",
+      "bursterpräzisionsmesstechnik"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ANDERSON-NEGELE",
+    "ws_name": "ANDERSON NEGELE",
+    "aliases": [
+      "anderson negele",
+      "anderson-negele"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Brecoflex",
+    "ws_name": "Brecoflex",
+    "aliases": [
+      "brecoflex"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Henke Sass Wolf",
+    "ws_name": "Henke Sass",
+    "aliases": [
+      "henke sass",
+      "henke sass wolf",
+      "henke-sass-wolf",
+      "henkesasswolf"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Eriez Manufacturing",
+    "ws_name": "Eriez",
+    "aliases": [
+      "eriez",
+      "eriez manufacturing",
+      "eriez-manufacturing",
+      "eriezmanufacturing"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Hydra Rig (от NOV)",
+    "ws_name": "Hydra Rig",
+    "aliases": [
+      "hydra rig",
+      "hydra rig (от nov)",
+      "hydra-rig",
+      "hydrarig(отnov)"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "CyTec Systems",
+    "ws_name": "CyTec",
+    "aliases": [
+      "cytec",
+      "cytec systems",
+      "cytec-systems",
+      "cytecsystems"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "PETERSIME",
+    "ws_name": "PETERSIME",
+    "aliases": [
+      "petersime"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Rothe Erde",
+    "ws_name": "Rothe Erde",
+    "aliases": [
+      "rothe",
+      "rothe erde",
+      "rotheerde"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "UNIMEC",
+    "ws_name": "UNIMEC",
+    "aliases": [
+      "unimec"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "VUOTOTECNICA",
+    "ws_name": "VUOTOTECNICA",
+    "aliases": [
+      "vuototecnica"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Camille Bauer",
+    "ws_name": "Camille Bauer",
+    "aliases": [
+      "camille bauer",
+      "camille-bauer",
+      "camillebauer"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "IDEAL-Werk",
+    "ws_name": "IDEAL Werk",
+    "aliases": [
+      "ideal werk",
+      "ideal-werk"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "AGATHON",
+    "ws_name": "AGATHON",
+    "aliases": [
+      "agathon"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Bettcher",
+    "ws_name": "Bettcher",
+    "aliases": [
+      "bettcher"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "BREVETTI STENDALTO",
+    "ws_name": "BREVETTI STENDALTO",
+    "aliases": [
+      "brevetti stendalto",
+      "brevetti-stendalto",
+      "brevettistendalto"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "INMARA",
+    "ws_name": "INMARA",
+    "aliases": [
+      "inmara"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Insert Deal",
+    "ws_name": "Insert Deal",
+    "aliases": [
+      "insert deal",
+      "insert-deal",
+      "insertdeal"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "JKF Industri",
+    "ws_name": "JKF Industri",
+    "aliases": [
+      "jkf industri",
+      "jkf-industri",
+      "jkfindustri"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Jordan Valve",
+    "ws_name": "Jordan Valve",
+    "aliases": [
+      "jordan valve",
+      "jordan-valve",
+      "jordanvalve"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "BARDIANI VALVOLE",
+    "ws_name": "BARDIANI VALVOLE",
+    "aliases": [
+      "bardiani valvole",
+      "bardiani-valvole",
+      "bardianivalvole"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "BADGER METER",
+    "ws_name": "BADGER METER",
+    "aliases": [
+      "badger meter",
+      "badger-meter",
+      "badgermeter"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ASEPTOMAG",
+    "ws_name": "ASEPTOMAG",
+    "aliases": [
+      "aseptomag"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "MAGNET-SCHULTZ",
+    "ws_name": "MAGNET SCHULTZ",
+    "aliases": [
+      "magnet schultz",
+      "magnet-schultz"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Ampco Pumps",
+    "ws_name": "Ampco",
+    "aliases": [
+      "ampco",
+      "ampco pumps",
+      "ampco-pumps",
+      "ampcopumps"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Karl Georg",
+    "ws_name": "Karl Georg",
+    "aliases": [
+      "karl georg",
+      "karl-georg",
+      "karlgeorg"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "KSH",
+    "ws_name": "KSH",
+    "aliases": [
+      "ksh"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "LIEBHERR",
+    "ws_name": "LIEBHERR",
+    "aliases": [
+      "liebherr"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Hendor Pompen",
+    "ws_name": "Hendor",
+    "aliases": [
+      "hendor",
+      "hendor pompen",
+      "hendor-pompen",
+      "hendorpompen"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "MAZURCZAK",
+    "ws_name": "MAZURCZAK",
+    "aliases": [
+      "mazurczak"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "TANDLER",
+    "ws_name": "TANDLER",
+    "aliases": [
+      "tandler"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "TAKEX",
+    "ws_name": "TAKEX",
+    "aliases": [
+      "takex"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "MONO PUMPS",
+    "ws_name": "MONO PUMPS",
+    "aliases": [
+      "mono pumps",
+      "mono pumps ezstrip",
+      "mono-pumps-ezstrip",
+      "monopumps"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ASM SENSOR",
+    "ws_name": "ASM SENSOR",
+    "aliases": [
+      "asm sensor",
+      "asm-sensor",
+      "asmsensor"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "LTA Lufttechnik",
+    "ws_name": "LTA Lufttechnik",
+    "aliases": [
+      "lta lufttechnik",
+      "lta-lufttechnik",
+      "ltalufttechnik"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "SILGAN",
+    "ws_name": "SILGAN",
+    "aliases": [
+      "silgan",
+      "silgan closures",
+      "silgan-closures"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "AFS AIRFILTER SYSTEME",
+    "ws_name": "AFS AIRFILTER SYSTEME",
+    "aliases": [
+      "afs airfilter systeme",
+      "afs-airfilter-systeme",
+      "afsairfiltersysteme"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "AGRICHEMA",
+    "ws_name": "AGRICHEMA",
+    "aliases": [
+      "agrichema"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ALWAYSE Engineering",
+    "ws_name": "ALWAYSE",
+    "aliases": [
+      "alwayse",
+      "alwayse engineering",
+      "alwayse-engineering",
+      "alwayseengineering"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "JAUDT Dosiertechnik Maschinenfabrik",
+    "ws_name": "JAUDT",
+    "aliases": [
+      "jaudt",
+      "jaudt dosiertechnik maschinenfabrik",
+      "jaudt-dosiertechnik-maschinenfabrik",
+      "jaudtdosiertechnikmaschinenfabrik"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "NELES",
+    "ws_name": "NELES",
+    "aliases": [
+      "neles"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "NILFISK",
+    "ws_name": "NILFISK",
+    "aliases": [
+      "nilfisk"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ASA-RT",
+    "ws_name": "ASA RT",
+    "aliases": [
+      "asa rt",
+      "asa-rt",
+      "brovind vibratori brovind elettronica",
+      "brovind-vibratori-brovind-elettronica"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Orbinox",
+    "ws_name": "Orbinox",
+    "aliases": [
+      "orbinox"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "AEP transducers",
+    "ws_name": "AEP transducers",
+    "aliases": [
+      "aep transducers",
+      "aep-transducers",
+      "aeptransducers"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Garioni Naval",
+    "ws_name": "Garioni Naval",
+    "aliases": [
+      "garioni naval",
+      "garioni-naval",
+      "garioninaval"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "proMtec",
+    "ws_name": "proMtec",
+    "aliases": [
+      "promtec"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "BUEHLER TECHNOLOGIES",
+    "ws_name": "BUEHLER TECHNOLOGIES",
+    "aliases": [
+      "buehler technologies",
+      "buehlertechnologies",
+      "buhler technologies",
+      "buhler-technologies"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ELSTO",
+    "ws_name": "ELSTO",
+    "aliases": [
+      "elsto"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "PILZ",
+    "ws_name": "PILZ",
+    "aliases": [
+      "pilz"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "Wuerschum",
+    "ws_name": "Wuerschum",
+    "aliases": [
+      "wuerschum"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Schmidbauer",
+    "ws_name": "Schmidbauer",
+    "aliases": [
+      "schmidbauer"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "SERFILCO",
+    "ws_name": "SERFILCO",
+    "aliases": [
+      "serfilco"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "REITZ VENTILATOREN",
+    "ws_name": "REITZ VENTILATOREN",
+    "aliases": [
+      "reitz ventilatoren",
+      "reitz-ventilatoren",
+      "reitzventilatoren"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ITEC FRONTMATEC",
+    "ws_name": "FRONTMATEC",
+    "aliases": [
+      "frontmatec",
+      "itec food technology",
+      "itec frontmatec",
+      "itec-food-technology",
+      "itecfrontmatec"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "DYNALCO",
+    "ws_name": "DYNALCO",
+    "aliases": [
+      "dynalco"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "PLANONLIGHT",
+    "ws_name": "PLANONLIGHT",
+    "aliases": [
+      "planonlight"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "SMALL PRECISION TOOLS",
+    "ws_name": "SMALL PRECISION TOOLS",
+    "aliases": [
+      "small precision tools",
+      "small-precision-tools",
+      "smallprecisiontools"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "GUALAPACK",
+    "ws_name": "GUALAPACK",
+    "aliases": [
+      "gualapack"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "DAMKO Ventiltechnik",
+    "ws_name": "DAMKO",
+    "aliases": [
+      "damko",
+      "damko ventiltechnik",
+      "damko-ventiltechnik",
+      "damkoventiltechnik"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Fraser Anti-Static",
+    "ws_name": "Fraser Anti Static",
+    "aliases": [
+      "fraser anti static",
+      "fraser anti-static",
+      "fraser-anti-static",
+      "fraseranti-static"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "NBC ELETTRONICA",
+    "ws_name": "NBC ELETTRONICA",
+    "aliases": [
+      "nbc elettronica",
+      "nbc-elettronica",
+      "nbcelettronica"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Pressmair",
+    "ws_name": "Pressmair",
+    "aliases": [
+      "pressmair"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Prysmian Group",
+    "ws_name": "Prysmian Group",
+    "aliases": [
+      "prysmian group",
+      "prysmian-group",
+      "prysmiangroup"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "PAUL VAHLE",
+    "ws_name": "PAUL VAHLE",
+    "aliases": [
+      "paul vahle",
+      "paul-vahle",
+      "paulvahle"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Schmoll Maschinen",
+    "ws_name": "Schmoll Maschinen",
+    "aliases": [
+      "schmoll maschinen",
+      "schmoll-maschinen",
+      "schmollmaschinen"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "4B BRAIME",
+    "ws_name": "4B BRAIME",
+    "aliases": [
+      "4b braime",
+      "4b-braime",
+      "4bbraime"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "TELCO SYSTEMS",
+    "ws_name": "TELCO SYSTEMS",
+    "aliases": [
+      "telco",
+      "telco systems",
+      "telcosystems"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "GEORGII KOBOLD",
+    "ws_name": "GEORGII KOBOLD",
+    "aliases": [
+      "georgii kobold",
+      "georgii-kobold",
+      "georgiikobold"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "SIDEL",
+    "ws_name": "SIDEL",
+    "aliases": [
+      "sidel"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "WESTLOCK Controls",
+    "ws_name": "WESTLOCK Controls",
+    "aliases": [
+      "westlock controls",
+      "westlock-controls",
+      "westlockcontrols"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "MUELLER COAX",
+    "ws_name": "MUELLER COAX",
+    "aliases": [
+      "mueller coax",
+      "mueller m ller co ax",
+      "mueller-m-ller-co-ax",
+      "muellercoax"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "EM TECHNIK / EMTechnik",
+    "ws_name": "EMTechnik",
+    "aliases": [
+      "em technik / emtechnik",
+      "em technik emtechnik",
+      "em-technik-emtechnik",
+      "emtechnik",
+      "emtechnik/emtechnik"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "AHP MERKLE",
+    "ws_name": "AHP MERKLE",
+    "aliases": [
+      "ahp merkle",
+      "ahp-merkle",
+      "ahpmerkle"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Broquet",
+    "ws_name": "Broquet",
+    "aliases": [
+      "broquet"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "SKF",
+    "ws_name": "SKF",
+    "aliases": [
+      "skf"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "SPIRAX SARCO",
+    "ws_name": "SPIRAX SARCO",
+    "aliases": [
+      "spirax sarco",
+      "spirax-sarco",
+      "spiraxsarco"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Delbag",
+    "ws_name": "Delbag",
+    "aliases": [
+      "delbag"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "KELLER ITS",
+    "ws_name": "KELLER ITS",
+    "aliases": [
+      "keller its",
+      "keller its part of legris industries",
+      "keller-its-part-of-legris-industries",
+      "kellerits"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "WAYCON POSITIONSMESSTECHNIK",
+    "ws_name": "WAYCON POSITIONSMESSTECHNIK",
+    "aliases": [
+      "waycon positionsmesstechnik",
+      "waycon-positionsmesstechnik",
+      "wayconpositionsmesstechnik"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "STROJÍRNA KUKLENY",
+    "ws_name": "STROJIRNA KUKLENY",
+    "aliases": [
+      "strojirna kukleny",
+      "strojirna-kukleny",
+      "strojírna kukleny",
+      "strojírnakukleny"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "PCH ENGINEERING",
+    "ws_name": "PCH ENGINEERING",
+    "aliases": [
+      "pch engineering",
+      "pch-engineering",
+      "pchengineering"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "SUN-CONTROL-ANALYTIK",
+    "ws_name": "SUN CONTROL ANALYTIK",
+    "aliases": [
+      "sun control analytik",
+      "sun-control-analytik"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "OPTEK-DANULAT",
+    "ws_name": "OPTEK DANULAT",
+    "aliases": [
+      "optek danulat",
+      "optek-danulat"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ELET.CA",
+    "ws_name": "ELETCA",
+    "aliases": [
+      "elet.ca",
+      "eletca",
+      "eletca elet ca",
+      "eletca-elet-ca"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "FLUX PUMPEN",
+    "ws_name": "FLUX PUMPEN",
+    "aliases": [
+      "flux",
+      "flux pumpen",
+      "fluxpumpen"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Sulzer (OEM)",
+    "ws_name": "Sulzer",
+    "aliases": [
+      "sulzer",
+      "sulzer (oem)",
+      "sulzer(oem)"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "KWD Kupplungswerk",
+    "ws_name": "KWD Kupplungswerk",
+    "aliases": [
+      "kwd kupplungswerk",
+      "kwd-kupplungswerk",
+      "kwdkupplungswerk"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "M&C TECHGROUP",
+    "ws_name": "MC TECHGROUP",
+    "aliases": [
+      "m and c techgroup",
+      "m c techgroup",
+      "m&c techgroup",
+      "m&ctechgroup",
+      "m-c-techgroup",
+      "mc techgroup"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "KELLER HCW",
+    "ws_name": "KELLER HCW",
+    "aliases": [
+      "keller hcw",
+      "keller hcw part of legris industries",
+      "keller-hcw-part-of-legris-industries",
+      "kellerhcw"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Sumitomo",
+    "ws_name": "Sumitomo",
+    "aliases": [
+      "sumitomo"
+    ],
+    "manager": "Гапоненко"
+  },
+  {
+    "canonical": "TELEVES",
+    "ws_name": "TELEVES",
+    "aliases": [
+      "televes"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Tesi",
+    "ws_name": "Tesi",
+    "aliases": [
+      "tesi"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ULTRA POMPE",
+    "ws_name": "ULTRA POMPE",
+    "aliases": [
+      "ultra pompe",
+      "ultra-pompe",
+      "ultrapompe"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "United Process Controls",
+    "ws_name": "United Process Controls",
+    "aliases": [
+      "united process controls",
+      "united-process-controls",
+      "unitedprocesscontrols"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "SUEDMO",
+    "ws_name": "SUEDMO",
+    "aliases": [
+      "s dmo sudmo",
+      "s-dmo-sudmo",
+      "suedmo"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "THOMPSON VALVES",
+    "ws_name": "THOMPSON VALVES",
+    "aliases": [
+      "thompson valves",
+      "thompson-valves",
+      "thompsonvalves"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "FSG FERNSTEUERGERAETE",
+    "ws_name": "FSG FERNSTEUERGERAETE",
+    "aliases": [
+      "fsg fernsteuerger te kurt oelsch",
+      "fsg fernsteuergeraete",
+      "fsg-fernsteuerger-te-kurt-oelsch",
+      "fsgfernsteuergeraete"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Tread",
+    "ws_name": "Tread",
+    "aliases": [
+      "tread"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "VBC",
+    "ws_name": "VBC",
+    "aliases": [
+      "vbc"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Virto Cuccolini",
+    "ws_name": "Virto Cuccolini",
+    "aliases": [
+      "virto cuccolini",
+      "virto-cuccolini",
+      "virtocuccolini"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "FRANKE BEARINGS",
+    "ws_name": "FRANKE BEARINGS",
+    "aliases": [
+      "franke bearings",
+      "franke-bearings",
+      "frankebearings"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "KELLER MSR",
+    "ws_name": "KELLER MSR",
+    "aliases": [
+      "keller msr",
+      "keller msr part of legris industries",
+      "keller-msr-part-of-legris-industries",
+      "kellermsr"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "WeighPack",
+    "ws_name": "WeighPack",
+    "aliases": [
+      "weighpack"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Wangen Pumpen",
+    "ws_name": "Wangen Pumpen",
+    "aliases": [
+      "wangen pumpen",
+      "wangen-pumpen",
+      "wangenpumpen"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Fritsch Bakery",
+    "ws_name": "Fritsch Bakery",
+    "aliases": [
+      "fritsch",
+      "fritsch bakery",
+      "fritschbakery"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "FROMM PACKAGING",
+    "ws_name": "FROMM PACKAGING",
+    "aliases": [
+      "fromm packaging",
+      "fromm-packaging",
+      "frommpackaging"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Weber Sensors",
+    "ws_name": "Weber Sensors",
+    "aliases": [
+      "weber sensors",
+      "weber-sensors",
+      "webersensors"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "KELLER LUFTTECHNIK",
+    "ws_name": "KELLER LUFTTECHNIK",
+    "aliases": [
+      "keller lufttechnik",
+      "keller-lufttechnik",
+      "kellerlufttechnik"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "SAI Hydraulics / SAI",
+    "ws_name": "SAI Hydraulics",
+    "aliases": [
+      "sai hydraulics",
+      "sai hydraulics / sai",
+      "sai-hydraulics",
+      "saihydraulics/sai"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "EMK Motor",
+    "ws_name": "EMK Motor",
+    "aliases": [
+      "emk motor",
+      "emk-motor",
+      "emkmotor"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Wintersteiger",
+    "ws_name": "Wintersteiger",
+    "aliases": [
+      "wintersteiger"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "WOLF MESSTECHNIK",
+    "ws_name": "WOLF MESSTECHNIK",
+    "aliases": [
+      "wolf messtechnik",
+      "wolf-messtechnik",
+      "wolfmesstechnik"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "LOHSE",
+    "ws_name": "LOHSE",
+    "aliases": [
+      "lohse",
+      "lohse martin lohse",
+      "lohse-martin-lohse"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Thames Side Sensors",
+    "ws_name": "Thames Side Sensors",
+    "aliases": [
+      "thames side sensors",
+      "thames-side-sensors",
+      "thamessidesensors"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "ZIMMER GROUP",
+    "ws_name": "ZIMMER GROUP",
+    "aliases": [
+      "zimmer group",
+      "zimmer-group",
+      "zimmergroup"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "GrainWatch",
+    "ws_name": "GrainWatch",
+    "aliases": [
+      "grainwatch",
+      "grainwatch by liros",
+      "grainwatch-by-liros"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "SIEBERT INDUSTRIEELEKTRONIK",
+    "ws_name": "SIEBERT INDUSTRIEELEKTRONIK",
+    "aliases": [
+      "siebert industrieelektronik",
+      "siebert-industrieelektronik",
+      "siebertindustrieelektronik"
+    ],
+    "manager": "Юсупов"
+  },
+  {
+    "canonical": "Metrohm",
+    "aliases": [
+      "metrohm"
+    ]
+  },
+  {
+    "canonical": "Emerson",
+    "aliases": [
+      "emerson"
+    ]
+  },
+  {
+    "canonical": "NORGREN",
+    "aliases": [
+      "norgren"
+    ]
+  },
+  {
+    "canonical": "SENECA",
+    "aliases": [
+      "seneca"
+    ]
+  },
+  {
+    "canonical": "Homag",
+    "aliases": [
+      "homag"
+    ]
+  },
+  {
+    "canonical": "MOOG",
+    "aliases": [
+      "moog"
+    ]
+  },
+  {
+    "canonical": "INTORQ",
+    "aliases": [
+      "intorq"
+    ]
+  },
+  {
+    "canonical": "Dunker Motoren",
+    "aliases": [
+      "dunker",
+      "dunker motoren"
+    ]
+  },
+  {
+    "canonical": "EVAC",
+    "aliases": [
+      "evac"
+    ]
+  },
+  {
+    "canonical": "HOMA",
+    "aliases": [
+      "homa"
+    ]
+  },
+  {
+    "canonical": "SHAKO",
+    "aliases": [
+      "shako"
+    ]
+  },
+  {
+    "canonical": "LINXON",
+    "aliases": [
+      "linxon"
+    ]
+  },
+  {
+    "canonical": "Rawet",
+    "aliases": [
+      "rawet"
+    ]
+  },
+  {
+    "canonical": "Kiepe Electric",
+    "aliases": [
+      "kiepe",
+      "kiepe electric"
+    ]
+  },
+  {
+    "canonical": "VESPA SABBIATRICI",
+    "aliases": [
+      "vespa sabbiatrici",
+      "vespa"
+    ]
+  },
+  {
+    "canonical": "Jalema",
+    "aliases": [
+      "jalema"
+    ]
+  },
+  {
+    "canonical": "Flexitallic",
+    "aliases": [
+      "flexitallic"
+    ]
+  },
+  {
+    "canonical": "Ebmpapst",
+    "aliases": [
+      "ebmpapst",
+      "ebm papst",
+      "ebm-papst"
+    ]
+  },
+  {
+    "canonical": "microsonic",
+    "aliases": [
+      "microsonic",
+      "mic+"
+    ]
+  },
+  {
+    "canonical": "Nitrex",
+    "aliases": [
+      "nitrex"
+    ]
+  },
+  {
+    "canonical": "GEFA",
+    "aliases": [
+      "gefa"
+    ]
+  },
+  {
+    "canonical": "Pollard",
+    "aliases": [
+      "pollard"
+    ]
+  }
+]

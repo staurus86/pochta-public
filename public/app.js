@@ -92,7 +92,8 @@ function navigateTo(page) {
     project3: 'Project 3 — Mailbox Parser',
     project4: 'Project 4 — Klvrt Mail',
     projects: 'Все проекты',
-    kb: 'База знаний'
+    kb: 'База знаний',
+    'api-docs': 'API Documentation'
   };
   pageTitle.textContent = titles[page] || 'Pochta';
 
@@ -100,6 +101,7 @@ function navigateTo(page) {
   if (page === 'project2') refreshP2();
   if (page === 'project3') refreshP3();
   if (page === 'project4') refreshP4();
+  if (page === 'api-docs') refreshApiDocsHealth();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -1637,3 +1639,40 @@ function formatArr(items) { return Array.isArray(items) && items.length ? items.
 function truncate(s, n) { return !s ? '' : s.length > n ? s.slice(0, n) + '...' : s; }
 function esc(v) { return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function escAttr(v) { return String(v ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/</g, '\\x3c'); }
+
+async function refreshApiDocsHealth() {
+  const el = $('#api-health-status');
+  if (!el) return;
+  try {
+    const [health, kb] = await Promise.all([
+      fetch('/api/health').then((r) => r.json()),
+      fetch('/api/detection-kb').then((r) => r.json())
+    ]);
+    const stats = kb.stats || {};
+    el.innerHTML = `
+      <div style="display:flex;gap:16px;flex-wrap:wrap;">
+        <div style="padding:10px 16px;border-radius:8px;background:var(--bg-tertiary);flex:1;min-width:140px;">
+          <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px;">Server</div>
+          <div style="font-size:18px;font-weight:700;color:var(--green);">${health.ok ? 'Online' : 'Offline'}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);">Role: ${health.background?.role || '-'}</div>
+        </div>
+        <div style="padding:10px 16px;border-radius:8px;background:var(--bg-tertiary);flex:1;min-width:140px;">
+          <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px;">Brand Aliases</div>
+          <div style="font-size:18px;font-weight:700;color:var(--blue);">${stats.brandAliasCount || 0}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);">Own brands: ${stats.ownBrandCount || 0}</div>
+        </div>
+        <div style="padding:10px 16px;border-radius:8px;background:var(--bg-tertiary);flex:1;min-width:140px;">
+          <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px;">Detection Rules</div>
+          <div style="font-size:18px;font-weight:700;color:var(--purple);">${stats.ruleCount || 0}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);">Sender profiles: ${stats.senderProfileCount || 0}</div>
+        </div>
+        <div style="padding:10px 16px;border-radius:8px;background:var(--bg-tertiary);flex:1;min-width:140px;">
+          <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px;">Message Corpus</div>
+          <div style="font-size:18px;font-weight:700;color:var(--orange);">${stats.corpusCount || 0}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);">Field patterns: ${stats.fieldPatternCount || 0}</div>
+        </div>
+      </div>`;
+  } catch {
+    el.innerHTML = '<span style="color:var(--rose);">Failed to load API health</span>';
+  }
+}

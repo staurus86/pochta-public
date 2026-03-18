@@ -145,6 +145,7 @@ async function handleApi(req, res, url) {
       rules: detectionKb.getRules(),
       brandAliases: detectionKb.getBrandAliases(),
       senderProfiles: detectionKb.getSenderProfiles(),
+      ownBrands: detectionKb.getOwnBrands(),
       corpus: detectionKb.getCorpus(25)
     });
   }
@@ -195,6 +196,41 @@ async function handleApi(req, res, url) {
 
     const senderProfile = detectionKb.addSenderProfile(payload);
     return sendJson(res, 201, { senderProfile });
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/detection-kb/own-brands") {
+    return sendJson(res, 200, { ownBrands: detectionKb.getOwnBrands() });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/detection-kb/own-brands") {
+    const payload = await parseRequestJson(req);
+    if (!payload.name) {
+      return sendJson(res, 400, { error: "Field 'name' is required." });
+    }
+
+    const ownBrand = detectionKb.addOwnBrand(payload);
+    return sendJson(res, 201, { ownBrand });
+  }
+
+  const deleteOwnBrandMatch = url.pathname.match(/^\/api\/detection-kb\/own-brands\/(\d+)$/);
+  if (req.method === "DELETE" && deleteOwnBrandMatch) {
+    const result = detectionKb.deactivateOwnBrand(deleteOwnBrandMatch[1]);
+    return sendJson(res, 200, result);
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/detection-kb/brand-catalog/import") {
+    const payload = await parseRequestJson(req);
+    if (!Array.isArray(payload.brands)) {
+      return sendJson(res, 400, { error: "Field 'brands' must be an array of { canonical, aliases[] }." });
+    }
+
+    const result = detectionKb.importBrandCatalog(payload.brands);
+    return sendJson(res, 200, result);
+  }
+
+  if (req.method === "DELETE" && url.pathname === "/api/detection-kb/brand-catalog") {
+    const result = detectionKb.clearBrandAliases();
+    return sendJson(res, 200, result);
   }
 
   if (req.method === "GET" && url.pathname === "/api/projects") {

@@ -238,3 +238,161 @@ runTest("extracts requisites and labeled phones without leaking them into articl
   assert.ok(!analysis.lead.articles.includes("111-22"));
   assert.ok(!analysis.lead.articles.includes("770101001"));
 });
+
+// --- Own brand blacklist tests ---
+
+runTest("does not detect Siderus as brand from forwarded email signature", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Казанцев А.Н.",
+    fromEmail: "robot-mail-siderus@klvrt.ru",
+    subject: "Re: Запрос",
+    attachments: "",
+    body: `
+      Извините, меня ваше предложение не устраивает.
+
+      --
+      Отправлено из мобильного приложения
+
+      От: 'Казанцев Андрей' <kazansev.a.n@yandex.ru>;
+      Дата: Вторник;
+      18.03.2026, 12:11, "SIDERUS" <info@siderus.ru>:
+       В ожидании вашего подтверждения.
+
+       С уважением,
+
+       Менеджер отдела
+       ООО «Сидерус» | SIDERUS
+
+       i n f o @siderus.ru
+
+       siderus.ru
+
+       +7 499 647-47-07
+
+       107061, г. Москва, Преображенская площадь
+    `
+  });
+
+  assert.ok(!analysis.detectedBrands.includes("Siderus"));
+  assert.ok(!analysis.detectedBrands.includes("SIDERUS"));
+  assert.ok(!analysis.lead.detectedBrands.includes("Siderus"));
+});
+
+runTest("does not detect KLVRT/Коловрат as brands", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Иванов",
+    fromEmail: "buyer@factory.ru",
+    subject: "Заявка ABB от KLVRT",
+    attachments: "",
+    body: `
+      Добрый день. Нужна цена по ABB S201-C16 x 10 шт.
+      Компания Коловрат, отдел закупок.
+    `
+  });
+
+  assert.ok(!analysis.detectedBrands.includes("KLVRT"));
+  assert.ok(!analysis.detectedBrands.includes("Коловрат"));
+  assert.ok(analysis.detectedBrands.includes("ABB"));
+});
+
+// --- Numeric article tests ---
+
+runTest("detects numeric article with dash from subject (509-1720)", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Закупщик",
+    fromEmail: "buyer@factory.ru",
+    subject: "509-1720 запрос на КП",
+    attachments: "",
+    body: `
+      Добрый день.
+      Нужен артикул 509-1720, 2 шт.
+      С уважением.
+    `
+  });
+
+  assert.ok(analysis.lead.articles.includes("509-1720"), `Expected 509-1720, got: ${analysis.lead.articles}`);
+});
+
+runTest("detects numeric articles from body and subject together", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Buyer",
+    fromEmail: "buyer@corp.ru",
+    subject: "Запрос цен",
+    attachments: "",
+    body: `
+      Добрый день.
+      Позиции:
+      509-1720 — 2 шт
+      6ES7-315-2AH14 x 1
+    `
+  });
+
+  assert.ok(analysis.lead.articles.includes("509-1720"), `Should detect 509-1720`);
+});
+
+runTest("does not treat dates as numeric articles", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Buyer",
+    fromEmail: "buyer@corp.ru",
+    subject: "Заявка от 15-03",
+    attachments: "",
+    body: `
+      Добрый день. Поставка до 25/12/2026.
+      Артикул S201-C16 x 5 шт.
+    `
+  });
+
+  assert.ok(!analysis.lead.articles.includes("15-03"));
+  assert.ok(!analysis.lead.articles.includes("25/12/2026"));
+  assert.ok(!analysis.lead.articles.includes("25/12"));
+  assert.ok(analysis.lead.articles.includes("S201-C16"));
+});
+
+runTest("extracts articles from attachment filenames", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Buyer",
+    fromEmail: "buyer@corp.ru",
+    subject: "Запрос по деталям",
+    attachments: "509-1720_datasheet.pdf, photo.jpg",
+    body: `
+      Добрый день. Нужна цена.
+    `
+  });
+
+  assert.ok(analysis.lead.articles.includes("509-1720"), `Should extract from attachment name`);
+});
+
+// --- Phone validation tests ---
+
+runTest("rejects invalid phone code 032", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Тест",
+    fromEmail: "test@factory.ru",
+    subject: "Тест телефонов",
+    attachments: "",
+    body: `
+      Добрый день. Тел: 8 (032) 485-77-21
+      Моб: +7 (916) 123-45-67
+    `
+  });
+
+  // Invalid city code 032 should be rejected
+  assert.equal(analysis.sender.cityPhone, null);
+  assert.equal(analysis.sender.mobilePhone, "+7 (916) 123-45-67");
+});
+
+runTest("normalizes phone numbers to consistent format", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Тест",
+    fromEmail: "test@factory.ru",
+    subject: "Тест",
+    attachments: "",
+    body: `
+      Тел: +7(495)764-16-58
+      Моб: 89161234567
+    `
+  });
+
+  assert.equal(analysis.sender.cityPhone, "+7 (495) 764-16-58");
+  assert.equal(analysis.sender.mobilePhone, "+7 (916) 123-45-67");
+});

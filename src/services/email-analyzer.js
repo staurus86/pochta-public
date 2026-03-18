@@ -13,6 +13,10 @@ const KPP_PATTERN = /(?:КПП|kpp)\s*[:#-]?\s*(\d{9})/i;
 const OGRN_PATTERN = /(?:ОГРН|ogrn)\s*[:#-]?\s*(\d{13,15})/i;
 const ARTICLE_PATTERN = /(?:арт(?:икул(?:а|у|ом|е|ы|ов|ам|ами|ах)?)?|sku)\b[^A-Za-zА-Яа-я0-9]{0,5}([A-Za-z0-9][A-Za-z0-9-/_]{2,})/gi;
 const STANDALONE_CODE_PATTERN = /\b([A-Z][A-Z0-9]{2,}[-/]?[A-Z0-9]{2,}(?:[-/][A-Z0-9]+)*)\b/g;
+// Numeric article: 509-1720, 3HAC12345-1, 6GK7-343-2AH01
+const NUMERIC_ARTICLE_PATTERN = /\b(\d{2,6}[-/]\d{2,6}(?:[-/][A-Za-z0-9]{1,6})*)\b/g;
+// Date-like patterns to exclude from numeric articles: DD.MM.YYYY, DD-MM-YYYY, DD/MM/YYYY
+const DATE_LIKE_PATTERN = /^(?:0?[1-9]|[12]\d|3[01])[-/](?:0?[1-9]|1[0-2])(?:[-/]\d{2,4})?$/;
 const BRAND_CONTEXT_PATTERN = /\b(?:бренд|brand|производител[ья]|manufacturer|vendor|марка)\b/i;
 const REQUISITES_CONTEXT_PATTERN = /\b(?:реквизит|карточк[аи]|company details|legal details)\b/i;
 const QUOTE_PATTERNS = [
@@ -81,8 +85,10 @@ export function analyzeEmail(project, payload) {
     fromEmail,
     projectBrands: project.brands || []
   });
+  // Filter own brands (Siderus, Коловрат, etc.) from classification results
+  classification.detectedBrands = detectionKb.filterOwnBrands(classification.detectedBrands);
   const sender = extractSender(fromName, fromEmail, bodyForSender, attachments);
-  const lead = extractLead(subject, primaryBody || body, attachments, project.brands || [], classification.detectedBrands || []);
+  const lead = extractLead(subject, primaryBody || body, attachments, project.brands || [], classification.detectedBrands);
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands });
 
   const suggestedReply = buildSuggestedReply(classification.label, sender, lead, crm);
@@ -95,7 +101,7 @@ export function analyzeEmail(project, payload) {
     sender,
     lead,
     crm,
-    detectedBrands: lead.detectedBrands,
+    detectedBrands: detectionKb.filterOwnBrands(lead.detectedBrands),
     intakeFlow: buildIntakeFlow(classification.label, crm, lead),
     suggestedReply,
     rawInput: {
@@ -178,12 +184,17 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     .map((match) => normalizeArticleCode(match[1]))
     .filter((item) => isLikelyArticle(item, forbiddenDigits));
   const standaloneArticles = extractStandaloneCodes(body, forbiddenDigits);
-  const allArticles = unique([...prefixedArticles, ...standaloneArticles].filter(Boolean));
+  const numericArticles = extractNumericArticles(body, forbiddenDigits);
+  const subjectArticles = extractArticlesFromSubject(subject, forbiddenDigits);
+  const attachmentArticles = extractArticlesFromAttachments(attachments, forbiddenDigits);
+  const brandAdjacentCodes = extractBrandAdjacentCodes(body, forbiddenDigits);
+  const allArticles = unique([...subjectArticles, ...prefixedArticles, ...standaloneArticles, ...numericArticles, ...attachmentArticles, ...brandAdjacentCodes].filter(Boolean));
   const attachmentsText = attachments.join(" ");
   const hasNameplatePhotos = /шильд|nameplate/i.test(attachmentsText);
   const hasArticlePhotos = /артик|sku|label/i.test(attachmentsText);
   const lineItems = extractLineItems(body).filter((item) => isLikelyArticle(item.article, forbiddenDigits, item.descriptionRu));
-  const detectedBrands = unique(kbBrands.concat(detectBrands([subject, body, attachmentsText].join("\n"), brands)));
+  const rawBrands = unique(kbBrands.concat(detectBrands([subject, body, attachmentsText].join("\n"), brands)));
+  const detectedBrands = detectionKb.filterOwnBrands(rawBrands);
 
   const attachmentHints = parseAttachmentHints(attachments);
 
@@ -272,19 +283,49 @@ function extractPosition(body) {
   return position ? cleanup(position) : null;
 }
 
+function normalizePhoneNumber(raw) {
+  const digits = raw.replace(/\D/g, "");
+  // Expect 11 digits starting with 7 or 8
+  let d = digits;
+  if (d.length === 11 && d.startsWith("8")) d = "7" + d.slice(1);
+  if (d.length === 10) d = "7" + d;
+  if (d.length !== 11 || !d.startsWith("7")) return null;
+  const code = d.slice(1, 4);
+  // Valid Russian area/mobile codes:
+  // 2xx - some regions, 3xx - Siberia/Ural, 4xx - Central/Volga
+  // 5xx - some regions, 8xx - toll-free (800,8xx), 9xx - mobile
+  // Invalid: 0xx, 1xx, 6xx, 7xx
+  if (/^[0167]/.test(code)) return null;
+  return `+7 (${code}) ${d.slice(4, 7)}-${d.slice(7, 9)}-${d.slice(9, 11)}`;
+}
+
+function isValidPhone(raw) {
+  return normalizePhoneNumber(raw) !== null;
+}
+
+function isMobilePhone(normalized) {
+  // Russian mobile codes start with 9
+  return /\+7 \(9\d{2}\)/.test(normalized);
+}
+
+function isTollFreePhone(normalized) {
+  return /\+7 \(80[0-9]\)/.test(normalized);
+}
+
 function splitPhones(phones, body = "") {
-  const normalized = unique((phones || []).map((phone) => cleanup(phone)));
-  const explicitlyLabeled = body.match(PHONE_LABEL_PATTERN)?.[1] ? cleanup(body.match(PHONE_LABEL_PATTERN)[1]) : null;
+  const validated = unique((phones || []).map((phone) => normalizePhoneNumber(phone)).filter(Boolean));
+  const explicitlyLabeled = body.match(PHONE_LABEL_PATTERN)?.[1] ? normalizePhoneNumber(body.match(PHONE_LABEL_PATTERN)[1]) : null;
+
   if (explicitlyLabeled) {
-    const preferredMobile = /\+?7?8?[\s(.-]*9\d{2}/.test(explicitlyLabeled.replace(/\s/g, ""));
+    const preferredMobile = isMobilePhone(explicitlyLabeled);
     return {
-      cityPhone: preferredMobile ? normalized.find((phone) => phone !== explicitlyLabeled) || null : explicitlyLabeled,
-      mobilePhone: preferredMobile ? explicitlyLabeled : normalized.find((phone) => phone !== explicitlyLabeled && /\+?7?8?[\s(.-]*9\d{2}/.test(phone.replace(/\s/g, ""))) || null
+      cityPhone: preferredMobile ? validated.find((phone) => phone !== explicitlyLabeled) || null : explicitlyLabeled,
+      mobilePhone: preferredMobile ? explicitlyLabeled : validated.find((phone) => phone !== explicitlyLabeled && isMobilePhone(phone)) || null
     };
   }
 
-  const mobilePhone = normalized.find((phone) => /\+?7?8?[\s(.-]*9\d{2}/.test(phone.replace(/\s/g, ""))) || null;
-  const cityPhone = normalized.find((phone) => phone !== mobilePhone) || null;
+  const mobilePhone = validated.find((phone) => isMobilePhone(phone)) || null;
+  const cityPhone = validated.find((phone) => phone !== mobilePhone) || null;
   return { cityPhone, mobilePhone };
 }
 
@@ -341,6 +382,71 @@ function extractStandaloneCodes(text, forbiddenDigits = new Set()) {
     }
   }
   return matches;
+}
+
+function extractNumericArticles(text, forbiddenDigits = new Set()) {
+  const matches = [];
+  for (const m of text.matchAll(NUMERIC_ARTICLE_PATTERN)) {
+    const code = normalizeArticleCode(m[1]);
+    // Skip date-like patterns (01-12, 25/03/2026)
+    if (DATE_LIKE_PATTERN.test(code)) continue;
+    const digitsOnly = code.replace(/\D/g, "");
+    // Must have at least 5 total digits to avoid short noise like 72-03, 63-90
+    if (digitsOnly.length < 5) continue;
+    // Skip phone-fragment-shaped codes: XX-XX-XX
+    if (/^\d{2,3}-\d{2}-\d{2}$/.test(code)) continue;
+    if (!isLikelyArticle(code, forbiddenDigits)) continue;
+    matches.push(code);
+  }
+  return matches;
+}
+
+function extractArticlesFromSubject(subject, forbiddenDigits = new Set()) {
+  const articles = [];
+  // Prefixed articles in subject
+  for (const m of subject.matchAll(ARTICLE_PATTERN)) {
+    const code = normalizeArticleCode(m[1]);
+    if (isLikelyArticle(code, forbiddenDigits)) articles.push(code);
+  }
+  // Standalone alpha-numeric codes in subject
+  for (const m of subject.matchAll(STANDALONE_CODE_PATTERN)) {
+    const code = normalizeArticleCode(m[1]);
+    if (code.length >= 4 && /\d/.test(code) && !BRAND_NOISE.has(code) && isLikelyArticle(code, forbiddenDigits)) {
+      articles.push(code);
+    }
+  }
+  // Numeric articles in subject (e.g. "509-1720 запрос на КП")
+  articles.push(...extractNumericArticles(subject, forbiddenDigits));
+  return unique(articles);
+}
+
+function extractBrandAdjacentCodes(text, forbiddenDigits = new Set()) {
+  // Pattern: BRAND + space + pure numeric code (5-9 digits), e.g. "METROHM 63032220"
+  const matches = [];
+  const pattern = /\b[A-Z][A-Za-z-]{2,20}\s+(\d{5,9})\b/g;
+  for (const m of text.matchAll(pattern)) {
+    const code = m[1];
+    if (!forbiddenDigits.has(code) && isLikelyArticle(code, forbiddenDigits)) {
+      matches.push(code);
+    }
+  }
+  return matches;
+}
+
+function extractArticlesFromAttachments(attachments, forbiddenDigits = new Set()) {
+  const articles = [];
+  for (const name of attachments) {
+    // Strip extension
+    const baseName = name.replace(/\.[^.]+$/, "").replace(/[_\s]+/g, "-");
+    for (const m of baseName.matchAll(STANDALONE_CODE_PATTERN)) {
+      const code = normalizeArticleCode(m[1]);
+      if (code.length >= 4 && /\d/.test(code) && !BRAND_NOISE.has(code) && isLikelyArticle(code, forbiddenDigits)) {
+        articles.push(code);
+      }
+    }
+    articles.push(...extractNumericArticles(baseName, forbiddenDigits));
+  }
+  return unique(articles);
 }
 
 function separateQuotedText(text) {
@@ -463,7 +569,12 @@ function isLikelyArticle(code, forbiddenDigits = new Set(), sourceLine = "") {
       return false;
     }
 
-    if (/^\d{2,4}[-/]\d{2,4}$/.test(normalized)) {
+    // Reject date-like digit-separator-digit patterns, but allow long numeric codes (5+ digits total)
+    if (/^\d{2,4}[-/]\d{2,4}$/.test(normalized) && digits.length < 5) {
+      return false;
+    }
+    // Reject patterns that look like dates (DD-MM, MM-YYYY)
+    if (DATE_LIKE_PATTERN.test(normalized)) {
       return false;
     }
   }
