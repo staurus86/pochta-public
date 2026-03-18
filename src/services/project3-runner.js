@@ -160,6 +160,93 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
   };
 }
 
+export async function reprocessMailboxMessages(project, options = {}) {
+  const startedAt = Date.now();
+  const limit = Math.max(1, Number(options.limit || 500));
+  const preserveStatus = options.preserveStatus !== false;
+  const statusFilter = parseStatuses(options.status);
+  const selectedKeys = new Set(normalizeStringArray(options.messageKeys));
+  const analysisProject = buildAnalysisProject(project);
+  const sourceMessages = (project.recentMessages || [])
+    .filter((item) => statusFilter.length === 0 || statusFilter.includes(item.pipelineStatus))
+    .filter((item) => selectedKeys.size === 0 || selectedKeys.has(item.messageKey || item.id))
+    .slice(0, limit);
+
+  const updatedByKey = new Map();
+  const changesPreview = [];
+  let changedCount = 0;
+  let statusChangedCount = 0;
+
+  for (const message of sourceMessages) {
+    const { fromName, fromEmail } = splitFromHeader(message.from);
+    const analysis = analyzeEmail(analysisProject, {
+      fromName,
+      fromEmail,
+      subject: message.subject,
+      body: message.bodyPreview || "",
+      attachments: message.attachments || []
+    });
+    const computedStatus = resolvePipelineStatus(message.error, analysis);
+    const nextStatus = preserveStatus ? message.pipelineStatus : computedStatus;
+    const diff = diffAnalysis(message.analysis || {}, analysis, message.pipelineStatus, nextStatus);
+
+    if (diff.changed) {
+      changedCount += 1;
+      if (changesPreview.length < 20) {
+        changesPreview.push({
+          messageKey: message.messageKey || message.id,
+          subject: message.subject || "",
+          before: diff.before,
+          after: diff.after
+        });
+      }
+    }
+
+    if (nextStatus !== message.pipelineStatus) {
+      statusChangedCount += 1;
+    }
+
+    updatedByKey.set(message.messageKey || message.id, {
+      ...message,
+      pipelineStatus: nextStatus,
+      analysis,
+      reprocessedAt: new Date().toISOString(),
+      auditLog: [
+        ...(message.auditLog || []),
+        {
+          action: "reprocess",
+          at: new Date().toISOString(),
+          preserveStatus,
+          previousStatus: message.pipelineStatus || null,
+          computedStatus,
+          nextStatus
+        }
+      ]
+    });
+  }
+
+  const recentMessages = (project.recentMessages || []).map((item) => updatedByKey.get(item.messageKey || item.id) || item);
+  const nonSpamMessages = recentMessages.filter((item) => item.pipelineStatus !== "ignored_spam" && item.pipelineStatus !== "fetch_error");
+  detectionKb.ingestAnalyzedMessages(project.id, nonSpamMessages);
+
+  return {
+    id: randomUUID(),
+    createdAt: new Date(startedAt).toISOString(),
+    status: "ok",
+    trigger: "manual-reprocess",
+    reprocessed: sourceMessages.length,
+    changed: changedCount,
+    statusChanged: statusChangedCount,
+    preserveStatus,
+    statusFilter,
+    limit,
+    durationMs: Date.now() - startedAt,
+    changesPreview,
+    newMessages: [],
+    recentMessages
+  };
+}
+
 function splitFromHeader(value) {
   const text = String(value || "").trim();
   const match = text.match(/^(.*?)(?:<([^>]+)>)$/);
@@ -174,6 +261,89 @@ function splitFromHeader(value) {
     fromName: "",
     fromEmail: text.toLowerCase()
   };
+}
+
+function buildAnalysisProject(project) {
+  const inferredBrands = (project.recentMessages || []).flatMap((item) => [
+    item.brand,
+    ...(item.analysis?.detectedBrands || []),
+    ...(item.analysis?.lead?.detectedBrands || [])
+  ]).filter(Boolean);
+
+  return {
+    mailbox: project.mailbox,
+    brands: unique((project.brands || []).concat(inferredBrands)),
+    managerPool: project.managerPool || { defaultMop: "Не назначен", defaultMoz: "Не назначен", brandOwners: [] },
+    knownCompanies: project.knownCompanies || []
+  };
+}
+
+function resolvePipelineStatus(error, analysis) {
+  if (error) {
+    return "fetch_error";
+  }
+
+  if (analysis.classification.label === "СПАМ") {
+    return "ignored_spam";
+  }
+
+  if (analysis.crm?.needsClarification) {
+    return "needs_clarification";
+  }
+
+  if (analysis.classification.label === "Клиент") {
+    return "ready_for_crm";
+  }
+
+  return "review";
+}
+
+function diffAnalysis(previous, next, previousStatus, nextStatus) {
+  const before = {
+    pipelineStatus: previousStatus || null,
+    brands: unique([...(previous.detectedBrands || []), ...(previous.lead?.detectedBrands || [])]),
+    articles: previous.lead?.articles || [],
+    inn: previous.sender?.inn || null,
+    kpp: previous.sender?.kpp || null,
+    ogrn: previous.sender?.ogrn || null,
+    cityPhone: previous.sender?.cityPhone || null,
+    mobilePhone: previous.sender?.mobilePhone || null
+  };
+  const after = {
+    pipelineStatus: nextStatus || null,
+    brands: unique([...(next.detectedBrands || []), ...(next.lead?.detectedBrands || [])]),
+    articles: next.lead?.articles || [],
+    inn: next.sender?.inn || null,
+    kpp: next.sender?.kpp || null,
+    ogrn: next.sender?.ogrn || null,
+    cityPhone: next.sender?.cityPhone || null,
+    mobilePhone: next.sender?.mobilePhone || null
+  };
+
+  return {
+    changed: JSON.stringify(before) !== JSON.stringify(after),
+    before,
+    after
+  };
+}
+
+function parseStatuses(value) {
+  return String(value || "")
+    .split(",")
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function normalizeStringArray(value) {
+  if (Array.isArray(value)) {
+    return value.map((item) => String(item).trim()).filter(Boolean);
+  }
+
+  if (typeof value === "string") {
+    return value.split(",").map((item) => item.trim()).filter(Boolean);
+  }
+
+  return [];
 }
 
 function parsePayload(stdout) {

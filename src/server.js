@@ -12,7 +12,7 @@ import { buildLegacyIntegrationChangelogDocument, getLegacyIntegrationApiVersion
 import { buildLegacyIntegrationOpenApi } from "./services/integration-openapi.js";
 import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js";
 import { ProjectScheduler } from "./services/project-scheduler.js";
-import { getMailboxFileRuntime, runMailboxFileParser } from "./services/project3-runner.js";
+import { getMailboxFileRuntime, reprocessMailboxMessages, runMailboxFileParser } from "./services/project3-runner.js";
 import { detectionKb } from "./services/detection-kb.js";
 import { findIntegrationDelivery, findIntegrationMessage, listIntegrationDeliveries, listIntegrationMessages, parseIntegrationCursor, summarizeIntegrationDeliveries } from "./services/integration-api.js";
 import { LegacyWebhookDispatcher } from "./services/webhook-dispatcher.js";
@@ -312,6 +312,35 @@ async function handleApi(req, res, url) {
         message: "Запуск начат в фоновом режиме. Проверяйте статус через /api/projects/" + project.id + "/job/" + job.id
       });
     }
+  }
+
+  const reprocessMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/reprocess$/);
+  if (req.method === "POST" && reprocessMatch) {
+    const project = await store.getProject(reprocessMatch[1]);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    if (project.type !== "mailbox-file-parser") {
+      return sendJson(res, 400, { error: "Reprocess action is available only for mailbox-file-parser projects." });
+    }
+
+    const payload = await parseRequestJson(req);
+    const job = createBackgroundJob(project.id);
+
+    reprocessMailboxMessages(project, payload)
+      .then(async (run) => {
+        await finalizeProjectRun(job, project, run);
+      })
+      .catch((error) => {
+        job.status = "error";
+        job.error = error.message;
+      });
+
+    return sendJson(res, 202, {
+      jobId: job.id,
+      message: "Переразбор запущен в фоновом режиме. Проверяйте статус через /api/projects/" + project.id + "/job/" + job.id
+    });
   }
 
   const messagesMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages$/);

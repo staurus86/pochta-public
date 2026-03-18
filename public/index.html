@@ -345,6 +345,15 @@ https://promsnab.ru</textarea>
                   </div>
                   <button type="submit" class="btn btn-primary" style="width:100%" id="p3-run-btn">Получить и разобрать письма</button>
                 </form>
+                <div style="height:16px"></div>
+                <form id="p3-reprocess-form">
+                  <div class="form-row">
+                    <div class="form-group"><label class="form-label">Reprocess, макс. сообщений</label><input class="form-input" name="limit" type="number" min="1" max="5000" value="500" /></div>
+                    <div class="form-group"><label class="form-label">Статусы</label><input class="form-input" name="status" value="ready_for_crm,needs_clarification,review" /></div>
+                  </div>
+                  <div class="form-group"><label class="form-check"><input type="checkbox" name="preserveStatus" checked /><span>Сохранять текущий pipeline status</span></label></div>
+                  <button type="submit" class="btn btn-ghost" style="width:100%" id="p3-reprocess-btn">Переразобрать сохранённые письма</button>
+                </form>
               </div>
               <div class="panel-header" style="border-top:1px solid var(--border)"><h3>Расписание</h3></div>
               <div class="panel-body">

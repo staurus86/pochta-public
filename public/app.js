@@ -189,6 +189,19 @@ function setupForms() {
     renderP3Kpis();
   });
 
+  $('#p3-reprocess-form').addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const fd = new FormData(e.target);
+    const btn = $('#p3-reprocess-btn');
+    btn.disabled = true;
+    await startMailboxJob(P3_ID, {
+      limit: Number(fd.get('limit') || 500),
+      status: String(fd.get('status') || ''),
+      preserveStatus: fd.get('preserveStatus') === 'on'
+    }, btn, 'Переразобрать сохранённые письма', '#p3-runtime-result', null, 'reprocess');
+    renderP3Kpis();
+  });
+
   $('#p3-schedule-form').addEventListener('submit', async (e) => {
     e.preventDefault();
     const fd = new FormData(e.target);
@@ -503,7 +516,7 @@ async function refreshKb() {
 }
 
 // ═══ Generic async job launcher with polling & timer ═══
-async function startMailboxJob(projectId, payload, btn, resetLabel, runtimeEl, onDone) {
+async function startMailboxJob(projectId, payload, btn, resetLabel, runtimeEl, onDone, action = 'run') {
   let timerEl = null;
   let timerInterval = null;
   if (btn) {
@@ -518,7 +531,7 @@ async function startMailboxJob(projectId, payload, btn, resetLabel, runtimeEl, o
   }
 
   try {
-    const res = await fetch(`/api/projects/${projectId}/run`, {
+    const res = await fetch(`/api/projects/${projectId}/${action}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
