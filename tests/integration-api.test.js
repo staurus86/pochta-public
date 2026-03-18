@@ -3,7 +3,8 @@ import {
   findIntegrationMessage,
   isIntegrationAuthorized,
   listIntegrationMessages,
-  normalizeIntegrationMessage
+  normalizeIntegrationMessage,
+  parseIntegrationCursor
 } from "../src/services/integration-api.js";
 
 const project = {
@@ -71,6 +72,7 @@ const project = {
     {
       messageKey: "msg-2",
       createdAt: "2026-03-17T10:00:00.000Z",
+      updatedAt: "2026-03-17T10:16:00.000Z",
       subject: "Спам",
       from: "spam@example.com",
       pipelineStatus: "ignored_spam",
@@ -79,6 +81,25 @@ const project = {
         classification: { label: "СПАМ", confidence: 0.99 },
         sender: {},
         lead: {},
+        crm: {}
+      }
+    },
+    {
+      messageKey: "msg-3",
+      createdAt: "2026-03-18T10:01:00.000Z",
+      updatedAt: "2026-03-18T10:06:00.000Z",
+      subject: "Нужен счет",
+      from: "buyer@example.com",
+      pipelineStatus: "needs_clarification",
+      auditLog: [{ action: "status_change", at: "2026-03-18T10:06:00.000Z" }],
+      analysis: {
+        classification: { label: "Клиент", confidence: 0.8 },
+        sender: {
+          email: "buyer@example.com"
+        },
+        lead: {
+          articles: ["A-100"]
+        },
         crm: {}
       }
     }
@@ -131,8 +152,8 @@ runTest("filters integration messages by since and multiple statuses", () => {
     status: "ready_for_crm,needs_clarification"
   });
 
-  assert.equal(result.data.length, 1);
-  assert.equal(result.data[0].message_key, "msg-1");
+  assert.equal(result.data.length, 2);
+  assert.deepEqual(result.data.map((item) => item.message_key), ["msg-3", "msg-1"]);
   assert.deepEqual(result.meta.statuses, ["ready_for_crm", "needs_clarification"]);
 });
 
@@ -144,6 +165,38 @@ runTest("filters integration messages by export acknowledgement", () => {
   assert.equal(result.data.length, 1);
   assert.equal(result.data[0].message_key, "msg-1");
   assert.equal(result.meta.exported, true);
+});
+
+runTest("supports cursor-based integration pagination with stable ordering", () => {
+  const firstPage = listIntegrationMessages(project, {
+    limit: "1",
+    status: "ready_for_crm,needs_clarification,ignored_spam"
+  });
+
+  assert.equal(firstPage.data.length, 1);
+  assert.equal(firstPage.data[0].message_key, "msg-3");
+  assert.ok(firstPage.meta.next_cursor);
+
+  const cursor = parseIntegrationCursor(firstPage.meta.next_cursor);
+  assert.deepEqual(cursor, {
+    updatedAt: "2026-03-18T10:06:00.000Z",
+    messageKey: "msg-3"
+  });
+
+  const secondPage = listIntegrationMessages(project, {
+    limit: "1",
+    status: "ready_for_crm,needs_clarification,ignored_spam",
+    cursor: firstPage.meta.next_cursor
+  });
+
+  assert.equal(secondPage.pagination.page, null);
+  assert.equal(secondPage.data.length, 1);
+  assert.equal(secondPage.data[0].message_key, "msg-1");
+  assert.ok(secondPage.meta.next_cursor);
+});
+
+runTest("returns null for invalid integration cursors", () => {
+  assert.equal(parseIntegrationCursor("not-a-cursor"), null);
 });
 
 runTest("finds a single normalized integration message", () => {

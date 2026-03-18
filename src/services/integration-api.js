@@ -114,6 +114,7 @@ export function listIntegrationMessages(project, query = {}) {
   const statuses = parseStatuses(query.status);
   const since = parseSince(query.since);
   const exported = parseBooleanFilter(query.exported);
+  const cursor = parseCursor(query.cursor);
 
   const allMessages = (project.recentMessages || [])
     .filter((item) => statuses.length === 0 || statuses.includes(item.pipelineStatus))
@@ -126,26 +127,35 @@ export function listIntegrationMessages(project, query = {}) {
       const updatedAt = resolveMessageUpdatedAt(item);
       return updatedAt ? Date.parse(updatedAt) >= since.getTime() : false;
     })
-    .sort((a, b) => String(resolveMessageUpdatedAt(b) || "").localeCompare(String(resolveMessageUpdatedAt(a) || "")));
+    .sort(compareMessagesDesc);
 
   const total = allMessages.length;
-  const offset = (page - 1) * limit;
-  const data = allMessages
-    .slice(offset, offset + limit)
-    .map((item) => normalizeIntegrationMessage(project, item));
+  const filteredMessages = cursor
+    ? allMessages.filter((item) => compareMessageToCursor(item, cursor) > 0)
+    : allMessages;
+  const offset = cursor ? 0 : (page - 1) * limit;
+  const pageItems = filteredMessages.slice(offset, offset + limit);
+  const data = pageItems.map((item) => normalizeIntegrationMessage(project, item));
+  const hasMore = filteredMessages.length > offset + pageItems.length;
+  const lastItem = pageItems[pageItems.length - 1] || null;
 
   return {
     data,
     pagination: {
-      page,
+      page: cursor ? null : page,
       limit,
       total,
-      total_pages: Math.max(1, Math.ceil(total / limit))
+      total_pages: cursor ? null : Math.max(1, Math.ceil(total / limit))
     },
     meta: {
       statuses,
       exported,
       since: since ? since.toISOString() : null,
+      cursor: cursor ? encodeCursor(cursor) : null,
+      next_cursor: hasMore && lastItem ? encodeCursor({
+        updatedAt: resolveMessageUpdatedAt(lastItem),
+        messageKey: resolveMessageKey(lastItem)
+      }) : null,
       next_since: data.reduce((latest, item) => {
         if (!item.updated_at) {
           return latest;
@@ -182,6 +192,10 @@ export function listIntegrationDeliveries(project, query = {}) {
 export function findIntegrationDelivery(project, deliveryId) {
   const delivery = (project.webhookDeliveries || []).find((item) => item.id === deliveryId);
   return delivery ? normalizeIntegrationDelivery(delivery) : null;
+}
+
+export function parseIntegrationCursor(value) {
+  return parseCursor(value);
 }
 
 function normalizePositiveInt(value, fallback) {
@@ -231,6 +245,34 @@ function parseBooleanFilter(value) {
   return null;
 }
 
+function parseCursor(value) {
+  const text = String(value || "").trim();
+  if (!text) {
+    return null;
+  }
+
+  try {
+    const raw = Buffer.from(text, "base64url").toString("utf-8");
+    const parsed = JSON.parse(raw);
+    const updatedAt = String(parsed.updatedAt || "").trim();
+    const messageKey = String(parsed.messageKey || "").trim();
+    if (!updatedAt || !messageKey || Number.isNaN(Date.parse(updatedAt))) {
+      return null;
+    }
+
+    return { updatedAt, messageKey };
+  } catch {
+    return null;
+  }
+}
+
+function encodeCursor(value) {
+  return Buffer.from(JSON.stringify({
+    updatedAt: value.updatedAt,
+    messageKey: value.messageKey
+  }), "utf-8").toString("base64url");
+}
+
 function resolveMessageUpdatedAt(message) {
   const auditEntries = Array.isArray(message.auditLog) ? message.auditLog : [];
   const auditAt = auditEntries
@@ -239,6 +281,29 @@ function resolveMessageUpdatedAt(message) {
     .sort((a, b) => String(b).localeCompare(String(a)))[0];
 
   return auditAt || message.updatedAt || message.createdAt || null;
+}
+
+function resolveMessageKey(message) {
+  return String(message?.messageKey || message?.id || "");
+}
+
+function compareMessagesDesc(a, b) {
+  const updatedAtCompare = String(resolveMessageUpdatedAt(b) || "").localeCompare(String(resolveMessageUpdatedAt(a) || ""));
+  if (updatedAtCompare !== 0) {
+    return updatedAtCompare;
+  }
+
+  return resolveMessageKey(b).localeCompare(resolveMessageKey(a));
+}
+
+function compareMessageToCursor(message, cursor) {
+  const updatedAt = String(resolveMessageUpdatedAt(message) || "");
+  const updatedAtCompare = updatedAt.localeCompare(cursor.updatedAt);
+  if (updatedAtCompare !== 0) {
+    return -updatedAtCompare;
+  }
+
+  return resolveMessageKey(cursor).localeCompare(resolveMessageKey(message));
 }
 
 function normalizeIntegrationDelivery(item) {

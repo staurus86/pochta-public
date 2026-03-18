@@ -10,7 +10,7 @@ import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js
 import { ProjectScheduler } from "./services/project-scheduler.js";
 import { getMailboxFileRuntime, runMailboxFileParser } from "./services/project3-runner.js";
 import { detectionKb } from "./services/detection-kb.js";
-import { findIntegrationDelivery, findIntegrationMessage, isIntegrationAuthorized, listIntegrationDeliveries, listIntegrationMessages } from "./services/integration-api.js";
+import { findIntegrationDelivery, findIntegrationMessage, isIntegrationAuthorized, listIntegrationDeliveries, listIntegrationMessages, parseIntegrationCursor } from "./services/integration-api.js";
 import { LegacyWebhookDispatcher, normalizeStatuses } from "./services/webhook-dispatcher.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -463,8 +463,12 @@ async function handleIntegrationApi(req, res, url) {
     }
 
     const since = String(url.searchParams.get("since") || "").trim();
+    const cursor = String(url.searchParams.get("cursor") || "").trim();
     if (since && Number.isNaN(Date.parse(since))) {
       return sendJson(res, 400, { error: "Query parameter 'since' must be a valid ISO datetime." });
+    }
+    if (cursor && !parseIntegrationCursor(cursor)) {
+      return sendJson(res, 400, { error: "Query parameter 'cursor' must be a valid integration cursor." });
     }
 
     return sendJson(res, 200, listIntegrationMessages(project, {
@@ -472,7 +476,8 @@ async function handleIntegrationApi(req, res, url) {
       limit: url.searchParams.get("limit"),
       status: url.searchParams.get("status"),
       since,
-      exported: url.searchParams.get("exported")
+      exported: url.searchParams.get("exported"),
+      cursor
     }));
   }
 
