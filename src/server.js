@@ -8,6 +8,7 @@ import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js
 import { ProjectScheduler } from "./services/project-scheduler.js";
 import { getMailboxFileRuntime, runMailboxFileParser } from "./services/project3-runner.js";
 import { detectionKb } from "./services/detection-kb.js";
+import { findIntegrationMessage, isIntegrationAuthorized, listIntegrationMessages } from "./services/integration-api.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -15,6 +16,7 @@ const rootDir = path.resolve(__dirname, "..");
 const publicDir = path.join(rootDir, "public");
 const dataDir = path.resolve(rootDir, process.env.DATA_DIR || "data");
 const port = Number(process.env.PORT || 3000);
+const integrationApiKey = String(process.env.LEGACY_INTEGRATION_API_KEY || process.env.INTEGRATION_API_KEY || "").trim();
 const store = new ProjectsStore({ dataDir });
 const scheduler = new ProjectScheduler({ store, rootDir });
 
@@ -24,6 +26,11 @@ const backgroundJobs = new Map();
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
+
+    if (url.pathname.startsWith("/api/integration/")) {
+      await handleIntegrationApi(req, res, url);
+      return;
+    }
 
     if (url.pathname.startsWith("/api/")) {
       await handleApi(req, res, url);
@@ -356,6 +363,64 @@ async function handleApi(req, res, url) {
     }
 
     return sendJson(res, 200, { project });
+  }
+
+  return sendJson(res, 404, { error: "Not found." });
+}
+
+async function handleIntegrationApi(req, res, url) {
+  if (!integrationApiKey) {
+    return sendJson(res, 503, { error: "Integration API is not configured." });
+  }
+
+  if (!isIntegrationAuthorized(req.headers, integrationApiKey)) {
+    return sendJson(res, 401, { error: "Unauthorized. Provide x-api-key or Bearer token." });
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/integration/health") {
+    return sendJson(res, 200, { ok: true, authConfigured: true });
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/integration/projects") {
+    const projects = await store.listProjects();
+    return sendJson(res, 200, {
+      data: projects.map((project) => ({
+        id: project.id,
+        name: project.name,
+        type: project.type,
+        mailbox: project.mailbox,
+        recent_messages_count: (project.recentMessages || []).length
+      }))
+    });
+  }
+
+  const integrationMessagesMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages$/);
+  if (req.method === "GET" && integrationMessagesMatch) {
+    const project = await store.getProject(decodeURIComponent(integrationMessagesMatch[1]));
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    return sendJson(res, 200, listIntegrationMessages(project, {
+      page: url.searchParams.get("page"),
+      limit: url.searchParams.get("limit"),
+      status: url.searchParams.get("status")
+    }));
+  }
+
+  const integrationMessageMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages\/([^/]+)$/);
+  if (req.method === "GET" && integrationMessageMatch) {
+    const project = await store.getProject(decodeURIComponent(integrationMessageMatch[1]));
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    const message = findIntegrationMessage(project, decodeURIComponent(integrationMessageMatch[2]));
+    if (!message) {
+      return sendJson(res, 404, { error: "Message not found." });
+    }
+
+    return sendJson(res, 200, { data: message });
   }
 
   return sendJson(res, 404, { error: "Not found." });
