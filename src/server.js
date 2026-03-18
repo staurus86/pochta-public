@@ -26,7 +26,14 @@ const host = String(process.env.HOST || "0.0.0.0").trim() || "0.0.0.0";
 const port = Number(process.env.PORT || 3000);
 const jsonBodyLimitBytes = resolveJsonBodyLimit(process.env.LEGACY_MAX_JSON_BODY_BYTES, 64 * 1024);
 const backgroundRole = normalizeBackgroundRole(process.env.LEGACY_BACKGROUND_ROLE || "all");
-const integrationClients = loadIntegrationClients(process.env);
+const envClients = loadIntegrationClients(process.env);
+
+function getIntegrationClients() {
+  const dbClients = detectionKb.getApiClientsForAuth();
+  return [...envClients, ...dbClients];
+}
+
+const integrationClients = getIntegrationClients();
 const store = new ProjectsStore({ dataDir });
 const webhookDispatcher = new LegacyWebhookDispatcher({
   store,
@@ -231,6 +238,41 @@ async function handleApi(req, res, url) {
   if (req.method === "DELETE" && url.pathname === "/api/detection-kb/brand-catalog") {
     const result = detectionKb.clearBrandAliases();
     return sendJson(res, 200, result);
+  }
+
+  // ── API Clients management ──
+  if (req.method === "GET" && url.pathname === "/api/detection-kb/api-clients") {
+    return sendJson(res, 200, { clients: detectionKb.getApiClients() });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/detection-kb/api-clients") {
+    const payload = await parseRequestJson(req);
+    if (!payload.name) {
+      return sendJson(res, 400, { error: "Field 'name' is required." });
+    }
+
+    const client = detectionKb.createApiClient(payload);
+    return sendJson(res, 201, { client });
+  }
+
+  const apiClientMatch = url.pathname.match(/^\/api\/detection-kb\/api-clients\/([^/]+)$/);
+  if (req.method === "PATCH" && apiClientMatch) {
+    const payload = await parseRequestJson(req);
+    const client = detectionKb.updateApiClient(apiClientMatch[1], payload);
+    if (!client) return sendJson(res, 404, { error: "Client not found." });
+    return sendJson(res, 200, { client });
+  }
+
+  if (req.method === "DELETE" && apiClientMatch) {
+    const result = detectionKb.deleteApiClient(apiClientMatch[1]);
+    return sendJson(res, 200, result);
+  }
+
+  const regenerateKeyMatch = url.pathname.match(/^\/api\/detection-kb\/api-clients\/([^/]+)\/regenerate$/);
+  if (req.method === "POST" && regenerateKeyMatch) {
+    const client = detectionKb.regenerateApiKey(regenerateKeyMatch[1]);
+    if (!client) return sendJson(res, 404, { error: "Client not found." });
+    return sendJson(res, 200, { client });
   }
 
   if (req.method === "GET" && url.pathname === "/api/projects") {
@@ -560,11 +602,12 @@ async function handleIntegrationApi(req, res, url) {
     return sendJson(res, 200, buildLegacyIntegrationChangelogDocument(baseUrl));
   }
 
-  if (integrationClients.length === 0) {
-    return sendJson(res, 503, { error: "Integration API is not configured." });
+  const activeClients = getIntegrationClients();
+  if (activeClients.length === 0) {
+    return sendJson(res, 503, { error: "Integration API is not configured. Create a client via API Docs page." });
   }
 
-  const currentClient = resolveIntegrationClient(req.headers, integrationClients);
+  const currentClient = resolveIntegrationClient(req.headers, activeClients);
   if (!currentClient) {
     return sendJson(res, 401, { error: "Unauthorized. Provide x-api-key or Bearer token." });
   }

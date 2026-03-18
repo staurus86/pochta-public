@@ -101,7 +101,7 @@ function navigateTo(page) {
   if (page === 'project2') refreshP2();
   if (page === 'project3') refreshP3();
   if (page === 'project4') refreshP4();
-  if (page === 'api-docs') refreshApiDocsHealth();
+  if (page === 'api-docs') { refreshApiDocsHealth(); refreshApiClients(); }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -111,6 +111,18 @@ function navigateTo(page) {
 function setupForms() {
   projectSelect.addEventListener('change', async () => {
     selectedProjectId = projectSelect.value;
+  });
+
+  $('#create-api-client-btn').addEventListener('click', async () => {
+    const name = prompt('Имя клиента (например: CRM Bot, 1C Integration):');
+    if (!name) return;
+    const webhookUrl = prompt('Webhook URL (оставьте пустым если не нужен):', '') || '';
+    await fetch('/api/detection-kb/api-clients', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, webhookUrl })
+    });
+    refreshApiClients();
   });
 
   $('#reanalyze-btn').addEventListener('click', async () => {
@@ -1658,6 +1670,52 @@ function formatArr(items) { return Array.isArray(items) && items.length ? items.
 function truncate(s, n) { return !s ? '' : s.length > n ? s.slice(0, n) + '...' : s; }
 function esc(v) { return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function escAttr(v) { return String(v ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/</g, '\\x3c'); }
+
+async function refreshApiClients() {
+  const el = $('#api-clients-list');
+  if (!el) return;
+  try {
+    const data = await fetch('/api/detection-kb/api-clients').then((r) => r.json());
+    const clients = data.clients || [];
+    if (clients.length === 0) {
+      el.innerHTML = '<div style="padding:16px;color:var(--text-tertiary);font-size:13px;">Нет API-клиентов. Нажмите «+ Создать клиента» чтобы сгенерировать ключ.</div>';
+      return;
+    }
+    el.innerHTML = `<table class="data-table"><thead><tr>
+      <th>Name</th><th>API Key</th><th>Projects</th><th>Webhook</th><th>Status</th><th>Actions</th>
+    </tr></thead><tbody>${clients.map((c) => `<tr>
+      <td><strong>${esc(c.name)}</strong><div style="font-size:10px;color:var(--text-tertiary);">${esc(c.id)}</div></td>
+      <td><code style="font-size:11px;background:var(--bg-tertiary);padding:2px 6px;border-radius:4px;user-select:all;">${esc(c.apiKey)}</code></td>
+      <td style="font-size:11px;">${c.projectIds.length ? c.projectIds.map((p) => `<span class="badge" style="font-size:10px;">${esc(p)}</span>`).join(' ') : '<span style="color:var(--text-tertiary);">all</span>'}</td>
+      <td style="font-size:11px;">${c.webhookUrl ? `<span style="color:var(--green);">${esc(truncate(c.webhookUrl, 30))}</span>` : '<span style="color:var(--text-tertiary);">-</span>'}</td>
+      <td>${c.enabled ? '<span style="color:var(--green);">Active</span>' : '<span style="color:var(--rose);">Disabled</span>'}</td>
+      <td style="white-space:nowrap;">
+        <button class="btn btn-ghost btn-sm" onclick="regenerateClientKey('${escAttr(c.id)}')" title="Перегенерировать ключ">Regen</button>
+        <button class="btn btn-ghost btn-sm" onclick="toggleClient('${escAttr(c.id)}', ${!c.enabled})">${c.enabled ? 'Off' : 'On'}</button>
+        <button class="btn btn-danger btn-sm" onclick="deleteClient('${escAttr(c.id)}')">Del</button>
+      </td>
+    </tr>`).join('')}</tbody></table>`;
+  } catch {
+    el.innerHTML = '<div style="padding:16px;color:var(--rose);">Failed to load clients</div>';
+  }
+}
+
+window.regenerateClientKey = async function(id) {
+  if (!confirm('Перегенерировать API-ключ? Старый ключ перестанет работать.')) return;
+  await fetch(`/api/detection-kb/api-clients/${id}/regenerate`, { method: 'POST' });
+  refreshApiClients();
+};
+
+window.toggleClient = async function(id, enabled) {
+  await fetch(`/api/detection-kb/api-clients/${id}`, { method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ enabled }) });
+  refreshApiClients();
+};
+
+window.deleteClient = async function(id) {
+  if (!confirm('Удалить API-клиента?')) return;
+  await fetch(`/api/detection-kb/api-clients/${id}`, { method: 'DELETE' });
+  refreshApiClients();
+};
 
 async function refreshApiDocsHealth() {
   const el = $('#api-health-status');

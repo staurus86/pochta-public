@@ -1,4 +1,5 @@
 import { mkdirSync, readFileSync, existsSync } from "node:fs";
+import { randomBytes } from "node:crypto";
 import path from "node:path";
 import { DatabaseSync } from "node:sqlite";
 
@@ -149,6 +150,19 @@ class DetectionKnowledgeBase {
         notes TEXT DEFAULT '',
         is_active INTEGER NOT NULL DEFAULT 1
       );
+
+      CREATE TABLE IF NOT EXISTS api_clients (
+        id TEXT PRIMARY KEY,
+        name TEXT NOT NULL,
+        api_key TEXT NOT NULL UNIQUE,
+        enabled INTEGER NOT NULL DEFAULT 1,
+        project_ids TEXT DEFAULT '',
+        webhook_url TEXT DEFAULT '',
+        webhook_secret TEXT DEFAULT '',
+        webhook_statuses TEXT DEFAULT 'ready_for_crm,needs_clarification',
+        created_at TEXT NOT NULL,
+        notes TEXT DEFAULT ''
+      );
     `);
 
     this.seedDefaults();
@@ -276,6 +290,73 @@ class DetectionKnowledgeBase {
   filterOwnBrands(brands) {
     const ownNames = this.getOwnBrandNames();
     return (brands || []).filter((b) => !ownNames.has(String(b).toLowerCase()));
+  }
+
+  // ── API Clients ──
+
+  getApiClients() {
+    return this.db.prepare("SELECT * FROM api_clients ORDER BY created_at DESC").all()
+      .map(normalizeApiClientRow);
+  }
+
+  getApiClient(id) {
+    const row = this.db.prepare("SELECT * FROM api_clients WHERE id = ?").get(id);
+    return row ? normalizeApiClientRow(row) : null;
+  }
+
+  createApiClient(payload) {
+    const id = `client-${Date.now().toString(36)}`;
+    const apiKey = `sk-${randomHex(32)}`;
+    const now = new Date().toISOString();
+    this.db.prepare(`
+      INSERT INTO api_clients (id, name, api_key, enabled, project_ids, webhook_url, webhook_secret, webhook_statuses, created_at, notes)
+      VALUES (?, ?, ?, 1, ?, ?, ?, ?, ?, ?)
+    `).run(
+      id,
+      String(payload.name || "New Client").trim(),
+      apiKey,
+      (payload.projectIds || []).join(","),
+      String(payload.webhookUrl || "").trim(),
+      String(payload.webhookSecret || "").trim(),
+      String(payload.webhookStatuses || "ready_for_crm,needs_clarification").trim(),
+      now,
+      String(payload.notes || "").trim()
+    );
+    return this.getApiClient(id);
+  }
+
+  updateApiClient(id, payload) {
+    const existing = this.getApiClient(id);
+    if (!existing) return null;
+    const fields = [];
+    const values = [];
+    if (payload.name !== undefined) { fields.push("name = ?"); values.push(String(payload.name).trim()); }
+    if (payload.enabled !== undefined) { fields.push("enabled = ?"); values.push(payload.enabled ? 1 : 0); }
+    if (payload.projectIds !== undefined) { fields.push("project_ids = ?"); values.push(Array.isArray(payload.projectIds) ? payload.projectIds.join(",") : String(payload.projectIds)); }
+    if (payload.webhookUrl !== undefined) { fields.push("webhook_url = ?"); values.push(String(payload.webhookUrl).trim()); }
+    if (payload.webhookSecret !== undefined) { fields.push("webhook_secret = ?"); values.push(String(payload.webhookSecret).trim()); }
+    if (payload.webhookStatuses !== undefined) { fields.push("webhook_statuses = ?"); values.push(String(payload.webhookStatuses).trim()); }
+    if (payload.notes !== undefined) { fields.push("notes = ?"); values.push(String(payload.notes).trim()); }
+    if (fields.length === 0) return existing;
+    values.push(id);
+    this.db.prepare(`UPDATE api_clients SET ${fields.join(", ")} WHERE id = ?`).run(...values);
+    return this.getApiClient(id);
+  }
+
+  deleteApiClient(id) {
+    this.db.prepare("DELETE FROM api_clients WHERE id = ?").run(id);
+    return { id, deleted: true };
+  }
+
+  regenerateApiKey(id) {
+    const newKey = `sk-${randomHex(32)}`;
+    this.db.prepare("UPDATE api_clients SET api_key = ? WHERE id = ?").run(newKey, id);
+    return this.getApiClient(id);
+  }
+
+  getApiClientsForAuth() {
+    return this.db.prepare("SELECT * FROM api_clients WHERE enabled = 1").all()
+      .map(normalizeApiClientRow);
   }
 
   importBrandCatalog(brands) {
@@ -637,6 +718,25 @@ function getDomain(fromEmail) {
 
 function escapeRegex(str) {
   return str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+}
+
+function randomHex(length) {
+  return randomBytes(length / 2).toString("hex");
+}
+
+function normalizeApiClientRow(row) {
+  return {
+    id: row.id,
+    name: row.name,
+    apiKey: row.api_key,
+    enabled: Boolean(row.enabled),
+    projectIds: String(row.project_ids || "").split(",").filter(Boolean),
+    webhookUrl: row.webhook_url || null,
+    webhookSecret: row.webhook_secret || "",
+    webhookStatuses: String(row.webhook_statuses || "").split(",").filter(Boolean),
+    createdAt: row.created_at,
+    notes: row.notes || ""
+  };
 }
 
 export const detectionKb = new DetectionKnowledgeBase();
