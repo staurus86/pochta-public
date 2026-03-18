@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ProjectsStore } from "./storage/projects-store.js";
 import { analyzeEmail } from "./services/email-analyzer.js";
+import { HttpError, parseJsonBody, resolveJsonBodyLimit } from "./services/http-json.js";
 import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js";
 import { ProjectScheduler } from "./services/project-scheduler.js";
 import { getMailboxFileRuntime, runMailboxFileParser } from "./services/project3-runner.js";
@@ -18,6 +19,7 @@ const publicDir = path.join(rootDir, "public");
 const dataDir = path.resolve(rootDir, process.env.DATA_DIR || "data");
 const port = Number(process.env.PORT || 3000);
 const integrationApiKey = String(process.env.LEGACY_INTEGRATION_API_KEY || process.env.INTEGRATION_API_KEY || "").trim();
+const jsonBodyLimitBytes = resolveJsonBodyLimit(process.env.LEGACY_MAX_JSON_BODY_BYTES, 64 * 1024);
 const store = new ProjectsStore({ dataDir });
 const webhookDispatcher = new LegacyWebhookDispatcher({
   store,
@@ -57,8 +59,10 @@ const server = createServer(async (req, res) => {
 
     await serveStatic(url.pathname, res);
   } catch (error) {
-    res.writeHead(500, { "Content-Type": "application/json; charset=utf-8" });
-    res.end(JSON.stringify({ error: "Internal Server Error", details: error.message }));
+    const statusCode = error instanceof HttpError ? error.statusCode : 500;
+    const message = statusCode >= 500 ? "Internal Server Error" : error.message;
+    res.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
+    res.end(JSON.stringify({ error: message, details: error.message }));
   }
 });
 
@@ -76,6 +80,10 @@ process.on("SIGTERM", () => {
     setTimeout(() => process.exit(1), 5000);
 });
 
+async function parseRequestJson(req) {
+  return parseJsonBody(req, { maxBytes: jsonBodyLimitBytes });
+}
+
 async function handleApi(req, res, url) {
   if (req.method === "GET" && url.pathname === "/api/health") {
     return sendJson(res, 200, { ok: true });
@@ -92,7 +100,7 @@ async function handleApi(req, res, url) {
   }
 
   if (req.method === "POST" && url.pathname === "/api/detection-kb/rules") {
-    const payload = await parseJsonBody(req);
+    const payload = await parseRequestJson(req);
     if (!payload.scope || !payload.classifier || !payload.matchType || !payload.pattern) {
       return sendJson(res, 400, { error: "Fields 'scope', 'classifier', 'matchType' and 'pattern' are required." });
     }
@@ -102,7 +110,7 @@ async function handleApi(req, res, url) {
   }
 
   if (req.method === "POST" && url.pathname === "/api/detection-kb/brand-aliases") {
-    const payload = await parseJsonBody(req);
+    const payload = await parseRequestJson(req);
     if (!payload.canonicalBrand || !payload.alias) {
       return sendJson(res, 400, { error: "Fields 'canonicalBrand' and 'alias' are required." });
     }
@@ -130,7 +138,7 @@ async function handleApi(req, res, url) {
   }
 
   if (req.method === "POST" && url.pathname === "/api/detection-kb/sender-profiles") {
-    const payload = await parseJsonBody(req);
+    const payload = await parseRequestJson(req);
     if (!payload.classification) {
       return sendJson(res, 400, { error: "Field 'classification' is required." });
     }
@@ -145,7 +153,7 @@ async function handleApi(req, res, url) {
   }
 
   if (req.method === "POST" && url.pathname === "/api/projects") {
-    const payload = await parseJsonBody(req);
+    const payload = await parseRequestJson(req);
     if (!payload.name || !payload.mailbox) {
       return sendJson(res, 400, { error: "Fields 'name' and 'mailbox' are required." });
     }
@@ -230,7 +238,7 @@ async function handleApi(req, res, url) {
       return sendJson(res, 400, { error: "Run action is available only for runner projects." });
     }
 
-    const payload = await parseJsonBody(req);
+    const payload = await parseRequestJson(req);
 
     // mailbox-file-parser runs async to avoid Railway HTTP timeout
     if (project.type === "mailbox-file-parser") {
@@ -321,7 +329,7 @@ async function handleApi(req, res, url) {
       return sendJson(res, 404, { error: "Project not found." });
     }
 
-    const payload = await parseJsonBody(req);
+    const payload = await parseRequestJson(req);
     if (!payload.pipelineStatus) {
       return sendJson(res, 400, { error: "Field 'pipelineStatus' is required." });
     }
@@ -352,7 +360,7 @@ async function handleApi(req, res, url) {
       return sendJson(res, 404, { error: "Project not found." });
     }
 
-    const payload = await parseJsonBody(req);
+    const payload = await parseRequestJson(req);
     const schedule = await store.updateSchedule(project.id, payload);
     return sendJson(res, 200, { schedule });
   }
@@ -368,7 +376,7 @@ async function handleApi(req, res, url) {
       return sendJson(res, 400, { error: "Analyze action is available only for email-parser projects." });
     }
 
-    const payload = await parseJsonBody(req);
+    const payload = await parseRequestJson(req);
     if (!payload.fromEmail || !payload.body) {
       return sendJson(res, 400, { error: "Fields 'fromEmail' and 'body' are required." });
     }
@@ -442,7 +450,7 @@ async function handleIntegrationApi(req, res, url) {
   if (req.method === "POST" && integrationAckMatch) {
     const projectId = decodeURIComponent(integrationAckMatch[1]);
     const messageKey = decodeURIComponent(integrationAckMatch[2]);
-    const payload = await parseJsonBody(req);
+    const payload = await parseRequestJson(req);
     const message = await store.acknowledgeMessageExport(projectId, messageKey, payload);
     if (!message) {
       return sendJson(res, 404, { error: "Message not found." });
@@ -469,7 +477,7 @@ async function handleIntegrationApi(req, res, url) {
   if (req.method === "POST" && integrationRequeueMatch) {
     const projectId = decodeURIComponent(integrationRequeueMatch[1]);
     const deliveryId = decodeURIComponent(integrationRequeueMatch[2]);
-    const payload = await parseJsonBody(req);
+    const payload = await parseRequestJson(req);
     const delivery = await store.requeueWebhookDelivery(projectId, deliveryId, payload);
     if (!delivery) {
       return sendJson(res, 404, { error: "Delivery not found." });
@@ -515,19 +523,6 @@ async function serveStatic(pathname, res) {
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(payload, null, 2));
-}
-
-async function parseJsonBody(req) {
-  const chunks = [];
-  for await (const chunk of req) {
-    chunks.push(chunk);
-  }
-
-  if (chunks.length === 0) {
-    return {};
-  }
-
-  return JSON.parse(Buffer.concat(chunks).toString("utf-8"));
 }
 
 function contentType(filePath) {
