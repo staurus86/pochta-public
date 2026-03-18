@@ -221,16 +221,23 @@ class DetectionKnowledgeBase {
   }
 
   seedBrandCatalog() {
-    const catalogPath = path.join(this.dataDir, "brand-catalog.json");
-    if (!existsSync(catalogPath)) return;
-    try {
-      const brands = JSON.parse(readFileSync(catalogPath, "utf8"));
-      const result = this.importBrandCatalog(brands);
-      if (result.added > 0) {
-        console.log(`[detection-kb] Brand catalog: +${result.added} aliases (${result.total} total)`);
+    // Try multiple locations: dataDir (volume), then app root data/
+    const candidates = [
+      path.join(this.dataDir, "brand-catalog.json"),
+      path.resolve(process.cwd(), "data", "brand-catalog.json")
+    ];
+    for (const catalogPath of candidates) {
+      if (!existsSync(catalogPath)) continue;
+      try {
+        const brands = JSON.parse(readFileSync(catalogPath, "utf8"));
+        const result = this.importBrandCatalog(brands);
+        if (result.added > 0) {
+          console.log(`[detection-kb] Brand catalog: +${result.added} aliases (${result.total} total) from ${catalogPath}`);
+        }
+        return;
+      } catch (err) {
+        console.error("[detection-kb] Failed to seed brand catalog:", err.message);
       }
-    } catch (err) {
-      console.error("[detection-kb] Failed to seed brand catalog:", err.message);
     }
   }
 
