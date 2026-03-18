@@ -164,7 +164,8 @@ export class ProjectsStore {
         recentRuns: project.recentRuns || [],
         recentMessages: (project.recentMessages || []).map((message) => ({
           ...message,
-          integrationExport: message.integrationExport || null
+          integrationExport: message.integrationExport || null,
+          integrationExports: normalizeIntegrationExports(message)
         })),
         webhookDeliveries: project.webhookDeliveries || [],
         schedule: normalizeSchedule(project.schedule)
@@ -325,20 +326,24 @@ export class ProjectsStore {
     }
 
     const acknowledgedAt = new Date().toISOString();
-    message.integrationExport = {
+    const consumerId = payload.consumer ? String(payload.consumer).trim() : "legacy-default";
+    const exportState = {
       acknowledgedAt,
-      consumer: payload.consumer ? String(payload.consumer).trim() : null,
+      consumer: consumerId,
       externalId: payload.externalId ? String(payload.externalId).trim() : null,
       note: payload.note ? String(payload.note).trim() : null
     };
+    message.integrationExports = normalizeIntegrationExports(message);
+    message.integrationExports[consumerId] = exportState;
+    message.integrationExport = exportState;
 
     if (!message.auditLog) message.auditLog = [];
     message.auditLog.push({
       action: "integration_ack",
       at: acknowledgedAt,
-      consumer: message.integrationExport.consumer,
-      externalId: message.integrationExport.externalId,
-      note: message.integrationExport.note
+      consumer: exportState.consumer,
+      externalId: exportState.externalId,
+      note: exportState.note
     });
 
     await this.persist();
@@ -383,7 +388,33 @@ export class ProjectsStore {
       return null;
     }
 
-    project.recentMessages = (messages || []).slice(0, 5000);
+    const existingByKey = new Map((project.recentMessages || []).map((item) => [
+      item.messageKey || item.id,
+      {
+        integrationExport: item.integrationExport || null,
+        integrationExports: normalizeIntegrationExports(item)
+      }
+    ]));
+
+    project.recentMessages = (messages || []).slice(0, 5000).map((item) => {
+      const existing = existingByKey.get(item.messageKey || item.id);
+      if (!existing) {
+        return {
+          ...item,
+          integrationExport: item.integrationExport || null,
+          integrationExports: normalizeIntegrationExports(item)
+        };
+      }
+
+      return {
+        ...item,
+        integrationExport: item.integrationExport || existing.integrationExport || null,
+        integrationExports: {
+          ...existing.integrationExports,
+          ...normalizeIntegrationExports(item)
+        }
+      };
+    });
     await this.persist();
     return project.recentMessages;
   }
@@ -553,4 +584,18 @@ function normalizeStringArray(value) {
   }
 
   return [];
+}
+
+function normalizeIntegrationExports(message) {
+  const exportsMap = message?.integrationExports && typeof message.integrationExports === "object"
+    ? { ...message.integrationExports }
+    : {};
+
+  if (message?.integrationExport?.consumer) {
+    exportsMap[message.integrationExport.consumer] = {
+      ...message.integrationExport
+    };
+  }
+
+  return exportsMap;
 }

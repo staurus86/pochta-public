@@ -49,6 +49,7 @@ runTest("acknowledges message export and requeues webhook delivery", async () =>
 
     assert.equal(acknowledged.integrationExport.consumer, "crm-sync");
     assert.equal(acknowledged.integrationExport.externalId, "REQ-77");
+    assert.equal(acknowledged.integrationExports["crm-sync"].externalId, "REQ-77");
     assert.equal(acknowledged.auditLog.at(-1).action, "integration_ack");
 
     await store.enqueueWebhookDeliveries(project.id, [{

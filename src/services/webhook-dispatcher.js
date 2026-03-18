@@ -1,5 +1,6 @@
 import { createHmac, randomUUID } from "node:crypto";
 import { normalizeIntegrationMessage } from "./integration-api.js";
+import { getWebhookClients } from "./integration-clients.js";
 
 const DEFAULT_INTERVAL_MS = 15_000;
 const DEFAULT_TIMEOUT_MS = 10_000;
@@ -8,18 +9,14 @@ const DEFAULT_MAX_ATTEMPTS = 5;
 export class LegacyWebhookDispatcher {
   constructor({
     store,
-    webhookUrl,
-    webhookSecret = "",
-    webhookStatuses = ["ready_for_crm", "needs_clarification"],
+    integrationClients = [],
     logger = console,
     intervalMs = DEFAULT_INTERVAL_MS,
     timeoutMs = DEFAULT_TIMEOUT_MS,
     maxAttempts = DEFAULT_MAX_ATTEMPTS
   }) {
     this.store = store;
-    this.webhookUrl = String(webhookUrl || "").trim();
-    this.webhookSecret = String(webhookSecret || "").trim();
-    this.webhookStatuses = normalizeStatuses(webhookStatuses);
+    this.integrationClients = integrationClients;
     this.logger = logger;
     this.intervalMs = intervalMs;
     this.timeoutMs = timeoutMs;
@@ -29,7 +26,7 @@ export class LegacyWebhookDispatcher {
   }
 
   isEnabled() {
-    return Boolean(this.webhookUrl && this.webhookStatuses.length > 0);
+    return this.integrationClients.some((client) => client.enabled && client.webhookUrl && client.webhookStatuses.length > 0);
   }
 
   start() {
@@ -65,9 +62,8 @@ export class LegacyWebhookDispatcher {
       return { added: 0, total: 0 };
     }
 
-    const deliveries = messages
-      .filter((message) => shouldEnqueueWebhook(message, this.webhookStatuses))
-      .map((message) => createWebhookDelivery(project, message));
+    const deliveries = messages.flatMap((message) => getWebhookClients(this.integrationClients, project.id, message)
+      .map((client) => createWebhookDelivery(project, message, client)));
 
     if (deliveries.length === 0) {
       return { added: 0, total: 0 };
@@ -95,12 +91,17 @@ export class LegacyWebhookDispatcher {
   async deliver(projectId, delivery, now = new Date()) {
     const attemptedAt = now.toISOString();
     const attemptNumber = Number(delivery.attempts || 0) + 1;
+    const client = this.integrationClients.find((item) => item.id === delivery.clientId);
 
     try {
+      if (!client || !client.enabled || !client.webhookUrl) {
+        throw new Error(`Webhook client '${delivery.clientId || "unknown"}' is not available`);
+      }
+
       const payload = JSON.stringify(delivery.payload);
-      const response = await fetch(this.webhookUrl, {
+      const response = await fetch(client.webhookUrl, {
         method: "POST",
-        headers: buildWebhookHeaders(payload, this.webhookSecret, delivery),
+        headers: buildWebhookHeaders(payload, client.webhookSecret, delivery),
         body: payload,
         signal: AbortSignal.timeout(this.timeoutMs)
       });
@@ -137,21 +138,24 @@ export function shouldEnqueueWebhook(message, statuses) {
   return normalizeStatuses(statuses).includes(String(message?.pipelineStatus || "").trim());
 }
 
-export function createWebhookDelivery(project, message) {
+export function createWebhookDelivery(project, message, client) {
   const createdAt = new Date().toISOString();
   const payload = {
     event: "message.updated",
     occurred_at: createdAt,
     delivery_id: randomUUID(),
+    client_id: client.id,
     project_id: project.id,
     message_key: message.messageKey || message.id,
     pipeline_status: message.pipelineStatus || "unknown",
-    data: normalizeIntegrationMessage(project, message)
+    data: normalizeIntegrationMessage(project, message, { consumerId: client.id })
   };
 
   return {
     id: payload.delivery_id,
-    key: `${payload.message_key}:${payload.pipeline_status}`,
+    clientId: client.id,
+    clientName: client.name || client.id,
+    key: `${client.id}:${payload.message_key}:${payload.pipeline_status}`,
     event: payload.event,
     messageKey: payload.message_key,
     pipelineStatus: payload.pipeline_status,
@@ -179,7 +183,8 @@ export function buildWebhookHeaders(payload, secret, delivery) {
     "Content-Type": "application/json",
     "User-Agent": "pochta-legacy-webhook/1.0",
     "X-Pochta-Event": delivery.event,
-    "X-Pochta-Delivery-Id": delivery.id
+    "X-Pochta-Delivery-Id": delivery.id,
+    "X-Pochta-Client-Id": delivery.clientId || ""
   };
 
   if (secret) {

@@ -48,19 +48,27 @@ runTest("checks whether message should be enqueued for webhook", () => {
 });
 
 runTest("creates webhook delivery payload and key", () => {
-  const delivery = createWebhookDelivery(project, message);
+  const delivery = createWebhookDelivery(project, message, {
+    id: "crm-sync",
+    name: "CRM Sync"
+  });
 
-  assert.equal(delivery.key, "msg-1:ready_for_crm");
+  assert.equal(delivery.key, "crm-sync:msg-1:ready_for_crm");
+  assert.equal(delivery.clientId, "crm-sync");
   assert.equal(delivery.payload.message_key, "msg-1");
   assert.equal(delivery.payload.data.classification.label, "Клиент");
 });
 
 runTest("builds signed webhook headers", () => {
-  const delivery = createWebhookDelivery(project, message);
+  const delivery = createWebhookDelivery(project, message, {
+    id: "crm-sync",
+    name: "CRM Sync"
+  });
   const headers = buildWebhookHeaders(JSON.stringify(delivery.payload), "secret", delivery);
 
   assert.equal(headers["X-Pochta-Event"], "message.updated");
   assert.equal(headers["X-Pochta-Delivery-Id"], delivery.id);
+  assert.equal(headers["X-Pochta-Client-Id"], "crm-sync");
   assert.match(headers["X-Pochta-Signature"], /^sha256=/);
 });
 

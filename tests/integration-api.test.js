@@ -1,11 +1,11 @@
 import assert from "node:assert/strict";
 import {
   findIntegrationMessage,
-  isIntegrationAuthorized,
   listIntegrationMessages,
   normalizeIntegrationMessage,
   parseIntegrationCursor
 } from "../src/services/integration-api.js";
+import { canClientAccessProject, isIntegrationAuthorized, loadIntegrationClients, resolveIntegrationClient } from "../src/services/integration-clients.js";
 
 const project = {
   id: "project-3-mailbox-file",
@@ -30,6 +30,20 @@ const project = {
         consumer: "crm-sync",
         externalId: "REQ-42",
         note: "Imported"
+      },
+      integrationExports: {
+        "crm-sync": {
+          acknowledgedAt: "2026-03-18T10:07:00.000Z",
+          consumer: "crm-sync",
+          externalId: "REQ-42",
+          note: "Imported"
+        },
+        "erp-sync": {
+          acknowledgedAt: "2026-03-18T10:08:00.000Z",
+          consumer: "erp-sync",
+          externalId: "ERP-99",
+          note: "Exported"
+        }
       },
       analysis: {
         detectedBrands: ["ABB"],
@@ -123,8 +137,24 @@ runTest("authorizes integration requests by x-api-key and bearer token", () => {
   assert.equal(isIntegrationAuthorized({ authorization: "Bearer wrong" }, "secret"), false);
 });
 
+runTest("resolves integration clients and project scopes", () => {
+  const clients = loadIntegrationClients({
+    LEGACY_INTEGRATION_CLIENTS_JSON: JSON.stringify([{
+      id: "crm-sync",
+      name: "CRM Sync",
+      apiKey: "crm-key",
+      projectIds: ["project-3-mailbox-file"]
+    }])
+  });
+
+  const client = resolveIntegrationClient({ "x-api-key": "crm-key" }, clients);
+  assert.equal(client.id, "crm-sync");
+  assert.equal(canClientAccessProject(client, "project-3-mailbox-file"), true);
+  assert.equal(canClientAccessProject(client, "project-2-tender-parser"), false);
+});
+
 runTest("normalizes integration message shape", () => {
-  const normalized = normalizeIntegrationMessage(project, project.recentMessages[0]);
+  const normalized = normalizeIntegrationMessage(project, project.recentMessages[0], { consumerId: "crm-sync" });
 
   assert.equal(normalized.project_id, "project-3-mailbox-file");
   assert.equal(normalized.message_key, "msg-1");
@@ -160,6 +190,8 @@ runTest("filters integration messages by since and multiple statuses", () => {
 runTest("filters integration messages by export acknowledgement", () => {
   const result = listIntegrationMessages(project, {
     exported: "true"
+  }, {
+    consumerId: "crm-sync"
   });
 
   assert.equal(result.data.length, 1);
@@ -200,8 +232,9 @@ runTest("returns null for invalid integration cursors", () => {
 });
 
 runTest("finds a single normalized integration message", () => {
-  const message = findIntegrationMessage(project, "msg-1");
+  const message = findIntegrationMessage(project, "msg-1", { consumerId: "erp-sync" });
 
   assert.equal(message.message_key, "msg-1");
   assert.equal(message.sender.email, "ivan@example.com");
+  assert.equal(message.export.external_id, "ERP-99");
 });

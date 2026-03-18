@@ -6,12 +6,13 @@ import { ProjectsStore } from "./storage/projects-store.js";
 import { analyzeEmail } from "./services/email-analyzer.js";
 import { normalizeBackgroundRole, shouldRunScheduler, shouldRunWebhooks } from "./services/background-role.js";
 import { HttpError, parseJsonBody, resolveJsonBodyLimit } from "./services/http-json.js";
+import { canClientAccessProject, loadIntegrationClients, resolveIntegrationClient } from "./services/integration-clients.js";
 import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js";
 import { ProjectScheduler } from "./services/project-scheduler.js";
 import { getMailboxFileRuntime, runMailboxFileParser } from "./services/project3-runner.js";
 import { detectionKb } from "./services/detection-kb.js";
-import { findIntegrationDelivery, findIntegrationMessage, isIntegrationAuthorized, listIntegrationDeliveries, listIntegrationMessages, parseIntegrationCursor } from "./services/integration-api.js";
-import { LegacyWebhookDispatcher, normalizeStatuses } from "./services/webhook-dispatcher.js";
+import { findIntegrationDelivery, findIntegrationMessage, listIntegrationDeliveries, listIntegrationMessages, parseIntegrationCursor } from "./services/integration-api.js";
+import { LegacyWebhookDispatcher } from "./services/webhook-dispatcher.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -20,15 +21,13 @@ const publicDir = path.join(rootDir, "public");
 const dataDir = path.resolve(rootDir, process.env.DATA_DIR || "data");
 const host = String(process.env.HOST || "0.0.0.0").trim() || "0.0.0.0";
 const port = Number(process.env.PORT || 3000);
-const integrationApiKey = String(process.env.LEGACY_INTEGRATION_API_KEY || process.env.INTEGRATION_API_KEY || "").trim();
 const jsonBodyLimitBytes = resolveJsonBodyLimit(process.env.LEGACY_MAX_JSON_BODY_BYTES, 64 * 1024);
 const backgroundRole = normalizeBackgroundRole(process.env.LEGACY_BACKGROUND_ROLE || "all");
+const integrationClients = loadIntegrationClients(process.env);
 const store = new ProjectsStore({ dataDir });
 const webhookDispatcher = new LegacyWebhookDispatcher({
   store,
-  webhookUrl: process.env.LEGACY_WEBHOOK_URL,
-  webhookSecret: process.env.LEGACY_WEBHOOK_SECRET,
-  webhookStatuses: normalizeStatuses(process.env.LEGACY_WEBHOOK_STATUSES || "ready_for_crm,needs_clarification"),
+  integrationClients,
   logger: console,
   intervalMs: Number(process.env.LEGACY_WEBHOOK_INTERVAL_MS || 15000),
   timeoutMs: Number(process.env.LEGACY_WEBHOOK_TIMEOUT_MS || 10000)
@@ -425,11 +424,12 @@ async function handleApi(req, res, url) {
 }
 
 async function handleIntegrationApi(req, res, url) {
-  if (!integrationApiKey) {
+  if (integrationClients.length === 0) {
     return sendJson(res, 503, { error: "Integration API is not configured." });
   }
 
-  if (!isIntegrationAuthorized(req.headers, integrationApiKey)) {
+  const currentClient = resolveIntegrationClient(req.headers, integrationClients);
+  if (!currentClient) {
     return sendJson(res, 401, { error: "Unauthorized. Provide x-api-key or Bearer token." });
   }
 
@@ -437,6 +437,11 @@ async function handleIntegrationApi(req, res, url) {
     return sendJson(res, 200, {
       ok: true,
       authConfigured: true,
+      client: {
+        id: currentClient.id,
+        name: currentClient.name,
+        project_ids: currentClient.projectIds
+      },
       background: {
         role: backgroundRole,
         schedulerEnabled: shouldRunScheduler(backgroundRole),
@@ -448,7 +453,7 @@ async function handleIntegrationApi(req, res, url) {
   if (req.method === "GET" && url.pathname === "/api/integration/projects") {
     const projects = await store.listProjects();
     return sendJson(res, 200, {
-      data: projects.map((project) => ({
+      data: projects.filter((project) => canClientAccessProject(currentClient, project.id)).map((project) => ({
         id: project.id,
         name: project.name,
         type: project.type,
@@ -460,7 +465,11 @@ async function handleIntegrationApi(req, res, url) {
 
   const integrationMessagesMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages$/);
   if (req.method === "GET" && integrationMessagesMatch) {
-    const project = await store.getProject(decodeURIComponent(integrationMessagesMatch[1]));
+    const projectId = decodeURIComponent(integrationMessagesMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
+    const project = await store.getProject(projectId);
     if (!project) {
       return sendJson(res, 404, { error: "Project not found." });
     }
@@ -481,26 +490,38 @@ async function handleIntegrationApi(req, res, url) {
       since,
       exported: url.searchParams.get("exported"),
       cursor
+    }, {
+      consumerId: currentClient.id
     }));
   }
 
   const integrationAckMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages\/([^/]+)\/ack$/);
   if (req.method === "POST" && integrationAckMatch) {
     const projectId = decodeURIComponent(integrationAckMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
     const messageKey = decodeURIComponent(integrationAckMatch[2]);
     const payload = await parseRequestJson(req);
-    const message = await store.acknowledgeMessageExport(projectId, messageKey, payload);
+    const message = await store.acknowledgeMessageExport(projectId, messageKey, {
+      ...payload,
+      consumer: currentClient.id
+    });
     if (!message) {
       return sendJson(res, 404, { error: "Message not found." });
     }
 
     const project = await store.getProject(projectId);
-    return sendJson(res, 200, { data: findIntegrationMessage(project, messageKey) });
+    return sendJson(res, 200, { data: findIntegrationMessage(project, messageKey, { consumerId: currentClient.id }) });
   }
 
   const integrationDeliveriesMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/deliveries$/);
   if (req.method === "GET" && integrationDeliveriesMatch) {
-    const project = await store.getProject(decodeURIComponent(integrationDeliveriesMatch[1]));
+    const projectId = decodeURIComponent(integrationDeliveriesMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
+    const project = await store.getProject(projectId);
     if (!project) {
       return sendJson(res, 404, { error: "Project not found." });
     }
@@ -508,31 +529,46 @@ async function handleIntegrationApi(req, res, url) {
     return sendJson(res, 200, listIntegrationDeliveries(project, {
       status: url.searchParams.get("status"),
       limit: url.searchParams.get("limit")
+    }, {
+      clientId: currentClient.id
     }));
   }
 
   const integrationRequeueMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/deliveries\/([^/]+)\/requeue$/);
   if (req.method === "POST" && integrationRequeueMatch) {
     const projectId = decodeURIComponent(integrationRequeueMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
     const deliveryId = decodeURIComponent(integrationRequeueMatch[2]);
-    const payload = await parseRequestJson(req);
-    const delivery = await store.requeueWebhookDelivery(projectId, deliveryId, payload);
-    if (!delivery) {
+    const project = await store.getProject(projectId);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+    const existingDelivery = findIntegrationDelivery(project, deliveryId);
+    if (!existingDelivery) {
       return sendJson(res, 404, { error: "Delivery not found." });
     }
-
-    const project = await store.getProject(projectId);
-    return sendJson(res, 200, { data: findIntegrationDelivery(project, deliveryId) });
+    if (existingDelivery.client_id && existingDelivery.client_id !== currentClient.id) {
+      return sendJson(res, 403, { error: "Client is not allowed to manage this delivery." });
+    }
+    const payload = await parseRequestJson(req);
+    await store.requeueWebhookDelivery(projectId, deliveryId, payload);
+    return sendJson(res, 200, { data: findIntegrationDelivery(project, deliveryId, { clientId: currentClient.id }) });
   }
 
   const integrationMessageMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages\/([^/]+)$/);
   if (req.method === "GET" && integrationMessageMatch) {
-    const project = await store.getProject(decodeURIComponent(integrationMessageMatch[1]));
+    const projectId = decodeURIComponent(integrationMessageMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
+    const project = await store.getProject(projectId);
     if (!project) {
       return sendJson(res, 404, { error: "Project not found." });
     }
 
-    const message = findIntegrationMessage(project, decodeURIComponent(integrationMessageMatch[2]));
+    const message = findIntegrationMessage(project, decodeURIComponent(integrationMessageMatch[2]), { consumerId: currentClient.id });
     if (!message) {
       return sendJson(res, 404, { error: "Message not found." });
     }

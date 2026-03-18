@@ -1,17 +1,6 @@
-export function isIntegrationAuthorized(headers, apiKey) {
-  if (!apiKey) {
-    return false;
-  }
+export { isIntegrationAuthorized } from "./integration-clients.js";
 
-  const headerKey = String(headers["x-api-key"] || "").trim();
-  const authorization = String(headers.authorization || "").trim();
-  const bearerMatch = authorization.match(/^Bearer\s+(.+)$/i);
-  const bearerKey = bearerMatch?.[1]?.trim() || "";
-
-  return headerKey === apiKey || bearerKey === apiKey;
-}
-
-export function normalizeIntegrationMessage(project, message) {
+export function normalizeIntegrationMessage(project, message, options = {}) {
   const analysis = message.analysis || {};
   const classification = analysis.classification || {};
   const sender = analysis.sender || {};
@@ -19,6 +8,7 @@ export function normalizeIntegrationMessage(project, message) {
   const crm = analysis.crm || {};
   const messageKey = message.messageKey || message.id;
   const updatedAt = resolveMessageUpdatedAt(message);
+  const exportState = resolveExportState(message, options.consumerId);
 
   return {
     project_id: project.id,
@@ -33,11 +23,11 @@ export function normalizeIntegrationMessage(project, message) {
     body_preview: message.bodyPreview || "",
     pipeline_status: message.pipelineStatus || "unknown",
     export: {
-      acknowledged: Boolean(message.integrationExport?.acknowledgedAt),
-      acknowledged_at: message.integrationExport?.acknowledgedAt || null,
-      consumer: message.integrationExport?.consumer || null,
-      external_id: message.integrationExport?.externalId || null,
-      note: message.integrationExport?.note || null
+      acknowledged: Boolean(exportState?.acknowledgedAt),
+      acknowledged_at: exportState?.acknowledgedAt || null,
+      consumer: exportState?.consumer || null,
+      external_id: exportState?.externalId || null,
+      note: exportState?.note || null
     },
     error: message.error || null,
     attachments: (message.attachmentFiles || message.attachments || []).map((item) => {
@@ -108,7 +98,7 @@ export function normalizeIntegrationMessage(project, message) {
   };
 }
 
-export function listIntegrationMessages(project, query = {}) {
+export function listIntegrationMessages(project, query = {}, options = {}) {
   const page = normalizePositiveInt(query.page, 1);
   const limit = Math.min(normalizePositiveInt(query.limit, 50), 200);
   const statuses = parseStatuses(query.status);
@@ -118,7 +108,7 @@ export function listIntegrationMessages(project, query = {}) {
 
   const allMessages = (project.recentMessages || [])
     .filter((item) => statuses.length === 0 || statuses.includes(item.pipelineStatus))
-    .filter((item) => exported === null || Boolean(item.integrationExport?.acknowledgedAt) === exported)
+    .filter((item) => exported === null || Boolean(resolveExportState(item, options.consumerId)?.acknowledgedAt) === exported)
     .filter((item) => {
       if (!since) {
         return true;
@@ -135,7 +125,7 @@ export function listIntegrationMessages(project, query = {}) {
     : allMessages;
   const offset = cursor ? 0 : (page - 1) * limit;
   const pageItems = filteredMessages.slice(offset, offset + limit);
-  const data = pageItems.map((item) => normalizeIntegrationMessage(project, item));
+  const data = pageItems.map((item) => normalizeIntegrationMessage(project, item, options));
   const hasMore = filteredMessages.length > offset + pageItems.length;
   const lastItem = pageItems[pageItems.length - 1] || null;
 
@@ -167,16 +157,17 @@ export function listIntegrationMessages(project, query = {}) {
   };
 }
 
-export function findIntegrationMessage(project, messageKey) {
+export function findIntegrationMessage(project, messageKey, options = {}) {
   const message = (project.recentMessages || []).find((item) => (item.messageKey || item.id) === messageKey);
-  return message ? normalizeIntegrationMessage(project, message) : null;
+  return message ? normalizeIntegrationMessage(project, message, options) : null;
 }
 
-export function listIntegrationDeliveries(project, query = {}) {
+export function listIntegrationDeliveries(project, query = {}, options = {}) {
   const statuses = parseStatuses(query.status);
   const limit = Math.min(normalizePositiveInt(query.limit, 100), 500);
 
   const data = (project.webhookDeliveries || [])
+    .filter((item) => !options.clientId || item.clientId === options.clientId)
     .filter((item) => statuses.length === 0 || statuses.includes(item.status))
     .slice(0, limit)
     .map(normalizeIntegrationDelivery);
@@ -189,8 +180,8 @@ export function listIntegrationDeliveries(project, query = {}) {
   };
 }
 
-export function findIntegrationDelivery(project, deliveryId) {
-  const delivery = (project.webhookDeliveries || []).find((item) => item.id === deliveryId);
+export function findIntegrationDelivery(project, deliveryId, options = {}) {
+  const delivery = (project.webhookDeliveries || []).find((item) => item.id === deliveryId && (!options.clientId || item.clientId === options.clientId));
   return delivery ? normalizeIntegrationDelivery(delivery) : null;
 }
 
@@ -309,6 +300,8 @@ function compareMessageToCursor(message, cursor) {
 function normalizeIntegrationDelivery(item) {
   return {
     id: item.id,
+    client_id: item.clientId || null,
+    client_name: item.clientName || null,
     key: item.key,
     event: item.event,
     message_key: item.messageKey,
@@ -324,4 +317,18 @@ function normalizeIntegrationDelivery(item) {
     response_status: item.responseStatus,
     last_manual_action: item.lastManualAction || null
   };
+}
+
+function resolveExportState(message, consumerId) {
+  if (consumerId) {
+    return message?.integrationExports?.[consumerId] || null;
+  }
+
+  if (message?.integrationExport) {
+    return message.integrationExport;
+  }
+
+  const exportsMap = message?.integrationExports || {};
+  const firstKey = Object.keys(exportsMap)[0];
+  return firstKey ? exportsMap[firstKey] : null;
 }
