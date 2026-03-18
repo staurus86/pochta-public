@@ -4,6 +4,7 @@ import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ProjectsStore } from "./storage/projects-store.js";
 import { analyzeEmail } from "./services/email-analyzer.js";
+import { normalizeBackgroundRole, shouldRunScheduler, shouldRunWebhooks } from "./services/background-role.js";
 import { HttpError, parseJsonBody, resolveJsonBodyLimit } from "./services/http-json.js";
 import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js";
 import { ProjectScheduler } from "./services/project-scheduler.js";
@@ -17,9 +18,11 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..");
 const publicDir = path.join(rootDir, "public");
 const dataDir = path.resolve(rootDir, process.env.DATA_DIR || "data");
+const host = String(process.env.HOST || "0.0.0.0").trim() || "0.0.0.0";
 const port = Number(process.env.PORT || 3000);
 const integrationApiKey = String(process.env.LEGACY_INTEGRATION_API_KEY || process.env.INTEGRATION_API_KEY || "").trim();
 const jsonBodyLimitBytes = resolveJsonBodyLimit(process.env.LEGACY_MAX_JSON_BODY_BYTES, 64 * 1024);
+const backgroundRole = normalizeBackgroundRole(process.env.LEGACY_BACKGROUND_ROLE || "all");
 const store = new ProjectsStore({ dataDir });
 const webhookDispatcher = new LegacyWebhookDispatcher({
   store,
@@ -66,10 +69,17 @@ const server = createServer(async (req, res) => {
   }
 });
 
-server.listen(port, () => {
-  console.log(`Server listening on http://localhost:${port}`);
-  scheduler.start();
-  webhookDispatcher.start();
+server.listen(port, host, () => {
+  console.log(`Server listening on http://${host}:${port}`);
+  console.log(`Legacy background role: ${backgroundRole}`);
+
+  if (shouldRunScheduler(backgroundRole)) {
+    scheduler.start();
+  }
+
+  if (shouldRunWebhooks(backgroundRole)) {
+    webhookDispatcher.start();
+  }
 });
 
 process.on("SIGTERM", () => {
@@ -85,8 +95,19 @@ async function parseRequestJson(req) {
 }
 
 async function handleApi(req, res, url) {
-  if (req.method === "GET" && url.pathname === "/api/health") {
+  if (req.method === "GET" && url.pathname === "/railway-health") {
     return sendJson(res, 200, { ok: true });
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/health") {
+    return sendJson(res, 200, {
+      ok: true,
+      background: {
+        role: backgroundRole,
+        schedulerEnabled: shouldRunScheduler(backgroundRole),
+        webhooksEnabled: shouldRunWebhooks(backgroundRole)
+      }
+    });
   }
 
   if (req.method === "GET" && url.pathname === "/api/detection-kb") {
@@ -409,7 +430,15 @@ async function handleIntegrationApi(req, res, url) {
   }
 
   if (req.method === "GET" && url.pathname === "/api/integration/health") {
-    return sendJson(res, 200, { ok: true, authConfigured: true });
+    return sendJson(res, 200, {
+      ok: true,
+      authConfigured: true,
+      background: {
+        role: backgroundRole,
+        schedulerEnabled: shouldRunScheduler(backgroundRole),
+        webhooksEnabled: shouldRunWebhooks(backgroundRole)
+      }
+    });
   }
 
   if (req.method === "GET" && url.pathname === "/api/integration/projects") {

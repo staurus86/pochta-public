@@ -24,7 +24,7 @@
     "db:migrate": "npm run migrate -w packages/db",
     "db:push": "npm run push -w packages/db",
     "db:studio": "npm run studio -w packages/db",
-    "test": "node tests/email-analyzer.test.js && node tests/http-json.test.js && node tests/integration-api.test.js && node tests/projects-store.test.js && node tests/webhook-dispatcher.test.js && node tests/project-schedule.test.js && node tests/mailbox-config-parser.test.js && node tests/detection-kb.test.js",
+    "test": "node tests/email-analyzer.test.js && node tests/background-role.test.js && node tests/http-json.test.js && node tests/integration-api.test.js && node tests/projects-store.test.js && node tests/webhook-dispatcher.test.js && node tests/project-schedule.test.js && node tests/mailbox-config-parser.test.js && node tests/detection-kb.test.js",
     "test:api": "npm test -w apps/api",
     "test:web": "npm test -w apps/web"
   },
