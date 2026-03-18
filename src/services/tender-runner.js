@@ -11,12 +11,14 @@ export async function getTenderRuntime(project, rootDir) {
   const seenFile = path.resolve(rootDir, runtime.seenFile || "project 2/seen_emails.json");
   const logFile = path.resolve(rootDir, runtime.logFile || "project 2/tender_parser.log");
   const credentialsFile = path.resolve(rootDir, runtime.credentialsFile || "project 2/credentials.json");
+  const credentialsSource = resolveTenderCredentialsSource(process.env);
   await ensureSeededFiles({ seenFile, logFile });
 
-  const [scriptExists, credentialsExists] = await Promise.all([
+  const [scriptExists, credentialsFileExists] = await Promise.all([
     exists(scriptPath),
     exists(credentialsFile)
   ]);
+  const credentialsExists = credentialsSource === "file" ? credentialsFileExists : true;
 
   const [seenStats, logStats, logTail] = await Promise.all([
     readSeenStats(seenFile),
@@ -31,6 +33,7 @@ export async function getTenderRuntime(project, rootDir) {
     scriptPath,
     scriptExists,
     credentialsExists,
+    credentialsSource,
     seenCount: seenStats.count,
     lastSeenAt: seenStats.lastSeenAt,
     logSizeBytes: logStats.size,
@@ -90,6 +93,18 @@ export function buildTenderRunArgs(scriptPath, options = {}) {
   }
 
   return args;
+}
+
+export function resolveTenderCredentialsSource(env = process.env) {
+  if (env.PROJECT2_GOOGLE_CREDENTIALS_JSON) {
+    return "inline-json";
+  }
+
+  if (env.PROJECT2_GOOGLE_CREDENTIALS_B64) {
+    return "inline-b64";
+  }
+
+  return "file";
 }
 
 async function buildRuntimeEnv(project, rootDir, runtimeDir) {
