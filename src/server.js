@@ -50,6 +50,11 @@ const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
 
+    if (req.method === "GET" && url.pathname === "/railway-health") {
+      sendJson(res, 200, { ok: true });
+      return;
+    }
+
     if (url.pathname.startsWith("/api/integration/")) {
       await handleIntegrationApi(req, res, url);
       return;
@@ -95,10 +100,6 @@ async function parseRequestJson(req) {
 }
 
 async function handleApi(req, res, url) {
-  if (req.method === "GET" && url.pathname === "/railway-health") {
-    return sendJson(res, 200, { ok: true });
-  }
-
   if (req.method === "GET" && url.pathname === "/api/health") {
     return sendJson(res, 200, {
       ok: true,
