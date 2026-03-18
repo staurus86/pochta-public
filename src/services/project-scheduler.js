@@ -3,10 +3,11 @@ import { runTenderImporter } from "./tender-runner.js";
 import { runMailboxFileParser } from "./project3-runner.js";
 
 export class ProjectScheduler {
-  constructor({ store, rootDir, logger = console }) {
+  constructor({ store, rootDir, logger = console, onRunCompleted = null }) {
     this.store = store;
     this.rootDir = rootDir;
     this.logger = logger;
+    this.onRunCompleted = onRunCompleted;
     this.timer = null;
     this.inFlightProjectIds = new Set();
   }
@@ -80,6 +81,9 @@ export class ProjectScheduler {
 
       run.trigger = "schedule";
       await this.store.appendRun(project.id, run);
+      if (this.onRunCompleted) {
+        await this.onRunCompleted(project, run);
+      }
       return;
     }
 
@@ -90,6 +94,12 @@ export class ProjectScheduler {
 
       run.trigger = "schedule";
       await this.store.appendRun(project.id, run);
+      if (Array.isArray(run.recentMessages)) {
+        await this.store.replaceRecentMessages(project.id, run.recentMessages);
+      }
+      if (this.onRunCompleted) {
+        await this.onRunCompleted(project, run);
+      }
       return;
     }
 

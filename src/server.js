@@ -8,7 +8,8 @@ import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js
 import { ProjectScheduler } from "./services/project-scheduler.js";
 import { getMailboxFileRuntime, runMailboxFileParser } from "./services/project3-runner.js";
 import { detectionKb } from "./services/detection-kb.js";
-import { findIntegrationMessage, isIntegrationAuthorized, listIntegrationMessages } from "./services/integration-api.js";
+import { findIntegrationMessage, isIntegrationAuthorized, listIntegrationDeliveries, listIntegrationMessages } from "./services/integration-api.js";
+import { LegacyWebhookDispatcher, normalizeStatuses } from "./services/webhook-dispatcher.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -18,7 +19,24 @@ const dataDir = path.resolve(rootDir, process.env.DATA_DIR || "data");
 const port = Number(process.env.PORT || 3000);
 const integrationApiKey = String(process.env.LEGACY_INTEGRATION_API_KEY || process.env.INTEGRATION_API_KEY || "").trim();
 const store = new ProjectsStore({ dataDir });
-const scheduler = new ProjectScheduler({ store, rootDir });
+const webhookDispatcher = new LegacyWebhookDispatcher({
+  store,
+  webhookUrl: process.env.LEGACY_WEBHOOK_URL,
+  webhookSecret: process.env.LEGACY_WEBHOOK_SECRET,
+  webhookStatuses: normalizeStatuses(process.env.LEGACY_WEBHOOK_STATUSES || "ready_for_crm,needs_clarification"),
+  logger: console,
+  intervalMs: Number(process.env.LEGACY_WEBHOOK_INTERVAL_MS || 15000),
+  timeoutMs: Number(process.env.LEGACY_WEBHOOK_TIMEOUT_MS || 10000)
+});
+const scheduler = new ProjectScheduler({
+  store,
+  rootDir,
+  onRunCompleted: async (project, run) => {
+    if (Array.isArray(run.newMessages) && run.newMessages.length > 0) {
+      await webhookDispatcher.enqueueProjectMessages(project.id, run.newMessages);
+    }
+  }
+});
 
 // Background job tracking for long-running tasks
 const backgroundJobs = new Map();
@@ -47,11 +65,13 @@ const server = createServer(async (req, res) => {
 server.listen(port, () => {
   console.log(`Server listening on http://localhost:${port}`);
   scheduler.start();
+  webhookDispatcher.start();
 });
 
 process.on("SIGTERM", () => {
     console.log("SIGTERM received, shutting down gracefully...");
     scheduler.stop();
+    webhookDispatcher.stop();
     server.close(() => process.exit(0));
     setTimeout(() => process.exit(1), 5000);
 });
@@ -224,6 +244,9 @@ async function handleApi(req, res, url) {
           await store.appendRun(project.id, run);
           if (Array.isArray(run.recentMessages)) {
             await store.replaceRecentMessages(project.id, run.recentMessages);
+          }
+          if (Array.isArray(run.newMessages) && run.newMessages.length > 0) {
+            await webhookDispatcher.enqueueProjectMessages(project.id, run.newMessages);
           }
           job.status = "done";
           job.run = run;
@@ -411,6 +434,19 @@ async function handleIntegrationApi(req, res, url) {
       limit: url.searchParams.get("limit"),
       status: url.searchParams.get("status"),
       since
+    }));
+  }
+
+  const integrationDeliveriesMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/deliveries$/);
+  if (req.method === "GET" && integrationDeliveriesMatch) {
+    const project = await store.getProject(decodeURIComponent(integrationDeliveriesMatch[1]));
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    return sendJson(res, 200, listIntegrationDeliveries(project, {
+      status: url.searchParams.get("status"),
+      limit: url.searchParams.get("limit")
     }));
   }
 

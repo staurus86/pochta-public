@@ -157,11 +157,13 @@ export class ProjectsStore {
         recentAnalyses: [],
         recentRuns: [],
         recentMessages: [],
+        webhookDeliveries: [],
         schedule: normalizeSchedule(),
         ...project,
         recentAnalyses: project.recentAnalyses || [],
         recentRuns: project.recentRuns || [],
         recentMessages: project.recentMessages || [],
+        webhookDeliveries: project.webhookDeliveries || [],
         schedule: normalizeSchedule(project.schedule)
       }));
 
@@ -218,6 +220,7 @@ export class ProjectsStore {
       recentAnalyses: [],
       recentRuns: [],
       recentMessages: [],
+      webhookDeliveries: [],
       schedule: normalizeSchedule(payload.schedule)
     };
 
@@ -347,6 +350,80 @@ export class ProjectsStore {
     project.recentMessages = (messages || []).slice(0, 5000);
     await this.persist();
     return project.recentMessages;
+  }
+
+  async enqueueWebhookDeliveries(projectId, deliveries) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) {
+      return { added: 0, total: 0 };
+    }
+
+    const existingKeys = new Set((project.webhookDeliveries || []).map((item) => item.key));
+    const newDeliveries = deliveries.filter((item) => !existingKeys.has(item.key));
+    project.webhookDeliveries = [...newDeliveries, ...(project.webhookDeliveries || [])].slice(0, 5000);
+    if (newDeliveries.length > 0) {
+      await this.persist();
+    }
+
+    return { added: newDeliveries.length, total: project.webhookDeliveries.length };
+  }
+
+  async listWebhookDeliveries(projectId, { status, limit = 100 } = {}) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) {
+      return null;
+    }
+
+    const statuses = Array.isArray(status)
+      ? status.map((item) => String(item).trim()).filter(Boolean)
+      : String(status || "").split(",").map((item) => item.trim()).filter(Boolean);
+
+    return (project.webhookDeliveries || [])
+      .filter((item) => statuses.length === 0 || statuses.includes(item.status))
+      .slice(0, limit);
+  }
+
+  async getDueWebhookDeliveries(nowIso, limit = 20) {
+    await this.ensureLoaded();
+    const dueItems = [];
+
+    for (const project of this.projects) {
+      for (const delivery of project.webhookDeliveries || []) {
+        if (delivery.status !== "pending") {
+          continue;
+        }
+
+        if (delivery.nextAttemptAt && delivery.nextAttemptAt > nowIso) {
+          continue;
+        }
+
+        dueItems.push({ projectId: project.id, delivery });
+        if (dueItems.length >= limit) {
+          return dueItems;
+        }
+      }
+    }
+
+    return dueItems;
+  }
+
+  async updateWebhookDelivery(projectId, deliveryId, patch) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) {
+      return null;
+    }
+
+    const delivery = (project.webhookDeliveries || []).find((item) => item.id === deliveryId);
+    if (!delivery) {
+      return null;
+    }
+
+    Object.assign(delivery, patch);
+    await this.persist();
+    return delivery;
   }
 
   async updateSchedule(projectId, scheduleInput) {

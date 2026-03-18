@@ -152,6 +152,38 @@ export function findIntegrationMessage(project, messageKey) {
   return message ? normalizeIntegrationMessage(project, message) : null;
 }
 
+export function listIntegrationDeliveries(project, query = {}) {
+  const statuses = parseStatuses(query.status);
+  const limit = Math.min(normalizePositiveInt(query.limit, 100), 500);
+
+  const data = (project.webhookDeliveries || [])
+    .filter((item) => statuses.length === 0 || statuses.includes(item.status))
+    .slice(0, limit)
+    .map((item) => ({
+      id: item.id,
+      key: item.key,
+      event: item.event,
+      message_key: item.messageKey,
+      pipeline_status: item.pipelineStatus,
+      status: item.status,
+      attempts: item.attempts,
+      created_at: item.createdAt,
+      updated_at: item.updatedAt,
+      next_attempt_at: item.nextAttemptAt,
+      last_attempt_at: item.lastAttemptAt,
+      delivered_at: item.deliveredAt,
+      last_error: item.lastError,
+      response_status: item.responseStatus
+    }));
+
+  return {
+    data,
+    meta: {
+      statuses
+    }
+  };
+}
+
 function normalizePositiveInt(value, fallback) {
   const normalized = Number(value);
   return Number.isInteger(normalized) && normalized > 0 ? normalized : fallback;

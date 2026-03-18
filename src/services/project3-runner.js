@@ -155,6 +155,7 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
     stdout: tailLines(result.stdout, 20),
     stderr: tailLines(result.stderr, 20),
     analysesPreview: nonSpamMessages.slice(0, 20),
+    newMessages: newEmails,
     recentMessages: mergedMessages
   };
 }
