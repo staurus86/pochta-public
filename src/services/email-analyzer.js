@@ -63,8 +63,18 @@ export function analyzeEmail(project, payload) {
   const { newContent, quotedContent } = separateQuotedText(body);
   const { body: primaryBody, signature } = extractSignature(newContent);
   const bodyForSender = [primaryBody, signature].filter(Boolean).join("\n\n") || body;
-  let fromEmail = String(payload.fromEmail || "").trim().toLowerCase();
+  let rawFrom = String(payload.fromEmail || "").trim();
+  let fromEmail = rawFrom.toLowerCase();
   let fromName = String(payload.fromName || "").trim();
+  // Parse "Name <email>" format
+  const chevronMatch = rawFrom.match(/<?([^\s<>]+@[^\s<>]+)>?/);
+  if (chevronMatch) {
+    fromEmail = chevronMatch[1].toLowerCase();
+    if (!fromName) {
+      const nameMatch = rawFrom.match(/^(.+?)\s*</);
+      if (nameMatch) fromName = nameMatch[1].replace(/["']/g, "").trim();
+    }
+  }
   const attachments = normalizeAttachments(payload.attachments);
 
   // If this is a forwarded email, extract original sender from body
@@ -245,7 +255,11 @@ function inferCompanyNameFromEmail(email) {
   }
 
   const base = domain.split(".")[0];
-  return base ? base.replace(/[-_]/g, " ") : null;
+  if (!base) return null;
+  const name = base.replace(/[-_]/g, " ");
+  // Don't return own company names
+  if (OWN_COMPANY_NAMES.test(name)) return null;
+  return name;
 }
 
 function inferWebsiteFromEmail(email) {
@@ -555,6 +569,22 @@ function isLikelyArticle(code, forbiddenDigits = new Set(), sourceLine = "") {
 
   if (/^(?:https?|www)$/i.test(normalized) || normalized.includes("@")) {
     return false;
+  }
+
+  // Reject own brand/company names and known brand noise
+  if (BRAND_NOISE.has(normalized.toUpperCase()) || OWN_COMPANY_NAMES.test(normalized)) {
+    return false;
+  }
+
+  // Reject HTML entity names and hex color codes
+  if (/^(?:laquo|raquo|nbsp|quot|amp|lt|gt|mdash|ndash|hellip|rsquo|ldquo|rdquo)$/i.test(normalized)) {
+    return false;
+  }
+  if (/^[0-9A-Fa-f]{6}$/.test(normalized) && !/\d.*[A-Za-z]|[A-Za-z].*\d/.test(normalized) === false) {
+    // Potential hex color — reject if all hex chars and no clear alphanumeric mix
+    if (/^[0-9A-F]{6}$/i.test(normalized) && !normalized.match(/[G-Zg-z]/)) {
+      return false;
+    }
   }
 
   const digits = normalized.replace(/\D/g, "");
