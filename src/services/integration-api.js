@@ -32,6 +32,13 @@ export function normalizeIntegrationMessage(project, message) {
     from: message.from || "",
     body_preview: message.bodyPreview || "",
     pipeline_status: message.pipelineStatus || "unknown",
+    export: {
+      acknowledged: Boolean(message.integrationExport?.acknowledgedAt),
+      acknowledged_at: message.integrationExport?.acknowledgedAt || null,
+      consumer: message.integrationExport?.consumer || null,
+      external_id: message.integrationExport?.externalId || null,
+      note: message.integrationExport?.note || null
+    },
     error: message.error || null,
     attachments: (message.attachmentFiles || message.attachments || []).map((item) => {
       if (typeof item === "string") {
@@ -106,9 +113,11 @@ export function listIntegrationMessages(project, query = {}) {
   const limit = Math.min(normalizePositiveInt(query.limit, 50), 200);
   const statuses = parseStatuses(query.status);
   const since = parseSince(query.since);
+  const exported = parseBooleanFilter(query.exported);
 
   const allMessages = (project.recentMessages || [])
     .filter((item) => statuses.length === 0 || statuses.includes(item.pipelineStatus))
+    .filter((item) => exported === null || Boolean(item.integrationExport?.acknowledgedAt) === exported)
     .filter((item) => {
       if (!since) {
         return true;
@@ -135,6 +144,7 @@ export function listIntegrationMessages(project, query = {}) {
     },
     meta: {
       statuses,
+      exported,
       since: since ? since.toISOString() : null,
       next_since: data.reduce((latest, item) => {
         if (!item.updated_at) {
@@ -159,22 +169,7 @@ export function listIntegrationDeliveries(project, query = {}) {
   const data = (project.webhookDeliveries || [])
     .filter((item) => statuses.length === 0 || statuses.includes(item.status))
     .slice(0, limit)
-    .map((item) => ({
-      id: item.id,
-      key: item.key,
-      event: item.event,
-      message_key: item.messageKey,
-      pipeline_status: item.pipelineStatus,
-      status: item.status,
-      attempts: item.attempts,
-      created_at: item.createdAt,
-      updated_at: item.updatedAt,
-      next_attempt_at: item.nextAttemptAt,
-      last_attempt_at: item.lastAttemptAt,
-      delivered_at: item.deliveredAt,
-      last_error: item.lastError,
-      response_status: item.responseStatus
-    }));
+    .map(normalizeIntegrationDelivery);
 
   return {
     data,
@@ -182,6 +177,11 @@ export function listIntegrationDeliveries(project, query = {}) {
       statuses
     }
   };
+}
+
+export function findIntegrationDelivery(project, deliveryId) {
+  const delivery = (project.webhookDeliveries || []).find((item) => item.id === deliveryId);
+  return delivery ? normalizeIntegrationDelivery(delivery) : null;
 }
 
 function normalizePositiveInt(value, fallback) {
@@ -214,6 +214,23 @@ function parseSince(value) {
   return new Date(timestamp);
 }
 
+function parseBooleanFilter(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (!text) {
+    return null;
+  }
+
+  if (["true", "1", "yes"].includes(text)) {
+    return true;
+  }
+
+  if (["false", "0", "no"].includes(text)) {
+    return false;
+  }
+
+  return null;
+}
+
 function resolveMessageUpdatedAt(message) {
   const auditEntries = Array.isArray(message.auditLog) ? message.auditLog : [];
   const auditAt = auditEntries
@@ -222,4 +239,24 @@ function resolveMessageUpdatedAt(message) {
     .sort((a, b) => String(b).localeCompare(String(a)))[0];
 
   return auditAt || message.updatedAt || message.createdAt || null;
+}
+
+function normalizeIntegrationDelivery(item) {
+  return {
+    id: item.id,
+    key: item.key,
+    event: item.event,
+    message_key: item.messageKey,
+    pipeline_status: item.pipelineStatus,
+    status: item.status,
+    attempts: item.attempts,
+    created_at: item.createdAt,
+    updated_at: item.updatedAt,
+    next_attempt_at: item.nextAttemptAt,
+    last_attempt_at: item.lastAttemptAt,
+    delivered_at: item.deliveredAt,
+    last_error: item.lastError,
+    response_status: item.responseStatus,
+    last_manual_action: item.lastManualAction || null
+  };
 }

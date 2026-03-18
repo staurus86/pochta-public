@@ -24,6 +24,12 @@ const project = {
       pipelineStatus: "ready_for_crm",
       attachments: ["spec.pdf"],
       auditLog: [{ action: "status_change", at: "2026-03-18T10:06:00.000Z" }],
+      integrationExport: {
+        acknowledgedAt: "2026-03-18T10:07:00.000Z",
+        consumer: "crm-sync",
+        externalId: "REQ-42",
+        note: "Imported"
+      },
       analysis: {
         detectedBrands: ["ABB"],
         classification: { label: "Клиент", confidence: 0.91 },
@@ -106,6 +112,8 @@ runTest("normalizes integration message shape", () => {
   assert.deepEqual(normalized.lead.articles, ["S201-C16"]);
   assert.equal(normalized.crm.company.legal_name, "ООО Ромашка");
   assert.equal(normalized.attachments[0].download_url, "/api/attachments/msg-1/spec.pdf");
+  assert.equal(normalized.export.acknowledged, true);
+  assert.equal(normalized.export.external_id, "REQ-42");
 });
 
 runTest("lists integration messages with pagination and status filter", () => {
@@ -126,6 +134,16 @@ runTest("filters integration messages by since and multiple statuses", () => {
   assert.equal(result.data.length, 1);
   assert.equal(result.data[0].message_key, "msg-1");
   assert.deepEqual(result.meta.statuses, ["ready_for_crm", "needs_clarification"]);
+});
+
+runTest("filters integration messages by export acknowledgement", () => {
+  const result = listIntegrationMessages(project, {
+    exported: "true"
+  });
+
+  assert.equal(result.data.length, 1);
+  assert.equal(result.data[0].message_key, "msg-1");
+  assert.equal(result.meta.exported, true);
 });
 
 runTest("finds a single normalized integration message", () => {

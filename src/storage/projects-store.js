@@ -162,7 +162,10 @@ export class ProjectsStore {
         ...project,
         recentAnalyses: project.recentAnalyses || [],
         recentRuns: project.recentRuns || [],
-        recentMessages: project.recentMessages || [],
+        recentMessages: (project.recentMessages || []).map((message) => ({
+          ...message,
+          integrationExport: message.integrationExport || null
+        })),
         webhookDeliveries: project.webhookDeliveries || [],
         schedule: normalizeSchedule(project.schedule)
       }));
@@ -309,6 +312,39 @@ export class ProjectsStore {
     return { messageKey, pipelineStatus: newStatus, previousStatus: oldStatus };
   }
 
+  async acknowledgeMessageExport(projectId, messageKey, payload = {}) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) {
+      return null;
+    }
+
+    const message = (project.recentMessages || []).find((item) => (item.messageKey || item.id) === messageKey);
+    if (!message) {
+      return null;
+    }
+
+    const acknowledgedAt = new Date().toISOString();
+    message.integrationExport = {
+      acknowledgedAt,
+      consumer: payload.consumer ? String(payload.consumer).trim() : null,
+      externalId: payload.externalId ? String(payload.externalId).trim() : null,
+      note: payload.note ? String(payload.note).trim() : null
+    };
+
+    if (!message.auditLog) message.auditLog = [];
+    message.auditLog.push({
+      action: "integration_ack",
+      at: acknowledgedAt,
+      consumer: message.integrationExport.consumer,
+      externalId: message.integrationExport.externalId,
+      note: message.integrationExport.note
+    });
+
+    await this.persist();
+    return message;
+  }
+
   async deleteMessage(projectId, messageKey) {
     await this.ensureLoaded();
     const project = await this.getProject(projectId);
@@ -422,6 +458,37 @@ export class ProjectsStore {
     }
 
     Object.assign(delivery, patch);
+    await this.persist();
+    return delivery;
+  }
+
+  async requeueWebhookDelivery(projectId, deliveryId, payload = {}) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) {
+      return null;
+    }
+
+    const delivery = (project.webhookDeliveries || []).find((item) => item.id === deliveryId);
+    if (!delivery) {
+      return null;
+    }
+
+    const now = new Date().toISOString();
+    delivery.status = "pending";
+    delivery.nextAttemptAt = now;
+    delivery.updatedAt = now;
+    delivery.lastError = null;
+    delivery.responseStatus = null;
+
+    if (payload.reason) {
+      delivery.lastManualAction = {
+        action: "requeue",
+        reason: String(payload.reason).trim(),
+        at: now
+      };
+    }
+
     await this.persist();
     return delivery;
   }

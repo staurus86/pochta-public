@@ -8,7 +8,7 @@ import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js
 import { ProjectScheduler } from "./services/project-scheduler.js";
 import { getMailboxFileRuntime, runMailboxFileParser } from "./services/project3-runner.js";
 import { detectionKb } from "./services/detection-kb.js";
-import { findIntegrationMessage, isIntegrationAuthorized, listIntegrationDeliveries, listIntegrationMessages } from "./services/integration-api.js";
+import { findIntegrationDelivery, findIntegrationMessage, isIntegrationAuthorized, listIntegrationDeliveries, listIntegrationMessages } from "./services/integration-api.js";
 import { LegacyWebhookDispatcher, normalizeStatuses } from "./services/webhook-dispatcher.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -433,8 +433,23 @@ async function handleIntegrationApi(req, res, url) {
       page: url.searchParams.get("page"),
       limit: url.searchParams.get("limit"),
       status: url.searchParams.get("status"),
-      since
+      since,
+      exported: url.searchParams.get("exported")
     }));
+  }
+
+  const integrationAckMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages\/([^/]+)\/ack$/);
+  if (req.method === "POST" && integrationAckMatch) {
+    const projectId = decodeURIComponent(integrationAckMatch[1]);
+    const messageKey = decodeURIComponent(integrationAckMatch[2]);
+    const payload = await parseJsonBody(req);
+    const message = await store.acknowledgeMessageExport(projectId, messageKey, payload);
+    if (!message) {
+      return sendJson(res, 404, { error: "Message not found." });
+    }
+
+    const project = await store.getProject(projectId);
+    return sendJson(res, 200, { data: findIntegrationMessage(project, messageKey) });
   }
 
   const integrationDeliveriesMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/deliveries$/);
@@ -448,6 +463,20 @@ async function handleIntegrationApi(req, res, url) {
       status: url.searchParams.get("status"),
       limit: url.searchParams.get("limit")
     }));
+  }
+
+  const integrationRequeueMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/deliveries\/([^/]+)\/requeue$/);
+  if (req.method === "POST" && integrationRequeueMatch) {
+    const projectId = decodeURIComponent(integrationRequeueMatch[1]);
+    const deliveryId = decodeURIComponent(integrationRequeueMatch[2]);
+    const payload = await parseJsonBody(req);
+    const delivery = await store.requeueWebhookDelivery(projectId, deliveryId, payload);
+    if (!delivery) {
+      return sendJson(res, 404, { error: "Delivery not found." });
+    }
+
+    const project = await store.getProject(projectId);
+    return sendJson(res, 200, { data: findIntegrationDelivery(project, deliveryId) });
   }
 
   const integrationMessageMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages\/([^/]+)$/);
