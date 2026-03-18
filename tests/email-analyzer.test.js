@@ -396,3 +396,104 @@ runTest("normalizes phone numbers to consistent format", () => {
   assert.equal(analysis.sender.cityPhone, "+7 (495) 764-16-58");
   assert.equal(analysis.sender.mobilePhone, "+7 (916) 123-45-67");
 });
+
+// --- Smoke tests: own company filtering ---
+
+runTest("does not extract ООО Коловрат as sender company name", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Менеджер",
+    fromEmail: "buyer@factory.ru",
+    subject: "Запрос КП",
+    attachments: "",
+    body: `
+      Добрый день.
+      Нужна цена на ABB S201-C16.
+
+      С уважением,
+      Менеджер отдела продаж
+      ООО «Коловрат» | SIDERUS
+      info@siderus.ru
+      +7 499 647-47-07
+    `
+  });
+
+  assert.ok(!/коловрат/i.test(analysis.sender.companyName || ""), `companyName should not be Коловрат, got: ${analysis.sender.companyName}`);
+  assert.ok(!/сидерус/i.test(analysis.sender.companyName || ""), `companyName should not be Сидерус`);
+  assert.ok(!analysis.detectedBrands.includes("Siderus"));
+  assert.ok(!analysis.detectedBrands.includes("SIDERUS"));
+});
+
+runTest("does not detect SIDERUS or Support as articles", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Казанцев",
+    fromEmail: "robot-mail-siderus@klvrt.ru",
+    subject: "Re: Запрос",
+    attachments: "",
+    body: `
+      Спасибо за информацию.
+
+      18.03.2026, "SIDERUS" <info@siderus.ru>:
+      В ожидании подтверждения.
+      ООО «Сидерус» | SIDERUS
+      siderus.ru
+      +7 499 647-47-07
+    `
+  });
+
+  assert.ok(!analysis.lead.articles.includes("SIDERUS"), `SIDERUS should not be an article`);
+  assert.ok(!analysis.lead.articles.includes("Support"), `Support should not be an article`);
+  assert.ok(!analysis.detectedBrands.includes("Siderus"));
+});
+
+runTest("smoke: brand catalog detects known brands from catalog", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Buyer",
+    fromEmail: "buyer@corp.ru",
+    subject: "Запрос LENZE и Heidenhain",
+    attachments: "",
+    body: `
+      Добрый день. Нужны:
+      1. Привод LENZE i550 — 2 шт
+      2. Энкодер Heidenhain ROD 426 — 1 шт
+      3. Датчик SICK WTB27 — 3 шт
+    `
+  });
+
+  assert.ok(analysis.detectedBrands.includes("LENZE"), `Should detect LENZE`);
+  assert.ok(analysis.detectedBrands.includes("Heidenhain"), `Should detect Heidenhain`);
+  assert.ok(analysis.detectedBrands.includes("SICK"), `Should detect SICK`);
+  assert.equal(analysis.lead.requestType, "Мультибрендовая");
+});
+
+runTest("smoke: numeric articles with brand-adjacent codes", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Buyer",
+    fromEmail: "buyer@corp.ru",
+    subject: "509-1720 запрос",
+    attachments: "METROHM_63032220.pdf",
+    body: `
+      Добрый день. Нужно:
+      Артикул 509-1720 — 2 шт
+      METROHM 63032220 бюретка дозирующая
+    `
+  });
+
+  assert.ok(analysis.lead.articles.includes("509-1720"), `Should detect 509-1720`);
+  assert.ok(analysis.lead.articles.includes("63032220"), `Should detect 63032220 (brand-adjacent)`);
+});
+
+runTest("smoke: 8-800 toll-free number preserved as cityPhone", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Test",
+    fromEmail: "test@factory.ru",
+    subject: "Тест",
+    attachments: "",
+    body: `
+      Контакты: 8-800-555-85-19
+      Моб: +7 (916) 123-45-67
+    `
+  });
+
+  assert.equal(analysis.sender.cityPhone, "+7 (800) 555-85-19");
+  assert.equal(analysis.sender.mobilePhone, "+7 (916) 123-45-67");
+});

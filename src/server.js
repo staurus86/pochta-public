@@ -386,34 +386,53 @@ async function handleApi(req, res, url) {
       return sendJson(res, 404, { error: "Project not found." });
     }
 
+    const payload = await parseRequestJson(req).catch(() => ({}));
+    const BATCH_SIZE = Number(payload.batchSize) || 200;
     const messages = project.recentMessages || [];
     let updated = 0;
-    for (const msg of messages) {
-      if (!msg.analysis && !msg.body && !msg.bodyPreview) continue;
-      try {
-        const body = msg.body || msg.bodyPreview || msg.analysis?.lead?.freeText || "";
-        const newAnalysis = analyzeEmail(project, {
-          fromEmail: msg.from || msg.analysis?.sender?.email || "",
-          fromName: msg.analysis?.sender?.fullName || "",
-          subject: msg.subject || "",
-          body,
-          attachments: (msg.attachmentFiles || msg.attachments || []).map((a) => typeof a === "string" ? a : a.filename || a.name || "")
-        });
-        newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
-        msg.analysis = newAnalysis;
-        msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
-        updated++;
-      } catch {
-        // skip broken messages
+    let skipped = 0;
+    let errors = 0;
+    const startTime = Date.now();
+
+    for (let i = 0; i < messages.length; i += BATCH_SIZE) {
+      const batch = messages.slice(i, i + BATCH_SIZE);
+      for (const msg of batch) {
+        if (!msg.analysis && !msg.body && !msg.bodyPreview) {
+          skipped++;
+          continue;
+        }
+        try {
+          const body = msg.body || msg.bodyPreview || msg.analysis?.lead?.freeText || "";
+          const newAnalysis = analyzeEmail(project, {
+            fromEmail: msg.from || msg.analysis?.sender?.email || "",
+            fromName: msg.analysis?.sender?.fullName || "",
+            subject: msg.subject || "",
+            body,
+            attachments: (msg.attachmentFiles || msg.attachments || []).map((a) => typeof a === "string" ? a : a.filename || a.name || "")
+          });
+          newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
+          msg.analysis = newAnalysis;
+          msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
+          updated++;
+        } catch {
+          errors++;
+        }
       }
+
+      // Persist after each batch to avoid data loss on timeout
+      await store.persist();
     }
 
-    await store.persist();
+    const durationMs = Date.now() - startTime;
 
     return sendJson(res, 200, {
       message: `Переанализировано ${updated} из ${messages.length} писем.`,
       updated,
-      total: messages.length
+      skipped,
+      errors,
+      total: messages.length,
+      batchSize: BATCH_SIZE,
+      durationMs
     });
   }
 

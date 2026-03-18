@@ -51,7 +51,7 @@ const OWN_DOMAINS = new Set([
 
 // Brand names that should not be detected as articles or company names
 const BRAND_NOISE = new Set([
-  "SIDERUS", "ERSA", "ITEC", "SCHISCHEK", "SERA", "SERFILCO", "VEGA",
+  "SIDERUS", "KOLOVRAT", "KLVRT", "ERSA", "ITEC", "SCHISCHEK", "SERA", "SERFILCO", "VEGA",
   "WALDNER", "KIESEL", "MAXIMATOR", "STROMAG", "SCHIMPF", "PETERSIME",
   "ENDRESS", "HAUSER", "STAHL", "VAHLE"
 ]);
@@ -223,10 +223,16 @@ function buildIntakeFlow(classification, crm, lead) {
   };
 }
 
+// Own company name patterns — not a customer
+const OWN_COMPANY_NAMES = /(?:сидерус|siderus|коловрат|kolovrat|klvrt|ersa\s*b2b|ersab2b)/i;
+
 function extractCompanyName(body) {
   const fromKb = detectionKb.matchField("company_name", body);
   if (fromKb) {
-    return cleanup(fromKb);
+    const cleaned = cleanup(fromKb);
+    // Don't return own company name as sender's company
+    if (OWN_COMPANY_NAMES.test(cleaned)) return null;
+    return cleaned;
   }
 
   return null;
@@ -371,7 +377,15 @@ function extractLineItems(body) {
 
 function extractStandaloneCodes(text, forbiddenDigits = new Set()) {
   // Common noise words to exclude from article matches
-  const noise = new Set(["HTTP", "HTTPS", "HTML", "JSON", "UTF", "ISBN", "IMAP", "SMTP", "MIME", "FROM", "DATE", "SENT", "INFO", "CONT", "SUBJ"]);
+  const noise = new Set([
+    "HTTP", "HTTPS", "HTML", "JSON", "UTF", "ISBN", "IMAP", "SMTP", "MIME",
+    "FROM", "DATE", "SENT", "INFO", "CONT", "SUBJ",
+    // HTML/CSS/email template artifacts
+    "MJ-COLUMN-PER", "MJ-BODY", "MJ-SECTION", "MJ-TEXT", "MJ-IMAGE",
+    "BGCOLOR", "COLSPAN", "CELLPADDING", "CELLSPACING", "VALIGN",
+    "ARIAL", "HELVETICA", "VERDANA", "TAHOMA", "GEORGIA",
+    "WEBKIT", "CHARSET", "VIEWPORT", "DOCTYPE"
+  ]);
   const matches = [];
   for (const m of text.matchAll(STANDALONE_CODE_PATTERN)) {
     const code = normalizeArticleCode(m[1]);
@@ -750,6 +764,9 @@ function matchesBrand(normalizedText, candidate) {
 function stripHtml(text) {
   if (!/<[a-zA-Z]/.test(text)) return text;
   return text
+    // Remove style/script blocks entirely
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ")
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/(?:p|div|tr|li|h[1-6])>/gi, "\n")
     .replace(/<[^>]+>/g, " ")
@@ -759,6 +776,8 @@ function stripHtml(text) {
     .replace(/&gt;/gi, ">")
     .replace(/&quot;/gi, '"')
     .replace(/&#(\d+);/g, (_, c) => String.fromCharCode(Number(c)))
+    // Remove CSS-like artifacts (mj-column-per-100, font-family lines)
+    .replace(/mj-[\w-]+/gi, " ")
     .replace(/[ \t]+/g, " ")
     .replace(/\n{3,}/g, "\n\n")
     .trim();
