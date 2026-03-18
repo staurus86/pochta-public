@@ -63,7 +63,9 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
       website: sender.website || null,
       city_phone: sender.cityPhone || null,
       mobile_phone: sender.mobilePhone || null,
-      inn: sender.inn || null
+      inn: sender.inn || null,
+      kpp: sender.kpp || null,
+      ogrn: sender.ogrn || null
     },
     lead: {
       request_type: lead.requestType || null,

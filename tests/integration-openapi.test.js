@@ -18,7 +18,7 @@ runTest("builds versioned legacy integration openapi contract", () => {
   });
 
   assert.equal(spec.openapi, "3.1.0");
-  assert.equal(spec.info.version, "1.2.0");
+  assert.equal(spec.info.version, "1.3.0");
   assert.equal(spec.servers[0].url, "https://pochta-production.up.railway.app");
   assert.ok(spec.paths["/api/integration/changelog"]);
   assert.ok(spec.paths["/api/integration/projects/{projectId}/messages"]);
@@ -31,4 +31,6 @@ runTest("builds versioned legacy integration openapi contract", () => {
   assert.ok(spec.components.securitySchemes.ApiKeyAuth);
   assert.ok(spec.components.securitySchemes.BearerAuth);
   assert.equal(spec.paths["/api/integration/projects/{projectId}/messages/{messageKey}/ack"].post.parameters.at(-1).name, "Idempotency-Key");
+  assert.ok(spec.components.schemas.IntegrationMessage.properties.sender.properties.kpp);
+  assert.ok(spec.components.schemas.IntegrationMessage.properties.sender.properties.ogrn);
 });

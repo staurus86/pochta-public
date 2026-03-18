@@ -3,7 +3,7 @@ import { analyzeEmail } from "../src/services/email-analyzer.js";
 
 const project = {
   mailbox: "inbox@example.com",
-  brands: ["ABB", "Schneider Electric"],
+  brands: ["ABB", "Schneider Electric", "R. Stahl", "Phoenix Contact", "Endress & Hauser"],
   managerPool: {
     defaultMop: "Ольга Демидова",
     defaultMoz: "Андрей Назаров",
@@ -191,4 +191,50 @@ runTest("does not treat inn and kpp fragments as articles", () => {
   assert.ok(!analysis.lead.articles.includes("770101001"));
   assert.ok(!analysis.lead.articles.includes("1234567890123"));
   assert.ok(analysis.lead.articles.includes("A9N18346"));
+});
+
+runTest("detects brand aliases with punctuation and mixed separators", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Buyer",
+    fromEmail: "buyer@example.com",
+    subject: "RFQ for RSTAHL and phoenix-contact",
+    attachments: "",
+    body: `
+      Добрый день.
+      Нужны позиции RSTAHL barrier и Phoenix-Contact relay.
+      Также рассматриваем Endress+Hauser датчики.
+    `
+  });
+
+  assert.ok(analysis.lead.detectedBrands.includes("R. Stahl"));
+  assert.ok(analysis.lead.detectedBrands.includes("Phoenix Contact"));
+  assert.ok(analysis.lead.detectedBrands.includes("Endress & Hauser"));
+});
+
+runTest("extracts requisites and labeled phones without leaking them into articles", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Менеджер",
+    fromEmail: "sales@factory.ru",
+    subject: "Карточка компании и запрос",
+    attachments: "",
+    body: `
+      Карточка компании:
+      ООО "Ромашка"
+      ИНН: 7701234567
+      КПП: 770101001
+      ОГРН: 1234567890123
+      Телефон: +7 (495) 111-22-33
+      Моб.: +7 (926) 555-44-33
+
+      Нужен артикул A9N18346 x 2 шт.
+    `
+  });
+
+  assert.equal(analysis.sender.inn, "7701234567");
+  assert.equal(analysis.sender.kpp, "770101001");
+  assert.equal(analysis.sender.ogrn, "1234567890123");
+  assert.equal(analysis.sender.mobilePhone, "+7 (926) 555-44-33");
+  assert.ok(analysis.lead.articles.includes("A9N18346"));
+  assert.ok(!analysis.lead.articles.includes("111-22"));
+  assert.ok(!analysis.lead.articles.includes("770101001"));
 });

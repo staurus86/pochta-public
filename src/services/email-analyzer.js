@@ -5,13 +5,16 @@ import { detectionKb } from "./detection-kb.js";
 const URL_PATTERN = /https?:\/\/[^\s)]+/gi;
 const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}/g;
 const PHONE_LIKE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}/i;
+const PHONE_LABEL_PATTERN = /(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber)\s*[:#-]?\s*((?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2})/i;
 const CONTACT_CONTEXT_PATTERN = /\b(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber|email|e-mail|почта)\b/i;
 const IDENTIFIER_CONTEXT_PATTERN = /\b(?:инн|inn|кпп|kpp|огрн|ogrn|request\s*id|order\s*id|ticket\s*id|номер\s*заявки|идентификатор)\b/i;
-const INN_PATTERN = /(?:ИНН|inn)[^0-9]{0,5}(\d{10,12})/i;
-const KPP_PATTERN = /(?:КПП|kpp)[^0-9]{0,5}(\d{9})/i;
-const OGRN_PATTERN = /(?:ОГРН|ogrn)[^0-9]{0,5}(\d{13,15})/i;
+const INN_PATTERN = /(?:ИНН|inn)\s*[:#-]?\s*(\d{10,12})/i;
+const KPP_PATTERN = /(?:КПП|kpp)\s*[:#-]?\s*(\d{9})/i;
+const OGRN_PATTERN = /(?:ОГРН|ogrn)\s*[:#-]?\s*(\d{13,15})/i;
 const ARTICLE_PATTERN = /(?:арт(?:икул(?:а|у|ом|е|ы|ов|ам|ами|ах)?)?|sku)\b[^A-Za-zА-Яа-я0-9]{0,5}([A-Za-z0-9][A-Za-z0-9-/_]{2,})/gi;
 const STANDALONE_CODE_PATTERN = /\b([A-Z][A-Z0-9]{2,}[-/]?[A-Z0-9]{2,}(?:[-/][A-Z0-9]+)*)\b/g;
+const BRAND_CONTEXT_PATTERN = /\b(?:бренд|brand|производител[ья]|manufacturer|vendor|марка)\b/i;
+const REQUISITES_CONTEXT_PATTERN = /\b(?:реквизит|карточк[аи]|company details|legal details)\b/i;
 const QUOTE_PATTERNS = [
   /^>+\s?/,
   /^On .+ wrote:$/i,
@@ -143,17 +146,29 @@ function classifyMessage({ subject, body, attachments, fromEmail, projectBrands 
 function extractSender(fromName, fromEmail, body, attachments) {
   const urls = body.match(URL_PATTERN) || [];
   const phones = body.match(PHONE_PATTERN) || [];
-  const inn = body.match(INN_PATTERN)?.[1] || null;
+  const requisites = extractRequisites(body);
   // Filter out own URLs from detected links
   const externalUrls = urls.filter((u) => !OWN_DOMAINS.has(extractDomainFromUrl(u)));
   const companyName = extractCompanyName(body) || inferCompanyNameFromEmail(fromEmail);
   const fullName = fromName || extractFullNameFromBody(body) || "Не определено";
   const position = extractPosition(body) || null;
   const website = externalUrls[0] || inferWebsiteFromEmail(fromEmail);
-  const { cityPhone, mobilePhone } = splitPhones(phones);
+  const { cityPhone, mobilePhone } = splitPhones(phones, body);
   const legalCardAttached = attachments.some((item) => /реквиз|card|details/i.test(item));
 
-  return { email: fromEmail, fullName, position, companyName, website, cityPhone, mobilePhone, inn, legalCardAttached };
+  return {
+    email: fromEmail,
+    fullName,
+    position,
+    companyName,
+    website,
+    cityPhone,
+    mobilePhone,
+    inn: requisites.inn,
+    kpp: requisites.kpp,
+    ogrn: requisites.ogrn,
+    legalCardAttached
+  };
 }
 
 function extractLead(subject, body, attachments, brands, kbBrands = []) {
@@ -257,8 +272,17 @@ function extractPosition(body) {
   return position ? cleanup(position) : null;
 }
 
-function splitPhones(phones) {
+function splitPhones(phones, body = "") {
   const normalized = unique((phones || []).map((phone) => cleanup(phone)));
+  const explicitlyLabeled = body.match(PHONE_LABEL_PATTERN)?.[1] ? cleanup(body.match(PHONE_LABEL_PATTERN)[1]) : null;
+  if (explicitlyLabeled) {
+    const preferredMobile = /\+?7?8?[\s(.-]*9\d{2}/.test(explicitlyLabeled.replace(/\s/g, ""));
+    return {
+      cityPhone: preferredMobile ? normalized.find((phone) => phone !== explicitlyLabeled) || null : explicitlyLabeled,
+      mobilePhone: preferredMobile ? explicitlyLabeled : normalized.find((phone) => phone !== explicitlyLabeled && /\+?7?8?[\s(.-]*9\d{2}/.test(phone.replace(/\s/g, ""))) || null
+    };
+  }
+
   const mobilePhone = normalized.find((phone) => /\+?7?8?[\s(.-]*9\d{2}/.test(phone.replace(/\s/g, ""))) || null;
   const cityPhone = normalized.find((phone) => phone !== mobilePhone) || null;
   return { cityPhone, mobilePhone };
@@ -488,8 +512,28 @@ function parseAttachmentHints(attachments) {
 }
 
 function detectBrands(text, brands) {
-  const lowered = text.toLowerCase();
-  return unique(brands.filter((brand) => lowered.includes(brand.toLowerCase())));
+  const sourceText = String(text || "");
+  const aliases = detectionKb.getBrandAliases ? detectionKb.getBrandAliases() : [];
+  const knownBrands = unique([
+    ...(brands || []),
+    ...aliases.map((entry) => entry.canonical_brand)
+  ]);
+  const normalizedText = normalizeComparableText(sourceText);
+  const matched = new Set();
+
+  for (const brand of knownBrands) {
+    if (matchesBrand(normalizedText, brand)) {
+      matched.add(brand);
+    }
+  }
+
+  for (const entry of aliases) {
+    if (matchesBrand(normalizedText, entry.alias)) {
+      matched.add(entry.canonical_brand);
+    }
+  }
+
+  return [...matched];
 }
 
 function unique(items) {
@@ -534,6 +578,7 @@ function hasArticleNoiseContext(line) {
   return PHONE_LIKE_PATTERN.test(line)
     || CONTACT_CONTEXT_PATTERN.test(line)
     || IDENTIFIER_CONTEXT_PATTERN.test(line)
+    || REQUISITES_CONTEXT_PATTERN.test(line)
     || line.includes("@");
 }
 
@@ -552,6 +597,43 @@ function addNumericFragments(bucket, value, options = {}) {
       bucket.add(digits.slice(offset, offset + length));
     }
   }
+}
+
+function extractRequisites(text) {
+  return {
+    inn: text.match(INN_PATTERN)?.[1] || null,
+    kpp: text.match(KPP_PATTERN)?.[1] || null,
+    ogrn: text.match(OGRN_PATTERN)?.[1] || null
+  };
+}
+
+function normalizeComparableText(text) {
+  return ` ${String(text || "")
+    .toLowerCase()
+    .replace(/&/g, " and ")
+    .replace(/[+]/g, " plus ")
+    .replace(/[_./\\-]+/g, " ")
+    .replace(/[^\p{L}\p{N}\s]+/gu, " ")
+    .replace(/\s+/g, " ")
+    .trim()} `;
+}
+
+function matchesBrand(normalizedText, candidate) {
+  const normalizedCandidate = normalizeComparableText(candidate);
+  if (!normalizedCandidate.trim()) {
+    return false;
+  }
+
+  if (normalizedText.includes(normalizedCandidate)) {
+    return true;
+  }
+
+  if (!BRAND_CONTEXT_PATTERN.test(normalizedText)) {
+    return false;
+  }
+
+  const parts = normalizedCandidate.trim().split(/\s+/).filter((item) => item.length >= 3);
+  return parts.length > 1 && parts.every((part) => normalizedText.includes(` ${part} `));
 }
 
 function stripHtml(text) {

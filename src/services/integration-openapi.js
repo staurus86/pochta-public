@@ -422,7 +422,9 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
                 website: { type: ["string", "null"] },
                 city_phone: { type: ["string", "null"] },
                 mobile_phone: { type: ["string", "null"] },
-                inn: { type: ["string", "null"] }
+                inn: { type: ["string", "null"] },
+                kpp: { type: ["string", "null"] },
+                ogrn: { type: ["string", "null"] }
               }
             },
             lead: {

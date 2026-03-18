@@ -1,6 +1,14 @@
-export const LEGACY_INTEGRATION_API_VERSION = "1.2.0";
+export const LEGACY_INTEGRATION_API_VERSION = "1.3.0";
 
 const CHANGELOG = [
+  {
+    version: "1.3.0",
+    released_at: "2026-03-18",
+    changes: [
+      "Added sender.kpp and sender.ogrn to normalized integration message payloads.",
+      "Improved brand, requisites, phone, and article extraction in the legacy email parser."
+    ]
+  },
   {
     version: "1.2.0",
     released_at: "2026-03-18",

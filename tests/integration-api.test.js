@@ -57,7 +57,9 @@ const project = {
           website: "https://romashka.ru",
           cityPhone: "+7 (495) 123-45-67",
           mobilePhone: null,
-          inn: "7701234567"
+          inn: "7701234567",
+          kpp: "770101001",
+          ogrn: "1234567890123"
         },
         lead: {
           requestType: "Монобрендовая",
@@ -240,6 +242,8 @@ runTest("normalizes integration message shape", () => {
   assert.equal(normalized.attachments[0].download_url, "/api/attachments/msg-1/spec.pdf");
   assert.equal(normalized.export.acknowledged, true);
   assert.equal(normalized.export.external_id, "REQ-42");
+  assert.equal(normalized.sender.kpp, "770101001");
+  assert.equal(normalized.sender.ogrn, "1234567890123");
 });
 
 runTest("lists integration messages with pagination and status filter", () => {
