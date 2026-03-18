@@ -128,19 +128,40 @@ function setupForms() {
   $('#reanalyze-btn').addEventListener('click', async () => {
     const pid = selectedProjectId;
     if (!pid) return alert('Выберите проект');
-    if (!confirm(`Переанализировать все письма проекта? Это обновит бренды, артикулы и телефоны.`)) return;
+    if (!confirm('Переанализировать все письма проекта? Это обновит бренды, артикулы и телефоны.')) return;
     const btn = $('#reanalyze-btn');
     btn.disabled = true;
-    btn.textContent = 'Анализирую...';
+    const origText = btn.textContent;
+    let dots = 0;
+    const pulse = setInterval(() => {
+      dots = (dots + 1) % 4;
+      btn.textContent = 'Анализирую' + '.'.repeat(dots);
+      btn.style.opacity = 0.6 + 0.4 * Math.abs(Math.sin(Date.now() / 400));
+    }, 300);
+    // Show progress bar
+    const bar = $('#progress-bar');
+    const fill = bar?.querySelector('.progress-fill');
+    if (bar) { bar.style.display = 'block'; }
+    if (fill) { fill.style.width = '20%'; fill.style.transition = 'width 8s ease-out'; setTimeout(() => { fill.style.width = '90%'; }, 50); }
     try {
       const res = await fetch(`/api/projects/${pid}/reanalyze`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
       const data = await res.json();
-      btn.textContent = `Готово: ${data.updated}/${data.total}`;
-      setTimeout(() => { btn.textContent = 'Переанализировать'; btn.disabled = false; }, 3000);
+      clearInterval(pulse);
+      btn.style.opacity = 1;
+      if (fill) { fill.style.transition = 'width 0.3s'; fill.style.width = '100%'; }
+      btn.textContent = `Готово: ${data.updated}/${data.total} (${((data.durationMs || 0) / 1000).toFixed(1)}s)`;
+      btn.style.color = 'var(--green)';
+      setTimeout(() => { if (bar) bar.style.display = 'none'; if (fill) fill.style.width = '0'; }, 1500);
+      setTimeout(() => { btn.textContent = origText; btn.disabled = false; btn.style.color = ''; }, 5000);
       refreshDashboard();
     } catch (err) {
-      btn.textContent = 'Ошибка';
-      setTimeout(() => { btn.textContent = 'Переанализировать'; btn.disabled = false; }, 3000);
+      clearInterval(pulse);
+      btn.style.opacity = 1;
+      if (bar) bar.style.display = 'none';
+      if (fill) fill.style.width = '0';
+      btn.textContent = 'Ошибка: ' + (err.message || 'timeout');
+      btn.style.color = 'var(--rose)';
+      setTimeout(() => { btn.textContent = origText; btn.disabled = false; btn.style.color = ''; }, 5000);
     }
   });
 
