@@ -104,3 +104,99 @@ runTest("acknowledges message export and requeues webhook delivery", async () =>
     await rm(dataDir, { recursive: true, force: true });
   }
 });
+
+runTest("applies manual feedback to message brands and classification", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "pochta-store-fb-"));
+
+  try {
+    const store = new ProjectsStore({ dataDir });
+    await store.ensureLoaded();
+
+    const project = await store.createProject({
+      name: "Feedback Test",
+      mailbox: "feedback@example.com"
+    });
+
+    await store.replaceRecentMessages(project.id, [
+      {
+        messageKey: "fb-1",
+        pipelineStatus: "ready_for_crm",
+        analysis: {
+          classification: { label: "Клиент", confidence: 0.7 },
+          detectedBrands: ["ABB"],
+          sender: { email: "test@corp.ru", companyName: "" }
+        }
+      }
+    ]);
+
+    // Add brand
+    const r1 = await store.applyMessageFeedback(project.id, "fb-1", {
+      addBrands: ["Siemens"],
+      companyName: "ООО Ромашка"
+    });
+
+    assert.ok(r1.changes.includes("+brand:Siemens"));
+    assert.ok(r1.changes.some((c) => c.startsWith("company:")));
+    assert.deepEqual(r1.analysis.detectedBrands, ["ABB", "Siemens"]);
+    assert.equal(r1.analysis.sender.companyName, "ООО Ромашка");
+
+    // Remove brand
+    const r2 = await store.applyMessageFeedback(project.id, "fb-1", {
+      removeBrands: ["ABB"]
+    });
+
+    assert.ok(r2.changes.includes("-brand:ABB"));
+    assert.deepEqual(r2.analysis.detectedBrands, ["Siemens"]);
+
+    // Verify audit log
+    const p = await store.getProject(project.id);
+    const msg = p.recentMessages[0];
+    assert.equal(msg.auditLog.length, 2);
+    assert.equal(msg.auditLog[0].action, "manual_feedback");
+    assert.equal(msg.feedbackApplied.length, 2);
+  } finally {
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});
+
+runTest("bulk acknowledges multiple messages at once", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "pochta-store-bulk-"));
+
+  try {
+    const store = new ProjectsStore({ dataDir });
+    await store.ensureLoaded();
+
+    const project = await store.createProject({
+      name: "Bulk ACK Test",
+      mailbox: "bulk@example.com"
+    });
+
+    await store.replaceRecentMessages(project.id, [
+      { messageKey: "bulk-1", pipelineStatus: "ready_for_crm", analysis: { classification: { label: "Клиент" } } },
+      { messageKey: "bulk-2", pipelineStatus: "ready_for_crm", analysis: { classification: { label: "Клиент" } } }
+    ]);
+
+    const results = await store.bulkAcknowledgeExport(project.id, [
+      { messageKey: "bulk-1", externalId: "EXT-1" },
+      { messageKey: "bulk-2", externalId: "EXT-2" },
+      { messageKey: "bulk-missing" }
+    ], { consumer: "crm" });
+
+    assert.equal(results.length, 3);
+    assert.equal(results[0].messageKey, "bulk-1");
+    assert.equal(results[0].acknowledged, true);
+    assert.equal(results[1].messageKey, "bulk-2");
+    assert.equal(results[1].acknowledged, true);
+    assert.equal(results[2].messageKey, "bulk-missing");
+    assert.equal(results[2].acknowledged, false);
+    assert.equal(results[2].error, "not_found");
+
+    // Verify export state persisted
+    const p = await store.getProject(project.id);
+    const m1 = p.recentMessages.find((m) => m.messageKey === "bulk-1");
+    assert.equal(m1.integrationExport.externalId, "EXT-1");
+    assert.equal(m1.integrationExport.consumer, "crm");
+  } finally {
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});

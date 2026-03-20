@@ -5,8 +5,28 @@
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
 
-const FREE_DOMAINS = new Set(['gmail.com','mail.ru','bk.ru','list.ru','inbox.ru','yandex.ru','ya.ru','hotmail.com','outlook.com','icloud.com','me.com','live.com','yahoo.com','rambler.ru','ro.ru','autorambler.ru','myrambler.ru','lenta.ru','aol.com','protonmail.com','proton.me','zoho.com']);
+const FREE_DOMAINS = new Set(['gmail.com','mail.ru','bk.ru','list.ru','inbox.ru','yandex.ru','ya.ru','hotmail.com','outlook.com','icloud.com','me.com','live.com','yahoo.com','rambler.ru','ro.ru','autorambler.ru','myrambler.ru','lenta.ru','aol.com','protonmail.com','proton.me','zoho.com','tilda.ws','tilda.cc','snipermail.com','mailchimp.com','sendgrid.net','mandrillapp.com','amazonses.com','postmaster.twitter.com','noreply.github.com','mailer-daemon.googlemail.com']);
 function isFreeDomain(domain) { return FREE_DOMAINS.has((domain || '').toLowerCase()); }
+const OWN_DOMAINS = new Set(['siderus.su','siderus.online','siderus.ru','klvrt.ru','ersab2b.ru','itec-rus.ru','paulvahle.ru','petersime-rus.ru','rstahl.ru','schimpfdrive.ru','schischekrus.ru','sera-rus.ru','serfilco-ru.ru','vega-automation.ru','waldner-ru.ru','kiesel-rus.ru','maximator-ru.ru','stromag-ru.ru','endress-hauser.pro']);
+function isOwnDomain(domain) { return OWN_DOMAINS.has((domain || '').toLowerCase()); }
+
+// Own company filter — never show in dashboard as customers
+const __OWN_COMPANY_RE = /сидерус|siderus|коловрат|kolovrat|klvrt|ersa\s*b2b|ersab2b/i;
+function __isOwnCompany(name) { return __OWN_COMPANY_RE.test(name); }
+// Only show real companies with legal forms (ООО, АО, GmbH, etc.)
+// If name has no legal form — it's likely a domain or noise, not a real customer
+function __isDomainLike(name) {
+  if (!name) return true;
+  const n = name.trim();
+  // Russian legal forms: ООО, АО, ОАО, ЗАО, ПАО, ФГУП, МУП, ГУП, НПО, НПП, ИП
+  if (/(?:^|\s)(ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП|НПО|НПП|ИП)\s/i.test(n)) return false;
+  // International legal forms
+  if (/\b(GmbH|AG|Ltd\.?|LLC|Inc\.?|SE|S\.A\.|B\.V\.|Co\.|Corp\.?|PLC|Pty)\b/i.test(n)) return false;
+  // Factory/plant patterns (Russian)
+  if (/завод|фабрика|комбинат|предприятие/i.test(n)) return false;
+  // Everything else without legal form is not a real company name
+  return true;
+}
 
 const projectSelect = $('#project-select');
 const pageTitle = $('#page-title');
@@ -32,6 +52,7 @@ let inboxSearch = '';
 let inboxSort = 'date-desc';
 let inboxMailboxFilter = '';
 let inboxAttachmentFilter = '';
+let inboxGroupByThread = false;
 let inboxPage = 0;
 const INBOX_PAGE_SIZE = 50;
 let autoRefreshInterval = null;
@@ -47,6 +68,41 @@ async function init() {
   await Promise.all([refreshKb(), refreshAllMailboxMessages()]);
   // Re-render dashboard now that messages are loaded
   renderDashboard();
+  connectSSE();
+}
+
+function connectSSE() {
+  let retryDelay = 1000;
+  function connect() {
+    const es = new EventSource('/api/events');
+    es.addEventListener('connected', () => { retryDelay = 1000; });
+    es.addEventListener('messages', async (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        const oldCount = allRunnerMessages.length;
+        await refreshAllMailboxMessages();
+        const diff = allRunnerMessages.length - oldCount;
+        if (diff > 0) showToast(`+${diff} новых писем`);
+        else if (data.count > 0) showToast('Письма обновлены');
+      } catch { /* ignore parse errors */ }
+    });
+    es.addEventListener('status', (e) => {
+      try {
+        const data = JSON.parse(e.data);
+        const msg = allRunnerMessages.find((m) => (m.messageKey || m.id) === data.messageKey);
+        if (msg) {
+          msg.pipelineStatus = data.status;
+          renderInbox();
+        }
+      } catch { /* ignore */ }
+    });
+    es.onerror = () => {
+      es.close();
+      setTimeout(connect, retryDelay);
+      retryDelay = Math.min(retryDelay * 2, 30000);
+    };
+  }
+  connect();
 }
 
 // ═══════════════════════════════════════════════════════
@@ -101,7 +157,7 @@ function navigateTo(page) {
   if (page === 'project2') refreshP2();
   if (page === 'project3') refreshP3();
   if (page === 'project4') refreshP4();
-  if (page === 'api-docs') { refreshApiDocsHealth(); refreshApiClients(); }
+  if (page === 'api-docs') { refreshApiDocsHealth(); refreshApiClients(); refreshCrmConfig(); }
 }
 
 // ═══════════════════════════════════════════════════════
@@ -338,6 +394,7 @@ function setupForms() {
   // ═══ Search & Sort & Filter ═══
   $('#inbox-search').addEventListener('input', (e) => { inboxSearch = e.target.value.toLowerCase(); inboxPage = 0; renderInbox(); });
   $('#inbox-sort').addEventListener('change', (e) => { inboxSort = e.target.value; renderInbox(); });
+  $('#inbox-group-threads').addEventListener('change', (e) => { inboxGroupByThread = e.target.checked; inboxPage = 0; renderInbox(); });
   $('#inbox-mailbox-filter').addEventListener('change', (e) => { inboxMailboxFilter = e.target.value; inboxPage = 0; renderInbox(); });
   $('#inbox-attachment-filter')?.addEventListener('change', (e) => { inboxAttachmentFilter = e.target.value; inboxPage = 0; renderInbox(); });
   $('#inbox-auto-refresh').addEventListener('change', (e) => {
@@ -374,6 +431,7 @@ function setupForms() {
 
   // ═══ CSV Export ═══
   $('#inbox-export-csv-btn').addEventListener('click', exportInboxCsv);
+  $('#inbox-export-xlsx-btn').addEventListener('click', exportInboxXlsx);
 }
 
 // ═══════════════════════════════════════════════════════
@@ -488,6 +546,49 @@ function filterInboxMessages(tab) {
   else msgs.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
   return msgs;
+}
+
+function normalizeSubjectForThread(subject) {
+  return String(subject || '')
+    .replace(/^(re|fwd?|ответ|переслано)\s*[:]\s*/gi, '')
+    .replace(/^(re|fwd?|ответ|переслано)\s*[:]\s*/gi, '')  // second pass for nested Re: Re:
+    .trim()
+    .toLowerCase();
+}
+
+function getSenderDomain(msg) {
+  const email = msg.analysis?.sender?.email || msg.from || '';
+  const match = email.match(/@([^>]+)/);
+  return match ? match[1].toLowerCase() : email.toLowerCase();
+}
+
+function getThreadKey(msg) {
+  // Prefer server-side threadId (from In-Reply-To/References headers)
+  if (msg.threadId) return msg.threadId;
+  // Fallback to normalized subject + sender domain
+  return normalizeSubjectForThread(msg.subject) + '|' + getSenderDomain(msg);
+}
+
+function groupByThreads(messages) {
+  const threads = new Map();
+  for (const msg of messages) {
+    const key = getThreadKey(msg);
+    if (!threads.has(key)) {
+      threads.set(key, []);
+    }
+    threads.get(key).push(msg);
+  }
+  // Sort threads by latest message date (descending)
+  const sortedThreads = [...threads.values()].sort((a, b) => {
+    const latestA = Math.max(...a.map((m) => new Date(m.createdAt || 0).getTime()));
+    const latestB = Math.max(...b.map((m) => new Date(m.createdAt || 0).getTime()));
+    return latestB - latestA;
+  });
+  // Sort messages within each thread chronologically (oldest first)
+  for (const thread of sortedThreads) {
+    thread.sort((a, b) => new Date(a.createdAt || 0) - new Date(b.createdAt || 0));
+  }
+  return sortedThreads;
 }
 
 function updateInboxTabCounts() {
@@ -721,6 +822,42 @@ function exportInboxCsv() {
   showToast(`Экспортировано ${runnerMessages.length} писем`);
 }
 
+function exportInboxXlsx() {
+  if (typeof XLSX === 'undefined') {
+    showToast('Загрузка библиотеки XLSX...');
+    const s = document.createElement('script');
+    s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+    s.onload = () => exportInboxXlsx();
+    s.onerror = () => showToast('Не удалось загрузить XLSX библиотеку');
+    document.head.appendChild(s);
+    return;
+  }
+
+  const headers = ['Дата', 'От', 'Ящик', 'Тема', 'Статус', 'Категория', 'Confidence', 'Компания', 'ИНН', 'Телефон', 'Бренды', 'Артикулы'];
+  const data = runnerMessages.map((m) => {
+    const a = m.analysis || {};
+    const s = a.sender || {};
+    const l = a.lead || {};
+    return [
+      m.createdAt || '', m.from || s.email || '', m.mailbox || '', m.subject || '',
+      m.pipelineStatus || '', a.classification?.label || '', a.classification?.confidence || '',
+      s.companyName || '', s.inn || '', s.cityPhone || s.mobilePhone || '',
+      (a.detectedBrands || []).join('; '), (l.articles || []).join('; ')
+    ];
+  });
+
+  const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
+  // Column widths
+  ws['!cols'] = [
+    { wch: 20 }, { wch: 25 }, { wch: 25 }, { wch: 40 }, { wch: 16 }, { wch: 14 },
+    { wch: 10 }, { wch: 25 }, { wch: 14 }, { wch: 18 }, { wch: 25 }, { wch: 30 }
+  ];
+  const wb = XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Заявки');
+  XLSX.writeFile(wb, `pochta-inbox-${new Date().toISOString().slice(0, 10)}.xlsx`);
+  showToast(`Экспортировано ${runnerMessages.length} писем в XLSX`);
+}
+
 // ═══ Copy to clipboard ═══
 window.__copyField = (text) => {
   navigator.clipboard.writeText(text).then(() => showToast('Скопировано')).catch(() => {});
@@ -849,11 +986,12 @@ function renderDashboard() {
     }).join('');
   }
 
-  // ═══ Top senders ═══
+  // ═══ Top senders (real company domains only, no free mail / own domains) ═══
   const senderMap = new Map();
   allRunnerMessages.filter((m) => m.pipelineStatus !== 'ignored_spam').forEach((m) => {
     const email = m.analysis?.sender?.email || m.from || 'unknown';
-    const domain = email.split('@')[1] || email;
+    const domain = (email.split('@')[1] || '').toLowerCase();
+    if (!domain || isFreeDomain(domain) || isOwnDomain(domain)) return;
     senderMap.set(domain, (senderMap.get(domain) || 0) + 1);
   });
   const topSenders = [...senderMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 8);
@@ -876,6 +1014,8 @@ function renderDashboard() {
 
   // ═══ Request Analytics ═══
   renderRequestAnalytics();
+  renderAccuracyMetrics();
+  renderWeeklyTrends();
 }
 
 function renderRequestAnalytics() {
@@ -916,9 +1056,11 @@ function renderRequestAnalytics() {
     // Positions count
     totalPositions += a.lead?.totalPositions || items.length || arts.length || 0;
 
-    // Company
+    // Company — only real legal entities, not domains; filter own companies
     const company = a.sender?.companyName || a.crm?.company?.legalName;
-    if (company) companyCount.set(company, (companyCount.get(company) || 0) + 1);
+    if (company && !__isOwnCompany(company) && !__isDomainLike(company)) {
+      companyCount.set(company, (companyCount.get(company) || 0) + 1);
+    }
 
     // Request type
     const rtype = a.lead?.requestType || a.intakeFlow?.requestType || 'Не определено';
@@ -997,6 +1139,101 @@ function renderRequestAnalytics() {
       <span style="font-size:11px;color:var(--accent);font-weight:700;">${count}</span>
     </div>`
   ).join('')}</div>` : noData();
+}
+
+function renderAccuracyMetrics() {
+  const el = $('#accuracy-metrics');
+  if (!el) return;
+
+  const total = allRunnerMessages.length;
+  if (total === 0) { el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:8px;">Нет данных</div>'; return; }
+
+  // Count messages with manual status corrections
+  let corrected = 0;
+  let feedbackCount = 0;
+  const correctionsByType = { client: 0, spam: 0, vendor: 0 };
+  for (const m of allRunnerMessages) {
+    const logs = m.auditLog || [];
+    const hasStatusChange = logs.some((l) => l.action === 'status_change');
+    const hasFeedback = logs.some((l) => l.action === 'manual_feedback');
+    if (hasStatusChange) {
+      corrected++;
+      // Track what the correction was TO
+      const lastChange = [...logs].reverse().find((l) => l.action === 'status_change');
+      if (lastChange?.to === 'ignored_spam') correctionsByType.spam++;
+      else if (lastChange?.to === 'ready_for_crm') correctionsByType.client++;
+      else if (lastChange?.to === 'review') correctionsByType.vendor++;
+    }
+    if (hasFeedback) feedbackCount++;
+  }
+
+  const accuracy = total > 0 ? ((total - corrected) / total * 100).toFixed(1) : 100;
+  const accuracyColor = accuracy >= 90 ? 'var(--green)' : accuracy >= 70 ? 'var(--amber)' : 'var(--rose)';
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:12px;margin-bottom:12px;">
+      <div class="kpi-card"><div class="kpi-label">Точность</div><div class="kpi-value" style="color:${accuracyColor}">${accuracy}%</div></div>
+      <div class="kpi-card"><div class="kpi-label">Всего писем</div><div class="kpi-value">${total}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Скорректировано</div><div class="kpi-value rose">${corrected}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Feedback брендов</div><div class="kpi-value accent">${feedbackCount}</div></div>
+    </div>
+    ${corrected > 0 ? `<div style="font-size:11px;color:var(--text-muted);">
+      Коррекции: → Клиент: ${correctionsByType.client}, → Спам: ${correctionsByType.spam}, → Поставщик: ${correctionsByType.vendor}
+    </div>` : '<div style="font-size:11px;color:var(--green);">Все классификации корректны</div>'}
+  `;
+}
+
+function renderWeeklyTrends() {
+  const el = $('#weekly-trends');
+  if (!el) return;
+
+  if (allRunnerMessages.length === 0) { el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:8px;">Нет данных</div>'; return; }
+
+  // Group messages by ISO week
+  const weekMap = new Map();
+  for (const m of allRunnerMessages) {
+    const d = new Date(m.createdAt || 0);
+    if (isNaN(d.getTime())) continue;
+    // Week key: YYYY-Www
+    const jan1 = new Date(d.getFullYear(), 0, 1);
+    const weekNum = Math.ceil(((d - jan1) / 86400000 + jan1.getDay() + 1) / 7);
+    const weekKey = `${d.getFullYear()}-W${String(weekNum).padStart(2, '0')}`;
+    if (!weekMap.has(weekKey)) weekMap.set(weekKey, { total: 0, client: 0, spam: 0, brands: new Set() });
+    const w = weekMap.get(weekKey);
+    w.total++;
+    if (m.pipelineStatus === 'ready_for_crm' || m.pipelineStatus === 'needs_clarification') w.client++;
+    if (m.pipelineStatus === 'ignored_spam') w.spam++;
+    (m.analysis?.detectedBrands || []).forEach((b) => w.brands.add(b));
+  }
+
+  const weeks = [...weekMap.entries()].sort((a, b) => a[0].localeCompare(b[0])).slice(-8);
+  if (weeks.length < 2) { el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:8px;">Недостаточно данных для трендов (нужно 2+ недели)</div>'; return; }
+
+  const maxTotal = Math.max(1, ...weeks.map(([, w]) => w.total));
+
+  el.innerHTML = `
+    <div style="display:flex;align-items:flex-end;gap:6px;height:120px;">
+      ${weeks.map(([key, w]) => {
+        const totalH = Math.round(w.total / maxTotal * 100);
+        const clientH = Math.round(w.client / maxTotal * 100);
+        const spamH = Math.round(w.spam / maxTotal * 100);
+        return `<div style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;">
+          <div style="width:100%;display:flex;flex-direction:column;align-items:center;justify-content:flex-end;height:100px;">
+            <div title="Заявки: ${w.client}" style="width:80%;background:var(--green);border-radius:3px 3px 0 0;height:${clientH}px;min-height:${w.client ? 2 : 0}px;"></div>
+            <div title="Спам: ${w.spam}" style="width:80%;background:var(--rose);height:${spamH}px;min-height:${w.spam ? 2 : 0}px;"></div>
+            <div title="Прочие: ${w.total - w.client - w.spam}" style="width:80%;background:var(--border);border-radius:0 0 3px 3px;height:${totalH - clientH - spamH}px;min-height:${(w.total - w.client - w.spam) ? 2 : 0}px;"></div>
+          </div>
+          <div style="font-size:9px;color:var(--text-muted);white-space:nowrap;">${key.slice(5)}</div>
+          <div style="font-size:10px;font-weight:600;">${w.total}</div>
+        </div>`;
+      }).join('')}
+    </div>
+    <div style="display:flex;gap:12px;margin-top:8px;font-size:10px;color:var(--text-muted);justify-content:center;">
+      <span><span style="display:inline-block;width:8px;height:8px;background:var(--green);border-radius:2px;margin-right:3px;"></span>Заявки</span>
+      <span><span style="display:inline-block;width:8px;height:8px;background:var(--rose);border-radius:2px;margin-right:3px;"></span>Спам</span>
+      <span><span style="display:inline-block;width:8px;height:8px;background:var(--border);border-radius:2px;margin-right:3px;"></span>Прочие</span>
+    </div>
+  `;
 }
 
 function noData() {
@@ -1164,14 +1401,16 @@ function renderInbox() {
   }
 
   const allChecked = pageMessages.length > 0 && pageMessages.every((m) => selectedMsgKeys.has(mid(m)));
-  listEl.innerHTML = `<div class="select-all-wrap"><input type="checkbox" id="select-all-cb" ${allChecked ? 'checked' : ''} /><span>${pageMessages.length} на странице</span></div>` + pageMessages.map((m) => {
+
+  const renderMessageItem = (m, indent = false) => {
     const id = mid(m);
     const active = id === selectedMessageId ? 'active' : '';
     const checked = selectedMsgKeys.has(id) ? 'checked' : '';
     const isRead = readMessages.has(id);
     const a = m.analysis || {};
     const conf = a.classification?.confidence;
-    return `<div class="message-item-wrap ${active}" data-mid="${esc(id)}">
+    const indentStyle = indent ? 'padding-left:24px;border-left:2px solid var(--border);' : '';
+    return `<div class="message-item-wrap ${active}" data-mid="${esc(id)}" style="${indentStyle}">
       <label class="msg-checkbox" onclick="event.stopPropagation()"><input type="checkbox" ${checked} data-check-mid="${esc(id)}" /></label>
       <button class="message-item ${active}" data-mid="${esc(id)}">
         <div class="message-from">
@@ -1186,7 +1425,32 @@ function renderInbox() {
         </div>
       </button>
     </div>`;
-  }).join('');
+  };
+
+  let listHtml;
+  if (inboxGroupByThread) {
+    const threads = groupByThreads(pageMessages);
+    listHtml = threads.map((thread) => {
+      if (thread.length === 1) {
+        return renderMessageItem(thread[0]);
+      }
+      const latest = thread[thread.length - 1];
+      const threadKey = 'thread-' + mid(latest);
+      return `<div class="thread-group" data-thread="${esc(threadKey)}">
+        <div style="display:flex;align-items:center;gap:6px;padding:4px 8px;background:var(--surface);border-bottom:1px solid var(--border);cursor:pointer;font-size:11px;color:var(--text-muted);" data-toggle-thread="${esc(threadKey)}">
+          <span style="font-size:9px;">&#9654;</span>
+          <span style="font-weight:600;color:var(--text);">${esc(normalizeSubjectForThread(latest.subject) || 'Без темы')}</span>
+          <span class="badge badge-unknown" style="font-size:9px;">${thread.length}</span>
+          <span>${esc(getSenderDomain(latest))}</span>
+        </div>
+        ${thread.map((m, i) => renderMessageItem(m, i < thread.length - 1)).join('')}
+      </div>`;
+    }).join('');
+  } else {
+    listHtml = pageMessages.map((m) => renderMessageItem(m)).join('');
+  }
+
+  listEl.innerHTML = `<div class="select-all-wrap"><input type="checkbox" id="select-all-cb" ${allChecked ? 'checked' : ''} /><span>${pageMessages.length} на странице</span></div>` + listHtml;
 
   // Select all handler
   const selectAllCb = listEl.querySelector('#select-all-cb');
@@ -1367,6 +1631,14 @@ function renderEmailView(msg, viewEl, detailEl) {
       <div style="margin-bottom:8px;">
         <button class="btn btn-ghost btn-sm" style="width:100%" onclick="window.__showRuleForm('${escAttr(msgKey)}')">+ Добавить правило из этого письма</button>
       </div>
+      <div style="margin-bottom:8px;">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:4px;">Коррекция брендов:</div>
+        <div style="display:flex;gap:4px;">
+          <input id="feedback-brand-${esc(msgKey)}" class="form-input" placeholder="Название бренда..." style="flex:1;font-size:11px;padding:4px 8px;" />
+          <button class="btn btn-sm" style="font-size:10px;padding:2px 8px;background:var(--green-dim);color:var(--green);border:1px solid var(--green);" onclick="window.__feedbackBrand('${escAttr(msgKey)}','add')">+</button>
+          <button class="btn btn-sm" style="font-size:10px;padding:2px 8px;background:var(--rose-dim);color:var(--rose);border:1px solid var(--rose);" onclick="window.__feedbackBrand('${escAttr(msgKey)}','remove')">−</button>
+        </div>
+      </div>
       <div id="rule-form-${esc(msgKey)}" style="display:none;">
         <div style="display:flex;gap:6px;margin-bottom:6px;">
           <select id="rule-scope-${esc(msgKey)}" class="form-select" style="font-size:11px;padding:4px 8px;flex:1">
@@ -1394,9 +1666,9 @@ function renderEmailView(msg, viewEl, detailEl) {
     </div>` : ''}
     ${msg.auditLog?.length ? `<div class="detail-section">
       <div class="detail-section-title">Аудит</div>
-      ${msg.auditLog.slice(-5).map((log) => `<div style="font-size:10px;color:var(--text-muted);padding:2px 0;display:flex;gap:6px;">
+      ${msg.auditLog.slice(-8).map((log) => `<div style="font-size:10px;color:var(--text-muted);padding:2px 0;display:flex;gap:6px;">
         <span style="color:var(--text-secondary);">${fmtDate(log.at)}</span>
-        <span>${esc(log.from || '?')} → ${esc(log.to || '?')}</span>
+        <span>${log.action === 'manual_feedback' ? esc((log.changes || []).join(', ')) : log.action === 'integration_ack' ? 'ACK: ' + esc(log.consumer || '') : esc((log.from || '?') + ' → ' + (log.to || '?'))}</span>
       </div>`).join('')}
     </div>` : ''}
     <div class="detail-actions">
@@ -1433,6 +1705,8 @@ window.__trainSender = async (email, classification, companyHint, msgKey) => {
 
   try {
     // 1. Save sender profile for future emails
+    const currentMsg = allRunnerMessages.find((m) => mid(m) === msgKey);
+    const msgBrands = (currentMsg?.analysis?.detectedBrands || []).join(', ');
     const res = await fetch('/api/detection-kb/sender-profiles', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -1441,6 +1715,7 @@ window.__trainSender = async (email, classification, companyHint, msgKey) => {
         senderDomain: byEmail ? '' : domain,
         classification,
         companyHint: companyHint || '',
+        brandHint: msgBrands,
         notes: `Обучено из inbox: ${target} → ${classification}`
       })
     });
@@ -1482,6 +1757,28 @@ window.__trainSender = async (email, classification, companyHint, msgKey) => {
   } catch (err) {
     showToast('Ошибка: ' + err.message, true);
   }
+};
+
+window.__feedbackBrand = async (msgKey, action) => {
+  const input = $(`#feedback-brand-${msgKey}`);
+  const brand = input?.value?.trim();
+  if (!brand) { showToast('Введите название бренда'); return; }
+  const currentMsg = allRunnerMessages.find((m) => mid(m) === msgKey);
+  const pid = currentMsg?._projectId || P3_ID;
+  const payload = action === 'add' ? { addBrands: [brand] } : { removeBrands: [brand] };
+  try {
+    const res = await fetch(`/api/projects/${pid}/messages/${encodeURIComponent(msgKey)}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) { showToast('Ошибка', true); return; }
+    const data = await res.json();
+    if (currentMsg && data.analysis) currentMsg.analysis = data.analysis;
+    input.value = '';
+    showToast(`${action === 'add' ? '+' : '−'} ${brand}`);
+    renderInbox();
+  } catch (e) { showToast('Ошибка: ' + e.message, true); }
 };
 
 window.__showRuleForm = (msgKey) => {
@@ -1625,6 +1922,46 @@ function renderKb() {
         showToast('Профиль удалён');
       });
     });
+    return;
+  }
+  if (kbTab === 'search') {
+    container.innerHTML = `
+      <div style="padding:16px;">
+        <div style="display:flex;gap:8px;margin-bottom:16px;">
+          <input type="text" id="kb-search-input" placeholder="Поиск по теме, телу, отправителю, брендам..." style="flex:1;padding:8px 12px;border:1px solid var(--border);border-radius:6px;background:var(--surface);color:var(--text);font-size:13px;">
+          <button class="btn btn-primary btn-sm" id="kb-search-btn">Найти</button>
+        </div>
+        <div id="kb-search-results"><div class="empty-state" style="padding:24px"><h4>Введите запрос для поиска по корпусу</h4><p>FTS5 полнотекстовый поиск с поддержкой русского и латинского текста</p></div></div>
+      </div>`;
+    const input = $('#kb-search-input');
+    const resultsDiv = $('#kb-search-results');
+    const doSearch = async () => {
+      const q = input.value.trim();
+      if (!q) return;
+      resultsDiv.innerHTML = '<div style="padding:16px;color:var(--text-muted)">Поиск...</div>';
+      try {
+        const resp = await fetch('/api/detection-kb/corpus/search?q=' + encodeURIComponent(q) + '&limit=50');
+        const data = await resp.json();
+        if (!data.results || !data.results.length) {
+          resultsDiv.innerHTML = '<div class="empty-state" style="padding:24px"><h4>Ничего не найдено</h4></div>';
+          return;
+        }
+        resultsDiv.innerHTML = '<div style="margin-bottom:8px;font-size:12px;color:var(--text-muted)">Найдено: ' + data.results.length + '</div>' +
+          '<table class="data-table"><thead><tr><th>Тема</th><th>Отправитель</th><th>Классификация</th><th>Бренды</th><th>Компания</th></tr></thead><tbody>' +
+          data.results.map((r) => '<tr>' +
+            '<td style="max-width:300px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + esc(r.subject) + '">' + esc(truncate(r.subject, 60)) + '</td>' +
+            '<td style="font-family:\'JetBrains Mono\',monospace;font-size:11px;">' + esc(r.sender_email) + '</td>' +
+            '<td>' + classificationBadge(r.classification) + '</td>' +
+            '<td style="font-size:11px;">' + esc(truncate(r.brand_names, 40)) + '</td>' +
+            '<td style="font-size:11px;">' + esc(r.company_name || '') + '</td>' +
+          '</tr>').join('') +
+          '</tbody></table>';
+      } catch (e) {
+        resultsDiv.innerHTML = '<div style="padding:16px;color:var(--red)">Ошибка: ' + esc(e.message) + '</div>';
+      }
+    };
+    $('#kb-search-btn').addEventListener('click', doSearch);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
   }
 }
 
@@ -1769,8 +2106,97 @@ async function refreshApiDocsHealth() {
           <div style="font-size:18px;font-weight:700;color:var(--orange);">${stats.corpusCount || 0}</div>
           <div style="font-size:11px;color:var(--text-tertiary);">Field patterns: ${stats.fieldPatternCount || 0}</div>
         </div>
+        <div style="padding:10px 16px;border-radius:8px;background:var(--bg-tertiary);flex:1;min-width:140px;">
+          <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px;">AI Classification</div>
+          <div style="font-size:18px;font-weight:700;color:${health.ai?.enabled ? 'var(--green)' : 'var(--text-muted)'};">${health.ai?.enabled ? 'ON' : 'OFF'}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);">${health.ai?.enabled ? health.ai.model : 'AI_ENABLED=false'}</div>
+        </div>
+        <div style="padding:10px 16px;border-radius:8px;background:var(--bg-tertiary);flex:1;min-width:140px;">
+          <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px;">SSE / Rate Limit</div>
+          <div style="font-size:18px;font-weight:700;color:var(--accent);">${health.sse?.clients || 0} / ${health.rateLimit?.max || '-'}</div>
+          <div style="font-size:11px;color:var(--text-tertiary);">Clients / req/min</div>
+        </div>
       </div>`;
   } catch {
     el.innerHTML = '<span style="color:var(--rose);">Failed to load API health</span>';
+  }
+}
+
+// ═══ CRM Config ═══
+async function refreshCrmConfig() {
+  const el = $('#crm-config-panel');
+  if (!el) return;
+  try {
+    const res = await fetch(`/api/projects/${P3_ID}/crm-config`);
+    const data = await res.json();
+    const c = data.config || {};
+    el.innerHTML = `
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;max-width:600px;">
+        <label style="font-size:11px;color:var(--text-muted);">
+          <span>Enabled</span>
+          <select id="crm-enabled" class="form-select" style="font-size:11px;padding:4px 8px;margin-top:2px;width:100%;">
+            <option value="false" ${!c.enabled ? 'selected' : ''}>OFF</option>
+            <option value="true" ${c.enabled ? 'selected' : ''}>ON</option>
+          </select>
+        </label>
+        <label style="font-size:11px;color:var(--text-muted);">
+          <span>CRM Type</span>
+          <select id="crm-type" class="form-select" style="font-size:11px;padding:4px 8px;margin-top:2px;width:100%;">
+            <option value="generic" ${c.type === 'generic' ? 'selected' : ''}>Generic Webhook</option>
+            <option value="amocrm" ${c.type === 'amocrm' ? 'selected' : ''}>amoCRM</option>
+            <option value="bitrix24" ${c.type === 'bitrix24' ? 'selected' : ''}>Bitrix24</option>
+            <option value="1c" ${c.type === '1c' ? 'selected' : ''}>1С</option>
+          </select>
+        </label>
+        <label style="font-size:11px;color:var(--text-muted);">
+          <span>Base URL</span>
+          <input id="crm-base-url" class="form-input" value="${esc(c.baseUrl || '')}" placeholder="https://crm.example.com" style="font-size:11px;padding:4px 8px;margin-top:2px;width:100%;" />
+        </label>
+        <label style="font-size:11px;color:var(--text-muted);">
+          <span>API Key</span>
+          <input id="crm-api-key" class="form-input" type="password" value="${esc(c.apiKey || '')}" placeholder="API key or token" style="font-size:11px;padding:4px 8px;margin-top:2px;width:100%;" />
+        </label>
+      </div>
+      <div style="margin-top:10px;display:flex;gap:8px;">
+        <button class="btn btn-primary btn-sm" id="crm-save-btn">Сохранить</button>
+        <span id="crm-save-status" style="font-size:11px;color:var(--text-muted);line-height:30px;"></span>
+      </div>`;
+
+    $('#crm-save-btn').addEventListener('click', async () => {
+      const body = {
+        enabled: $('#crm-enabled').value === 'true',
+        type: $('#crm-type').value,
+        baseUrl: $('#crm-base-url').value,
+        apiKey: $('#crm-api-key').value
+      };
+      const r = await fetch('/api/projects/' + P3_ID + '/crm-config', {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body)
+      });
+      $('#crm-save-status').textContent = r.ok ? 'Сохранено' : 'Ошибка';
+      setTimeout(() => $('#crm-save-status').textContent = '', 2000);
+    });
+
+    $('#crm-sync-btn')?.addEventListener('click', async () => {
+      const btn = $('#crm-sync-btn');
+      btn.disabled = true;
+      btn.textContent = 'Syncing...';
+      try {
+        const r = await fetch('/api/projects/' + P3_ID + '/crm-sync', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ limit: 50 })
+        });
+        const data = await r.json();
+        showToast(`CRM Sync: ${data.synced} synced, ${data.failed} failed, ${data.skipped} skipped`);
+      } catch (e) {
+        showToast('CRM Sync error: ' + e.message, true);
+      }
+      btn.disabled = false;
+      btn.textContent = 'Sync Now';
+    });
+  } catch {
+    el.innerHTML = '<span style="color:var(--text-muted);font-size:12px;">CRM config unavailable</span>';
   }
 }

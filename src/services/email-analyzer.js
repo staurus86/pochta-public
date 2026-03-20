@@ -1,6 +1,28 @@
 import { randomUUID } from "node:crypto";
+import { readFileSync } from "node:fs";
+import path from "node:path";
+import { fileURLToPath } from "node:url";
 import { matchCompanyInCrm } from "./crm-matcher.js";
 import { detectionKb } from "./detection-kb.js";
+import { hybridClassify, isAiEnabled, getAiConfig } from "./ai-classifier.js";
+
+// Product types database for request type detection and entity extraction
+const __analyzerDir = path.dirname(fileURLToPath(import.meta.url));
+let productTypes = null;
+let productKeywords = null;
+try {
+  productTypes = JSON.parse(readFileSync(path.resolve(__analyzerDir, "../../data/product-types.json"), "utf8"));
+  // Build flat keyword sets for quick lookup
+  const allRu = new Set();
+  const allEn = new Set();
+  for (const cat of Object.values(productTypes.categories)) {
+    (cat.ru || []).forEach((w) => allRu.add(w.toLowerCase()));
+    (cat.en || []).forEach((w) => allEn.add(w.toLowerCase()));
+  }
+  productKeywords = { ru: allRu, en: allEn, signals: productTypes.requestSignals || [] };
+} catch {
+  productKeywords = { ru: new Set(), en: new Set(), signals: [] };
+}
 
 const URL_PATTERN = /https?:\/\/[^\s)]+/gi;
 const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}/g;
@@ -12,11 +34,25 @@ const INN_PATTERN = /(?:ИНН|inn)\s*[:#-]?\s*(\d{10,12})/i;
 const KPP_PATTERN = /(?:КПП|kpp)\s*[:#-]?\s*(\d{9})/i;
 const OGRN_PATTERN = /(?:ОГРН|ogrn)\s*[:#-]?\s*(\d{13,15})/i;
 const ARTICLE_PATTERN = /(?:арт(?:икул(?:а|у|ом|е|ы|ов|ам|ами|ах)?)?|sku)\b[^A-Za-zА-Яа-я0-9]{0,5}([A-Za-z0-9][A-Za-z0-9-/_]{2,})/gi;
-const STANDALONE_CODE_PATTERN = /\b([A-Z][A-Z0-9]{2,}[-/]?[A-Z0-9]{2,}(?:[-/][A-Z0-9]+)*)\b/g;
-// Numeric article: 509-1720, 3HAC12345-1, 6GK7-343-2AH01
-const NUMERIC_ARTICLE_PATTERN = /\b(\d{2,6}[-/]\d{2,6}(?:[-/][A-Za-z0-9]{1,6})*)\b/g;
+const STANDALONE_CODE_PATTERN = /\b([A-Z][A-Z0-9]{2,}[-/.]?[A-Z0-9]{2,}(?:[-/.][A-Z0-9]+)*)\b/g;
+// Numeric article: 509-1720, 3HAC12345-1, 6GK7-343-2AH01, 233.50.100
+const NUMERIC_ARTICLE_PATTERN = /\b(\d{2,6}[-/.]\d{2,6}(?:[-/.][A-Za-z0-9]{1,6})*)\b/g;
 // Date-like patterns to exclude from numeric articles: DD.MM.YYYY, DD-MM-YYYY, DD/MM/YYYY
-const DATE_LIKE_PATTERN = /^(?:0?[1-9]|[12]\d|3[01])[-/](?:0?[1-9]|1[0-2])(?:[-/]\d{2,4})?$/;
+const DATE_LIKE_PATTERN = /^(?:0?[1-9]|[12]\d|3[01])[-/.](?:0?[1-9]|1[0-2])(?:[-/.]\d{2,4})?$/;
+// Voltage/electrical spec patterns to exclude from articles
+const VOLTAGE_PATTERN = /^\d{1,5}[/]\d{1,5}$/;  // 230/400, 10000/400, 1000/1500
+// Extended article pattern: supports dots (233.50.100), colons (VV64:KMD), mixed alpha-num + Cyrillic
+const EXTENDED_CODE_PATTERN = /\b([A-Za-zА-ЯЁа-яё][A-Za-zА-ЯЁа-яё0-9]{0,}[-/:.][A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:.]{0,25})\b/g;
+// Mixed Cyrillic+Latin+digits code (АИР100S4) — \b doesn't work with Cyrillic in JS
+const CYRILLIC_MIXED_CODE_PATTERN = /(?:^|[\s,;:(])([А-ЯЁа-яё]{1,5}[0-9][A-Za-zА-ЯЁа-яё0-9/.-]{2,20})/gm;
+// Reverse: digits first then Cyrillic (100А13/1.5Т220)
+const DIGITS_CYRILLIC_CODE_PATTERN = /(?:^|[\s,;:(])(\d{1,5}[А-ЯЁа-яё][A-Za-zА-ЯЁа-яё0-9/.-]{2,20})/gm;
+// Series + model: "CR 10-3", "WDU 2.5", "EV220B 032U1240" — letter code + space + number/code
+const SERIES_MODEL_PATTERN = /\b([A-Z]{2,6})\s+(\d{1,3}(?:[-/.]\d{1,4})?(?:[-/][A-Z0-9]+)?)\b/g;
+// Numbered list item: "1. Description ARTICLE" or "1) Description ARTICLE"
+const NUMBERED_ITEM_PATTERN = /^\s*\d{1,3}[.)]\s+/;
+// Product line with quantity: "Description - N шт" or "Description - N.NN шт"
+const PRODUCT_QTY_PATTERN = /[—–-]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)?\.?\s*$/i;
 const BRAND_CONTEXT_PATTERN = /\b(?:бренд|brand|производител[ья]|manufacturer|vendor|марка)\b/i;
 const REQUISITES_CONTEXT_PATTERN = /\b(?:реквизит|карточк[аи]|company details|legal details)\b/i;
 const QUOTE_PATTERNS = [
@@ -125,6 +161,38 @@ export function analyzeEmail(project, payload) {
   };
 }
 
+/**
+ * Async version of analyzeEmail that uses AI classification for uncertain cases.
+ * Falls back to pure rules-based when AI is disabled.
+ */
+export async function analyzeEmailAsync(project, payload) {
+  const result = analyzeEmail(project, payload);
+
+  if (!isAiEnabled()) return result;
+
+  try {
+    const enhanced = await hybridClassify(result.classification, {
+      subject: payload.subject || "",
+      body: payload.body || "",
+      fromEmail: payload.fromEmail || "",
+      attachments: normalizeAttachments(payload.attachments)
+    });
+
+    // Merge AI-detected brands with rule-detected brands
+    if (enhanced.detectedBrands?.length) {
+      const allBrands = [...new Set([...result.detectedBrands, ...detectionKb.filterOwnBrands(enhanced.detectedBrands)])];
+      result.detectedBrands = allBrands;
+    }
+
+    result.classification = enhanced;
+    result.aiConfig = getAiConfig();
+  } catch {
+    // AI failure — use rules result silently
+  }
+
+  return result;
+}
+
 function normalizeAttachments(attachments) {
   if (Array.isArray(attachments)) {
     return attachments.map((item) => String(item).trim()).filter(Boolean);
@@ -187,6 +255,23 @@ function extractSender(fromName, fromEmail, body, attachments) {
   };
 }
 
+function detectUrgency(text) {
+    const urgentPatterns = [
+        /срочн|urgent|asap|немедленн|в кратчайш|до конца дня|сегодня/i,
+        /простой|стоит линия|стоит оборудование|авари[йя]/i
+    ];
+    for (const p of urgentPatterns) {
+        if (p.test(text)) return "urgent";
+    }
+    const plannedPatterns = [
+        /плановая|план(?:ируем|овый)|ближайш|на следующ/i
+    ];
+    for (const p of plannedPatterns) {
+        if (p.test(text)) return "planned";
+    }
+    return "normal";
+}
+
 function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const freeText = body.trim().slice(0, 2000);
   const forbiddenDigits = collectForbiddenArticleDigits(body);
@@ -208,17 +293,104 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
 
   const attachmentHints = parseAttachmentHints(attachments);
 
+  const detectedProductTypes = detectProductTypes([subject, body].join("\n"));
+  const finalArticles = unique(allArticles.concat(lineItems.map((item) => normalizeArticleCode(item.article))).filter(Boolean));
+
+  const productNames = extractProductNames(
+    [subject, body].join("\n"),
+    finalArticles,
+    detectedProductTypes
+  );
+
+  const urgency = detectUrgency([subject, body].join("\n"));
+
+  // Enrich lineItems descriptionRu from productNames
+  for (const item of lineItems) {
+      if (!item.descriptionRu && item.article) {
+          const pn = productNames.find((p) => p.article === item.article);
+          if (pn?.name) item.descriptionRu = pn.name;
+      }
+  }
+
   return {
     freeText,
     hasNameplatePhotos,
     hasArticlePhotos,
-    articles: unique(allArticles.concat(lineItems.map((item) => normalizeArticleCode(item.article))).filter(Boolean)),
+    articles: finalArticles,
     lineItems,
-    totalPositions: lineItems.length || unique(allArticles).length,
+    totalPositions: lineItems.length || finalArticles.length,
     detectedBrands,
+    detectedProductTypes,
+    productNames,
+    urgency,
     attachmentHints,
-    requestType: detectedBrands.length > 1 ? "Мультибрендовая" : detectedBrands.length === 1 ? "Монобрендовая" : "Не определено"
+    requestType: detectedBrands.length > 1 ? "Мультибрендовая" : detectedBrands.length === 1 ? "Монобрендовая" : finalArticles.length > 0 || detectedProductTypes.length > 0 ? "Не определено (есть артикулы)" : "Не определено"
   };
+}
+
+function extractProductNames(text, articles, detectedProductTypes) {
+  const productNames = [];
+  const lower = text.toLowerCase();
+
+  for (const article of articles) {
+    const articleLower = article.toLowerCase();
+    const articleIdx = lower.indexOf(articleLower);
+    if (articleIdx === -1) continue;
+
+    // Look at 60 chars before the article for context
+    const contextStart = Math.max(0, articleIdx - 60);
+    const context = lower.slice(contextStart, articleIdx).trim();
+
+    // Try to match a product type keyword from the context
+    let productName = null;
+    let matchedCategory = null;
+    if (productTypes?.categories) {
+      for (const [category, data] of Object.entries(productTypes.categories)) {
+        for (const keyword of [...(data.ru || []), ...(data.en || [])]) {
+          if (context.includes(keyword.toLowerCase())) {
+            const keyIdx = context.lastIndexOf(keyword.toLowerCase());
+            const nameCandidate = text.slice(contextStart + keyIdx, articleIdx).trim();
+            if (nameCandidate.length > 2 && nameCandidate.length < 80) {
+              productName = nameCandidate;
+              matchedCategory = category;
+            }
+            break;
+          }
+        }
+        if (productName) break;
+      }
+    }
+
+    productNames.push({
+      article,
+      name: productName || null,
+      category: matchedCategory || null
+    });
+  }
+
+  return productNames;
+}
+
+function detectProductTypes(text) {
+  if (!productTypes?.categories) return [];
+  const lower = text.toLowerCase();
+  const found = [];
+  for (const [category, data] of Object.entries(productTypes.categories)) {
+    for (const keyword of data.ru || []) {
+      if (lower.includes(keyword.toLowerCase())) {
+        if (!found.includes(category)) found.push(category);
+        break;
+      }
+    }
+    if (found.includes(category)) continue;
+    for (const keyword of data.en || []) {
+      if (lower.includes(keyword.toLowerCase())) {
+        if (!found.includes(category)) found.push(category);
+        break;
+      }
+    }
+  }
+  return found;
 }
 
 function buildIntakeFlow(classification, crm, lead) {
@@ -236,30 +408,46 @@ function buildIntakeFlow(classification, crm, lead) {
 // Own company name patterns — not a customer
 const OWN_COMPANY_NAMES = /(?:сидерус|siderus|коловрат|kolovrat|klvrt|ersa\s*b2b|ersab2b)/i;
 
+// Legal entity forms used as direct fallback patterns
+const LEGAL_ENTITY_PATTERNS = [
+  // With quotes: ООО «Ромашка», АО "Техно"
+  /(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП|НПО|НПП)\s+["«]([^"»]+)["»]/,
+  // ИП Фамилия Имя Отчество
+  /(?<![А-ЯЁа-яё])ИП\s+([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ]\.\s*[А-ЯЁ]\.|\s+[А-ЯЁ][а-яё]+){1,2})/,
+  // Without quotes but capitalized: ООО Ромашка, АО Техно
+  /(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП|НПО|НПП)\s+([А-ЯЁA-Z][А-ЯЁа-яёA-Za-z0-9\s-]{2,35}?)(?:\s*[,.\n]|\s+(?:ИНН|ОГРН|тел|адрес|г\.|ул\.))/,
+  // International: Siemens AG, Endress+Hauser GmbH
+  /([A-Z][a-z]+(?:\s+[A-Z][a-z]+){0,3})\s+(?:GmbH|AG|Ltd\.?|LLC|Inc\.?|SE|S\.A\.|B\.V\.)/,
+  // Завод/фабрика/комбинат patterns
+  /([А-ЯЁ][А-ЯЁа-яё-]+\s+(?:завод|фабрика|комбинат|предприятие))/i,
+];
+
 function extractCompanyName(body) {
   const fromKb = detectionKb.matchField("company_name", body);
   if (fromKb) {
     const cleaned = cleanup(fromKb);
-    // Don't return own company name as sender's company
     if (OWN_COMPANY_NAMES.test(cleaned)) return null;
     return cleaned;
+  }
+
+  // Fallback: direct regex search for legal entity forms
+  for (const pattern of LEGAL_ENTITY_PATTERNS) {
+    const match = body.match(pattern);
+    if (match) {
+      // match[0] is full match including prefix (ООО, АО etc.)
+      const name = cleanup(match[0]).trim();
+      if (OWN_COMPANY_NAMES.test(name)) return null;
+      if (name.length >= 5) return name;
+    }
   }
 
   return null;
 }
 
 function inferCompanyNameFromEmail(email) {
-  const domain = email.split("@")[1];
-  if (!domain || isFreeDomain(email) || isOwnDomain(domain)) {
-    return null;
-  }
-
-  const base = domain.split(".")[0];
-  if (!base) return null;
-  const name = base.replace(/[-_]/g, " ");
-  // Don't return own company names
-  if (OWN_COMPANY_NAMES.test(name)) return null;
-  return name;
+  // Domain names are NOT company names — real companies are ООО, АО, ЗАО, etc.
+  // Domain is only useful as a hint, not as companyName shown on dashboard
+  return null;
 }
 
 function inferWebsiteFromEmail(email) {
@@ -350,43 +538,162 @@ function splitPhones(phones, body = "") {
 }
 
 function extractLineItems(body) {
-  return body.split(/\r?\n/).map((line) => line.trim()).filter(Boolean).map((line) => {
-    if (hasArticleNoiseContext(line)) {
-      return null;
+  const lines = body.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const items = [];
+
+  for (const line of lines) {
+    if (hasArticleNoiseContext(line)) continue;
+
+    // ── Format: "Description ARTICLE - N шт" (product line with trailing qty) ──
+    const productQtyMatch = line.match(PRODUCT_QTY_PATTERN);
+    if (productQtyMatch) {
+      const beforeQty = line.slice(0, line.length - productQtyMatch[0].length).trim();
+      const qty = parseFloat(productQtyMatch[1].replace(",", "."));
+      const unit = productQtyMatch[2] || "шт";
+      // Extract article code from the description part
+      const articleFromDesc = extractArticleFromDescription(beforeQty);
+      if (articleFromDesc) {
+        items.push({ article: normalizeArticleCode(articleFromDesc), quantity: Math.round(qty) || 1, unit, descriptionRu: line });
+        continue;
+      }
     }
 
-    // Format: ARTICLE x 20 / ARTICLE х 20 / ARTICLE * 20
-    const itemMatch = line.match(/([A-Za-zА-Яа-я0-9-/_]{3,})\s+[xх*]\s*(\d+)(?:\s*([A-Za-zА-Яа-я.]+))?/i);
+    // ── Format: ARTICLE x 20 / ARTICLE х 20 / ARTICLE * 20 ──
+    const itemMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})\s+[xх*]\s*(\d+)(?:\s*([A-Za-zА-Яа-я.]+))?/i);
     if (itemMatch) {
-      return { article: normalizeArticleCode(itemMatch[1]), quantity: Number(itemMatch[2]), unit: itemMatch[3] || "шт", descriptionRu: line };
+      items.push({ article: normalizeArticleCode(itemMatch[1]), quantity: Number(itemMatch[2]), unit: itemMatch[3] || "шт", descriptionRu: line });
+      continue;
     }
 
-    // Format: ARTICLE (N штук/шт/единиц)
-    const parenMatch = line.match(/([A-Za-z0-9][A-Za-z0-9-/_]{2,})\s*\((\d+)\s*(штук[аи]?|шт|единиц[аы]?|компл|к-т|пар[аы]?)?\)/i);
+    // ── Format: ARTICLE (N штук/шт) ──
+    const parenMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})\s*\((\d+)\s*(штук[аи]?|шт|единиц[аы]?|компл|к-т|пар[аы]?)?\)/i);
     if (parenMatch) {
-      return { article: normalizeArticleCode(parenMatch[1]), quantity: Number(parenMatch[2]), unit: parenMatch[3] || "шт", descriptionRu: line };
+      items.push({ article: normalizeArticleCode(parenMatch[1]), quantity: Number(parenMatch[2]), unit: parenMatch[3] || "шт", descriptionRu: line });
+      continue;
     }
 
-    // Format: ARTICLE — N шт / ARTICLE - N шт
-    const dashMatch = line.match(/([A-Za-z0-9][A-Za-z0-9-/_]{2,})\s*[—–-]\s*(\d+)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?/i);
-    if (dashMatch) {
-      return { article: normalizeArticleCode(dashMatch[1]), quantity: Number(dashMatch[2]), unit: dashMatch[3] || "шт", descriptionRu: line };
+    // ── Format: ARTICLE — N шт / ARTICLE - N шт (article code THEN dash-qty) ──
+    const dashMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})\s*[—–-]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?/i);
+    if (dashMatch && !VOLTAGE_PATTERN.test(dashMatch[1])) {
+      items.push({ article: normalizeArticleCode(dashMatch[1]), quantity: Math.round(parseFloat(dashMatch[2].replace(",", "."))) || 1, unit: dashMatch[3] || "шт", descriptionRu: line });
+      continue;
     }
 
-    // Format: tabular — ARTICLE\tQTY or ARTICLE;QTY;UNIT
-    const tabMatch = line.match(/([A-Za-z0-9][A-Za-z0-9-/_]{2,})[\t;,]\s*(\d+)(?:[\t;,]\s*([A-Za-zА-Яа-я.]+))?/);
+    // ── Format: tabular — ARTICLE\tQTY or ARTICLE;QTY;UNIT ──
+    const tabMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})[\t;,]\s*(\d+)(?:[\t;,]\s*([A-Za-zА-Яа-я.]+))?/);
     if (tabMatch && tabMatch[2] !== "0") {
-      return { article: normalizeArticleCode(tabMatch[1]), quantity: Number(tabMatch[2]), unit: tabMatch[3] || "шт", descriptionRu: line };
+      items.push({ article: normalizeArticleCode(tabMatch[1]), quantity: Number(tabMatch[2]), unit: tabMatch[3] || "шт", descriptionRu: line });
+      continue;
     }
 
-    // Format: N шт ARTICLE / N штук ARTICLE (reversed order)
-    const reverseMatch = line.match(/(\d+)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?)\s+([A-Za-z0-9][A-Za-z0-9-/_]{2,})/i);
+    // ── Format: N шт ARTICLE (reversed) ──
+    const reverseMatch = line.match(/(\d+)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?)\s+([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})/i);
     if (reverseMatch) {
-      return { article: normalizeArticleCode(reverseMatch[3]), quantity: Number(reverseMatch[1]), unit: reverseMatch[2] || "шт", descriptionRu: line };
+      items.push({ article: normalizeArticleCode(reverseMatch[3]), quantity: Number(reverseMatch[1]), unit: reverseMatch[2] || "шт", descriptionRu: line });
+      continue;
+    }
+  }
+
+  // ── Numbered list parsing (multi-line product descriptions) ──
+  const numberedItems = parseNumberedProductList(body);
+  for (const ni of numberedItems) {
+    // Skip if already found by line-level parser
+    if (items.some((i) => i.article === normalizeArticleCode(ni.article))) continue;
+    items.push(ni);
+  }
+
+  return items;
+}
+
+/**
+ * Extract article code from a product description line.
+ * Handles mixed Cyrillic/Latin codes: М100Ф-8, VV64:KMD 66, NHRY 090, IS7000
+ */
+function extractArticleFromDescription(text) {
+  // Try extended code pattern first (supports Cyrillic, colons)
+  for (const m of text.matchAll(EXTENDED_CODE_PATTERN)) {
+    const code = m[1];
+    if (code.length >= 3 && /\d/.test(code) && !VOLTAGE_PATTERN.test(code)) return code;
+  }
+  // Try standalone codes
+  for (const m of text.matchAll(STANDALONE_CODE_PATTERN)) {
+    const code = m[1];
+    if (code.length >= 3 && /\d/.test(code) && !BRAND_NOISE.has(code)) return code;
+  }
+  // Try Cyrillic mixed codes: АИР100S4
+  for (const m of text.matchAll(CYRILLIC_MIXED_CODE_PATTERN)) {
+    const code = normalizeArticleCode(m[1]);
+    if (code.length >= 4 && /\d/.test(code) && /[A-Za-z]/.test(code)) return code;
+  }
+  // Try simple alphanumeric codes at end of text: "Blah blah IS7000"
+  const endCodeMatch = text.match(/\b([A-Za-zА-ЯЁа-яё]{1,10}[-]?\d{2,}[-A-Za-z0-9]*)\s*$/);
+  if (endCodeMatch && endCodeMatch[1].length >= 3) return normalizeArticleCode(endCodeMatch[1]);
+  // Try series+model: "CR 10-3", "WDU 2.5", "NHRY 090"
+  for (const m of text.matchAll(SERIES_MODEL_PATTERN)) {
+    return `${m[1]} ${m[2]}`;
+  }
+  // Try "BRAND CODE" with longer numbers: "NHRY 090"
+  const brandCodeMatch = text.match(/\b([A-Z]{2,10})\s+(\d{2,6})\b/);
+  if (brandCodeMatch) return `${brandCodeMatch[1]} ${brandCodeMatch[2]}`;
+  return null;
+}
+
+/**
+ * Parse numbered product lists:
+ * 1. Мотор-редуктор MDEMA1M100-32 трёхфазный
+ * 2. Редуктор NHRY 090, ВЗ-В6-В7 80,00
+ *
+ * Handles multi-line items (description continues on next line).
+ */
+function parseNumberedProductList(body) {
+  const lines = body.split(/\r?\n/);
+  const items = [];
+  let currentItem = null;
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i].trim();
+    if (!line) {
+      if (currentItem) { items.push(currentItem); currentItem = null; }
+      continue;
     }
 
-    return null;
-  }).filter(Boolean);
+    const numMatch = line.match(/^\s*(\d{1,3})[.)]\s+(.+)/);
+    if (numMatch) {
+      if (currentItem) items.push(currentItem);
+      const content = numMatch[2].trim();
+      // Check for trailing quantity: "- 4 шт", "- 1.00 шт"
+      const qtyMatch = content.match(PRODUCT_QTY_PATTERN);
+      const qty = qtyMatch ? Math.round(parseFloat(qtyMatch[1].replace(",", "."))) || 1 : 1;
+      const unit = qtyMatch?.[2] || "шт";
+      const descPart = qtyMatch ? content.slice(0, content.length - qtyMatch[0].length).trim() : content;
+      const article = extractArticleFromDescription(descPart);
+      currentItem = {
+        article: article ? normalizeArticleCode(article) : "",
+        quantity: qty,
+        unit,
+        descriptionRu: content
+      };
+    } else if (currentItem && !SIGNATURE_PATTERNS.some((p) => p.test(line))) {
+      // Continuation of numbered item — append to description, try re-extract article
+      currentItem.descriptionRu += " " + line;
+      if (!currentItem.article) {
+        const article = extractArticleFromDescription(currentItem.descriptionRu);
+        if (article) currentItem.article = normalizeArticleCode(article);
+      }
+      // Check for qty in continuation
+      const qtyMatch = line.match(PRODUCT_QTY_PATTERN);
+      if (qtyMatch) {
+        currentItem.quantity = Math.round(parseFloat(qtyMatch[1].replace(",", "."))) || 1;
+        currentItem.unit = qtyMatch[2] || "шт";
+      }
+    } else {
+      if (currentItem) { items.push(currentItem); currentItem = null; }
+    }
+  }
+  if (currentItem) items.push(currentItem);
+
+  // Filter: only keep items with detected articles
+  return items.filter((item) => item.article && item.article.length >= 3);
 }
 
 function extractStandaloneCodes(text, forbiddenDigits = new Set()) {
@@ -401,12 +708,39 @@ function extractStandaloneCodes(text, forbiddenDigits = new Set()) {
     "WEBKIT", "CHARSET", "VIEWPORT", "DOCTYPE"
   ]);
   const matches = [];
+  // Standard latin-only codes
   for (const m of text.matchAll(STANDALONE_CODE_PATTERN)) {
     const code = normalizeArticleCode(m[1]);
-    // Must contain at least one digit and be 5+ chars
-    // Exclude brand names and own company names
     if (code.length >= 5 && /\d/.test(code) && !noise.has(code) && !BRAND_NOISE.has(code) && isLikelyArticle(code, forbiddenDigits)) {
       matches.push(code);
+    }
+  }
+  // Extended codes: dots (233.50.100), colons (VV64:KMD)
+  for (const m of text.matchAll(EXTENDED_CODE_PATTERN)) {
+    const code = normalizeArticleCode(m[1]);
+    if (code.length >= 4 && /\d/.test(code) && !noise.has(code.toUpperCase()) && !BRAND_NOISE.has(code.toUpperCase()) && isLikelyArticle(code, forbiddenDigits)) {
+      if (!matches.includes(code)) matches.push(code);
+    }
+  }
+  // Cyrillic mixed codes: АИР100S4 (Cyrillic look-alikes transliterated)
+  for (const m of text.matchAll(CYRILLIC_MIXED_CODE_PATTERN)) {
+    const code = normalizeArticleCode(m[1]);
+    if (code.length >= 4 && /\d/.test(code) && /[A-Za-z]/.test(code) && !noise.has(code.toUpperCase()) && !BRAND_NOISE.has(code.toUpperCase()) && isLikelyArticle(code, forbiddenDigits)) {
+      if (!matches.includes(code)) matches.push(code);
+    }
+  }
+  // Reverse: 100А13/1.5Т220 (digits first, then Cyrillic)
+  for (const m of text.matchAll(DIGITS_CYRILLIC_CODE_PATTERN)) {
+    const code = normalizeArticleCode(m[1]); // transliterateCyrillicInCode applied inside
+    if (code.length >= 4 && /\d/.test(code) && /[A-Za-z]/.test(code) && !noise.has(code.toUpperCase()) && !BRAND_NOISE.has(code.toUpperCase()) && isLikelyArticle(code, forbiddenDigits)) {
+      if (!matches.includes(code)) matches.push(code);
+    }
+  }
+  // Series + model: "CR 10-3", "WDU 2.5" — combine as single code
+  for (const m of text.matchAll(SERIES_MODEL_PATTERN)) {
+    const combined = `${m[1]} ${m[2]}`;
+    if (combined.length >= 4 && !noise.has(m[1]) && !BRAND_NOISE.has(m[1]) && isLikelyArticle(combined, forbiddenDigits)) {
+      if (!matches.includes(combined)) matches.push(combined);
     }
   }
   return matches;
@@ -449,12 +783,13 @@ function extractArticlesFromSubject(subject, forbiddenDigits = new Set()) {
 }
 
 function extractBrandAdjacentCodes(text, forbiddenDigits = new Set()) {
-  // Pattern: BRAND + space + pure numeric code (5-9 digits), e.g. "METROHM 63032220"
+  // Pattern: BRAND + space + numeric code (4-9 digits), e.g. "METROHM 63032220", "Bürkert 0330"
+  // Brand-adjacent codes bypass the "5+ digits" rule since brand context confirms them
   const matches = [];
-  const pattern = /\b[A-Z][A-Za-z-]{2,20}\s+(\d{5,9})\b/g;
+  const pattern = /\b[A-Z][A-Za-zА-Яа-яёü-]{2,20}\s+(\d{4,9})\b/g;
   for (const m of text.matchAll(pattern)) {
     const code = m[1];
-    if (!forbiddenDigits.has(code) && isLikelyArticle(code, forbiddenDigits)) {
+    if (!forbiddenDigits.has(code) && !DATE_LIKE_PATTERN.test(code)) {
       matches.push(code);
     }
   }
@@ -557,9 +892,34 @@ function collectForbiddenArticleDigits(text) {
   return digits;
 }
 
-function normalizeArticleCode(value) {
-  return cleanup(value).replace(/^[^A-Za-zА-Яа-я0-9]+|[^A-Za-zА-Яа-я0-9]+$/g, "");
+// Cyrillic letters that look like Latin — common OCR/typo confusion in article codes
+const CYRILLIC_TO_LATIN = {
+  "А": "A", "а": "a", "В": "B", "в": "b", "С": "C", "с": "c",
+  "Е": "E", "е": "e", "Н": "H", "И": "I", "и": "i", "К": "K",
+  "к": "k", "М": "M", "м": "m", "О": "O", "о": "o", "Р": "P",
+  "р": "p", "Т": "T", "т": "t", "Х": "X", "х": "x", "У": "Y",
+  "Ф": "F", "ф": "f"
+};
+
+function transliterateCyrillicInCode(code) {
+  // Only transliterate if the code contains a mix of Cyrillic and Latin/digits
+  if (!/[А-ЯЁа-яё]/.test(code)) return code;
+  if (!/[A-Za-z0-9]/.test(code)) return code;
+  // Has both — transliterate Cyrillic look-alikes to Latin
+  return code.replace(/[А-ЯЁа-яё]/g, (ch) => CYRILLIC_TO_LATIN[ch] || ch);
 }
+
+function normalizeArticleCode(value) {
+  // Keep dots, colons, slashes, dashes inside — strip only leading/trailing junk
+  const cleaned = cleanup(value).replace(/^[^A-Za-zА-ЯЁа-яё0-9]+|[^A-Za-zА-ЯЁа-яё0-9]+$/g, "");
+  return transliterateCyrillicInCode(cleaned);
+}
+
+// Electrical/physical spec noise — should never be articles
+const SPEC_NOISE_PATTERNS = [
+  /^\d+\s*(?:В|V|Вт|W|кВт|kW|кВА|kVA|Гц|Hz|А|A|мА|mA|бар|bar|°C|мм|mm|м|кг|об\/мин|rpm)\b/i,
+  /^\d+[/]\d+\s*(?:В|V|Вт|W)\b/i,  // 230/400 В
+];
 
 function isLikelyArticle(code, forbiddenDigits = new Set(), sourceLine = "") {
   const normalized = normalizeArticleCode(code);
@@ -582,6 +942,14 @@ function isLikelyArticle(code, forbiddenDigits = new Set(), sourceLine = "") {
   }
   // Reject hex color codes (6 chars, only 0-9 A-F)
   if (/^[0-9A-Fa-f]{6}$/.test(normalized)) {
+    return false;
+  }
+  // Reject voltage specs (230/400, 10000/400, 1000/1500)
+  if (VOLTAGE_PATTERN.test(normalized)) {
+    return false;
+  }
+  // Reject electrical/physical specs: "3 кВт", "50 Гц", "4-20мА"
+  if (SPEC_NOISE_PATTERNS.some((p) => p.test(normalized))) {
     return false;
   }
 

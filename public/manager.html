@@ -1,0 +1,567 @@
+<!doctype html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Pochta — Модерация</title>
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>📧</text></svg>" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        :root {
+            --bg: #0f1117;
+            --surface-0: #161820;
+            --surface-1: #1c1e28;
+            --surface-2: #232530;
+            --surface-3: #2a2d3a;
+            --border: rgba(255,255,255,0.06);
+            --border-hover: rgba(255,255,255,0.12);
+            --text: #e8eaed;
+            --text-secondary: #8b8fa3;
+            --text-muted: #5c6070;
+            --accent: #4f8ff7;
+            --accent-dim: rgba(79,143,247,0.12);
+            --green: #34d399;
+            --green-dim: rgba(52,211,153,0.12);
+            --amber: #fbbf24;
+            --amber-dim: rgba(251,191,36,0.12);
+            --rose: #f87171;
+            --rose-dim: rgba(248,113,113,0.12);
+            --purple: #a78bfa;
+            --purple-dim: rgba(167,139,250,0.12);
+            --radius: 12px;
+            --radius-sm: 8px;
+            --transition: 150ms cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        * { box-sizing: border-box; margin: 0; padding: 0; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            line-height: 1.5;
+            min-height: 100vh;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        /* ── Header ── */
+        .app-header {
+            background: var(--surface-0);
+            border-bottom: 1px solid var(--border);
+            padding: 0 24px;
+            height: 56px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .app-header .brand {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 15px;
+            font-weight: 600;
+        }
+
+        .app-header .brand .logo-icon {
+            width: 30px;
+            height: 30px;
+            border-radius: 8px;
+            background: linear-gradient(135deg, #4f8ff7, #7c5cfc);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 14px;
+            color: #fff;
+        }
+
+        .header-right {
+            display: flex;
+            align-items: center;
+            gap: 16px;
+        }
+
+        #header-user {
+            display: none;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .user-info {
+            text-align: right;
+        }
+
+        #user-name {
+            font-size: 13px;
+            font-weight: 500;
+        }
+
+        #user-role {
+            font-size: 11px;
+            color: var(--text-secondary);
+        }
+
+        .btn-logout {
+            background: var(--surface-2);
+            color: var(--text-secondary);
+            border: 1px solid var(--border);
+            padding: 6px 14px;
+            border-radius: var(--radius-sm);
+            font-size: 12px;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-logout:hover {
+            background: var(--surface-3);
+            color: var(--text);
+            border-color: var(--border-hover);
+        }
+
+        /* ── Login ── */
+        #login-section {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            min-height: calc(100vh - 56px);
+            padding: 24px;
+        }
+
+        .login-card {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 40px 36px;
+            width: 100%;
+            max-width: 400px;
+        }
+
+        .login-card h2 {
+            font-size: 20px;
+            font-weight: 700;
+            margin-bottom: 4px;
+        }
+
+        .login-card .subtitle {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-bottom: 28px;
+        }
+
+        .form-group {
+            margin-bottom: 18px;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 12px;
+            font-weight: 500;
+            color: var(--text-secondary);
+            margin-bottom: 6px;
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .form-input {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: 14px;
+            font-family: inherit;
+            transition: var(--transition);
+            outline: none;
+        }
+
+        .form-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 10px;
+            background: linear-gradient(135deg, #4f8ff7, #7c5cfc);
+            color: #fff;
+            border: none;
+            border-radius: var(--radius-sm);
+            font-size: 14px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: var(--transition);
+            margin-top: 6px;
+        }
+
+        .btn-login:hover { opacity: 0.9; }
+        .btn-login:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .login-error {
+            color: var(--rose);
+            font-size: 13px;
+            margin-top: 12px;
+            min-height: 20px;
+        }
+
+        /* ── Inbox ── */
+        #inbox-section {
+            display: none;
+            padding: 24px;
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .inbox-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+        }
+
+        .inbox-header h2 {
+            font-size: 18px;
+            font-weight: 700;
+        }
+
+        #inbox-total {
+            color: var(--text-secondary);
+            font-size: 13px;
+            margin-left: 12px;
+        }
+
+        .btn-refresh {
+            background: var(--surface-2);
+            color: var(--text);
+            border: 1px solid var(--border);
+            padding: 7px 16px;
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 6px;
+        }
+
+        .btn-refresh:hover {
+            background: var(--surface-3);
+            border-color: var(--border-hover);
+        }
+
+        /* ── Message cards ── */
+        .message-card {
+            background: var(--surface-1);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 20px;
+            margin-bottom: 12px;
+            transition: var(--transition);
+        }
+
+        .message-card:hover {
+            border-color: var(--border-hover);
+        }
+
+        .message-card.moderated {
+            opacity: 0.75;
+        }
+
+        .message-header {
+            display: flex;
+            align-items: flex-start;
+            justify-content: space-between;
+            gap: 12px;
+            margin-bottom: 14px;
+        }
+
+        .message-subject {
+            font-size: 15px;
+            font-weight: 600;
+            line-height: 1.4;
+        }
+
+        .message-meta {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .message-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px 20px;
+            margin-bottom: 12px;
+        }
+
+        @media (max-width: 640px) {
+            .message-grid { grid-template-columns: 1fr; }
+        }
+
+        .message-field {
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+        }
+
+        .field-label {
+            font-size: 11px;
+            font-weight: 500;
+            color: var(--text-muted);
+            text-transform: uppercase;
+            letter-spacing: 0.04em;
+        }
+
+        .field-value {
+            font-size: 13px;
+            color: var(--text-secondary);
+            word-break: break-word;
+        }
+
+        .company-name {
+            color: var(--accent);
+        }
+
+        .message-preview {
+            font-size: 12px;
+            color: var(--text-muted);
+            background: var(--surface-0);
+            border-radius: var(--radius-sm);
+            padding: 10px 14px;
+            margin-bottom: 14px;
+            line-height: 1.6;
+            white-space: pre-line;
+        }
+
+        /* ── Badges ── */
+        .mgr-badge {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            font-weight: 600;
+            white-space: nowrap;
+        }
+
+        .badge-urgent { background: rgba(220,53,69,0.15); color: #dc3545; }
+        .badge-planned { background: rgba(13,110,253,0.15); color: #0d6efd; }
+        .badge-normal { background: var(--surface-3); color: var(--text-secondary); }
+
+        .badge-ready { background: var(--green-dim); color: var(--green); }
+        .badge-clarify { background: var(--amber-dim); color: var(--amber); }
+        .badge-spam { background: var(--rose-dim); color: var(--rose); }
+        .badge-review { background: var(--amber-dim); color: var(--amber); }
+        .badge-default { background: var(--surface-3); color: var(--text-secondary); }
+
+        .badge-approved { background: rgba(40,167,69,0.15); color: #28a745; }
+        .badge-rework { background: rgba(253,126,20,0.15); color: #fd7e14; }
+
+        .badge-tag {
+            background: var(--accent-dim);
+            color: var(--accent);
+            margin: 1px 2px;
+        }
+
+        .attachment-chip {
+            display: inline-block;
+            padding: 2px 8px;
+            border-radius: 4px;
+            font-size: 11px;
+            background: var(--surface-3);
+            color: var(--text-secondary);
+            margin: 1px 2px;
+        }
+
+        .text-muted {
+            color: var(--text-muted);
+            font-size: 12px;
+        }
+
+        /* ── Moderation ── */
+        .moderation-actions {
+            display: flex;
+            flex-wrap: wrap;
+            align-items: flex-start;
+            gap: 8px;
+            margin-top: 4px;
+        }
+
+        .btn-approve {
+            padding: 7px 16px;
+            background: rgba(40,167,69,0.12);
+            color: #28a745;
+            border: 1px solid rgba(40,167,69,0.25);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-approve:hover {
+            background: rgba(40,167,69,0.22);
+        }
+
+        .btn-rework {
+            padding: 7px 16px;
+            background: rgba(253,126,20,0.12);
+            color: #fd7e14;
+            border: 1px solid rgba(253,126,20,0.25);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-rework:hover {
+            background: rgba(253,126,20,0.22);
+        }
+
+        .rework-form {
+            width: 100%;
+            margin-top: 4px;
+        }
+
+        .mgr-textarea {
+            width: 100%;
+            padding: 10px 14px;
+            background: var(--surface-2);
+            border: 1px solid var(--border);
+            border-radius: var(--radius-sm);
+            color: var(--text);
+            font-size: 13px;
+            font-family: inherit;
+            resize: vertical;
+            min-height: 60px;
+            outline: none;
+            transition: var(--transition);
+            margin-bottom: 8px;
+        }
+
+        .mgr-textarea:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-dim);
+        }
+
+        .rework-validation {
+            color: var(--rose);
+            font-size: 12px;
+            margin-bottom: 6px;
+            display: none;
+        }
+
+        .btn-send-rework {
+            padding: 7px 20px;
+            background: rgba(253,126,20,0.15);
+            color: #fd7e14;
+            border: 1px solid rgba(253,126,20,0.3);
+            border-radius: var(--radius-sm);
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            transition: var(--transition);
+        }
+
+        .btn-send-rework:hover { background: rgba(253,126,20,0.25); }
+        .btn-send-rework:disabled { opacity: 0.5; cursor: not-allowed; }
+
+        .moderation-result {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-top: 8px;
+            flex-wrap: wrap;
+        }
+
+        .moderation-comment {
+            font-size: 12px;
+            color: var(--text-secondary);
+            font-style: italic;
+        }
+
+        .moderation-meta {
+            font-size: 11px;
+            color: var(--text-muted);
+        }
+
+        /* ── States ── */
+        .loading-state, .empty-state, .error-state {
+            text-align: center;
+            padding: 48px 24px;
+            color: var(--text-secondary);
+            font-size: 14px;
+        }
+
+        .error-state { color: var(--rose); }
+
+        /* ── Responsive ── */
+        @media (max-width: 640px) {
+            #inbox-section { padding: 16px; }
+            .login-card { padding: 28px 24px; }
+            .message-header { flex-direction: column; }
+            .inbox-header { flex-direction: column; gap: 12px; align-items: flex-start; }
+        }
+    </style>
+</head>
+<body>
+    <!-- ═══ HEADER ═══ -->
+    <header class="app-header">
+        <div class="brand">
+            <div class="logo-icon">P</div>
+            Pochta <span style="color:var(--text-muted);font-weight:400;font-size:12px;margin-left:4px;">Модерация</span>
+        </div>
+        <div class="header-right">
+            <div id="header-user">
+                <div class="user-info">
+                    <div id="user-name"></div>
+                    <div id="user-role"></div>
+                </div>
+                <button class="btn-logout" id="logout-btn">Выйти</button>
+            </div>
+        </div>
+    </header>
+
+    <!-- ═══ LOGIN ═══ -->
+    <section id="login-section">
+        <div class="login-card">
+            <h2>Вход в систему</h2>
+            <p class="subtitle">Модерация входящих писем</p>
+            <form id="login-form" autocomplete="on">
+                <div class="form-group">
+                    <label class="form-label" for="login-input">Логин</label>
+                    <input class="form-input" type="text" id="login-input" name="login" autocomplete="username" required />
+                </div>
+                <div class="form-group">
+                    <label class="form-label" for="password-input">Пароль</label>
+                    <input class="form-input" type="password" id="password-input" name="password" autocomplete="current-password" required />
+                </div>
+                <button class="btn-login" type="submit" id="login-btn">Войти</button>
+                <div class="login-error" id="login-error"></div>
+            </form>
+        </div>
+    </section>
+
+    <!-- ═══ INBOX ═══ -->
+    <section id="inbox-section">
+        <div class="inbox-header">
+            <div style="display:flex;align-items:baseline;gap:8px;">
+                <h2>Входящие письма</h2>
+                <span id="inbox-total"></span>
+            </div>
+            <button class="btn-refresh" id="refresh-btn">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M23 4v6h-6"/><path d="M1 20v-6h6"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+                Обновить
+            </button>
+        </div>
+        <div id="messages-list"></div>
+    </section>
+
+    <script src="/manager.js"></script>
+</body>
+</html>

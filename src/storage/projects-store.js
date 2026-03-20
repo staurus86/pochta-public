@@ -314,6 +314,90 @@ export class ProjectsStore {
     return { messageKey, pipelineStatus: newStatus, previousStatus: oldStatus };
   }
 
+  async applyMessageFeedback(projectId, messageKey, feedback = {}) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) return null;
+
+    const msg = (project.recentMessages || []).find((m) => (m.messageKey || m.id) === messageKey);
+    if (!msg) return null;
+
+    if (!msg.auditLog) msg.auditLog = [];
+    if (!msg.analysis) msg.analysis = {};
+    const now = new Date().toISOString();
+    const changes = [];
+
+    // Correct brands
+    if (feedback.addBrands?.length) {
+      const current = msg.analysis.detectedBrands || [];
+      for (const b of feedback.addBrands) {
+        if (!current.includes(b)) {
+          current.push(b);
+          changes.push(`+brand:${b}`);
+        }
+      }
+      msg.analysis.detectedBrands = current;
+    }
+    if (feedback.removeBrands?.length) {
+      const current = msg.analysis.detectedBrands || [];
+      msg.analysis.detectedBrands = current.filter((b) => !feedback.removeBrands.includes(b));
+      for (const b of feedback.removeBrands) changes.push(`-brand:${b}`);
+    }
+
+    // Correct classification label
+    if (feedback.classification && feedback.classification !== msg.analysis.classification?.label) {
+      const old = msg.analysis.classification?.label || "unknown";
+      if (!msg.analysis.classification) msg.analysis.classification = {};
+      msg.analysis.classification.label = feedback.classification;
+      msg.analysis.classification.manualOverride = true;
+      changes.push(`label:${old}→${feedback.classification}`);
+    }
+
+    // Correct company name
+    if (feedback.companyName !== undefined && feedback.companyName !== (msg.analysis.sender?.companyName || "")) {
+      if (!msg.analysis.sender) msg.analysis.sender = {};
+      const old = msg.analysis.sender.companyName || "";
+      msg.analysis.sender.companyName = feedback.companyName;
+      changes.push(`company:${old}→${feedback.companyName}`);
+    }
+
+    // Moderation verdict
+    if (feedback.moderationVerdict) {
+      const verdict = feedback.moderationVerdict; // "approved" or "needs_rework"
+      msg.moderationVerdict = verdict;
+      msg.moderationComment = feedback.moderationComment || "";
+      msg.moderatedBy = feedback.moderatedBy || null;
+      msg.moderatedAt = now;
+      changes.push(`moderation:${verdict}`);
+
+      // Approved → set ready_for_crm
+      if (verdict === "approved" && msg.pipelineStatus !== "ready_for_crm") {
+        const oldStatus = msg.pipelineStatus;
+        msg.pipelineStatus = "ready_for_crm";
+        changes.push(`status:${oldStatus}→ready_for_crm`);
+      }
+      // Needs rework → set review
+      if (verdict === "needs_rework") {
+        const oldStatus = msg.pipelineStatus;
+        msg.pipelineStatus = "review";
+        changes.push(`status:${oldStatus}→review`);
+      }
+    }
+
+    if (changes.length > 0) {
+      msg.auditLog.push({
+        action: "manual_feedback",
+        changes,
+        at: now
+      });
+      if (!msg.feedbackApplied) msg.feedbackApplied = [];
+      msg.feedbackApplied.push({ changes, at: now });
+      await this.persist();
+    }
+
+    return { messageKey, changes, analysis: msg.analysis };
+  }
+
   async acknowledgeMessageExport(projectId, messageKey, payload = {}) {
     await this.ensureLoaded();
     const project = await this.getProject(projectId);
@@ -362,6 +446,63 @@ export class ProjectsStore {
 
     await this.persist();
     return message;
+  }
+
+  async bulkAcknowledgeExport(projectId, items = [], commonPayload = {}) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) return null;
+
+    const results = [];
+    const consumerId = commonPayload.consumer ? String(commonPayload.consumer).trim() : "legacy-default";
+    const acknowledgedAt = new Date().toISOString();
+
+    for (const item of items) {
+      const messageKey = item.messageKey || item.message_key;
+      const message = (project.recentMessages || []).find((m) => (m.messageKey || m.id) === messageKey);
+      if (!message) {
+        results.push({ messageKey, acknowledged: false, error: "not_found" });
+        continue;
+      }
+
+      message.integrationIdempotency = normalizeIntegrationIdempotency(message);
+      const idempotencyKey = item.idempotencyKey ? String(item.idempotencyKey).trim() : null;
+      const ackBucket = message.integrationIdempotency.ack[consumerId] || {};
+      if (idempotencyKey && ackBucket[idempotencyKey]) {
+        results.push({ messageKey, acknowledged: true, skipped: true });
+        continue;
+      }
+
+      const exportState = {
+        acknowledgedAt,
+        consumer: consumerId,
+        externalId: item.externalId ? String(item.externalId).trim() : null,
+        note: item.note ? String(item.note).trim() : null
+      };
+      message.integrationExports = normalizeIntegrationExports(message);
+      message.integrationExports[consumerId] = exportState;
+      message.integrationExport = exportState;
+      if (idempotencyKey) {
+        message.integrationIdempotency.ack[consumerId] = pushIdempotencyRecord(ackBucket, idempotencyKey, {
+          at: acknowledgedAt,
+          type: "integration_ack"
+        });
+      }
+
+      if (!message.auditLog) message.auditLog = [];
+      message.auditLog.push({
+        action: "integration_ack",
+        at: acknowledgedAt,
+        consumer: consumerId,
+        externalId: exportState.externalId,
+        note: exportState.note
+      });
+
+      results.push({ messageKey, acknowledged: true });
+    }
+
+    await this.persist();
+    return results;
   }
 
   async deleteMessage(projectId, messageKey) {

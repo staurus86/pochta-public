@@ -119,7 +119,10 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
       attachmentFiles,
       error: item.error || null,
       pipelineStatus,
-      analysis
+      analysis,
+      emailMessageId: item.messageId || null,
+      inReplyTo: item.inReplyTo || null,
+      references: item.references || null
     });
   }
 
@@ -130,6 +133,9 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
 
   const nonSpamMessages = newEmails.filter((item) => item.pipelineStatus !== "ignored_spam" && item.pipelineStatus !== "fetch_error");
   detectionKb.ingestAnalyzedMessages(project.id, nonSpamMessages);
+
+  // Thread resolution: assign threadId based on In-Reply-To / References / Message-ID
+  resolveThreadIds([...newEmails, ...(project.recentMessages || [])]);
 
   // Merge: keep existing messages + add new ones (cap at 2000)
   const mergedMessages = [...newEmails, ...(project.recentMessages || [])].slice(0, 5000);
@@ -226,6 +232,7 @@ export async function reprocessMailboxMessages(project, options = {}) {
   }
 
   const recentMessages = (project.recentMessages || []).map((item) => updatedByKey.get(item.messageKey || item.id) || item);
+  resolveThreadIds(recentMessages);
   const nonSpamMessages = recentMessages.filter((item) => item.pipelineStatus !== "ignored_spam" && item.pipelineStatus !== "fetch_error");
   detectionKb.ingestAnalyzedMessages(project.id, nonSpamMessages);
 
@@ -422,6 +429,76 @@ function createMessageKey(item, fromEmail) {
 
 function unique(items) {
   return [...new Set(items)];
+}
+
+/**
+ * Resolve thread IDs for a list of messages based on RFC 2822 threading headers.
+ * Uses Message-ID, In-Reply-To, References to build a thread graph.
+ * Falls back to normalized subject + sender domain for messages without headers.
+ */
+function resolveThreadIds(messages) {
+  // Map: Message-ID → threadId
+  const messageIdToThread = new Map();
+  // Map: threadId → Set of Message-IDs
+  let nextThreadNum = 1;
+
+  // Pass 1: Build thread graph from headers
+  for (const msg of messages) {
+    if (msg.threadId) continue; // already resolved
+
+    const msgId = (msg.emailMessageId || "").trim();
+    const inReplyTo = (msg.inReplyTo || "").trim();
+    const refs = (msg.references || "").trim().split(/\s+/).filter(Boolean);
+
+    // Find existing thread from In-Reply-To or References
+    let threadId = null;
+    if (inReplyTo && messageIdToThread.has(inReplyTo)) {
+      threadId = messageIdToThread.get(inReplyTo);
+    }
+    if (!threadId) {
+      for (const ref of refs) {
+        if (messageIdToThread.has(ref)) {
+          threadId = messageIdToThread.get(ref);
+          break;
+        }
+      }
+    }
+
+    // Create new thread if not found
+    if (!threadId) {
+      threadId = `thread-${nextThreadNum++}`;
+    }
+
+    msg.threadId = threadId;
+    if (msgId) messageIdToThread.set(msgId, threadId);
+    // Also register all references under same thread
+    for (const ref of refs) {
+      if (!messageIdToThread.has(ref)) {
+        messageIdToThread.set(ref, threadId);
+      }
+    }
+  }
+
+  // Pass 2: Fallback — group messages without headers by normalized subject + sender domain
+  const subjectThreads = new Map();
+  for (const msg of messages) {
+    if (msg.emailMessageId || msg.inReplyTo || msg.references) continue;
+    if (msg.threadId) continue;
+
+    const normSubject = (msg.subject || "")
+      .replace(/^(re|fwd?|ответ|переслано)\s*[:]\s*/gi, "")
+      .replace(/^(re|fwd?|ответ|переслано)\s*[:]\s*/gi, "")
+      .trim().toLowerCase();
+    const senderDomain = ((msg.analysis?.sender?.email || msg.from || "").match(/@([^>]+)/) || [])[1] || "";
+    const fallbackKey = `${normSubject}|${senderDomain.toLowerCase()}`;
+
+    if (subjectThreads.has(fallbackKey)) {
+      msg.threadId = subjectThreads.get(fallbackKey);
+    } else {
+      msg.threadId = `thread-${nextThreadNum++}`;
+      subjectThreads.set(fallbackKey, msg.threadId);
+    }
+  }
 }
 
 async function exists(filePath) {

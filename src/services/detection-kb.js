@@ -47,13 +47,34 @@ const DEFAULT_BRAND_ALIASES = [
 ];
 
 const DEFAULT_FIELD_PATTERNS = [
+  // Company names with quotes: ООО «Ромашка», АО "Техно"
   { fieldName: "company_name", pattern: "(ООО\\s+[\"«][^\"»]+[\"»])", priority: 100 },
-  { fieldName: "company_name", pattern: "(АО\\s+[\"«][^\"»]+[\"»])", priority: 90 },
-  { fieldName: "company_name", pattern: "(ЗАО\\s+[\"«][^\"»]+[\"»])", priority: 90 },
-  { fieldName: "company_name", pattern: "(ПАО\\s+[\"«][^\"»]+[\"»])", priority: 90 },
-  { fieldName: "company_name", pattern: "(ИП\\s+[А-ЯЁ][а-яё]+(?:\\s+[А-ЯЁ][а-яё]+){1,2})", priority: 80 },
-  { fieldName: "company_name", pattern: "((?:ООО|АО|ЗАО|ПАО)\\s+[A-Za-zА-Яа-яЁё][A-Za-zА-Яа-яЁё0-9\\s-]{2,30})", priority: 70 },
-  { fieldName: "company_name", pattern: "([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){0,3}\\s+(?:GmbH|AG|Ltd|LLC|Inc|SE|S\\.A\\.|B\\.V\\.))", priority: 85 },
+  { fieldName: "company_name", pattern: "(АО\\s+[\"«][^\"»]+[\"»])", priority: 100 },
+  { fieldName: "company_name", pattern: "(ОАО\\s+[\"«][^\"»]+[\"»])", priority: 100 },
+  { fieldName: "company_name", pattern: "(ЗАО\\s+[\"«][^\"»]+[\"»])", priority: 100 },
+  { fieldName: "company_name", pattern: "(ПАО\\s+[\"«][^\"»]+[\"»])", priority: 100 },
+  { fieldName: "company_name", pattern: "(ФГУП\\s+[\"«][^\"»]+[\"»])", priority: 100 },
+  { fieldName: "company_name", pattern: "(МУП\\s+[\"«][^\"»]+[\"»])", priority: 100 },
+  { fieldName: "company_name", pattern: "(ГУП\\s+[\"«][^\"»]+[\"»])", priority: 100 },
+  { fieldName: "company_name", pattern: "(НПО\\s+[\"«][^\"»]+[\"»])", priority: 100 },
+  { fieldName: "company_name", pattern: "(НПП\\s+[\"«][^\"»]+[\"»])", priority: 100 },
+  // Company names without quotes: ООО Ромашка, АО Техно (capitalized word after)
+  { fieldName: "company_name", pattern: "(ООО\\s+[А-ЯЁA-Z][А-ЯЁа-яёA-Za-z0-9\\s-]{2,40})", priority: 85 },
+  { fieldName: "company_name", pattern: "(АО\\s+[А-ЯЁA-Z][А-ЯЁа-яёA-Za-z0-9\\s-]{2,40})", priority: 85 },
+  { fieldName: "company_name", pattern: "(ОАО\\s+[А-ЯЁA-Z][А-ЯЁа-яёA-Za-z0-9\\s-]{2,40})", priority: 85 },
+  { fieldName: "company_name", pattern: "(ЗАО\\s+[А-ЯЁA-Z][А-ЯЁа-яёA-Za-z0-9\\s-]{2,40})", priority: 85 },
+  { fieldName: "company_name", pattern: "(ПАО\\s+[А-ЯЁA-Z][А-ЯЁа-яёA-Za-z0-9\\s-]{2,40})", priority: 85 },
+  { fieldName: "company_name", pattern: "(ФГУП\\s+[А-ЯЁA-Z][А-ЯЁа-яёA-Za-z0-9\\s-]{2,40})", priority: 85 },
+  { fieldName: "company_name", pattern: "(МУП\\s+[А-ЯЁA-Z][А-ЯЁа-яёA-Za-z0-9\\s-]{2,40})", priority: 85 },
+  { fieldName: "company_name", pattern: "(НПО\\s+[А-ЯЁA-Z][А-ЯЁа-яёA-Za-z0-9\\s-]{2,40})", priority: 85 },
+  { fieldName: "company_name", pattern: "(НПП\\s+[А-ЯЁA-Z][А-ЯЁа-яёA-Za-z0-9\\s-]{2,40})", priority: 85 },
+  // ИП Фамилия Имя
+  { fieldName: "company_name", pattern: "(?<![А-ЯЁа-яё])(ИП\\s+[А-ЯЁ][а-яё]+(?:\\s+[А-ЯЁ][а-яё]+){1,2})", priority: 80 },
+  // Завод, фабрика, комбинат as part of company name
+  { fieldName: "company_name", pattern: "([А-ЯЁ][А-ЯЁа-яё-]+\\s+(?:завод|фабрика|комбинат|предприятие))", priority: 75 },
+  { fieldName: "company_name", pattern: "((?:завод|фабрика|комбинат)\\s+[\"«][^\"»]+[\"»])", priority: 80 },
+  // International: Company Name GmbH/AG/Ltd/LLC
+  { fieldName: "company_name", pattern: "([A-Z][a-z]+(?:\\s+[A-Z][a-z]+){0,3}\\s+(?:GmbH|AG|Ltd\\.?|LLC|Inc\\.?|SE|S\\.A\\.|B\\.V\\.|Co\\.?|Corp\\.?|PLC|Pty|S\\.r\\.l\\.))", priority: 90 },
   { fieldName: "position", pattern: "генеральный директор", priority: 100 },
   { fieldName: "position", pattern: "коммерческий директор", priority: 95 },
   { fieldName: "position", pattern: "технический директор", priority: 95 },
@@ -164,6 +185,35 @@ class DetectionKnowledgeBase {
         notes TEXT DEFAULT ''
       );
     `);
+
+    // FTS5 virtual table for full-text search over message corpus
+    // Uses external content mode — synced via explicit rebuild after ingestion
+    // Drop legacy triggers if they exist (they conflict with upsert)
+    this.db.exec(`DROP TRIGGER IF EXISTS message_corpus_ai`);
+    this.db.exec(`DROP TRIGGER IF EXISTS message_corpus_ad`);
+    this.db.exec(`DROP TRIGGER IF EXISTS message_corpus_au`);
+
+    this.db.exec(`
+      CREATE VIRTUAL TABLE IF NOT EXISTS message_corpus_fts USING fts5(
+        subject,
+        body_excerpt,
+        sender_email,
+        company_name,
+        brand_names,
+        content='message_corpus',
+        content_rowid='id'
+      );
+    `);
+
+    // Rebuild FTS index on startup to sync with corpus
+    try {
+      const corpusCount = this.db.prepare("SELECT COUNT(*) as n FROM message_corpus").get().n;
+      if (corpusCount > 0) {
+        this.db.exec("INSERT INTO message_corpus_fts(message_corpus_fts) VALUES('rebuild')");
+      }
+    } catch {
+      // FTS rebuild is best-effort
+    }
 
     this.seedDefaults();
     this.seedOwnBrands();
@@ -370,7 +420,7 @@ class DetectionKnowledgeBase {
     let added = 0;
     let skipped = 0;
     for (const brand of brands) {
-      const canonical = String(brand.canonical || "").trim();
+      const canonical = String(brand.canonical || brand.brand || "").trim();
       if (!canonical) continue;
       for (const alias of (brand.aliases || [])) {
         const a = String(alias || "").trim().toLowerCase();
@@ -387,8 +437,8 @@ class DetectionKnowledgeBase {
   }
 
   clearBrandAliases() {
-    const count = this.db.prepare("SELECT COUNT(*) AS count FROM brand_aliases WHERE is_active = 1").get().count;
-    this.db.prepare("UPDATE brand_aliases SET is_active = 0").run();
+    const count = this.db.prepare("SELECT COUNT(*) AS count FROM brand_aliases").get().count;
+    this.db.prepare("DELETE FROM brand_aliases").run();
     return { deactivated: count };
   }
 
@@ -404,6 +454,17 @@ class DetectionKnowledgeBase {
       "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
       "Клиентские сигналы",
       "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|цен"
+    );
+
+    // Fix ИП pattern: add negative lookbehind to prevent "Тип" → "ип" match
+    this.db.prepare(`
+      UPDATE field_patterns
+      SET pattern = ?
+      WHERE field_name = 'company_name'
+        AND pattern = ?
+    `).run(
+      "(?<![А-ЯЁа-яё])(ИП\\s+[А-ЯЁ][а-яё]+(?:\\s+[А-ЯЁ][а-яё]+){1,2})",
+      "(ИП\\s+[А-ЯЁ][а-яё]+(?:\\s+[А-ЯЁ][а-яё]+){1,2})"
     );
   }
 
@@ -508,6 +569,45 @@ class DetectionKnowledgeBase {
       ORDER BY created_at DESC
       LIMIT ?
     `).all(Number(limit));
+  }
+
+  searchCorpus(query, { projectId = null, limit = 50 } = {}) {
+    // Escape FTS5 special characters and add prefix matching
+    const sanitized = String(query || "")
+      .replace(/['"*():^~{}[\]\\]/g, " ")
+      .trim();
+    if (!sanitized) return this.getCorpus(limit, projectId);
+
+    const ftsQuery = sanitized
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((w) => `"${w}"*`)
+      .join(" ");
+
+    if (projectId) {
+      return this.db.prepare(`
+        SELECT mc.* FROM message_corpus mc
+        JOIN message_corpus_fts fts ON mc.id = fts.rowid
+        WHERE message_corpus_fts MATCH ?
+          AND mc.project_id = ?
+        ORDER BY rank
+        LIMIT ?
+      `).all(ftsQuery, projectId, Number(limit));
+    }
+
+    return this.db.prepare(`
+      SELECT mc.* FROM message_corpus mc
+      JOIN message_corpus_fts fts ON mc.id = fts.rowid
+      WHERE message_corpus_fts MATCH ?
+      ORDER BY rank
+      LIMIT ?
+    `).all(ftsQuery, Number(limit));
+  }
+
+  rebuildFtsIndex() {
+    this.db.exec(`
+      INSERT INTO message_corpus_fts(message_corpus_fts) VALUES('rebuild');
+    `);
   }
 
   classifyMessage({ subject = "", body = "", attachments = [], fromEmail = "", projectBrands = [] }) {
@@ -670,6 +770,13 @@ class DetectionKnowledgeBase {
       for (const [fieldName, fieldValue] of fieldEntries) {
         insertField.run(item.messageKey, fieldName, String(fieldValue), Number(item.analysis?.classification?.confidence || 0), now);
       }
+    }
+
+    // Rebuild FTS index after batch ingestion
+    try {
+      this.db.exec("INSERT INTO message_corpus_fts(message_corpus_fts) VALUES('rebuild')");
+    } catch {
+      // best-effort
     }
   }
 }

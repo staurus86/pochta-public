@@ -83,7 +83,14 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
             queryParameter("status", "string", "Comma-separated pipeline statuses"),
             queryParameter("since", "string", "ISO datetime filter for updated_at", { format: "date-time" }),
             queryParameter("exported", "string", "Filter by export acknowledgement state"),
-            queryParameter("cursor", "string", "Opaque cursor for keyset pagination")
+            queryParameter("brand", "string", "Filter by detected brand name (case-insensitive partial match)"),
+            queryParameter("label", "string", "Filter by classification label: client, spam, vendor, unknown"),
+            queryParameter("q", "string", "Full-text search across subject, body, sender, company, brands"),
+            queryParameter("cursor", "string", "Opaque cursor for keyset pagination"),
+            queryParameter("has_attachments", "boolean", "Filter by attachment presence"),
+            queryParameter("attachment_ext", "string", "Comma-separated file extensions to filter by"),
+            queryParameter("min_attachments", "integer", "Minimum number of attachments"),
+            queryParameter("product_type", "string", "Comma-separated product type categories")
           ],
           responses: {
             200: {
@@ -121,6 +128,81 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
             401: unauthorizedResponse(),
             403: errorResponse("Client is not allowed to access this project."),
             404: errorResponse("Message or project not found.")
+          }
+        }
+      },
+      "/api/integration/projects/{projectId}/messages/ack": {
+        post: {
+          tags: ["Integration"],
+          summary: "Bulk acknowledge export of multiple messages",
+          parameters: [
+            pathParameter("projectId", "Project identifier")
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  required: ["messages"],
+                  properties: {
+                    messages: {
+                      type: "array",
+                      maxItems: 200,
+                      items: {
+                        type: "object",
+                        required: ["messageKey"],
+                        properties: {
+                          messageKey: { type: "string" },
+                          externalId: { type: ["string", "null"] },
+                          note: { type: ["string", "null"] },
+                          idempotencyKey: { type: ["string", "null"] }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          },
+          responses: {
+            200: {
+              description: "Batch acknowledge results with summary",
+              content: {
+                "application/json": {
+                  schema: {
+                    type: "object",
+                    properties: {
+                      data: {
+                        type: "array",
+                        items: {
+                          type: "object",
+                          properties: {
+                            messageKey: { type: "string" },
+                            acknowledged: { type: "boolean" },
+                            skipped: { type: "boolean" },
+                            error: { type: ["string", "null"] }
+                          }
+                        }
+                      },
+                      summary: {
+                        type: "object",
+                        properties: {
+                          acknowledged: { type: "integer" },
+                          skipped: { type: "integer" },
+                          failed: { type: "integer" },
+                          total: { type: "integer" }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            400: errorResponse("Validation error."),
+            401: unauthorizedResponse(),
+            403: errorResponse("Client is not allowed to access this project."),
+            404: errorResponse("Project not found.")
           }
         }
       },
@@ -445,6 +527,10 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
                   type: "array",
                   items: { type: "string" }
                 },
+                detected_product_types: {
+                  type: "array",
+                  items: { type: "string" }
+                },
                 has_nameplate_photos: { type: "boolean" },
                 has_article_photos: { type: "boolean" }
               }
@@ -500,6 +586,16 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
                   items: { type: "string" }
                 },
                 exported: { type: ["boolean", "null"] },
+                has_attachments: { type: ["boolean", "null"] },
+                attachment_ext: {
+                  type: ["array", "null"],
+                  items: { type: "string" }
+                },
+                min_attachments: { type: ["integer", "null"] },
+                product_type: {
+                  type: ["array", "null"],
+                  items: { type: "string" }
+                },
                 since: { type: ["string", "null"], format: "date-time" },
                 cursor: { type: ["string", "null"] },
                 next_cursor: { type: ["string", "null"] },

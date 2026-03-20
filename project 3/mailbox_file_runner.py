@@ -6,12 +6,37 @@ import re
 import sys
 import imaplib
 import email
+import html as html_module
 import base64
 from pathlib import Path
 from datetime import datetime, timedelta
 from email.header import decode_header
 
 MAX_ATTACHMENT_SIZE = 2 * 1024 * 1024  # 2MB per file
+
+
+def strip_html(text: str) -> str:
+    """Thorough HTML stripping: removes style/script blocks, MJML artifacts,
+    decodes HTML entities, collapses whitespace."""
+    if not re.search(r"<[a-zA-Z]", text):
+        return text
+    # Remove style and script blocks entirely
+    text = re.sub(r"<style[^>]*>[\s\S]*?</style>", " ", text, flags=re.IGNORECASE)
+    text = re.sub(r"<script[^>]*>[\s\S]*?</script>", " ", text, flags=re.IGNORECASE)
+    # Convert <br> to newline
+    text = re.sub(r"<br\s*/?>", "\n", text, flags=re.IGNORECASE)
+    # Convert block-closing tags to newline
+    text = re.sub(r"</(?:p|div|tr|li|h[1-6])>", "\n", text, flags=re.IGNORECASE)
+    # Remove all remaining HTML tags
+    text = re.sub(r"<[^>]+>", " ", text)
+    # Decode HTML entities (&nbsp; &amp; &#123; etc.)
+    text = html_module.unescape(text)
+    # Remove MJML/CSS artifacts
+    text = re.sub(r"mj-[\w-]+", " ", text, flags=re.IGNORECASE)
+    # Collapse whitespace
+    text = re.sub(r"[ \t]+", " ", text)
+    text = re.sub(r"\n{3,}", "\n\n", text)
+    return text.strip()
 
 
 def parse_accounts(file_path: Path):
@@ -116,7 +141,7 @@ def extract_body_and_attachments(message):
             elif content_type == "text/html" and not body and not filename:
                 try:
                     html = part.get_payload(decode=True).decode(part.get_content_charset() or "utf-8", errors="ignore")
-                    body = re.sub(r"<[^>]+>", " ", html)
+                    body = strip_html(html)
                 except Exception:
                     pass
     else:
@@ -169,6 +194,9 @@ def fetch_account_emails(account, host, port, days, max_emails):
                 "body": body,
                 "attachmentData": attachment_data,
                 "attachments": attachments,
+                "messageId": message.get("Message-ID", "").strip(),
+                "inReplyTo": message.get("In-Reply-To", "").strip(),
+                "references": message.get("References", "").strip(),
             })
     except Exception as error:
         result.append({

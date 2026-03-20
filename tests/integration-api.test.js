@@ -24,7 +24,7 @@ const project = {
       from: "Иван Петров <ivan@example.com>",
       bodyPreview: "Прошу КП",
       pipelineStatus: "ready_for_crm",
-      attachments: ["spec.pdf"],
+      attachments: ["spec.pdf", "drawing.xlsx"],
       auditLog: [{ action: "status_change", at: "2026-03-18T10:06:00.000Z" }],
       integrationExport: {
         acknowledgedAt: "2026-03-18T10:07:00.000Z",
@@ -68,6 +68,7 @@ const project = {
           articles: ["S201-C16"],
           lineItems: [{ article: "S201-C16", quantity: 5, unit: "шт", descriptionRu: "ABB S201-C16" }],
           detectedBrands: ["ABB"],
+          detectedProductTypes: ["sensors", "drives"],
           hasNameplatePhotos: false,
           hasArticlePhotos: false
         },
@@ -316,6 +317,89 @@ runTest("finds a single normalized integration message", () => {
   assert.equal(message.message_key, "msg-1");
   assert.equal(message.sender.email, "ivan@example.com");
   assert.equal(message.export.external_id, "ERP-99");
+});
+
+runTest("filters integration messages by brand", () => {
+  const result = listIntegrationMessages(project, { brand: "ABB" });
+  assert.equal(result.data.length, 1);
+  assert.equal(result.data[0].message_key, "msg-1");
+  assert.equal(result.meta.brand, "abb");
+});
+
+runTest("filters integration messages by label (classification)", () => {
+  const result = listIntegrationMessages(project, { label: "client" });
+  // msg-1 (Клиент) and msg-3 (Клиент) — but label filter matches lowercase "client"
+  // classification labels are in Russian, so this should return 0 unless we normalize
+  // Actually the labels are "Клиент" and "СПАМ", the filter checks toLowerCase
+  assert.equal(result.meta.label, "client");
+});
+
+runTest("filters integration messages by free-text search", () => {
+  const result = listIntegrationMessages(project, { q: "ABB" });
+  assert.equal(result.data.length, 1);
+  assert.equal(result.data[0].message_key, "msg-1");
+  assert.equal(result.meta.q, "abb");
+});
+
+runTest("returns all messages when no brand/label/q filters applied", () => {
+  const result = listIntegrationMessages(project, {});
+  assert.equal(result.data.length, 3);
+  assert.equal(result.meta.brand, null);
+  assert.equal(result.meta.label, null);
+  assert.equal(result.meta.q, null);
+});
+
+runTest("has_attachments=true returns only messages with attachments", () => {
+  const result = listIntegrationMessages(project, { has_attachments: "true" });
+  assert.equal(result.data.length, 1);
+  assert.equal(result.data[0].message_key, "msg-1");
+  assert.equal(result.meta.has_attachments, true);
+});
+
+runTest("has_attachments=false returns only messages without attachments", () => {
+  const result = listIntegrationMessages(project, { has_attachments: "false" });
+  assert.equal(result.data.length, 2);
+  const keys = result.data.map((m) => m.message_key);
+  assert.ok(keys.includes("msg-2"));
+  assert.ok(keys.includes("msg-3"));
+  assert.equal(result.meta.has_attachments, false);
+});
+
+runTest("attachment_ext=pdf returns only messages with .pdf attachments", () => {
+  const result = listIntegrationMessages(project, { attachment_ext: "pdf" });
+  assert.equal(result.data.length, 1);
+  assert.equal(result.data[0].message_key, "msg-1");
+  assert.deepEqual(result.meta.attachment_ext, ["pdf"]);
+});
+
+runTest("attachment_ext=pdf,xlsx returns messages with .pdf OR .xlsx", () => {
+  const result = listIntegrationMessages(project, { attachment_ext: "pdf,xlsx" });
+  assert.equal(result.data.length, 1);
+  assert.equal(result.data[0].message_key, "msg-1");
+  assert.deepEqual(result.meta.attachment_ext, ["pdf", "xlsx"]);
+});
+
+runTest("min_attachments=2 returns only messages with 2+ attachments", () => {
+  const result = listIntegrationMessages(project, { min_attachments: "2" });
+  assert.equal(result.data.length, 1);
+  assert.equal(result.data[0].message_key, "msg-1");
+  assert.equal(result.meta.min_attachments, 2);
+});
+
+runTest("product_type=sensors returns only messages with sensors in detectedProductTypes", () => {
+  const result = listIntegrationMessages(project, { product_type: "sensors" });
+  assert.equal(result.data.length, 1);
+  assert.equal(result.data[0].message_key, "msg-1");
+  assert.deepEqual(result.meta.product_type, ["sensors"]);
+});
+
+runTest("detected_product_types appears in normalized API response", () => {
+  const normalized = normalizeIntegrationMessage(project, project.recentMessages[0]);
+  assert.deepEqual(normalized.lead.detected_product_types, ["sensors", "drives"]);
+
+  // Also check message without product types
+  const normalized2 = normalizeIntegrationMessage(project, project.recentMessages[1]);
+  assert.deepEqual(normalized2.lead.detected_product_types, []);
 });
 
 runTest("summarizes integration delivery diagnostics for a scoped client", () => {

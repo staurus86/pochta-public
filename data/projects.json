@@ -2,6 +2,19 @@
   {
     "recentAnalyses": [
       {
+        "id": "eff8be5d-09cc-4fe8-bd1f-767cc4eb8afd",
+        "createdAt": "2026-03-20T16:56:30.204Z",
+        "senderEmail": "test@company.ru",
+        "category": "Клиент",
+        "company": "Не определено",
+        "actions": [
+          "Проверить контактное лицо и домен на совпадение с CRM",
+          "Использовать сайт https://company.ru для поиска реквизитов",
+          "Если ИНН не найден, запросить реквизиты ответным письмом",
+          "После получения реквизитов создать карточку клиента и контактное лицо"
+        ]
+      },
+      {
         "id": "b92f4f99-617a-4b24-aea6-65f3ea764164",
         "createdAt": "2026-03-10T16:18:50.831Z",
         "senderEmail": "buyer@factory.ru",
@@ -15,6 +28,8 @@
       }
     ],
     "recentRuns": [],
+    "recentMessages": [],
+    "webhookDeliveries": [],
     "schedule": {
       "enabled": false,
       "time": "12:00",
@@ -71,7 +86,35 @@
   },
   {
     "recentAnalyses": [],
-    "recentRuns": [],
+    "recentRuns": [
+      {
+        "id": "3afbe17a-49d9-42fa-800d-f79a3dfcba13",
+        "createdAt": "2026-03-18T09:25:41.041Z",
+        "status": "ok",
+        "days": 1,
+        "maxEmails": 5,
+        "processed": 2,
+        "added": 2,
+        "skipped": 3,
+        "failed": 0,
+        "durationMs": 13246,
+        "trigger": "manual"
+      },
+      {
+        "id": "5026336b-bb59-4340-9939-7c7d94fc46ae",
+        "createdAt": "2026-03-18T09:22:03.205Z",
+        "status": "error",
+        "days": 1,
+        "processed": 0,
+        "added": 0,
+        "skipped": 0,
+        "failed": 0,
+        "durationMs": 24193,
+        "trigger": "manual"
+      }
+    ],
+    "recentMessages": [],
+    "webhookDeliveries": [],
     "schedule": {
       "enabled": true,
       "time": "12:00",
@@ -103,6 +146,8 @@
   {
     "recentAnalyses": [],
     "recentRuns": [],
+    "recentMessages": [],
+    "webhookDeliveries": [],
     "schedule": {
       "enabled": false,
       "time": "12:00",
@@ -131,7 +176,567 @@
   },
   {
     "recentAnalyses": [],
-    "recentRuns": [],
+    "recentRuns": [
+      {
+        "id": "8e35ac95-4956-4e0a-964f-5d7cabb82a64",
+        "createdAt": "2026-03-18T09:22:19.314Z",
+        "status": "ok",
+        "days": 1,
+        "maxEmails": 5,
+        "processed": 5,
+        "added": 5,
+        "skipped": 0,
+        "failed": 0,
+        "durationMs": 6615,
+        "accountCount": 1,
+        "fetchedEmailCount": 5,
+        "totalMessages": 5,
+        "spamCount": 0,
+        "readyForCrmCount": 3,
+        "clarificationCount": 2,
+        "trigger": "manual"
+      }
+    ],
+    "recentMessages": [
+      {
+        "id": "238a3ad0-4231-4df0-a9b2-33458ecfa4a7",
+        "createdAt": "2026-03-18T09:22:25.835Z",
+        "messageKey": "bdad3b106b31d706e354ba865dcef5ea73d7ef30",
+        "mailbox": "robot-mail-siderus@klvrt.ru",
+        "brand": "Siderus",
+        "siteUrl": "https://klvrt.ru",
+        "subject": "������ �� ��������� �� ��� \"������� �����\"",
+        "from": "������ ������� <morozov@setivid.ru>",
+        "bodyPreview": "������ ����! � ����� ������� ������������ ����������� ��� ���� �� ��������� � ����������� ��������� �������. ��� ������������� ������� ��� ����� �������� ��������� ����������: 1. ���� �������� 2. �������� � ��� (���� ��������� 10 ��) 3. ����� �������� ������ (���� �� ������� � ����� ��� ��) 4. ������������ ������������� � ������ ������������ (���� �� ��������� ��������������) 5. �������� ������������ �� ��������� (�������, ����������, ���������� �� ������������, � �.�.) � �.660�� �1�� ������� ������� �������� 3742608632 DSD 1820 19 S22HW�� �10�� ���. � * ���� ������ ������ � ������ ������� ���������, ����� �������, �������� �� � ���������� ������� �/� � ������ ���������� �������� (������������, ����) �� �������������! ���� ����� �����������, ���� ������� �������� � ������� ���, ������� ���������!� ��� ������������ ������������ ���� ��������� � ������������ ������������ ����� ��������� ��� ���������� ��������� �� ������� ������� � ���� ������ �� ��� ������, ��������� ����� � ��������ܻ. � ��������� �� ��������. � ���������, ������ ������� ���������� �� �������� ��� \"������� �����\" +7 (960) 2084640 morozov@setivid.ru ��� ������ 2BM-9718032485-772101001-202005150951565668429",
+        "attachments": [
+          "������� �������� ��� ������� ����� 2025 .pdf"
+        ],
+        "attachmentFiles": [
+          {
+            "filename": "������� �������� ��� ������� ����� 2025 .pdf",
+            "safeName": "������� �������� ��� ������� ����� 2025 .pdf",
+            "contentType": "application/pdf",
+            "size": 192607
+          }
+        ],
+        "error": null,
+        "pipelineStatus": "ready_for_crm",
+        "analysis": {
+          "analysisId": "3cf89402-bf4f-412d-b0ac-908690dfedb4",
+          "createdAt": "2026-03-18T09:22:25.832Z",
+          "mailbox": "robot-mail-siderus@klvrt.ru",
+          "classification": {
+            "label": "Клиент",
+            "confidence": 0.95,
+            "detectedBrands": [],
+            "signals": {
+              "clientScore": 1,
+              "spamScore": 0,
+              "vendorScore": 0,
+              "matchedRules": []
+            }
+          },
+          "sender": {
+            "email": "morozov@setivid.ru",
+            "fullName": "������ �������",
+            "position": null,
+            "companyName": "setivid",
+            "website": "https://setivid.ru",
+            "cityPhone": "8032485-7721",
+            "mobilePhone": "+7 (960) 2084640",
+            "inn": null,
+            "legalCardAttached": false
+          },
+          "lead": {
+            "freeText": "������ ����! � ����� ������� ������������ ����������� ��� ���� �� ��������� � ����������� ��������� �������. ��� ������������� ������� ��� ����� �������� ��������� ����������: 1. ���� �������� 2. �������� � ��� (���� ��������� 10 ��) 3. ����� �������� ������ (���� �� ������� � ����� ��� ��) 4. ������������ ������������� � ������ ������������ (���� �� ��������� ��������������) 5. �������� ������������ �� ��������� (�������, ����������, ���������� �� ������������, � �.�.) � �.660�� �1�� ������� ������� �������� 3742608632 DSD 1820 19 S22HW�� �10�� ���. � * ���� ������ ������ � ������ ������� ���������, ����� �������, �������� �� � ���������� ������� �/� � ������ ���������� �������� (������������, ����) �� �������������! ���� ����� �����������, ���� ������� �������� � ������� ���, ������� ���������!� ��� ������������ ������������ ���� ��������� � ������������ ������������ ����� ��������� ��� ���������� ��������� �� ������� ������� � ���� ������ �� ��� ������, ��������� ����� � ��������ܻ. � ��������� �� ��������. � ���������, ������ ������� ���������� �� �������� ��� \"������� �����\" +7 (960) 2084640 morozov@setivid.ru ��� ������ 2BM-9718032485-772101001-202005150951565668429",
+            "hasNameplatePhotos": false,
+            "hasArticlePhotos": false,
+            "articles": [
+              "S22HW"
+            ],
+            "lineItems": [],
+            "totalPositions": 1,
+            "detectedBrands": [],
+            "attachmentHints": [
+              {
+                "name": "������� �������� ��� ������� ����� 2025 .pdf",
+                "type": "document"
+              }
+            ],
+            "requestType": "Не определено"
+          },
+          "crm": {
+            "company": null,
+            "isExistingCompany": false,
+            "curatorMop": "Не назначен",
+            "curatorMoz": "Не назначен",
+            "needsClarification": false,
+            "actions": [
+              "Проверить контактное лицо и домен на совпадение с CRM",
+              "Использовать сайт https://setivid.ru для поиска реквизитов",
+              "Если ИНН не найден, запросить реквизиты ответным письмом",
+              "После получения реквизитов создать карточку клиента и контактное лицо"
+            ],
+            "suggestedReply": null,
+            "inferredWebsite": "https://setivid.ru"
+          },
+          "detectedBrands": [],
+          "intakeFlow": {
+            "parseToFields": true,
+            "requestClarification": false,
+            "createClientInCrm": true,
+            "createRequestInCrm": true,
+            "assignMop": "Не назначен",
+            "assignMoz": "Не назначен",
+            "requestType": "Не определено"
+          },
+          "suggestedReply": "������, добрый день!\n\nСпасибо за заявку.\nАртикулы: S22HW\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+          "rawInput": {
+            "subject": "������ �� ��������� �� ��� \"������� �����\"",
+            "attachments": [
+              "������� �������� ��� ������� ����� 2025 .pdf"
+            ]
+          },
+          "extractionMeta": {
+            "signatureDetected": false,
+            "quotedTextDetected": false
+          }
+        },
+        "integrationExport": null,
+        "integrationExports": {},
+        "integrationIdempotency": {
+          "ack": {}
+        }
+      },
+      {
+        "id": "ef2dca63-bd99-4b47-b104-10f6b6b669ee",
+        "createdAt": "2026-03-18T09:22:25.838Z",
+        "messageKey": "db374ca99bbe9a596401bee202fd4ab07a8f988d",
+        "mailbox": "robot-mail-siderus@klvrt.ru",
+        "brand": "Siderus",
+        "siteUrl": "https://klvrt.ru",
+        "subject": "Re: ������",
+        "from": "������ �������� <kazansev.a.n@yandex.ru>",
+        "bodyPreview": "��������� ����� �������, �� � �����.<div>���� ������ � ������ �������� ���������� ����� �������� � ���������<br /><br />--<br />���������� �� ��������� �����������<br /><br /><b>����:</b> '������ ��������' &lt;kazansev.a.n@yandex.ru&gt;;<br /><b>����:</b> ������;<br />18.03.2026, 12:11, \"SIDERUS\" &lt;info@siderus.ru&gt;:<br /><blockquote><div lang=\"RU\" style=\"word-wrap:break-word\"><div class=\"e092d429a57b7b749fb23c85464e9ac1WordSection1\"><p class=\"bd6ff683d8d0a42f228bf8a64b8551e1MsoNormal\" style=\"font-family:'calibri' , sans-serif;font-size:11pt;margin:0cm\">� �������� ��������� �����������. </p><p class=\"bd6ff683d8d0a42f228bf8a64b8551e1MsoNormal\" style=\"font-family:'calibri' , sans-serif;font-size:11pt;margin:0cm\">�</p><p class=\"bd6ff683d8d0a42f228bf8a64b8551e1MsoNormal\" style=\"font-family:'calibri' , sans-serif;font-size:11pt;margin:0cm\">�</p><table class=\"261461fc1060031ab04ef89c03ed1db5MsoNormalTable\" border=\"0\" cellpadding=\"0\" cellspacing=\"0\" width=\"550\" style=\"width:412.5pt\"><tbody><tr><td colspan=\"4\" style=\"padding:7.5pt\"><p class=\"bd6ff683d8d0a42f228bf8a64b8551e1MsoNormal\" style=\"font-family:'calibri' , sans-serif;font-size:11pt;margin:0cm\"><span style=\"color:#00778e;font-family:'tahoma' , sans-serif;font-size:10.5pt\">� ���������,</span><span style=\"font-family:'times new roman' , serif;font-size:12pt\"></span></p></td></tr><tr><td colspan=\"4\" style=\"padding:7.5pt\"><p class=\"bd6ff683d8d0a42f228bf8a64b8551e1MsoNormal\" style=\"font-family:'calibri' , sans-serif;font-size:11pt;margin:0cm\"><b><span style=\"color:#00778e;font-family:'tahoma' , sans-serif;font-size:10.5pt\">��������� ������</span></b><span style=\"font-family:'times new roman' , serif;font-size:12pt\"><br /></span><span style=\"color:#00778e;font-family:'tahoma' , sans-serif;font-size:10.5pt\">����-��������</span><span style=\"font-family:'times new roman' , serif;font-size:12pt\"><br /></span><span style=\"color:#00778e;font-family:'tahoma' , sans-serif;font-size:10.5pt\">��� ��������һ | </span><span lang=\"EN-US\" style=\"color:#00778e;font-family:'tahoma' , sans-serif;font-size:10.5pt\">SIDERUS</span><span style=\"font-family:'times new roman' , serif;font-size:12pt\"></span></p></td></tr><tr><td valign=\"top\" width=\"30\" style=\"padding:5.25pt 0cm 0cm 0cm;width:22.5pt\"><p class=\"bd6ff683d8d0a42f228bf8a64b8551e1MsoNormal\" style=\"font-family:'calibri' , sans-serif;font-size:11pt;margin:0cm\"><span style=\"color:#00778e;font-family:'tahoma' , sans-serif;font-size:10.5pt\"></span><span style=\"font-family:'times new roman' , serif;font-size:12pt\"></span></p></td><td width=\"220\" style=\"padding:7.5pt 0cm 7.5pt 0cm;width:165pt\"><p class=\"bd6ff683d8d0a42f228bf8a64b8551e1MsoNormal\" style=\"font-family:'calibri' , sans-serif;font-size:11pt;margin:0cm\"><span style=\"font-family:'tahoma' , sans-serif\"><a href=\"mailto:info@siderus.ru\">i<span lang=\"EN-US\">n</span>f<span lang=\"EN-US\">o</span>@siderus.ru</a> </span><span lang=\"EN-US\" style=\"font-family:'tahoma' , sans-serif\">��</span></p><p class=\"bd6ff683d8d0a42f228bf8a64b8551e1MsoNormal\" style=\"font-family:'calibri' , sans-serif;font-size:11pt;margin:0cm\"><u><span style=\"color:blue;font-size:10.5pt\"><span style=\"text-decoration:none\">�</span></span></u></p></td><td valign=\"top\" width=\"30\" style=\"padding:5.25pt 0cm 0cm 0cm;width:22.5pt\"><p class=\"bd6ff683d8d0a42f228bf8a64b8551e1MsoNormal\" style=\"font-family:'calibri' , sans-serif;font-size:11pt;margin:0cm\"><span style=\"color:#00778e;font-family:'tahoma' , sans-serif;font-size:10.5pt\"></span><span style=\"font-family:'times new roman' , serif;font-size:12pt\"></span></p></td><td valign=\"top\" style=\"padding:7.5pt 0cm 7.5pt 0cm\"><p class=\"bd6ff683d8d0a42f228bf8a64b8551e1MsoNormal\" style=\"font-family:'calibri' , sans-serif;font-size:11pt;margin:0cm\"><a href=\"https://siderus.ru/\" target=\"_blank\"><span style=\"font-family:'tahoma' , sans-serif;font-size:10.5pt\">siderus.ru</span></a><span style=\"font-family:'times new roman' , serif;font-size:12pt\"></span></p></td></tr><tr><td valign=\"top\" width=\"30\" style",
+        "attachments": [],
+        "attachmentFiles": [],
+        "error": null,
+        "pipelineStatus": "needs_clarification",
+        "analysis": {
+          "analysisId": "63e08ee8-e8bb-4d9b-9a16-07ecce26e346",
+          "createdAt": "2026-03-18T09:22:25.838Z",
+          "mailbox": "robot-mail-siderus@klvrt.ru",
+          "classification": {
+            "label": "Не определено",
+            "confidence": 0.35,
+            "detectedBrands": [
+              "Siderus"
+            ],
+            "signals": {
+              "clientScore": 0,
+              "spamScore": 0,
+              "vendorScore": 0,
+              "matchedRules": []
+            }
+          },
+          "sender": {
+            "email": "kazansev.a.n@yandex.ru",
+            "fullName": "������ ��������",
+            "position": null,
+            "companyName": null,
+            "website": null,
+            "cityPhone": null,
+            "mobilePhone": "+7 499 647-47-07",
+            "inn": null,
+            "legalCardAttached": false
+          },
+          "lead": {
+            "freeText": "��������� ����� �������, �� � �����. ���� ������ � ������ �������� ���������� ����� �������� � ���������\n\n--\n���������� �� ��������� �����������\n\n ����: '������ ��������' <kazansev.a.n@yandex.ru>;\n ����: ������;\n18.03.2026, 12:11, \"SIDERUS\" <info@siderus.ru>:\n � �������� ��������� �����������. \n �\n �\n � ���������, \n \n ��������� ������ \n ����-�������� \n ��� ��������һ | SIDERUS \n \n \n i n f o @siderus.ru �� \n � \n \n siderus.ru \n \n \n +7 499 647-47-07 \n\n \n \n 107061, �. ������, �������������� �������, �.8, ��. 815 \n \n \n \n ��� ������������� � ������� ��� (������ ������) \n 2BM- 9701077015-770101001-201711021137514319612 \n �",
+            "hasNameplatePhotos": false,
+            "hasArticlePhotos": false,
+            "articles": [
+              "2BM"
+            ],
+            "lineItems": [
+              {
+                "article": "2BM",
+                "quantity": 9701077015,
+                "unit": "шт",
+                "descriptionRu": "2BM- 9701077015-770101001-201711021137514319612"
+              }
+            ],
+            "totalPositions": 1,
+            "detectedBrands": [
+              "Siderus"
+            ],
+            "attachmentHints": [],
+            "requestType": "Монобрендовая"
+          },
+          "crm": {
+            "company": null,
+            "isExistingCompany": false,
+            "curatorMop": "Не назначен",
+            "curatorMoz": "Не назначен",
+            "needsClarification": true,
+            "actions": [
+              "Проверить контактное лицо и домен на совпадение с CRM",
+              "Сайт не найден автоматически",
+              "Если ИНН не найден, запросить реквизиты ответным письмом",
+              "После получения реквизитов создать карточку клиента и контактное лицо"
+            ],
+            "suggestedReply": "Добрый день.\n\nДля регистрации вашей заявки в CRM и назначения ответственного менеджера пришлите, пожалуйста, реквизиты организации.\nНам нужен минимум: наименование юридического лица, ИНН и контактные данные ответственного лица.\n\nПосле получения данных мы сразу заведем карточку клиента и продолжим обработку заявки.",
+            "inferredWebsite": null
+          },
+          "detectedBrands": [
+            "Siderus"
+          ],
+          "intakeFlow": {
+            "parseToFields": true,
+            "requestClarification": true,
+            "createClientInCrm": false,
+            "createRequestInCrm": false,
+            "assignMop": "Не назначен",
+            "assignMoz": "Не назначен",
+            "requestType": "Монобрендовая"
+          },
+          "suggestedReply": null,
+          "rawInput": {
+            "subject": "Re: ������",
+            "attachments": []
+          },
+          "extractionMeta": {
+            "signatureDetected": false,
+            "quotedTextDetected": true
+          }
+        },
+        "integrationExport": null,
+        "integrationExports": {},
+        "integrationIdempotency": {
+          "ack": {}
+        }
+      },
+      {
+        "id": "ce8ed50f-71d6-4838-b970-9a23638f8602",
+        "createdAt": "2026-03-18T09:22:25.840Z",
+        "messageKey": "7ecc35d9051af7f5d4ea47d8a3afd8a924463cbf",
+        "mailbox": "robot-mail-siderus@klvrt.ru",
+        "brand": "Siderus",
+        "siteUrl": "https://klvrt.ru",
+        "subject": "������ �� ����� Sera",
+        "from": "Evgeny Pereguda <ep@globalhydraulic.ru>",
+        "bodyPreview": "������ ����!\r\n\r\n��������, ����������, ��������� � ���� �������� �� ����� �� ��������.\r\n\r\n������� ����������!\r\n\r\n� ���������,\r\n\r\n������� ��������\r\n��� \"������ - ���������\"\r\n+7(495)764-16-58\r\nwww.globalhydraulic.ru",
+        "attachments": [
+          "IMG_20260310_144651.jpg"
+        ],
+        "attachmentFiles": [
+          {
+            "filename": "IMG_20260310_144651.jpg",
+            "safeName": "IMG_20260310_144651.jpg",
+            "contentType": "image/jpeg",
+            "size": 229368
+          }
+        ],
+        "error": null,
+        "pipelineStatus": "ready_for_crm",
+        "analysis": {
+          "analysisId": "74fac8ae-d166-4e92-8f0f-0f0058817fd6",
+          "createdAt": "2026-03-18T09:22:25.839Z",
+          "mailbox": "robot-mail-siderus@klvrt.ru",
+          "classification": {
+            "label": "Клиент",
+            "confidence": 0.95,
+            "detectedBrands": [],
+            "signals": {
+              "clientScore": 1,
+              "spamScore": 0,
+              "vendorScore": 0,
+              "matchedRules": []
+            }
+          },
+          "sender": {
+            "email": "ep@globalhydraulic.ru",
+            "fullName": "Evgeny Pereguda",
+            "position": null,
+            "companyName": "globalhydraulic",
+            "website": "https://globalhydraulic.ru",
+            "cityPhone": "+7(495)764-16-58",
+            "mobilePhone": null,
+            "inn": null,
+            "legalCardAttached": false
+          },
+          "lead": {
+            "freeText": "������ ����!\n\n��������, ����������, ��������� � ���� �������� �� ����� �� ��������.\n\n������� ����������!\n\n� ���������,\n\n������� ��������\n��� \"������ - ���������\"\n+7(495)764-16-58\nwww.globalhydraulic.ru",
+            "hasNameplatePhotos": false,
+            "hasArticlePhotos": false,
+            "articles": [],
+            "lineItems": [],
+            "totalPositions": 0,
+            "detectedBrands": [],
+            "attachmentHints": [
+              {
+                "name": "IMG_20260310_144651.jpg",
+                "type": "photo"
+              }
+            ],
+            "requestType": "Не определено"
+          },
+          "crm": {
+            "company": null,
+            "isExistingCompany": false,
+            "curatorMop": "Не назначен",
+            "curatorMoz": "Не назначен",
+            "needsClarification": false,
+            "actions": [
+              "Проверить контактное лицо и домен на совпадение с CRM",
+              "Использовать сайт https://globalhydraulic.ru для поиска реквизитов",
+              "Если ИНН не найден, запросить реквизиты ответным письмом",
+              "После получения реквизитов создать карточку клиента и контактное лицо"
+            ],
+            "suggestedReply": null,
+            "inferredWebsite": "https://globalhydraulic.ru"
+          },
+          "detectedBrands": [],
+          "intakeFlow": {
+            "parseToFields": true,
+            "requestClarification": false,
+            "createClientInCrm": true,
+            "createRequestInCrm": true,
+            "assignMop": "Не назначен",
+            "assignMoz": "Не назначен",
+            "requestType": "Не определено"
+          },
+          "suggestedReply": "Evgeny, добрый день!\n\nСпасибо за заявку.\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+          "rawInput": {
+            "subject": "������ �� ����� Sera",
+            "attachments": [
+              "IMG_20260310_144651.jpg"
+            ]
+          },
+          "extractionMeta": {
+            "signatureDetected": false,
+            "quotedTextDetected": false
+          }
+        },
+        "integrationExport": null,
+        "integrationExports": {},
+        "integrationIdempotency": {
+          "ack": {}
+        }
+      },
+      {
+        "id": "174d0019-dc34-4577-914b-1abe59e9897b",
+        "createdAt": "2026-03-18T09:22:25.841Z",
+        "messageKey": "9a20956e32960c08f71a4f4aea286bb3b1dfa96d",
+        "mailbox": "robot-mail-siderus@klvrt.ru",
+        "brand": "Siderus",
+        "siteUrl": "https://klvrt.ru",
+        "subject": "Re: FW: ������",
+        "from": "\"����� �������\" <udmstal@gmail.com>",
+        "bodyPreview": "<div dir=\"ltr\">� ��������� ��� &quot;��������&quot;<br><br></div>",
+        "attachments": [],
+        "attachmentFiles": [],
+        "error": null,
+        "pipelineStatus": "needs_clarification",
+        "analysis": {
+          "analysisId": "1cb09246-b1b5-4f30-8e20-8568fb21648e",
+          "createdAt": "2026-03-18T09:22:25.841Z",
+          "mailbox": "robot-mail-siderus@klvrt.ru",
+          "classification": {
+            "label": "Не определено",
+            "confidence": 0.35,
+            "detectedBrands": [],
+            "signals": {
+              "clientScore": 0,
+              "spamScore": 0,
+              "vendorScore": 0,
+              "matchedRules": []
+            }
+          },
+          "sender": {
+            "email": "udmstal@gmail.com",
+            "fullName": "����� �������",
+            "position": null,
+            "companyName": null,
+            "website": null,
+            "cityPhone": null,
+            "mobilePhone": null,
+            "inn": null,
+            "legalCardAttached": false
+          },
+          "lead": {
+            "freeText": "� ��������� ��� \"��������\"",
+            "hasNameplatePhotos": false,
+            "hasArticlePhotos": false,
+            "articles": [],
+            "lineItems": [],
+            "totalPositions": 0,
+            "detectedBrands": [],
+            "attachmentHints": [],
+            "requestType": "Не определено"
+          },
+          "crm": {
+            "company": null,
+            "isExistingCompany": false,
+            "curatorMop": "Не назначен",
+            "curatorMoz": "Не назначен",
+            "needsClarification": true,
+            "actions": [
+              "Проверить контактное лицо и домен на совпадение с CRM",
+              "Сайт не найден автоматически",
+              "Если ИНН не найден, запросить реквизиты ответным письмом",
+              "После получения реквизитов создать карточку клиента и контактное лицо"
+            ],
+            "suggestedReply": "Добрый день.\n\nДля регистрации вашей заявки в CRM и назначения ответственного менеджера пришлите, пожалуйста, реквизиты организации.\nНам нужен минимум: наименование юридического лица, ИНН и контактные данные ответственного лица.\n\nПосле получения данных мы сразу заведем карточку клиента и продолжим обработку заявки.",
+            "inferredWebsite": null
+          },
+          "detectedBrands": [],
+          "intakeFlow": {
+            "parseToFields": true,
+            "requestClarification": true,
+            "createClientInCrm": false,
+            "createRequestInCrm": false,
+            "assignMop": "Не назначен",
+            "assignMoz": "Не назначен",
+            "requestType": "Не определено"
+          },
+          "suggestedReply": null,
+          "rawInput": {
+            "subject": "Re: FW: ������",
+            "attachments": []
+          },
+          "extractionMeta": {
+            "signatureDetected": false,
+            "quotedTextDetected": false
+          }
+        },
+        "integrationExport": null,
+        "integrationExports": {},
+        "integrationIdempotency": {
+          "ack": {}
+        }
+      },
+      {
+        "id": "0bf64c8a-2fd2-4539-963a-59e597e7bb79",
+        "createdAt": "2026-03-18T09:22:25.844Z",
+        "messageKey": "9d7d287f0ae878326671a9b8dd9766b25cbd67cd",
+        "mailbox": "robot-mail-siderus@klvrt.ru",
+        "brand": "Siderus",
+        "siteUrl": "https://klvrt.ru",
+        "subject": "509-1720 ������ �� ���",
+        "from": "������� �������� <zg@td-vershina.ru>",
+        "bodyPreview": "--� ������ ����! � ������ ��� ����������� ������ � �������� �� �� ���� �������. � --� � ���������, ������� ��� �� \"�������\" (347) 286-07-47,��. ��� ZG @td-vershina.ru",
+        "attachments": [
+          "509-1720 ������ �� ���.pdf",
+          "20260313_104040.jpg"
+        ],
+        "attachmentFiles": [
+          {
+            "filename": "509-1720 ������ �� ���.pdf",
+            "safeName": "509-1720 ������ �� ���.pdf",
+            "contentType": "application/pdf",
+            "size": 143523
+          },
+          {
+            "filename": "20260313_104040.jpg",
+            "contentType": "image/jpeg",
+            "size": 3043239,
+            "safeName": null
+          }
+        ],
+        "error": null,
+        "pipelineStatus": "ready_for_crm",
+        "analysis": {
+          "analysisId": "f90cdf34-5901-464f-a51c-f6212a2e6bf1",
+          "createdAt": "2026-03-18T09:22:25.843Z",
+          "mailbox": "robot-mail-siderus@klvrt.ru",
+          "classification": {
+            "label": "Клиент",
+            "confidence": 0.95,
+            "detectedBrands": [],
+            "signals": {
+              "clientScore": 1,
+              "spamScore": 0,
+              "vendorScore": 0,
+              "matchedRules": []
+            }
+          },
+          "sender": {
+            "email": "zg@td-vershina.ru",
+            "fullName": "������� ��������",
+            "position": null,
+            "companyName": "td vershina",
+            "website": "https://td-vershina.ru",
+            "cityPhone": null,
+            "mobilePhone": null,
+            "inn": null,
+            "legalCardAttached": false
+          },
+          "lead": {
+            "freeText": "--� ������ ����! � ������ ��� ����������� ������ � �������� �� �� ���� �������. � --� � ���������, ������� ��� �� \"�������\" (347) 286-07-47,��. ��� ZG @td-vershina.ru",
+            "hasNameplatePhotos": false,
+            "hasArticlePhotos": false,
+            "articles": [],
+            "lineItems": [],
+            "totalPositions": 0,
+            "detectedBrands": [],
+            "attachmentHints": [
+              {
+                "name": "509-1720 ������ �� ���.pdf",
+                "type": "document"
+              },
+              {
+                "name": "20260313_104040.jpg",
+                "type": "photo"
+              }
+            ],
+            "requestType": "Не определено"
+          },
+          "crm": {
+            "company": null,
+            "isExistingCompany": false,
+            "curatorMop": "Не назначен",
+            "curatorMoz": "Не назначен",
+            "needsClarification": false,
+            "actions": [
+              "Проверить контактное лицо и домен на совпадение с CRM",
+              "Использовать сайт https://td-vershina.ru для поиска реквизитов",
+              "Если ИНН не найден, запросить реквизиты ответным письмом",
+              "После получения реквизитов создать карточку клиента и контактное лицо"
+            ],
+            "suggestedReply": null,
+            "inferredWebsite": "https://td-vershina.ru"
+          },
+          "detectedBrands": [],
+          "intakeFlow": {
+            "parseToFields": true,
+            "requestClarification": false,
+            "createClientInCrm": true,
+            "createRequestInCrm": true,
+            "assignMop": "Не назначен",
+            "assignMoz": "Не назначен",
+            "requestType": "Не определено"
+          },
+          "suggestedReply": "�������, добрый день!\n\nСпасибо за заявку.\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+          "rawInput": {
+            "subject": "509-1720 ������ �� ���",
+            "attachments": [
+              "509-1720 ������ �� ���.pdf",
+              "20260313_104040.jpg"
+            ]
+          },
+          "extractionMeta": {
+            "signatureDetected": false,
+            "quotedTextDetected": false
+          }
+        },
+        "integrationExport": null,
+        "integrationExports": {},
+        "integrationIdempotency": {
+          "ack": {}
+        }
+      }
+    ],
+    "webhookDeliveries": [],
     "schedule": {
       "enabled": false,
       "time": "12:00",

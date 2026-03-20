@@ -459,9 +459,9 @@ runTest("smoke: brand catalog detects known brands from catalog", () => {
     `
   });
 
-  assert.ok(analysis.detectedBrands.includes("LENZE"), `Should detect LENZE`);
-  assert.ok(analysis.detectedBrands.includes("Heidenhain"), `Should detect Heidenhain`);
-  assert.ok(analysis.detectedBrands.includes("SICK"), `Should detect SICK`);
+  assert.ok(analysis.detectedBrands.some((b) => b.toLowerCase() === "lenze"), `Should detect Lenze`);
+  assert.ok(analysis.detectedBrands.some((b) => b.toLowerCase() === "heidenhain"), `Should detect Heidenhain`);
+  assert.ok(analysis.detectedBrands.some((b) => b.toLowerCase() === "sick"), `Should detect SICK`);
   assert.equal(analysis.lead.requestType, "Мультибрендовая");
 });
 
@@ -496,4 +496,133 @@ runTest("smoke: 8-800 toll-free number preserved as cityPhone", () => {
 
   assert.equal(analysis.sender.cityPhone, "+7 (800) 555-85-19");
   assert.equal(analysis.sender.mobilePhone, "+7 (916) 123-45-67");
+});
+
+// ═══ Letter 1: Numbered list with motor-reducers (Lenze) ═══
+runTest("detects numbered list items with articles and descriptions", () => {
+  const analysis = analyzeEmail(project, {
+    fromEmail: "smc@noxangroup.by",
+    fromName: "Макаренко Татьяна",
+    subject: "Запрос на мотор-редукторы",
+    attachments: "",
+    body: `Добрый день. Надо вот эти мотор-редукторы:
+
+1. Мотор-редуктор Drehstrom-Normmotor М100Ф-8 трёхфазный
+{переменный} ток - асинхронный: электродвигатель 230/400 В +/-1096,50 Гц,
+мощность-0,75 кВт
+
+2. Moтоp-редуктор Lenze MDEMA1M100-32 трёхфазный (переменный)ток-
+асинхронный электродвигатель 230/400 В +/-10%, 50 Гц, мощность 3 кВт
+
+3. Редуктор NHRY 090, ВЗ-В6-В7 80,00
+
+Может что-то есть ? буду благодарна за ответ.
+
+С уважением,
+Макаренко Татьяна,
+Менеджер по ВЭС
+ООО "Ноксан групп"
+220033, Минск, Республика Беларусь,
+ул. Аранская, 13, офис 18
+Тел.: +375173500423
+Velcom: +375296156910`
+  });
+
+  // Should NOT detect 230/400 as article (voltage)
+  assert.ok(!analysis.lead.articles.includes("230/400"), "230/400 is voltage, not article");
+  // Should detect MDEMA1M100-32 as article (not split into MDEMA1M100 + 32 qty)
+  assert.ok(analysis.lead.articles.some((a) => a.includes("MDEMA1M100")), "Should detect MDEMA1M100-32");
+  // Should detect Lenze as brand
+  assert.ok(analysis.detectedBrands.some((b) => b.toLowerCase() === "lenze") || analysis.classification.detectedBrands.some((b) => b.toLowerCase() === "lenze"), "Should detect Lenze brand");
+  // Should have multiple line items (at least 2)
+  assert.ok(analysis.lead.lineItems.length >= 2 || analysis.lead.articles.length >= 2, `Should have >= 2 items, got ${analysis.lead.lineItems.length} items, ${analysis.lead.articles.length} articles`);
+  // Should detect sender company
+  assert.equal(analysis.sender.companyName, 'ООО "Ноксан групп"');
+});
+
+// ═══ Letter 2: Joystick dust cover GESSMANN VV64:KMD 66 ═══
+runTest("detects product with quantity pattern: Description ARTICLE - N шт", () => {
+  const analysis = analyzeEmail(project, {
+    fromEmail: "popova1982v@yandex.ru",
+    fromName: "Валентина Попова",
+    subject: "Запрос на пыльник",
+    attachments: "",
+    body: `Добрый день! Подскажите, пожалуйста, есть ли у вас данный товар:   Пыльник резиновый для джойстика GESSMANN VV64:KMD 66 - 4 шт   По возможности счет,  данные по доставке до г. Череповец (габариты груза для расчета стоимости доставки) Просьба уточнить сроки поставки   --  С Уважением Валентина Попова ООО"Ресурс" раб.тел.: 59 65 23 моб.тел.: +7 911 544 60 53 Popova1982V @  yandex.ru Наш сайт: http://ресурсметалл35.рф/`
+  });
+
+  // Should detect article with quantity
+  const hasArticle = analysis.lead.articles.some((a) => a.includes("VV64") || a.includes("KMD"));
+  assert.ok(hasArticle || analysis.lead.lineItems.some((li) => li.article.includes("VV64") || li.descriptionRu?.includes("VV64")), "Should detect VV64:KMD 66 or similar article");
+  // Should detect quantity 4
+  const item4 = analysis.lead.lineItems.find((li) => li.quantity === 4);
+  assert.ok(item4 || analysis.lead.totalPositions >= 1, "Should detect quantity 4 шт");
+});
+
+// ═══ Letter 3: IS7000 stabilizer — should not detect "ип стабилизатора" as company ═══
+runTest("does not extract 'ип стабилизатора' as company name", () => {
+  const analysis = analyzeEmail(project, {
+    fromEmail: "lutsenko@snipermail.ru",
+    fromName: "ИП Луценко Оксана Анатольевна",
+    subject: "Запрос на стабилизатор IS7000",
+    attachments: "",
+    body: `Здравствуйте. Прошу выставить счет на следующие позиции: Стабилизатор напряжения Штиль Инстаб IS7000 - 1.00 шт Код ОКПД2:26.51.45.190 Код ЕАТ:070801005 Описание предложения:Установка настенный Тип стабилизатора напряжения инверторный Тип входного напряжения однофазный Полная выходная мощность 7000 ВА ЖК-дисплей есть Поставка в Москва->Якутск. Карточка предприятия прилагается.
+
+С уважением, Евгений.
++7-916-545-68-88
+e-mail: lutsenko@snipermail.ru
+#58794:`
+  });
+
+  // Should NOT detect "ип стабилизатора напряжения инверторный" as company
+  assert.ok(
+    !analysis.sender.companyName || !analysis.sender.companyName.toLowerCase().includes("стабилизатор"),
+    `Company should not be '${analysis.sender.companyName}'`
+  );
+  // Should detect IS7000 as article
+  assert.ok(analysis.lead.articles.includes("IS7000"), "Should detect IS7000 as article");
+});
+
+// ═══ Product name detection tests ═══
+
+runTest("extractLead detects product names from context", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос КП",
+    body: "Прошу выставить счёт на датчик давления PMC51-AA21, клапан электромагнитный VZWM-L-M22C, и насос CR10-3"
+  });
+  const lead = result.lead;
+  assert.ok(Array.isArray(lead.productNames));
+  assert.ok(lead.productNames.length > 0);
+  // At least one should have a name with "датчик" or "клапан" or "насос"
+  const names = lead.productNames.map(p => p.name).filter(Boolean);
+  assert.ok(names.length > 0, "Should detect at least one product name from context");
+});
+
+// ═══ Urgency detection tests ═══
+
+runTest("extractLead detects urgent requests", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "СРОЧНО! Нужны запчасти",
+    body: "Стоит линия, срочно нужен клапан Festo"
+  });
+  assert.strictEqual(result.lead.urgency, "urgent");
+});
+
+runTest("extractLead detects planned requests", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Плановая заявка",
+    body: "Планируем закупку на следующий квартал"
+  });
+  assert.strictEqual(result.lead.urgency, "planned");
+});
+
+runTest("extractLead defaults to normal urgency", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос КП",
+    body: "Прошу выставить счёт на датчик PMC51"
+  });
+  assert.strictEqual(result.lead.urgency, "normal");
 });

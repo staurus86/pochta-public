@@ -10,6 +10,7 @@ import sys
 import hashlib
 import re
 import time
+import html as html_module
 import base64
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional
@@ -173,10 +174,18 @@ class MailReader:
         return body.strip(), urls
 
     @staticmethod
-    def _strip_html(html: str) -> str:
-        text = re.sub(r'<[^>]+>', '', html)
-        text = text.replace('&nbsp;', ' ').replace('&quot;', '"').replace('&amp;', '&')
-        text = re.sub(r'\n\n+', '\n', text).replace('  ', ' ')
+    def _strip_html(raw: str) -> str:
+        if not re.search(r"<[a-zA-Z]", raw):
+            return raw
+        text = re.sub(r"<style[^>]*>[\s\S]*?</style>", " ", raw, flags=re.IGNORECASE)
+        text = re.sub(r"<script[^>]*>[\s\S]*?</script>", " ", text, flags=re.IGNORECASE)
+        text = re.sub(r"<br\s*/?>", "\n", text, flags=re.IGNORECASE)
+        text = re.sub(r"</(?:p|div|tr|li|h[1-6])>", "\n", text, flags=re.IGNORECASE)
+        text = re.sub(r"<[^>]+>", " ", text)
+        text = html_module.unescape(text)
+        text = re.sub(r"mj-[\w-]+", " ", text, flags=re.IGNORECASE)
+        text = re.sub(r"[ \t]+", " ", text)
+        text = re.sub(r"\n{3,}", "\n\n", text)
         return text.strip()
 
     def disconnect(self):

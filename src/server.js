@@ -3,7 +3,9 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ProjectsStore } from "./storage/projects-store.js";
-import { analyzeEmail } from "./services/email-analyzer.js";
+import { analyzeEmail, analyzeEmailAsync } from "./services/email-analyzer.js";
+import { isAiEnabled, getAiConfig } from "./services/ai-classifier.js";
+import { getCrmConfig, syncProjectToCrm } from "./services/crm-sync.js";
 import { normalizeBackgroundRole, shouldRunScheduler, shouldRunWebhooks } from "./services/background-role.js";
 import { HttpError, parseJsonBody, resolveJsonBodyLimit } from "./services/http-json.js";
 import { resolveIdempotencyKey } from "./services/idempotency.js";
@@ -14,6 +16,7 @@ import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js
 import { ProjectScheduler } from "./services/project-scheduler.js";
 import { getMailboxFileRuntime, reprocessMailboxMessages, runMailboxFileParser } from "./services/project3-runner.js";
 import { detectionKb } from "./services/detection-kb.js";
+import { ManagerAuth } from "./services/manager-auth.js";
 import { findIntegrationDelivery, findIntegrationMessage, listIntegrationDeliveries, listIntegrationMessages, parseIntegrationCursor, summarizeIntegrationDeliveries } from "./services/integration-api.js";
 import { LegacyWebhookDispatcher } from "./services/webhook-dispatcher.js";
 
@@ -22,6 +25,8 @@ const __dirname = path.dirname(__filename);
 const rootDir = path.resolve(__dirname, "..");
 const publicDir = path.join(rootDir, "public");
 const dataDir = path.resolve(rootDir, process.env.DATA_DIR || "data");
+const managerAuth = new ManagerAuth(path.join(dataDir, "manager-auth.sqlite"));
+managerAuth.ensureAdmin();
 const host = String(process.env.HOST || "0.0.0.0").trim() || "0.0.0.0";
 const port = Number(process.env.PORT || 3000);
 const jsonBodyLimitBytes = resolveJsonBodyLimit(process.env.LEGACY_MAX_JSON_BODY_BYTES, 64 * 1024);
@@ -32,6 +37,37 @@ function getIntegrationClients() {
   const dbClients = detectionKb.getApiClientsForAuth();
   return [...envClients, ...dbClients];
 }
+
+// ── Rate limiter (sliding window) ──
+const RATE_LIMIT_WINDOW_MS = 60_000;
+const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX || 120);
+const rateLimitBuckets = new Map();
+
+function checkRateLimit(clientId) {
+  const now = Date.now();
+  if (!rateLimitBuckets.has(clientId)) {
+    rateLimitBuckets.set(clientId, []);
+  }
+  const timestamps = rateLimitBuckets.get(clientId);
+  // Purge old entries
+  while (timestamps.length > 0 && timestamps[0] <= now - RATE_LIMIT_WINDOW_MS) {
+    timestamps.shift();
+  }
+  if (timestamps.length >= RATE_LIMIT_MAX) {
+    const retryAfter = Math.ceil((timestamps[0] + RATE_LIMIT_WINDOW_MS - now) / 1000);
+    return { allowed: false, remaining: 0, retryAfter };
+  }
+  timestamps.push(now);
+  return { allowed: true, remaining: RATE_LIMIT_MAX - timestamps.length, retryAfter: 0 };
+}
+
+// Cleanup stale buckets every 5 minutes
+setInterval(() => {
+  const cutoff = Date.now() - RATE_LIMIT_WINDOW_MS * 2;
+  for (const [key, ts] of rateLimitBuckets) {
+    if (ts.length === 0 || ts[ts.length - 1] < cutoff) rateLimitBuckets.delete(key);
+  }
+}, 300_000).unref();
 
 const integrationClients = getIntegrationClients();
 const store = new ProjectsStore({ dataDir });
@@ -55,6 +91,28 @@ const scheduler = new ProjectScheduler({
 // Background job tracking for long-running tasks
 const backgroundJobs = new Map();
 
+// ── SSE (Server-Sent Events) for real-time notifications ──
+const sseClients = new Set();
+
+function broadcastSSE(event, data) {
+  const payload = `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
+  for (const client of sseClients) {
+    try {
+      client.write(payload);
+    } catch {
+      sseClients.delete(client);
+    }
+  }
+}
+
+function notifyNewMessages(projectId, count, trigger = "run") {
+  broadcastSSE("messages", { projectId, count, trigger, at: new Date().toISOString() });
+}
+
+function notifyStatusChange(projectId, messageKey, status) {
+  broadcastSSE("status", { projectId, messageKey, status, at: new Date().toISOString() });
+}
+
 const server = createServer(async (req, res) => {
   try {
     const url = new URL(req.url, `http://${req.headers.host}`);
@@ -71,6 +129,11 @@ const server = createServer(async (req, res) => {
 
     if (url.pathname.startsWith("/api/")) {
       await handleApi(req, res, url);
+      return;
+    }
+
+    if (url.pathname === "/manager" || url.pathname === "/manager/") {
+      await serveStatic("/manager.html", res);
       return;
     }
 
@@ -132,9 +195,188 @@ async function finalizeProjectRun(job, project, run) {
   }
   job.status = "done";
   job.run = run;
+  // SSE notification
+  const msgCount = run.recentMessages?.length || run.newMessages?.length || 0;
+  if (msgCount > 0) notifyNewMessages(project.id, msgCount, "run");
+
+  // Auto CRM sync for ready_for_crm messages
+  const crmConfig = getCrmConfig(project);
+  if (crmConfig.enabled) {
+    const { normalizeIntegrationMessage } = await import("./services/integration-api.js");
+    syncProjectToCrm(project, store, (proj, msg, opts) =>
+      normalizeIntegrationMessage(proj, msg, opts), { limit: 20 }
+    ).then((result) => {
+      if (result.synced > 0) {
+        console.log(`CRM auto-sync: ${result.synced} messages pushed to ${result.crmType}`);
+        broadcastSSE("crm-sync", { projectId: project.id, ...result });
+      }
+    }).catch((err) => console.warn("CRM auto-sync error:", err.message));
+  }
+}
+
+function extractAuthUser(req) {
+    const authHeader = req.headers.authorization || "";
+    const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7) : null;
+    if (!token) return null;
+    return managerAuth.verifyToken(token);
+}
+
+function requireAuth(req, roles = []) {
+    const user = extractAuthUser(req);
+    if (!user) throw new HttpError(401, "Authentication required");
+    if (roles.length > 0 && !roles.includes(user.role)) throw new HttpError(403, "Insufficient permissions");
+    return user;
 }
 
 async function handleApi(req, res, url) {
+  // ── SSE endpoint for real-time notifications ──
+  if (req.method === "GET" && url.pathname === "/api/events") {
+    res.writeHead(200, {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",
+      Connection: "keep-alive",
+      "Access-Control-Allow-Origin": "*"
+    });
+    res.write(`event: connected\ndata: ${JSON.stringify({ at: new Date().toISOString() })}\n\n`);
+    sseClients.add(res);
+    req.on("close", () => sseClients.delete(res));
+    // Keep alive every 30s
+    const keepAlive = setInterval(() => {
+      try { res.write(": keepalive\n\n"); } catch { clearInterval(keepAlive); sseClients.delete(res); }
+    }, 30000);
+    req.on("close", () => clearInterval(keepAlive));
+    return;
+  }
+
+  // ── Auth endpoints ──
+  if (req.method === "POST" && url.pathname === "/api/auth/login") {
+    const payload = await parseRequestJson(req);
+    if (!payload.login || !payload.password) {
+      return sendJson(res, 400, { error: "Fields 'login' and 'password' are required." });
+    }
+    const result = managerAuth.authenticate(payload.login, payload.password);
+    if (!result) return sendJson(res, 401, { error: "Invalid credentials." });
+    return sendJson(res, 200, result);
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/auth/me") {
+    const user = requireAuth(req);
+    return sendJson(res, 200, { user });
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/auth/users") {
+    requireAuth(req, ["admin"]);
+    return sendJson(res, 200, { users: managerAuth.listUsers() });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/auth/users") {
+    requireAuth(req, ["admin"]);
+    const payload = await parseRequestJson(req);
+    if (!payload.login || !payload.password || !payload.fullName) {
+      return sendJson(res, 400, { error: "Fields 'login', 'password', 'fullName' are required." });
+    }
+    try {
+      const user = managerAuth.createUser(payload);
+      return sendJson(res, 201, { user });
+    } catch (e) {
+      return sendJson(res, 409, { error: "Login already exists." });
+    }
+  }
+
+  const authUserMatch = url.pathname.match(/^\/api\/auth\/users\/(\d+)$/);
+  if (req.method === "PATCH" && authUserMatch) {
+    requireAuth(req, ["admin"]);
+    const payload = await parseRequestJson(req);
+    const user = managerAuth.updateUser(Number(authUserMatch[1]), payload);
+    if (!user) return sendJson(res, 404, { error: "User not found." });
+    return sendJson(res, 200, { user });
+  }
+
+  if (req.method === "DELETE" && authUserMatch) {
+    requireAuth(req, ["admin"]);
+    const result = managerAuth.deleteUser(Number(authUserMatch[1]));
+    return sendJson(res, 200, result);
+  }
+
+  // ── Manager moderation endpoints ──
+  if (req.method === "GET" && url.pathname === "/api/manager/inbox") {
+    const user = requireAuth(req, ["manager", "admin"]);
+    const projectId = url.searchParams.get("project_id") || null;
+    const projects = await store.listProjects();
+
+    // Get messages from specified project or all projects
+    let allMessages = [];
+    const targetProjects = projectId
+        ? projects.filter((p) => p.id === projectId)
+        : projects;
+
+    for (const project of targetProjects) {
+      const messages = (project.recentMessages || [])
+          .filter((m) => ["ready_for_crm", "review"].includes(m.pipelineStatus))
+          .map((m) => ({
+            projectId: project.id,
+            projectName: project.name,
+            messageKey: m.messageKey || m.id,
+            subject: m.subject || "",
+            from: m.from || m.analysis?.sender?.email || "",
+            fromName: m.analysis?.sender?.fullName || "",
+            companyName: m.analysis?.sender?.companyName || "",
+            pipelineStatus: m.pipelineStatus,
+            classification: m.analysis?.classification?.label || "",
+            detectedBrands: m.analysis?.detectedBrands || [],
+            articles: m.analysis?.lead?.articles || [],
+            productNames: m.analysis?.lead?.productNames || [],
+            detectedProductTypes: m.analysis?.lead?.detectedProductTypes || [],
+            lineItems: m.analysis?.lead?.lineItems || [],
+            totalPositions: m.analysis?.lead?.totalPositions || 0,
+            urgency: m.analysis?.lead?.urgency || "normal",
+            bodyPreview: (m.bodyPreview || m.analysis?.lead?.freeText || "").slice(0, 300),
+            attachments: (m.attachmentFiles || m.attachments || []).map((a) => typeof a === "string" ? a : (a.filename || a.name || "")),
+            moderationVerdict: m.moderationVerdict || null,
+            moderationComment: m.moderationComment || null,
+            moderatedBy: m.moderatedBy || null,
+            moderatedAt: m.moderatedAt || null,
+            createdAt: m.createdAt || null
+          }));
+      allMessages.push(...messages);
+    }
+
+    // Sort by date descending
+    allMessages.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+
+    return sendJson(res, 200, { messages: allMessages, total: allMessages.length, user: user.fullName });
+  }
+
+  const moderateMatch = url.pathname.match(/^\/api\/manager\/moderate\/([^/]+)$/);
+  if (req.method === "POST" && moderateMatch) {
+    const user = requireAuth(req, ["manager", "admin"]);
+    const payload = await parseRequestJson(req);
+    const verdict = payload.verdict;
+
+    if (!["approved", "needs_rework"].includes(verdict)) {
+      return sendJson(res, 400, { error: "Field 'verdict' must be 'approved' or 'needs_rework'." });
+    }
+    if (verdict === "needs_rework" && !payload.comment?.trim()) {
+      return sendJson(res, 400, { error: "Field 'comment' is required when verdict is 'needs_rework'." });
+    }
+
+    const projectId = payload.projectId || "mailroom-primary";
+    const messageKey = decodeURIComponent(moderateMatch[1]);
+
+    const result = await store.applyMessageFeedback(projectId, messageKey, {
+      moderationVerdict: verdict,
+      moderationComment: payload.comment || "",
+      moderatedBy: user.fullName
+    });
+
+    if (!result) return sendJson(res, 404, { error: "Message not found." });
+
+    // Determine new status based on verdict
+    const newStatus = verdict === "approved" ? "ready_for_crm" : "review";
+    notifyStatusChange(projectId, messageKey, newStatus);
+    return sendJson(res, 200, result);
+  }
+
   if (req.method === "GET" && url.pathname === "/api/health") {
     return sendJson(res, 200, {
       ok: true,
@@ -142,7 +384,10 @@ async function handleApi(req, res, url) {
         role: backgroundRole,
         schedulerEnabled: shouldRunScheduler(backgroundRole),
         webhooksEnabled: shouldRunWebhooks(backgroundRole)
-      }
+      },
+      ai: getAiConfig(),
+      sse: { clients: sseClients.size },
+      rateLimit: { max: RATE_LIMIT_MAX, windowSeconds: RATE_LIMIT_WINDOW_MS / 1000 }
     });
   }
 
@@ -238,6 +483,23 @@ async function handleApi(req, res, url) {
   if (req.method === "DELETE" && url.pathname === "/api/detection-kb/brand-catalog") {
     const result = detectionKb.clearBrandAliases();
     return sendJson(res, 200, result);
+  }
+
+  // ── Corpus search (FTS5) ──
+  if (req.method === "GET" && url.pathname === "/api/detection-kb/corpus/search") {
+    const q = url.searchParams.get("q") || "";
+    const projectId = url.searchParams.get("project_id") || null;
+    const limit = Math.min(Number(url.searchParams.get("limit")) || 50, 200);
+    if (!q.trim()) {
+      return sendJson(res, 400, { error: "Query parameter 'q' is required." });
+    }
+    const results = detectionKb.searchCorpus(q, { projectId, limit });
+    return sendJson(res, 200, { results, total: results.length, query: q });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/detection-kb/corpus/rebuild-index") {
+    detectionKb.rebuildFtsIndex();
+    return sendJson(res, 200, { ok: true, message: "FTS index rebuilt" });
   }
 
   // ── API Clients management ──
@@ -525,9 +787,40 @@ async function handleApi(req, res, url) {
       return sendJson(res, 400, { error: "Field 'pipelineStatus' is required." });
     }
 
-    const result = await store.updateMessageStatus(project.id, decodeURIComponent(messagePatchMatch[2]), payload.pipelineStatus);
+    const msgKey = decodeURIComponent(messagePatchMatch[2]);
+    const result = await store.updateMessageStatus(project.id, msgKey, payload.pipelineStatus);
     if (!result) {
       return sendJson(res, 404, { error: "Message not found." });
+    }
+
+    notifyStatusChange(project.id, msgKey, payload.pipelineStatus);
+    return sendJson(res, 200, result);
+  }
+
+  // ── Feedback endpoint ──
+  const messageFeedbackMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages\/([^/]+)\/feedback$/);
+  if (req.method === "POST" && messageFeedbackMatch) {
+    const project = await store.getProject(messageFeedbackMatch[1]);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+    const payload = await parseRequestJson(req);
+    const result = await store.applyMessageFeedback(
+      project.id,
+      decodeURIComponent(messageFeedbackMatch[2]),
+      payload
+    );
+    if (!result) {
+      return sendJson(res, 404, { error: "Message not found." });
+    }
+
+    // Auto-learn: if brands were added, update brand_aliases in KB
+    if (payload.addBrands?.length) {
+      for (const brand of payload.addBrands) {
+        try {
+          detectionKb.addBrandAlias({ canonicalBrand: brand, alias: brand.toLowerCase() });
+        } catch { /* duplicate ok */ }
+      }
     }
 
     return sendJson(res, 200, result);
@@ -572,8 +865,9 @@ async function handleApi(req, res, url) {
       return sendJson(res, 400, { error: "Fields 'fromEmail' and 'body' are required." });
     }
 
-    const analysis = analyzeEmail(project, payload);
+    const analysis = await analyzeEmailAsync(project, payload);
     await store.appendAnalysis(project.id, analysis);
+    notifyNewMessages(project.id, 1, "analyze");
     return sendJson(res, 200, { analysis });
   }
 
@@ -585,6 +879,96 @@ async function handleApi(req, res, url) {
     }
 
     return sendJson(res, 200, { project });
+  }
+
+  // ── CRM Sync ──
+  const crmConfigMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/crm-config$/);
+  if (req.method === "GET" && crmConfigMatch) {
+    const project = await store.getProject(crmConfigMatch[1]);
+    if (!project) return sendJson(res, 404, { error: "Project not found." });
+    return sendJson(res, 200, { config: getCrmConfig(project) });
+  }
+
+  if (req.method === "PUT" && crmConfigMatch) {
+    const project = await store.getProject(crmConfigMatch[1]);
+    if (!project) return sendJson(res, 404, { error: "Project not found." });
+    const payload = await parseRequestJson(req);
+    project.crmConfig = {
+      enabled: Boolean(payload.enabled),
+      type: String(payload.type || "generic").toLowerCase(),
+      baseUrl: String(payload.baseUrl || "").trim(),
+      apiKey: String(payload.apiKey || "").trim(),
+      pipelineId: payload.pipelineId ? Number(payload.pipelineId) : null,
+      statusId: payload.statusId ? Number(payload.statusId) : null,
+      responsibleUserId: payload.responsibleUserId || null,
+      responsibleId: payload.responsibleId || null,
+      sourceId: payload.sourceId || "EMAIL"
+    };
+    await store.persist();
+    return sendJson(res, 200, { config: project.crmConfig });
+  }
+
+  const crmSyncMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/crm-sync$/);
+  if (req.method === "POST" && crmSyncMatch) {
+    const project = await store.getProject(crmSyncMatch[1]);
+    if (!project) return sendJson(res, 404, { error: "Project not found." });
+    const payload = await parseRequestJson(req);
+    const { normalizeIntegrationMessage } = await import("./services/integration-api.js");
+    const result = await syncProjectToCrm(project, store, (proj, msg, opts) =>
+      normalizeIntegrationMessage(proj, msg, opts), {
+      limit: payload.limit || 50,
+      dryRun: payload.dryRun || false
+    });
+    if (result.synced > 0) notifyNewMessages(project.id, result.synced, "crm-sync");
+    return sendJson(res, 200, result);
+  }
+
+  // ── CRM Webhook callback (external CRM pushes status back) ──
+  const crmCallbackMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/crm-callback$/);
+  if (req.method === "POST" && crmCallbackMatch) {
+    const project = await store.getProject(crmCallbackMatch[1]);
+    if (!project) return sendJson(res, 404, { error: "Project not found." });
+    const payload = await parseRequestJson(req);
+    const messageKey = payload.messageKey || payload.message_key;
+    const externalStatus = payload.status || payload.externalStatus;
+    if (!messageKey) return sendJson(res, 400, { error: "Field 'messageKey' is required." });
+
+    // Map CRM status to pipeline status
+    const statusMap = {
+      won: "ready_for_crm",
+      lost: "review",
+      processed: "ready_for_crm",
+      rejected: "review",
+      clarification: "needs_clarification"
+    };
+    const newStatus = statusMap[externalStatus] || null;
+
+    const result = { messageKey, externalStatus, synced: false };
+    if (newStatus) {
+      await store.updateMessageStatus(project.id, messageKey, newStatus);
+      notifyStatusChange(project.id, messageKey, newStatus);
+      result.synced = true;
+      result.pipelineStatus = newStatus;
+    }
+
+    if (payload.externalId) {
+      const config = getCrmConfig(project);
+      await store.acknowledgeMessageExport(project.id, messageKey, {
+        consumer: `crm-${config.type || "generic"}`,
+        externalId: payload.externalId,
+        note: `CRM callback: ${externalStatus}`
+      });
+    }
+
+    return sendJson(res, 200, result);
+  }
+
+  // ── Swagger UI ──
+  if (req.method === "GET" && (url.pathname === "/docs" || url.pathname === "/docs/")) {
+    const baseUrl = `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`;
+    res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
+    res.end(buildSwaggerUiPage(baseUrl));
+    return;
   }
 
   return sendJson(res, 404, { error: "Not found." });
@@ -610,6 +994,20 @@ async function handleIntegrationApi(req, res, url) {
   const currentClient = resolveIntegrationClient(req.headers, activeClients);
   if (!currentClient) {
     return sendJson(res, 401, { error: "Unauthorized. Provide x-api-key or Bearer token." });
+  }
+
+  // Rate limiting
+  const rateResult = checkRateLimit(currentClient.id);
+  res.setHeader("X-RateLimit-Limit", RATE_LIMIT_MAX);
+  res.setHeader("X-RateLimit-Remaining", rateResult.remaining);
+  if (!rateResult.allowed) {
+    res.setHeader("Retry-After", rateResult.retryAfter);
+    return sendJson(res, 429, {
+      error: "Rate limit exceeded. Try again later.",
+      retryAfter: rateResult.retryAfter,
+      limit: RATE_LIMIT_MAX,
+      windowSeconds: RATE_LIMIT_WINDOW_MS / 1000
+    });
   }
 
   if (req.method === "GET" && url.pathname === "/api/integration/health") {
@@ -677,6 +1075,32 @@ async function handleIntegrationApi(req, res, url) {
     }, {
       consumerId: currentClient.id
     }));
+  }
+
+  // ── Bulk acknowledge ──
+  const integrationBulkAckMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages\/ack$/);
+  if (req.method === "POST" && integrationBulkAckMatch) {
+    const projectId = decodeURIComponent(integrationBulkAckMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
+    const payload = await parseRequestJson(req);
+    if (!Array.isArray(payload.messages) || payload.messages.length === 0) {
+      return sendJson(res, 400, { error: "Field 'messages' must be a non-empty array." });
+    }
+    if (payload.messages.length > 200) {
+      return sendJson(res, 400, { error: "Maximum 200 messages per batch." });
+    }
+    const results = await store.bulkAcknowledgeExport(projectId, payload.messages, {
+      consumer: currentClient.id
+    });
+    if (!results) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+    const acknowledged = results.filter((r) => r.acknowledged && !r.skipped).length;
+    const skipped = results.filter((r) => r.skipped).length;
+    const failed = results.filter((r) => !r.acknowledged).length;
+    return sendJson(res, 200, { data: results, summary: { acknowledged, skipped, failed, total: results.length } });
   }
 
   const integrationAckMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages\/([^/]+)\/ack$/);
@@ -822,4 +1246,35 @@ function contentType(filePath) {
   }
 
   return "text/html; charset=utf-8";
+}
+
+function buildSwaggerUiPage(baseUrl) {
+  const specUrl = `${baseUrl}/api/integration/openapi.json`;
+  return `<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Pochta API — Swagger UI</title>
+  <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui.css">
+  <style>
+    body { margin: 0; background: #fafafa; }
+    .topbar { display: none !important; }
+    .swagger-ui .info { margin: 20px 0; }
+  </style>
+</head>
+<body>
+  <div id="swagger-ui"></div>
+  <script src="https://cdn.jsdelivr.net/npm/swagger-ui-dist@5/swagger-ui-bundle.js"></script>
+  <script>
+    SwaggerUIBundle({
+      url: ${JSON.stringify(specUrl)},
+      dom_id: '#swagger-ui',
+      deepLinking: true,
+      presets: [SwaggerUIBundle.presets.apis, SwaggerUIBundle.SwaggerUIStandalonePreset],
+      layout: "BaseLayout"
+    });
+  </script>
+</body>
+</html>`;
 }

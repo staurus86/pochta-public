@@ -22,6 +22,7 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
     from: message.from || "",
     body_preview: message.bodyPreview || "",
     pipeline_status: message.pipelineStatus || "unknown",
+    thread_id: message.threadId || null,
     export: {
       acknowledged: Boolean(exportState?.acknowledgedAt),
       acknowledged_at: exportState?.acknowledgedAt || null,
@@ -79,6 +80,13 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
         description_ru: item.descriptionRu || null
       })),
       detected_brands: lead.detectedBrands || analysis.detectedBrands || [],
+      detected_product_types: lead.detectedProductTypes || [],
+      product_names: (lead.productNames || []).map((p) => ({
+        article: p.article,
+        name: p.name,
+        category: p.category
+      })),
+      urgency: lead.urgency || "normal",
       has_nameplate_photos: Boolean(lead.hasNameplatePhotos),
       has_article_photos: Boolean(lead.hasArticlePhotos)
     },
@@ -107,6 +115,13 @@ export function listIntegrationMessages(project, query = {}, options = {}) {
   const since = parseSince(query.since);
   const exported = parseBooleanFilter(query.exported);
   const cursor = parseCursor(query.cursor);
+  const brandFilter = parseBrandFilter(query.brand);
+  const labelFilter = parseLabelFilter(query.label);
+  const searchQuery = parseSearchQuery(query.q);
+  const hasAttachments = parseBooleanFilter(query.has_attachments);
+  const attachmentExtFilter = parseAttachmentExtFilter(query.attachment_ext);
+  const minAttachments = normalizePositiveInt(query.min_attachments, 0);
+  const productTypeFilter = parseProductTypeFilter(query.product_type);
 
   const allMessages = (project.recentMessages || [])
     .filter((item) => statuses.length === 0 || statuses.includes(item.pipelineStatus))
@@ -118,6 +133,51 @@ export function listIntegrationMessages(project, query = {}, options = {}) {
 
       const updatedAt = resolveMessageUpdatedAt(item);
       return updatedAt ? Date.parse(updatedAt) >= since.getTime() : false;
+    })
+    .filter((item) => {
+      if (!brandFilter) return true;
+      const brands = (item.detectedBrands || item.analysis?.detectedBrands || [])
+        .map((b) => String(b).toLowerCase());
+      return brands.some((b) => b.includes(brandFilter));
+    })
+    .filter((item) => {
+      if (!labelFilter) return true;
+      const label = String(item.classification || item.analysis?.classification || "").toLowerCase();
+      return label === labelFilter;
+    })
+    .filter((item) => {
+      if (!searchQuery) return true;
+      const haystack = [
+        item.subject || "",
+        item.bodyPreview || "",
+        item.fromEmail || "",
+        item.companyName || item.analysis?.companyName || "",
+        ...(item.detectedBrands || item.analysis?.detectedBrands || [])
+      ].join(" ").toLowerCase();
+      return searchQuery.every((term) => haystack.includes(term));
+    })
+    .filter((item) => {
+      if (hasAttachments === null) return true;
+      const attachCount = (item.attachmentFiles || item.attachments || []).length;
+      return hasAttachments ? attachCount > 0 : attachCount === 0;
+    })
+    .filter((item) => {
+      if (!attachmentExtFilter) return true;
+      const files = (item.attachmentFiles || item.attachments || []);
+      const fileNames = files.map((f) => typeof f === "string" ? f : (f.filename || f.name || ""));
+      return fileNames.some((name) => {
+        const ext = name.split(".").pop()?.toLowerCase();
+        return ext && attachmentExtFilter.includes(ext);
+      });
+    })
+    .filter((item) => {
+      if (!minAttachments) return true;
+      return (item.attachmentFiles || item.attachments || []).length >= minAttachments;
+    })
+    .filter((item) => {
+      if (!productTypeFilter) return true;
+      const types = item.analysis?.lead?.detectedProductTypes || [];
+      return productTypeFilter.some((t) => types.includes(t));
     })
     .sort(compareMessagesDesc);
 
@@ -142,6 +202,13 @@ export function listIntegrationMessages(project, query = {}, options = {}) {
     meta: {
       statuses,
       exported,
+      brand: brandFilter,
+      label: labelFilter,
+      q: searchQuery ? searchQuery.join(" ") : null,
+      has_attachments: hasAttachments,
+      attachment_ext: attachmentExtFilter,
+      min_attachments: minAttachments || null,
+      product_type: productTypeFilter,
       since: since ? since.toISOString() : null,
       cursor: cursor ? encodeCursor(cursor) : null,
       next_cursor: hasMore && lastItem ? encodeCursor({
@@ -301,6 +368,35 @@ function parseBooleanFilter(value) {
   }
 
   return null;
+}
+
+function parseBrandFilter(value) {
+  const text = String(value || "").trim().toLowerCase();
+  return text || null;
+}
+
+function parseLabelFilter(value) {
+  const text = String(value || "").trim().toLowerCase();
+  const valid = ["client", "spam", "vendor", "unknown"];
+  return valid.includes(text) ? text : null;
+}
+
+function parseSearchQuery(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (!text) return null;
+  return text.split(/\s+/).filter(Boolean);
+}
+
+function parseAttachmentExtFilter(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (!text) return null;
+  return text.split(",").map((e) => e.trim().replace(/^\./, "")).filter(Boolean);
+}
+
+function parseProductTypeFilter(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (!text) return null;
+  return text.split(",").map((t) => t.trim()).filter(Boolean);
 }
 
 function parseCursor(value) {

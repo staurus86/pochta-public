@@ -104,7 +104,7 @@
           <div class="grid-2" style="margin-bottom:16px;">
             <!-- Top senders -->
             <div class="panel">
-              <div class="panel-header"><h3>Топ отправители</h3></div>
+              <div class="panel-header"><h3>Топ домены отправителей</h3></div>
               <div class="panel-body no-pad" id="top-senders"></div>
             </div>
             <!-- Top brands -->
@@ -162,6 +162,18 @@
             </div>
           </div>
 
+          <!-- ═══ Accuracy & Trends ═══ -->
+          <div class="grid-2" style="margin-bottom:16px;">
+            <div class="panel">
+              <div class="panel-header"><h3>Точность детекции</h3></div>
+              <div class="panel-body" id="accuracy-metrics" style="min-height:80px;"></div>
+            </div>
+            <div class="panel">
+              <div class="panel-header"><h3>Тренды по неделям</h3></div>
+              <div class="panel-body" id="weekly-trends" style="min-height:140px;"></div>
+            </div>
+          </div>
+
           <div class="panel">
             <div class="panel-header"><h3>Последние запуски</h3></div>
             <div class="panel-body no-pad">
@@ -190,6 +202,7 @@
             </div>
             <button class="btn btn-danger btn-sm" id="inbox-delete-all-btn">Удалить все</button>
             <button class="btn btn-ghost btn-sm" id="inbox-export-csv-btn">CSV</button>
+            <button class="btn btn-ghost btn-sm" id="inbox-export-xlsx-btn">XLSX</button>
             <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
               <select class="form-select" id="inbox-mailbox-filter" style="font-size:11px;padding:6px 8px;width:140px;">
                 <option value="">Все ящики</option>
@@ -211,6 +224,10 @@
                 <option value="confidence-desc">Высокий conf.</option>
                 <option value="mailbox">По ящику</option>
               </select>
+              <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);cursor:pointer;" title="Группировать по цепочкам (тема + отправитель)">
+                <input type="checkbox" id="inbox-group-threads" style="margin:0;">
+                Треды
+              </label>
               <select class="form-select" id="inbox-auto-refresh" style="font-size:11px;padding:6px 8px;width:100px;" title="Авто-обновление">
                 <option value="0">Авто: выкл</option>
                 <option value="30">30 сек</option>
@@ -459,6 +476,7 @@ https://promsnab.ru</textarea>
               <button class="tab active" data-kb-tab="rules">Правила</button>
               <button class="tab" data-kb-tab="brands">Бренды</button>
               <button class="tab" data-kb-tab="senders">Профили</button>
+              <button class="tab" data-kb-tab="search">Поиск</button>
               <button class="tab" data-kb-tab="stats">Статистика</button>
             </div>
             <div class="panel-body no-pad" id="kb-content"></div>
@@ -487,6 +505,14 @@ https://promsnab.ru</textarea>
               <button class="btn btn-primary btn-sm" id="create-api-client-btn">+ Создать клиента</button>
             </div>
             <div class="panel-body no-pad" id="api-clients-list"></div>
+          </div>
+
+          <div class="panel" style="margin-bottom:16px;">
+            <div class="panel-header">
+              <h3>CRM Integration</h3>
+              <button class="btn btn-primary btn-sm" id="crm-sync-btn">Sync Now</button>
+            </div>
+            <div class="panel-body" id="crm-config-panel"></div>
           </div>
 
           <div class="panel" style="margin-bottom:16px;">
