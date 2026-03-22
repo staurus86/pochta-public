@@ -295,14 +295,20 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const attachmentsText = attachments.join(" ");
   const hasNameplatePhotos = /шильд|nameplate/i.test(attachmentsText);
   const hasArticlePhotos = /артик|sku|label/i.test(attachmentsText);
-  const lineItems = extractLineItems(body).filter((item) => isLikelyArticle(item.article, forbiddenDigits, item.descriptionRu));
+  const lineItems = extractLineItems(body).filter((item) =>
+    item.explicitArticle || isLikelyArticle(item.article, forbiddenDigits, item.descriptionRu)
+  );
   const rawBrands = unique(kbBrands.concat(detectBrands([subject, body, attachmentsText].join("\n"), brands)));
   let detectedBrands = detectionKb.filterOwnBrands(rawBrands);
 
   const attachmentHints = parseAttachmentHints(attachments);
 
   const detectedProductTypes = detectProductTypes([subject, body].join("\n"));
-  const finalArticles = unique(allArticles.concat(lineItems.map((item) => normalizeArticleCode(item.article))).filter(Boolean));
+  const explicitArticles = lineItems
+    .filter((item) => item.explicitArticle)
+    .map((item) => normalizeArticleCode(item.article));
+  const finalArticles = unique(allArticles.concat(lineItems.map((item) => normalizeArticleCode(item.article))).filter(Boolean))
+    .filter((article) => !explicitArticles.some((full) => full !== article && full.includes(article) && article.length + 2 <= full.length));
   const nomenclatureMatches = finalArticles
     .map((article) => {
       const candidates = detectionKb.findNomenclatureCandidates({
@@ -593,8 +599,15 @@ function extractLineItems(body) {
   const lines = body.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const items = [];
 
+  for (const block of parseArticleQtyBlocks(body)) {
+    if (!items.some((item) => normalizeArticleCode(item.article) === normalizeArticleCode(block.article))) {
+      items.push(block);
+    }
+  }
+
   for (const line of lines) {
     if (hasArticleNoiseContext(line)) continue;
+    if (/^Арт\.?\s*:/i.test(line)) continue;
 
     // ── Format: "Description ARTICLE - N шт" (product line with trailing qty) ──
     const productQtyMatch = line.match(PRODUCT_QTY_PATTERN);
@@ -625,7 +638,7 @@ function extractLineItems(body) {
     }
 
     // ── Format: ARTICLE — N шт / ARTICLE - N шт (article code THEN dash-qty) ──
-    const dashMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})\s*[—–-]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?/i);
+    const dashMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})\s*[—–-]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?\.?\s*$/i);
     if (dashMatch && !VOLTAGE_PATTERN.test(dashMatch[1])) {
       items.push({ article: normalizeArticleCode(dashMatch[1]), quantity: Math.round(parseFloat(dashMatch[2].replace(",", "."))) || 1, unit: dashMatch[3] || "шт", descriptionRu: line });
       continue;
@@ -655,6 +668,62 @@ function extractLineItems(body) {
   }
 
   return items;
+}
+
+function parseArticleQtyBlocks(body) {
+  const lines = body.split(/\r?\n/).map((line) => line.trim());
+  const items = [];
+
+  for (let i = 0; i < lines.length; i += 1) {
+    const line = lines[i];
+    const articleMatch = line.match(/^Арт\.?\s*:\s*([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:._]{2,})$/i);
+    if (!articleMatch) continue;
+
+    const article = normalizeArticleCode(articleMatch[1]);
+    let unit = "шт";
+    let quantity = 1;
+
+    const unitIndex = findNextNonEmptyLine(lines, i + 1);
+    const quantityIndex = unitIndex >= 0 ? findNextNonEmptyLine(lines, unitIndex + 1) : -1;
+
+    if (unitIndex >= 0 && /^(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?)\.?$/i.test(lines[unitIndex])) {
+      unit = lines[unitIndex].replace(/\.$/, "").toLowerCase();
+      if (quantityIndex >= 0 && /^\d+(?:[.,]\d+)?$/.test(lines[quantityIndex])) {
+        quantity = Math.round(parseFloat(lines[quantityIndex].replace(",", "."))) || 1;
+      }
+    }
+
+    const descriptionLines = [];
+    let j = i - 1;
+    while (j >= 0) {
+      const prev = String(lines[j] || "").trim();
+      if (!prev) break;
+      if (/^Арт\.?\s*:/i.test(prev)) break;
+      if (/^(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?)\.?$/i.test(prev)) break;
+      if (/^\d+(?:[.,]\d+)?$/.test(prev)) break;
+      if (INN_PATTERN.test(prev) || KPP_PATTERN.test(prev) || OGRN_PATTERN.test(prev)) break;
+      if (/^(с уважением|best regards|regards|спасибо)/i.test(prev)) break;
+      descriptionLines.unshift(prev);
+      j -= 1;
+    }
+
+    items.push({
+      article,
+      quantity,
+      unit,
+      descriptionRu: descriptionLines.join(" ").trim() || line,
+      explicitArticle: true
+    });
+  }
+
+  return items.filter((item) => item.article && item.article.length >= 3);
+}
+
+function findNextNonEmptyLine(lines, startIndex) {
+  for (let i = startIndex; i < lines.length; i += 1) {
+    if (String(lines[i] || "").trim()) return i;
+  }
+  return -1;
 }
 
 /**

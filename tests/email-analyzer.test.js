@@ -720,6 +720,46 @@ runTest("does not detect noisy short alias TOP as brand", () => {
   assert.ok(!result.detectedBrands.includes("TOP"));
 });
 
+runTest("parses vertical article-unit-quantity blocks without taking qty from article tail", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@it-mo.ru",
+    subject: "Заявка",
+    body: `соединение RIX
+ESX20S-9534Y
+Арт.: H0019-0008-28
+шт.
+3
+Узел
+гидравлического
+зажима
+Арт.: 95.101.808.2.2
+шт.
+1
+Встроенная
+зажимная головка
+Арт.: 9510451992
+шт.
+1
+Ротационное
+соединение. Rotary
+joint
+Арт.: 1114-160-318
+шт.
+1
+
+ООО «ИТ-МО» ИНН7702802784
+
+С Уважением
+Артем Алексеевич`
+  });
+
+  assert.ok(result.lead.lineItems.some((item) => item.article === "H0019-0008-28" && item.quantity === 3));
+  assert.ok(result.lead.lineItems.some((item) => item.article === "95.101.808.2.2" && item.quantity === 1));
+  assert.ok(result.lead.lineItems.some((item) => item.article === "9510451992" && item.quantity === 1));
+  assert.ok(result.lead.lineItems.some((item) => item.article === "1114-160-318" && item.quantity === 1));
+  assert.ok(!result.lead.lineItems.some((item) => item.quantity === 9534));
+});
+
 // ═══ Urgency detection tests ═══
 
 runTest("extractLead detects urgent requests", () => {
