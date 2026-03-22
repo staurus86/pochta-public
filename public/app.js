@@ -1590,6 +1590,7 @@ function renderEmailView(msg, viewEl, detailEl) {
   const productNameList = getLeadProductNameList(lead);
   const leadFields = [['Тип запроса', lead.requestType], ['Бренды', formatArr(a.detectedBrands || lead.detectedBrands)], ['Артикулы', formatArr(lead.articles)], ['Названия товара', formatArr(productNameList)], ['Позиций', lead.totalPositions], ['Фото шильдика', lead.hasNameplatePhotos ? 'Да' : null], ['Фото артикула', lead.hasArticlePhotos ? 'Да' : null]];
   const crmFields = [['Юрлицо найдено', crm.isExistingCompany ? 'Да' : 'Нет'], ['Компания CRM', crm.company?.legalName], ['МОП', crm.curatorMop], ['МОЗ', crm.curatorMoz], ['Уточнение', crm.needsClarification ? 'Требуется' : 'Нет']];
+  const attachmentFiles = a.attachmentAnalysis?.files || [];
 
   try {
   detailEl.innerHTML = `
@@ -1610,6 +1611,12 @@ function renderEmailView(msg, viewEl, detailEl) {
       ${leadFields.filter(([,v]) => v).map(([l,v]) => detailField(l, v)).join('')}
       ${lead.lineItems?.length ? `<div style="margin-top:8px;"><table class="data-table" style="font-size:11px;"><thead><tr><th>Артикул</th><th>Наименование</th><th>Кол-во</th><th>Ед.</th></tr></thead><tbody>${lead.lineItems.map((li) => `<tr><td>${esc(li.article)}</td><td style="min-width:180px;color:var(--text-secondary);">${esc(truncate(getLineItemName(li, lead), 90) || '—')}</td><td>${li.quantity}</td><td>${esc(li.unit)}</td></tr>`).join('')}</tbody></table></div>` : ''}
     </div>
+    ${attachmentFiles.length ? `<div class="detail-section">
+      <div class="detail-section-title">Вложения</div>
+      <div style="display:flex;flex-direction:column;gap:8px;">
+        ${attachmentFiles.map((file) => renderAttachmentAnalysisCard(file)).join('')}
+      </div>
+    </div>` : ''}
     <div class="detail-section">
       <div class="detail-section-title">CRM</div>
       ${crmFields.filter(([,v]) => v).map(([l,v]) => detailField(l, v)).join('')}
@@ -2037,6 +2044,31 @@ function cleanupProductName(value) {
   if (/^(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?)\.?$/i.test(text)) return '';
   if (/^\d+(?:[.,]\d+)?$/.test(text)) return '';
   return text;
+}
+
+function renderAttachmentAnalysisCard(file) {
+  const status = file.status === 'processed'
+    ? '<span class="badge badge-client">обработан</span>'
+    : '<span class="badge badge-unknown">пропущен</span>';
+  const reason = file.reason ? `<div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Причина: ${esc(file.reason)}</div>` : '';
+  const detected = [
+    file.detectedArticles?.length ? `Артикулы: ${file.detectedArticles.slice(0, 5).join(', ')}` : '',
+    file.detectedInn?.length ? `ИНН: ${file.detectedInn.slice(0, 3).join(', ')}` : '',
+    file.detectedKpp?.length ? `КПП: ${file.detectedKpp.slice(0, 3).join(', ')}` : '',
+    file.detectedOgrn?.length ? `ОГРН: ${file.detectedOgrn.slice(0, 3).join(', ')}` : ''
+  ].filter(Boolean);
+
+  return `<div style="padding:8px 10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-0);">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;">
+      <div style="min-width:0;">
+        <div style="font-size:11px;font-weight:600;color:var(--text);word-break:break-word;">${esc(file.filename || 'Без имени')}</div>
+        <div style="font-size:10px;color:var(--text-muted);margin-top:2px;">${esc(file.category || 'other')}${file.extractedChars ? `, текст ${file.extractedChars} симв.` : ''}</div>
+      </div>
+      ${status}
+    </div>
+    ${detected.length ? `<div style="font-size:10px;color:var(--text-secondary);margin-top:6px;">${esc(detected.join(' | '))}</div>` : ''}
+    ${reason}
+  </div>`;
 }
 
 function detailField(label, value) {

@@ -2,6 +2,7 @@ import { randomUUID } from "node:crypto";
 import { readFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { analyzeStoredAttachments } from "./attachment-content.js";
 import { matchCompanyInCrm } from "./crm-matcher.js";
 import { detectionKb } from "./detection-kb.js";
 import { hybridClassify, isAiEnabled, getAiConfig } from "./ai-classifier.js";
@@ -119,6 +120,12 @@ export function analyzeEmail(project, payload) {
     }
   }
   const attachments = normalizeAttachments(payload.attachments);
+  const attachmentAnalysis = analyzeStoredAttachments(
+    payload.messageKey || payload.id || "",
+    payload.attachmentFiles || [],
+    payload.attachmentProcessingOptions || {}
+  );
+  const attachmentContent = attachmentAnalysis.combinedText || "";
 
   // If this is a forwarded email, extract original sender from body
   const fwdInfo = extractForwardedSender(body);
@@ -129,19 +136,19 @@ export function analyzeEmail(project, payload) {
     }
   }
 
-  const normalizedText = [subject, body, attachments.join(" ")].join("\n");
+  const normalizedText = [subject, body, attachments.join(" "), attachmentContent].join("\n");
 
   const classification = classifyMessage({
     subject,
-    body: primaryBody || body,
+    body: [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n"),
     attachments,
     fromEmail,
     projectBrands: project.brands || []
   });
   // Filter own brands (Siderus, Коловрат, etc.) from classification results
   classification.detectedBrands = detectionKb.filterOwnBrands(classification.detectedBrands);
-  const sender = extractSender(fromName, fromEmail, bodyForSender, attachments);
-  const lead = extractLead(subject, primaryBody || body, attachments, project.brands || [], classification.detectedBrands);
+  const sender = extractSender(fromName, fromEmail, [bodyForSender, attachmentContent].filter(Boolean).join("\n\n"), attachments);
+  const lead = extractLead(subject, [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n"), attachments, project.brands || [], classification.detectedBrands);
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands, lead });
 
   const suggestedReply = buildSuggestedReply(classification.label, sender, lead, crm);
@@ -161,9 +168,12 @@ export function analyzeEmail(project, payload) {
       subject,
       attachments
     },
+    attachmentAnalysis,
     extractionMeta: {
       signatureDetected: Boolean(signature),
-      quotedTextDetected: Boolean(quotedContent)
+      quotedTextDetected: Boolean(quotedContent),
+      attachmentsProcessed: attachmentAnalysis.meta.processedCount,
+      attachmentsSkipped: attachmentAnalysis.meta.skippedCount
     }
   };
 }

@@ -67,27 +67,9 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
   const analyzedEmails = [];
   for (const item of filteredEmails) {
     const { fromName, fromEmail } = splitFromHeader(item.from);
-    const analysis = analyzeEmail(analysisProject, {
-      fromName,
-      fromEmail,
-      subject: item.subject,
-      body: item.body || item.error,
-      attachments: item.attachments || []
-    });
-
-    const pipelineStatus = item.error
-      ? "fetch_error"
-      : analysis.classification.label === "СПАМ"
-        ? "ignored_spam"
-        : analysis.classification.label === "Клиент"
-          ? "ready_for_crm"
-          : analysis.crm?.needsClarification
-            ? "needs_clarification"
-            : "review";
-
     const messageKey = createMessageKey(item, fromEmail);
 
-    // Save attachment files to disk
+    // Save attachment files to disk before analysis so the analyzer can read them.
     const attachmentFiles = [];
     if (Array.isArray(item.attachmentData)) {
       for (const att of item.attachmentData) {
@@ -104,6 +86,26 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
         }
       }
     }
+
+    const analysis = analyzeEmail(analysisProject, {
+      messageKey,
+      fromName,
+      fromEmail,
+      subject: item.subject,
+      body: item.body || item.error,
+      attachments: item.attachments || [],
+      attachmentFiles
+    });
+
+    const pipelineStatus = item.error
+      ? "fetch_error"
+      : analysis.classification.label === "СПАМ"
+        ? "ignored_spam"
+        : analysis.classification.label === "Клиент"
+          ? "ready_for_crm"
+          : analysis.crm?.needsClarification
+            ? "needs_clarification"
+            : "review";
 
     analyzedEmails.push({
       id: randomUUID(),
@@ -186,11 +188,13 @@ export async function reprocessMailboxMessages(project, options = {}) {
   for (const message of sourceMessages) {
     const { fromName, fromEmail } = splitFromHeader(message.from);
     const analysis = analyzeEmail(analysisProject, {
+      messageKey: message.messageKey || message.id,
       fromName,
       fromEmail,
       subject: message.subject,
       body: message.bodyPreview || "",
-      attachments: message.attachments || []
+      attachments: message.attachments || [],
+      attachmentFiles: message.attachmentFiles || []
     });
     const computedStatus = resolvePipelineStatus(message.error, analysis);
     const nextStatus = preserveStatus ? message.pipelineStatus : computedStatus;

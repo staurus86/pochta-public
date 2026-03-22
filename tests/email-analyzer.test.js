@@ -1,4 +1,6 @@
 import assert from "node:assert/strict";
+import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import path from "node:path";
 import { analyzeEmail } from "../src/services/email-analyzer.js";
 import { detectionKb } from "../src/services/detection-kb.js";
 
@@ -38,6 +40,19 @@ function runTest(name, fn) {
     console.error(`FAIL ${name}`);
     console.error(error);
     process.exitCode = 1;
+  }
+}
+
+function withStoredAttachment(messageKey, filename, contents, fn) {
+  const dir = path.resolve(process.cwd(), "data", "attachments", messageKey);
+  mkdirSync(dir, { recursive: true });
+  const safeName = filename.replace(/[<>:"/\\|?*]/g, "_");
+  const filePath = path.join(dir, safeName);
+  writeFileSync(filePath, contents);
+  try {
+    return fn({ safeName, size: Buffer.byteLength(contents) });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
   }
 }
 
@@ -609,6 +624,70 @@ runTest("extractLead trims product name noise around line item requests", () => 
   const match = result.lead.productNames.find((item) => item.article === "MSS-T25L03-GX16-2");
   assert.ok(match, "Should have a product name entry for MSS-T25L03-GX16-2");
   assert.equal(match.name, "Модуль канавочный левый");
+});
+
+runTest("extracts requisites and article data from stored txt attachment", () => {
+  const messageKey = "attach-test-msg-1";
+  withStoredAttachment(
+    messageKey,
+    "rekvizity.txt",
+    'ООО "Энергия"\nИНН 7702802784\nКПП 770201001\nОГРН 1234567890123\nАртикул MSS-T25L03-GX16-2\nКоличество 30 шт',
+    ({ safeName, size }) => {
+      const result = analyzeEmail(project, {
+        messageKey,
+        fromEmail: "buyer@energy.ru",
+        subject: "Запрос",
+        body: "См. вложение",
+        attachments: ["rekvizity.txt"],
+        attachmentFiles: [{ filename: "rekvizity.txt", safeName, size, contentType: "text/plain" }]
+      });
+
+      assert.equal(result.sender.inn, "7702802784");
+      assert.equal(result.sender.kpp, "770201001");
+      assert.equal(result.sender.ogrn, "1234567890123");
+      assert.ok(result.lead.articles.includes("MSS-T25L03-GX16-2"));
+      assert.equal(result.attachmentAnalysis.meta.processedCount, 1);
+      assert.equal(result.attachmentAnalysis.files[0].status, "processed");
+    }
+  );
+});
+
+runTest("skips oversized stored attachment by limit without breaking analysis", () => {
+  const result = analyzeEmail(project, {
+    messageKey: "attach-test-msg-2",
+    fromEmail: "buyer@energy.ru",
+    subject: "Запрос",
+    body: "См. вложение",
+    attachments: ["big-spec.txt"],
+    attachmentFiles: [{ filename: "big-spec.txt", safeName: "big-spec.txt", size: 9 * 1024 * 1024, contentType: "text/plain" }]
+  });
+
+  assert.equal(result.attachmentAnalysis.meta.processedCount, 0);
+  assert.equal(result.attachmentAnalysis.meta.skippedCount, 1);
+  assert.match(result.attachmentAnalysis.files[0].reason, /file_too_large/);
+});
+
+runTest("skips low quality pdf text so pdf internals do not pollute article detection", () => {
+  const messageKey = "attach-test-msg-3";
+  withStoredAttachment(
+    messageKey,
+    "spec.pdf",
+    "%PDF-1.4 BT /F1 12 Tf (Filter/FlateDecode Type/XObject BaseFont FontDescriptor ColorSpace BitsPerComponent) Tj ET",
+    ({ safeName, size }) => {
+      const result = analyzeEmail(project, {
+        messageKey,
+        fromEmail: "buyer@energy.ru",
+        subject: "Запрос",
+        body: "См. вложение",
+        attachments: ["spec.pdf"],
+        attachmentFiles: [{ filename: "spec.pdf", safeName, size, contentType: "application/pdf" }]
+      });
+
+      assert.equal(result.attachmentAnalysis.meta.processedCount, 0);
+      assert.equal(result.attachmentAnalysis.files[0].reason, "low_quality_pdf_text");
+      assert.deepEqual(result.lead.articles, []);
+    }
+  );
 });
 
 runTest("enriches articles from nomenclature dictionary when name is missing in email", () => {

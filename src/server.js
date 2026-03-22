@@ -741,11 +741,13 @@ async function handleApi(req, res, url) {
         try {
           const body = msg.body || msg.bodyPreview || msg.analysis?.lead?.freeText || "";
           const newAnalysis = analyzeEmail(project, {
+            messageKey: msg.messageKey || msg.id,
             fromEmail: msg.from || msg.analysis?.sender?.email || "",
             fromName: msg.analysis?.sender?.fullName || "",
             subject: msg.subject || "",
             body,
-            attachments: (msg.attachmentFiles || msg.attachments || []).map((a) => typeof a === "string" ? a : a.filename || a.name || "")
+            attachments: (msg.attachmentFiles || msg.attachments || []).map((a) => typeof a === "string" ? a : a.filename || a.name || ""),
+            attachmentFiles: (msg.attachmentFiles || []).map((a) => typeof a === "string" ? { filename: a } : a)
           });
           newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
           msg.analysis = newAnalysis;
