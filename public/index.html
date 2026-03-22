@@ -185,6 +185,11 @@
           </div>
 
           <div class="panel" style="margin-bottom:16px;">
+            <div class="panel-header"><h3>SLA И Приоритет</h3></div>
+            <div class="panel-body" id="sla-queue" style="min-height:120px;"></div>
+          </div>
+
+          <div class="panel" style="margin-bottom:16px;">
             <div class="panel-header"><h3>Quality Audit</h3></div>
             <div class="panel-body no-pad">
               <table class="data-table">
@@ -215,6 +220,7 @@
             <div class="bulk-actions" id="bulk-actions" style="display:none;">
               <span id="bulk-count" style="font-size:11px;color:var(--text-secondary);font-weight:600;"></span>
               <button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green)" id="bulk-request-btn">Заявка</button>
+              <button class="btn btn-sm" style="background:var(--blue-dim);color:var(--blue);border:1px solid var(--blue)" id="bulk-confirm-btn">Подтвердить</button>
               <button class="btn btn-sm" style="background:var(--rose-dim);color:var(--rose);border:1px solid var(--rose)" id="bulk-spam-btn">Спам</button>
               <button class="btn btn-sm" style="background:var(--purple-dim);color:var(--purple);border:1px solid var(--purple)" id="bulk-vendor-btn">Поставщик</button>
               <button class="btn btn-danger btn-sm" id="bulk-delete-btn">Удалить</button>
@@ -247,6 +253,9 @@
                 <option value="attachments_unparsed">Вложения не разобраны</option>
                 <option value="weak_detection">Слабый детект</option>
                 <option value="has_conflicts">Есть конфликты</option>
+                <option value="unconfirmed">Не подтверждены</option>
+                <option value="high_priority">Высокий приоритет</option>
+                <option value="sla_overdue">Просрочены по SLA</option>
                 <option value="all_key_fields">Ключевые поля найдены</option>
                 <option value="fully_parsed">Максимально разобранные</option>
               </select>

@@ -416,6 +416,7 @@ function setupForms() {
 
   // ═══ Bulk actions ═══
   $('#bulk-request-btn').addEventListener('click', () => bulkTrain('client'));
+  $('#bulk-confirm-btn').addEventListener('click', () => bulkConfirmRecognition());
   $('#bulk-spam-btn').addEventListener('click', () => bulkTrain('spam'));
   $('#bulk-vendor-btn').addEventListener('click', () => bulkTrain('vendor'));
   $('#bulk-delete-btn').addEventListener('click', async () => {
@@ -569,6 +570,9 @@ function matchesRecognitionFilter(message, filterValue) {
   if (filterValue === 'attachments_unparsed') return hasAttachments && !summary.parsedAttachment;
   if (filterValue === 'weak_detection') return diagnostics.riskLevel === 'high' || (diagnostics.completenessScore || 0) < 70 || (diagnostics.overallConfidence || 0) < 0.72;
   if (filterValue === 'has_conflicts') return (diagnostics.conflicts || []).length > 0;
+  if (filterValue === 'unconfirmed') return !message.recognitionConfirmed?.at;
+  if (filterValue === 'high_priority') return isHighPriorityMessage(message);
+  if (filterValue === 'sla_overdue') return isSlaOverdue(message);
   if (filterValue === 'all_key_fields') return summary.article && summary.brand && summary.name && summary.phone;
   if (filterValue === 'fully_parsed') {
     return summary.article
@@ -580,6 +584,30 @@ function matchesRecognitionFilter(message, filterValue) {
       && (!hasAttachments || summary.parsedAttachment);
   }
   return true;
+}
+
+function getMessageAgeHours(message) {
+  const createdAt = message?.createdAt ? Date.parse(message.createdAt) : NaN;
+  if (!Number.isFinite(createdAt)) return 0;
+  return Math.max(0, (Date.now() - createdAt) / (1000 * 60 * 60));
+}
+
+function getMessagePriority(message) {
+  return String(message?.analysis?.lead?.recognitionDecision?.priority || 'low').toLowerCase();
+}
+
+function isHighPriorityMessage(message) {
+  const priority = getMessagePriority(message);
+  return priority === 'critical' || priority === 'high';
+}
+
+function isSlaOverdue(message) {
+  const priority = getMessagePriority(message);
+  const ageHours = getMessageAgeHours(message);
+  if (priority === 'critical') return ageHours >= 2;
+  if (priority === 'high') return ageHours >= 8;
+  if (priority === 'medium') return ageHours >= 24;
+  return ageHours >= 48;
 }
 
 function getRecognitionSummary(analysis = {}) {
@@ -998,6 +1026,29 @@ async function bulkTrain(classification) {
   renderInbox();
 }
 
+async function bulkConfirmRecognition() {
+  if (!selectedMsgKeys.size) return;
+  if (!confirm(`Подтвердить как корректно разобранные ${selectedMsgKeys.size} писем?`)) return;
+
+  for (const key of selectedMsgKeys) {
+    const m = allRunnerMessages.find((msg) => mid(msg) === key);
+    const pid = m?._projectId || P3_ID;
+    await fetch(`/api/projects/${pid}/messages/${encodeURIComponent(key)}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirmed: true })
+    });
+    if (m) {
+      m.recognitionConfirmed = { at: new Date().toISOString(), source: 'manual_feedback' };
+    }
+  }
+
+  selectedMsgKeys.clear();
+  showToast('Письма подтверждены');
+  await refreshProjects();
+  await refreshAllMailboxMessages();
+}
+
 // ═══ CSV Export ═══
 function exportInboxCsv() {
   const rows = [['Дата', 'От', 'Ящик', 'Тема', 'Статус', 'Категория', 'Confidence', 'Компания', 'ИНН', 'Телефон', 'Бренды', 'Артикулы']];
@@ -1218,6 +1269,7 @@ function renderDashboard() {
   renderWeeklyTrends();
   renderFieldCoverage();
   renderProblemQueue();
+  renderSlaQueue();
   renderQualityAuditTable();
 }
 
@@ -1361,6 +1413,59 @@ function renderProblemQueue() {
           <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">${renderRecognitionBadges(message.analysis || {})}</div>
         </button>
       `).join('') || '<div style="color:var(--text-muted);font-size:12px;">Проблемных писем сейчас нет</div>'}
+    </div>
+  `;
+}
+
+function renderSlaQueue() {
+  const el = $('#sla-queue');
+  if (!el) return;
+
+  const activeMessages = allRunnerMessages.filter((m) => m.pipelineStatus !== 'ignored_spam' && m.pipelineStatus !== 'fetch_error');
+  const overdue = activeMessages.filter(isSlaOverdue);
+  const highPriority = activeMessages.filter(isHighPriorityMessage);
+  const unconfirmed = activeMessages.filter((m) => !m.recognitionConfirmed?.at);
+
+  const topQueue = [...activeMessages]
+    .sort((a, b) => {
+      const overdueDelta = Number(isSlaOverdue(b)) - Number(isSlaOverdue(a));
+      if (overdueDelta !== 0) return overdueDelta;
+      const priorityWeight = { critical: 0, high: 1, medium: 2, low: 3 };
+      const priorityDelta = (priorityWeight[getMessagePriority(a)] ?? 9) - (priorityWeight[getMessagePriority(b)] ?? 9);
+      if (priorityDelta !== 0) return priorityDelta;
+      return getMessageAgeHours(b) - getMessageAgeHours(a);
+    })
+    .slice(0, 6);
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:12px;margin-bottom:12px;">
+      <button class="kpi-card" onclick="window.__openRecognitionFilter('sla_overdue')" style="text-align:left;cursor:pointer;">
+        <div class="kpi-label">Просрочено</div>
+        <div class="kpi-value rose">${overdue.length}</div>
+      </button>
+      <button class="kpi-card" onclick="window.__openRecognitionFilter('high_priority')" style="text-align:left;cursor:pointer;">
+        <div class="kpi-label">Высокий приоритет</div>
+        <div class="kpi-value amber">${highPriority.length}</div>
+      </button>
+      <button class="kpi-card" onclick="window.__openRecognitionFilter('unconfirmed')" style="text-align:left;cursor:pointer;">
+        <div class="kpi-label">Не подтверждены</div>
+        <div class="kpi-value accent">${unconfirmed.length}</div>
+      </button>
+    </div>
+    <div style="display:grid;gap:8px;">
+      ${topQueue.length ? topQueue.map((message) => `
+        <button onclick="window.__openProblemMessage('${escAttr(mid(message))}', '${escAttr(message._projectId || '')}')" style="text-align:left;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-0);cursor:pointer;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="font-size:12px;font-weight:600;color:var(--text);">${esc(truncate(message.subject || 'Без темы', 86))}</div>
+            <div style="display:flex;gap:6px;align-items:center;">
+              ${renderPriorityBadge(getMessagePriority(message))}
+              ${isSlaOverdue(message) ? '<span class="badge badge-spam">SLA</span>' : ''}
+            </div>
+          </div>
+          <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;">${esc(message.from || message.analysis?.sender?.email || '')}</div>
+          <div style="font-size:10px;color:var(--text-muted);margin-top:4px;">Возраст: ${formatAgeHours(getMessageAgeHours(message))}${message.analysis?.lead?.recognitionDecision?.failureReason ? ` • ${esc(truncate(message.analysis.lead.recognitionDecision.failureReason, 70))}` : ''}</div>
+        </button>
+      `).join('') : '<div style="color:var(--text-muted);font-size:12px;">Очередь пуста</div>'}
     </div>
   `;
 }
@@ -1842,6 +1947,8 @@ function renderInbox() {
     const recognitionBadges = renderRecognitionBadges(a);
     const reasonLine = a.lead?.recognitionDecision?.failureReason || '';
     const priority = a.lead?.recognitionDecision?.priority || '';
+    const ageHours = getMessageAgeHours(m);
+    const overdue = isSlaOverdue(m);
     const indentStyle = indent ? 'padding-left:24px;border-left:2px solid var(--border);' : '';
     return `<div class="message-item-wrap ${active}" data-mid="${esc(id)}" style="${indentStyle}">
       <label class="msg-checkbox" onclick="event.stopPropagation()"><input type="checkbox" ${checked} data-check-mid="${esc(id)}" /></label>
@@ -1855,7 +1962,12 @@ function renderInbox() {
           ${statusBadge(m.pipelineStatus)}
           ${conf != null ? confidenceBadge(conf) : ''}
           ${priority ? renderPriorityBadge(priority) : ''}
+          ${overdue ? '<span class="badge badge-spam">SLA</span>' : ''}
           <span class="message-mailbox">${esc((m.mailbox || '').split('@')[0])}</span>
+        </div>
+        <div class="message-meta" style="margin-top:4px;font-size:10px;color:var(--text-muted);">
+          <span>Возраст: ${esc(formatAgeHours(ageHours))}</span>
+          ${!m.recognitionConfirmed?.at ? '<span>• не подтверждено</span>' : ''}
         </div>
         ${reasonLine ? `<div class="message-meta" style="margin-top:4px;font-size:10px;color:var(--text-muted);">${esc(truncate(reasonLine, 80))}</div>` : ''}
         ${recognitionBadges ? `<div class="message-meta" style="margin-top:4px;flex-wrap:wrap;">${recognitionBadges}</div>` : ''}
@@ -2838,6 +2950,13 @@ function formatFileSize(bytes) {
   if (bytes < 1024) return bytes + ' B';
   if (bytes < 1024 * 1024) return (bytes / 1024).toFixed(0) + ' KB';
   return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+function formatAgeHours(hours) {
+  if (!hours || hours < 1) return '<1ч';
+  if (hours < 24) return `${Math.round(hours)}ч`;
+  const days = Math.floor(hours / 24);
+  const restHours = Math.round(hours % 24);
+  return restHours ? `${days}д ${restHours}ч` : `${days}д`;
 }
 function formatArr(items) { return Array.isArray(items) && items.length ? items.join(', ') : null; }
 function truncate(s, n) { return !s ? '' : s.length > n ? s.slice(0, n) + '...' : s; }
