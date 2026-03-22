@@ -410,6 +410,8 @@ async function handleApi(req, res, url) {
       rules: detectionKb.getRules(),
       brandAliases: detectionKb.getBrandAliases(),
       senderProfiles: detectionKb.getSenderProfiles(),
+      autoLearnedSenderProfiles: detectionKb.getSenderProfiles().filter((item) => String(item.notes || "").includes("Auto-learn from feedback")),
+      learnedNomenclature: detectionKb.getLearnedNomenclature(150),
       ownBrands: detectionKb.getOwnBrands(),
       corpus: detectionKb.getCorpus(25)
     });
@@ -450,6 +452,12 @@ async function handleApi(req, res, url) {
   const deleteBrandMatch = url.pathname.match(/^\/api\/detection-kb\/brand-aliases\/(\d+)$/);
   if (req.method === "DELETE" && deleteBrandMatch) {
     const result = detectionKb.deactivateBrandAlias(deleteBrandMatch[1]);
+    return sendJson(res, 200, result);
+  }
+
+  const deleteNomenclatureMatch = url.pathname.match(/^\/api\/detection-kb\/nomenclature\/(\d+)$/);
+  if (req.method === "DELETE" && deleteNomenclatureMatch) {
+    const result = detectionKb.deleteNomenclatureEntry(deleteNomenclatureMatch[1]);
     return sendJson(res, 200, result);
   }
 

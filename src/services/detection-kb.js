@@ -766,6 +766,24 @@ class DetectionKnowledgeBase {
     `).all(Number(limit));
   }
 
+  getLearnedNomenclature(limit = 100) {
+    return this.db.prepare(`
+      SELECT *
+      FROM nomenclature_dictionary
+      WHERE source_file LIKE 'manual_feedback:%'
+      ORDER BY last_imported_at DESC, article
+      LIMIT ?
+    `).all(Number(limit));
+  }
+
+  deleteNomenclatureEntry(id) {
+    const existing = this.db.prepare("SELECT id FROM nomenclature_dictionary WHERE id = ?").get(Number(id));
+    if (!existing) return { id: Number(id), deleted: false };
+    this.db.prepare("DELETE FROM nomenclature_dictionary WHERE id = ?").run(Number(id));
+    this.db.exec("INSERT INTO nomenclature_dictionary_fts(nomenclature_dictionary_fts) VALUES('rebuild')");
+    return { id: Number(id), deleted: true };
+  }
+
   searchNomenclature(query, { limit = 20, brand = null } = {}) {
     const normalizedQuery = normalizeArticle(query);
     if (!normalizedQuery) {

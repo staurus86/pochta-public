@@ -2308,6 +2308,64 @@ function renderKb() {
     });
     return;
   }
+  if (kbTab === 'autolearn') {
+    const senderProfiles = kbData.autoLearnedSenderProfiles || [];
+    const learnedNomenclature = kbData.learnedNomenclature || [];
+
+    container.innerHTML = `
+      <div style="padding:16px;display:grid;gap:16px;">
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:13px;font-weight:700;color:var(--text);">Автообученные профили отправителей</div>
+            <span class="badge badge-client" style="font-size:10px;">${senderProfiles.length}</span>
+          </div>
+          ${senderProfiles.length ? `
+            <table class="data-table"><thead><tr><th>Email / Домен</th><th>Компания</th><th>Brand hint</th><th>Заметки</th><th></th></tr></thead>
+            <tbody>${senderProfiles.map((s) => `<tr>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${esc(s.sender_email || `@${s.sender_domain}` || '—')}</td>
+              <td>${esc(s.company_hint || '—')}</td>
+              <td style="font-size:11px;color:var(--text-secondary);">${esc(s.brand_hint || '—')}</td>
+              <td style="font-size:11px;color:var(--text-muted);">${esc(s.notes || '')}</td>
+              <td><button class="btn btn-danger btn-sm" style="padding:2px 6px;font-size:10px;" data-del-autosender="${s.id}">×</button></td>
+            </tr>`).join('')}</tbody></table>
+          ` : '<div class="empty-state" style="padding:24px"><h4>Пока пусто</h4><p>Появится после ручных коррекций писем</p></div>'}
+        </div>
+        <div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">
+            <div style="font-size:13px;font-weight:700;color:var(--text);">Номенклатура из manual feedback</div>
+            <span class="badge badge-unknown" style="font-size:10px;">${learnedNomenclature.length}</span>
+          </div>
+          ${learnedNomenclature.length ? `
+            <table class="data-table"><thead><tr><th>Артикул</th><th>Бренд</th><th>Наименование</th><th>Источник</th><th></th></tr></thead>
+            <tbody>${learnedNomenclature.map((item) => `<tr>
+              <td style="font-family:'JetBrains Mono',monospace;font-size:11px;"><strong>${esc(item.article)}</strong></td>
+              <td>${esc(item.brand || '—')}</td>
+              <td style="font-size:11px;color:var(--text-secondary);">${esc(truncate(item.product_name || item.description || '—', 80))}</td>
+              <td style="font-size:11px;color:var(--text-muted);">${esc(item.source_file || 'manual_feedback')}</td>
+              <td><button class="btn btn-danger btn-sm" style="padding:2px 6px;font-size:10px;" data-del-nlearn="${item.id}">×</button></td>
+            </tr>`).join('')}</tbody></table>
+          ` : '<div class="empty-state" style="padding:24px"><h4>Пока пусто</h4><p>Появится после ручных коррекций артикула и наименования</p></div>'}
+        </div>
+      </div>`;
+
+    container.querySelectorAll('[data-del-autosender]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Отключить этот автообученный профиль?')) return;
+        await fetch(`/api/detection-kb/sender-profiles/${btn.dataset.delAutosender}`, { method: 'DELETE' });
+        await refreshKb();
+        showToast('Автообученный профиль отключён');
+      });
+    });
+    container.querySelectorAll('[data-del-nlearn]').forEach((btn) => {
+      btn.addEventListener('click', async () => {
+        if (!confirm('Удалить эту номенклатурную подсказку?')) return;
+        await fetch(`/api/detection-kb/nomenclature/${btn.dataset.delNlearn}`, { method: 'DELETE' });
+        await refreshKb();
+        showToast('Номенклатурная подсказка удалена');
+      });
+    });
+    return;
+  }
   if (kbTab === 'search') {
     container.innerHTML = `
       <div style="padding:16px;">
