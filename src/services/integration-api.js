@@ -204,9 +204,10 @@ export function listIntegrationPresets(options = {}) {
       })),
       ...Object.values(clientPresets).map((preset) => ({
         id: preset.id,
-        scope: "client",
+        scope: preset.projectId ? "project" : "client",
         name: preset.name || preset.id,
         description: preset.description || "",
+        project_id: preset.projectId || null,
         query: { ...(preset.query || {}) }
       }))
     ]
@@ -778,6 +779,7 @@ function normalizeClientPresetMap(items = []) {
 
       return [id, {
         id,
+        projectId: item.projectId || item.project_id || null,
         name: item.name || item.presetKey || item.id || "",
         description: item.description || "",
         query: item.query || {}

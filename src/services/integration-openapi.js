@@ -76,6 +76,9 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
         get: {
           tags: ["Integration"],
           summary: "List server-side integration query presets",
+          parameters: [
+            queryParameter("project_id", "string", "Optional project scope for listing client presets")
+          ],
           responses: {
             200: {
               description: "Available query presets for integration endpoints",
@@ -99,6 +102,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
                   type: "object",
                   properties: {
                     presetKey: { type: ["string", "null"] },
+                    projectId: { type: ["string", "null"] },
                     name: { type: ["string", "null"] },
                     description: { type: ["string", "null"] },
                     query: { type: ["object", "null"], additionalProperties: { type: "string" } }
@@ -135,6 +139,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
                 schema: {
                   type: "object",
                   properties: {
+                    projectId: { type: ["string", "null"] },
                     name: { type: ["string", "null"] },
                     description: { type: ["string", "null"] },
                     query: { type: ["object", "null"], additionalProperties: { type: "string" } }
@@ -160,7 +165,8 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           tags: ["Integration"],
           summary: "Delete a client-specific preset",
           parameters: [
-            pathParameter("presetId", "Preset identifier")
+            pathParameter("presetId", "Preset identifier"),
+            queryParameter("project_id", "string", "Optional project scope for deleting a project-specific preset")
           ],
           responses: {
             200: {
@@ -1063,6 +1069,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
                   id: { type: "string" },
                   scope: { type: ["string", "null"] },
                   name: { type: ["string", "null"] },
+                  project_id: { type: ["string", "null"] },
                   description: { type: "string" },
                   query: {
                     type: "object",
@@ -1081,6 +1088,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
               properties: {
                 id: { type: ["integer", "null"] },
                 clientId: { type: ["string", "null"] },
+                projectId: { type: ["string", "null"] },
                 presetKey: { type: ["string", "null"] },
                 name: { type: ["string", "null"] },
                 description: { type: ["string", "null"] },
@@ -1101,6 +1109,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
               type: "object",
               properties: {
                 clientId: { type: ["string", "null"] },
+                projectId: { type: ["string", "null"] },
                 presetKey: { type: ["string", "null"] },
                 deleted: { type: "boolean" }
               }

@@ -1246,6 +1246,8 @@ async function handleIntegrationApi(req, res, url) {
     });
   }
 
+  const resolveScopedClientPresets = (projectId = "") => detectionKb.listApiClientPresets(currentClient.id, { projectId });
+
   if (req.method === "GET" && url.pathname === "/api/integration/health") {
     return sendJson(res, 200, {
       ok: true,
@@ -1282,13 +1284,21 @@ async function handleIntegrationApi(req, res, url) {
   }
 
   if (req.method === "GET" && url.pathname === "/api/integration/presets") {
+    const projectId = String(url.searchParams.get("project_id") || "").trim();
+    if (projectId && !canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
     return sendJson(res, 200, listIntegrationPresets({
-      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
+      clientPresets: resolveScopedClientPresets(projectId)
     }));
   }
 
   if (req.method === "POST" && url.pathname === "/api/integration/presets") {
     const payload = await parseRequestJson(req);
+    const projectId = String(payload.projectId || payload.project_id || "").trim();
+    if (projectId && !canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
     try {
       const preset = detectionKb.upsertApiClientPreset(currentClient.id, payload);
       return sendJson(res, 200, { data: preset });
@@ -1300,6 +1310,10 @@ async function handleIntegrationApi(req, res, url) {
   const integrationPresetMatch = url.pathname.match(/^\/api\/integration\/presets\/([^/]+)$/);
   if (integrationPresetMatch && req.method === "PUT") {
     const payload = await parseRequestJson(req);
+    const projectId = String(payload.projectId || payload.project_id || "").trim();
+    if (projectId && !canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
     try {
       const preset = detectionKb.upsertApiClientPreset(currentClient.id, {
         ...payload,
@@ -1312,8 +1326,12 @@ async function handleIntegrationApi(req, res, url) {
   }
 
   if (integrationPresetMatch && req.method === "DELETE") {
+    const projectId = String(url.searchParams.get("project_id") || "").trim();
+    if (projectId && !canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
     return sendJson(res, 200, {
-      data: detectionKb.deleteApiClientPreset(currentClient.id, decodeURIComponent(integrationPresetMatch[1]))
+      data: detectionKb.deleteApiClientPreset(currentClient.id, decodeURIComponent(integrationPresetMatch[1]), { projectId })
     });
   }
 
@@ -1364,7 +1382,7 @@ async function handleIntegrationApi(req, res, url) {
       include: url.searchParams.get("include")
     }, {
       consumerId: currentClient.id,
-      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
+      clientPresets: resolveScopedClientPresets(projectId)
     }));
   }
 
@@ -1402,7 +1420,7 @@ async function handleIntegrationApi(req, res, url) {
       sla_overdue: url.searchParams.get("sla_overdue")
     }, {
       consumerId: currentClient.id,
-      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
+      clientPresets: resolveScopedClientPresets(projectId)
     }));
   }
 
@@ -1440,7 +1458,7 @@ async function handleIntegrationApi(req, res, url) {
       sla_overdue: url.searchParams.get("sla_overdue")
     }, {
       consumerId: currentClient.id,
-      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
+      clientPresets: resolveScopedClientPresets(projectId)
     }));
   }
 
@@ -1479,7 +1497,7 @@ async function handleIntegrationApi(req, res, url) {
       limit: url.searchParams.get("limit")
     }, {
       consumerId: currentClient.id,
-      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
+      clientPresets: resolveScopedClientPresets(projectId)
     }));
   }
 
@@ -1519,7 +1537,7 @@ async function handleIntegrationApi(req, res, url) {
       format: url.searchParams.get("format")
     }, {
       consumerId: currentClient.id,
-      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
+      clientPresets: resolveScopedClientPresets(projectId)
     });
 
     return sendText(res, 200, exported.body, {
@@ -1576,7 +1594,7 @@ async function handleIntegrationApi(req, res, url) {
     }, {
       consumerId: currentClient.id,
       clientId: currentClient.id,
-      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
+      clientPresets: resolveScopedClientPresets(projectId)
     }));
   }
 
@@ -1620,7 +1638,7 @@ async function handleIntegrationApi(req, res, url) {
     }, {
       consumerId: currentClient.id,
       clientId: currentClient.id,
-      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
+      clientPresets: resolveScopedClientPresets(projectId)
     });
 
     return sendText(res, 200, exported.body, {
@@ -1665,7 +1683,7 @@ async function handleIntegrationApi(req, res, url) {
       include_messages: url.searchParams.get("include_messages")
     }, {
       consumerId: currentClient.id,
-      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
+      clientPresets: resolveScopedClientPresets(projectId)
     }));
   }
 
@@ -1685,7 +1703,7 @@ async function handleIntegrationApi(req, res, url) {
       preset: url.searchParams.get("preset")
     }, {
       consumerId: currentClient.id,
-      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
+      clientPresets: resolveScopedClientPresets(projectId)
     });
     if (!thread) {
       return sendJson(res, 404, { error: "Thread not found." });

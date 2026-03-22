@@ -1,6 +1,14 @@
-export const LEGACY_INTEGRATION_API_VERSION = "1.8.0";
+export const LEGACY_INTEGRATION_API_VERSION = "1.9.0";
 
 const CHANGELOG = [
+  {
+    version: "1.9.0",
+    released_at: "2026-03-22",
+    changes: [
+      "Added project-scoped client presets for integration consumers.",
+      "Extended preset listing and management endpoints with project-aware scope metadata."
+    ]
+  },
   {
     version: "1.8.0",
     released_at: "2026-03-22",

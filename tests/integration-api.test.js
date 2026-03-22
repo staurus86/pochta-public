@@ -423,11 +423,18 @@ runTest("lists integration query presets", () => {
       name: "Buyer Focus",
       description: "Client preset",
       query: { confirmed: "false" }
+    }, {
+      id: "ops_project",
+      projectId: "project-1",
+      name: "Ops Project",
+      description: "Project preset",
+      query: { priority: "high" }
     }]
   });
   assert.ok(result.data.some((item) => item.id === "problem_queue"));
   assert.ok(result.data.some((item) => item.id === "max_parsed"));
   assert.ok(result.data.some((item) => item.id === "buyer_focus" && item.scope === "client"));
+  assert.ok(result.data.some((item) => item.id === "ops_project" && item.scope === "project" && item.project_id === "project-1"));
 });
 
 runTest("applies server-side query presets", () => {

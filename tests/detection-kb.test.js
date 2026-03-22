@@ -185,3 +185,28 @@ runTest("stores and reads client-specific API presets", () => {
   const afterDelete = detectionKb.getApiClientPreset(clientId, "my-problem-view");
   assert.equal(afterDelete, null);
 });
+
+runTest("prefers project-scoped API presets over client-wide presets", () => {
+  const clientId = "test-client-project-preset";
+  detectionKb.upsertApiClientPreset(clientId, {
+    presetKey: "ops_view",
+    name: "Ops View",
+    query: { confirmed: "false" }
+  });
+  detectionKb.upsertApiClientPreset(clientId, {
+    presetKey: "ops_view_project",
+    projectId: "project-1",
+    name: "Ops View Project",
+    query: { priority: "high" }
+  });
+
+  const scoped = detectionKb.listApiClientPresets(clientId, { projectId: "project-1" });
+  assert.ok(scoped.some((item) => item.projectId === "project-1" && item.presetKey === "ops_view_project"));
+  assert.ok(scoped.some((item) => item.projectId === null && item.presetKey === "ops_view"));
+
+  const resolved = detectionKb.getApiClientPreset(clientId, "ops_view_project", { projectId: "project-1" });
+  assert.equal(resolved?.projectId, "project-1");
+
+  detectionKb.deleteApiClientPreset(clientId, "ops_view");
+  detectionKb.deleteApiClientPreset(clientId, "ops_view_project", { projectId: "project-1" });
+});

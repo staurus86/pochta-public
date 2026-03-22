@@ -199,6 +199,7 @@ class DetectionKnowledgeBase {
       CREATE TABLE IF NOT EXISTS api_client_presets (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         client_id TEXT NOT NULL,
+        project_id TEXT NOT NULL DEFAULT '',
         preset_key TEXT NOT NULL,
         name TEXT NOT NULL,
         description TEXT DEFAULT '',
@@ -238,8 +239,10 @@ class DetectionKnowledgeBase {
       CREATE INDEX IF NOT EXISTS idx_nomenclature_avg_price
         ON nomenclature_dictionary(avg_price);
       CREATE INDEX IF NOT EXISTS idx_api_client_presets_client
-        ON api_client_presets(client_id, is_active, preset_key);
+        ON api_client_presets(client_id, project_id, is_active, preset_key);
     `);
+
+    this.ensureApiClientPresetProjectScopeColumn();
 
     // FTS5 virtual table for full-text search over message corpus
     // Uses external content mode — synced via explicit rebuild after ingestion
@@ -521,19 +524,36 @@ class DetectionKnowledgeBase {
       .map(normalizeApiClientRow);
   }
 
-  listApiClientPresets(clientId) {
-    return this.db.prepare(`
+  listApiClientPresets(clientId, options = {}) {
+    const projectId = normalizePresetProjectId(options.projectId);
+    const rows = this.db.prepare(`
       SELECT * FROM api_client_presets
-      WHERE client_id = ? AND is_active = 1
-      ORDER BY updated_at DESC, preset_key ASC
-    `).all(String(clientId || "")).map(normalizeApiClientPresetRow);
+      WHERE client_id = ?
+        AND is_active = 1
+        AND (project_id = '' OR project_id = ?)
+      ORDER BY CASE WHEN project_id = ? THEN 0 ELSE 1 END, updated_at DESC, preset_key ASC
+    `).all(String(clientId || ""), projectId, projectId);
+
+    const deduped = new Map();
+    for (const row of rows.map(normalizeApiClientPresetRow)) {
+      if (!deduped.has(row.presetKey)) {
+        deduped.set(row.presetKey, row);
+      }
+    }
+    return Array.from(deduped.values());
   }
 
-  getApiClientPreset(clientId, presetKey) {
+  getApiClientPreset(clientId, presetKey, options = {}) {
+    const projectId = normalizePresetProjectId(options.projectId);
     const row = this.db.prepare(`
       SELECT * FROM api_client_presets
-      WHERE client_id = ? AND preset_key = ? AND is_active = 1
-    `).get(String(clientId || ""), normalizePresetKey(presetKey));
+      WHERE client_id = ?
+        AND preset_key = ?
+        AND is_active = 1
+        AND (project_id = ? OR project_id = '')
+      ORDER BY CASE WHEN project_id = ? THEN 0 ELSE 1 END, updated_at DESC
+      LIMIT 1
+    `).get(String(clientId || ""), normalizePresetKey(presetKey), projectId, projectId);
     return row ? normalizeApiClientPresetRow(row) : null;
   }
 
@@ -545,35 +565,45 @@ class DetectionKnowledgeBase {
     const name = String(payload.name || key).trim();
     const description = String(payload.description || "").trim();
     const query = normalizePresetQuery(payload.query || payload.filters || {});
+    const projectId = normalizePresetProjectId(payload.projectId || payload.project_id);
     const now = new Date().toISOString();
 
     const existing = this.db.prepare(`
-      SELECT id FROM api_client_presets WHERE client_id = ? AND preset_key = ?
-    `).get(String(clientId || ""), key);
+      SELECT id FROM api_client_presets WHERE client_id = ? AND preset_key = ? AND project_id = ?
+    `).get(String(clientId || ""), key, projectId);
 
     if (existing) {
       this.db.prepare(`
         UPDATE api_client_presets
         SET name = ?, description = ?, query_json = ?, is_active = 1, updated_at = ?
-        WHERE client_id = ? AND preset_key = ?
-      `).run(name, description, JSON.stringify(query), now, String(clientId || ""), key);
+        WHERE client_id = ? AND preset_key = ? AND project_id = ?
+      `).run(name, description, JSON.stringify(query), now, String(clientId || ""), key, projectId);
     } else {
       this.db.prepare(`
-        INSERT INTO api_client_presets (client_id, preset_key, name, description, query_json, is_active, created_at, updated_at)
-        VALUES (?, ?, ?, ?, ?, 1, ?, ?)
-      `).run(String(clientId || ""), key, name, description, JSON.stringify(query), now, now);
+        INSERT INTO api_client_presets (client_id, project_id, preset_key, name, description, query_json, is_active, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, 1, ?, ?)
+      `).run(String(clientId || ""), projectId, key, name, description, JSON.stringify(query), now, now);
     }
 
-    return this.getApiClientPreset(clientId, key);
+    return this.getApiClientPreset(clientId, key, { projectId });
   }
 
-  deleteApiClientPreset(clientId, presetKey) {
+  deleteApiClientPreset(clientId, presetKey, options = {}) {
+    const projectId = normalizePresetProjectId(options.projectId);
     this.db.prepare(`
       UPDATE api_client_presets
       SET is_active = 0, updated_at = ?
-      WHERE client_id = ? AND preset_key = ?
-    `).run(new Date().toISOString(), String(clientId || ""), normalizePresetKey(presetKey));
-    return { clientId, presetKey: normalizePresetKey(presetKey), deleted: true };
+      WHERE client_id = ? AND preset_key = ? AND project_id = ?
+    `).run(new Date().toISOString(), String(clientId || ""), normalizePresetKey(presetKey), projectId);
+    return { clientId, projectId: projectId || null, presetKey: normalizePresetKey(presetKey), deleted: true };
+  }
+
+  ensureApiClientPresetProjectScopeColumn() {
+    const columns = this.db.prepare("PRAGMA table_info(api_client_presets)").all();
+    const hasProjectId = columns.some((column) => String(column.name).toLowerCase() === "project_id");
+    if (!hasProjectId) {
+      this.db.prepare("ALTER TABLE api_client_presets ADD COLUMN project_id TEXT NOT NULL DEFAULT ''").run();
+    }
   }
 
   importBrandCatalog(brands) {
@@ -1446,6 +1476,10 @@ function normalizePresetKey(value) {
     .slice(0, 80);
 }
 
+function normalizePresetProjectId(value) {
+  return String(value || "").trim();
+}
+
 function itemLooksExact(query, match) {
   const q = normalizeArticle(query);
   return q && (q === normalizeArticle(match.article) || q === normalizeArticle(match.article_normalized));
@@ -1517,6 +1551,7 @@ function normalizeApiClientPresetRow(row) {
   return {
     id: Number(row.id),
     clientId: row.client_id,
+    projectId: row.project_id || null,
     presetKey: row.preset_key,
     name: row.name,
     description: row.description || "",
