@@ -100,6 +100,14 @@ class DetectionKnowledgeBase {
     mkdirSync(this.dataDir, { recursive: true });
     this.dbPath = path.join(this.dataDir, "detection-kb.sqlite");
     this.db = new DatabaseSync(this.dbPath);
+    this.cache = {
+      rules: null,
+      brandAliases: null,
+      senderProfiles: null,
+      ownBrandNames: null,
+      ownBrands: null,
+      fieldPatterns: new Map()
+    };
     this.db.exec("PRAGMA journal_mode = WAL;");
     this.db.exec("PRAGMA busy_timeout = 5000;");
     this.initialize();
@@ -387,14 +395,20 @@ class DetectionKnowledgeBase {
   }
 
   getOwnBrands() {
-    return this.db.prepare("SELECT * FROM own_brands WHERE is_active = 1 ORDER BY name").all();
+    if (!this.cache.ownBrands) {
+      this.cache.ownBrands = this.db.prepare("SELECT * FROM own_brands WHERE is_active = 1 ORDER BY name").all();
+    }
+    return this.cache.ownBrands;
   }
 
   getOwnBrandNames() {
-    return new Set(
-      this.db.prepare("SELECT name FROM own_brands WHERE is_active = 1").all()
-        .map((row) => row.name.toLowerCase())
-    );
+    if (!this.cache.ownBrandNames) {
+      this.cache.ownBrandNames = new Set(
+        this.db.prepare("SELECT name FROM own_brands WHERE is_active = 1").all()
+          .map((row) => row.name.toLowerCase())
+      );
+    }
+    return this.cache.ownBrandNames;
   }
 
   addOwnBrand(payload) {
@@ -405,11 +419,13 @@ class DetectionKnowledgeBase {
       ON CONFLICT(name) DO UPDATE SET is_active = 1, notes = excluded.notes
     `);
     statement.run(name, payload.notes || "");
+    this.invalidateCache("ownBrands");
     return this.db.prepare("SELECT * FROM own_brands WHERE name = ?").get(name);
   }
 
   deactivateOwnBrand(id) {
     this.db.prepare("UPDATE own_brands SET is_active = 0 WHERE id = ?").run(Number(id));
+    this.invalidateCache("ownBrands");
     return { id, deactivated: true };
   }
 
@@ -514,12 +530,14 @@ class DetectionKnowledgeBase {
         }
       }
     }
+    this.invalidateCache("brandAliases");
     return { added, skipped, total: this.db.prepare("SELECT COUNT(*) AS count FROM brand_aliases WHERE is_active = 1").get().count };
   }
 
   clearBrandAliases() {
     const count = this.db.prepare("SELECT COUNT(*) AS count FROM brand_aliases").get().count;
     this.db.prepare("DELETE FROM brand_aliases").run();
+    this.invalidateCache("brandAliases");
     return { deactivated: count };
   }
 
@@ -550,19 +568,35 @@ class DetectionKnowledgeBase {
   }
 
   getRules() {
-    return this.db.prepare("SELECT * FROM detection_rules WHERE is_active = 1 ORDER BY classifier, weight DESC, id ASC").all();
+    if (!this.cache.rules) {
+      this.cache.rules = this.db.prepare("SELECT * FROM detection_rules WHERE is_active = 1 ORDER BY classifier, weight DESC, id ASC").all();
+    }
+    return this.cache.rules;
   }
 
   getBrandAliases() {
-    return this.db.prepare("SELECT * FROM brand_aliases WHERE is_active = 1 ORDER BY canonical_brand, alias").all();
+    if (!this.cache.brandAliases) {
+      this.cache.brandAliases = this.db.prepare("SELECT * FROM brand_aliases WHERE is_active = 1 ORDER BY canonical_brand, alias").all();
+    }
+    return this.cache.brandAliases;
   }
 
   getFieldPatterns(fieldName) {
-    return this.db.prepare("SELECT * FROM field_patterns WHERE is_active = 1 AND field_name = ? ORDER BY priority DESC, id ASC").all(fieldName);
+    const key = String(fieldName || "");
+    if (!this.cache.fieldPatterns.has(key)) {
+      this.cache.fieldPatterns.set(
+        key,
+        this.db.prepare("SELECT * FROM field_patterns WHERE is_active = 1 AND field_name = ? ORDER BY priority DESC, id ASC").all(fieldName)
+      );
+    }
+    return this.cache.fieldPatterns.get(key) || [];
   }
 
   getSenderProfiles() {
-    return this.db.prepare("SELECT * FROM sender_profiles WHERE is_active = 1 ORDER BY id ASC").all();
+    if (!this.cache.senderProfiles) {
+      this.cache.senderProfiles = this.db.prepare("SELECT * FROM sender_profiles WHERE is_active = 1 ORDER BY id ASC").all();
+    }
+    return this.cache.senderProfiles;
   }
 
   addRule(payload) {
@@ -579,7 +613,7 @@ class DetectionKnowledgeBase {
       Number(payload.weight || 1),
       payload.notes || ""
     );
-
+    this.invalidateCache("rules");
     return this.db.prepare("SELECT * FROM detection_rules WHERE id = ?").get(Number(result.lastInsertRowid));
   }
 
@@ -589,6 +623,7 @@ class DetectionKnowledgeBase {
       VALUES (?, ?)
     `);
     const result = statement.run(payload.canonicalBrand, payload.alias);
+    this.invalidateCache("brandAliases");
     return this.db.prepare("SELECT * FROM brand_aliases WHERE id = ?").get(Number(result.lastInsertRowid));
   }
 
@@ -605,6 +640,7 @@ class DetectionKnowledgeBase {
       payload.brandHint || "",
       payload.notes || ""
     );
+    this.invalidateCache("senderProfiles");
     return this.db.prepare("SELECT * FROM sender_profiles WHERE id = ?").get(Number(result.lastInsertRowid));
   }
 
@@ -656,22 +692,25 @@ class DetectionKnowledgeBase {
       mergedNotes,
       Number(existing.id)
     );
-
+    this.invalidateCache("senderProfiles");
     return this.db.prepare("SELECT * FROM sender_profiles WHERE id = ?").get(Number(existing.id));
   }
 
   deactivateRule(id) {
     this.db.prepare("UPDATE detection_rules SET is_active = 0 WHERE id = ?").run(Number(id));
+    this.invalidateCache("rules");
     return { id, deactivated: true };
   }
 
   deactivateSenderProfile(id) {
     this.db.prepare("UPDATE sender_profiles SET is_active = 0 WHERE id = ?").run(Number(id));
+    this.invalidateCache("senderProfiles");
     return { id, deactivated: true };
   }
 
   deactivateBrandAlias(id) {
     this.db.prepare("UPDATE brand_aliases SET is_active = 0 WHERE id = ?").run(Number(id));
+    this.invalidateCache("brandAliases");
     return { id, deactivated: true };
   }
 
@@ -1027,6 +1066,7 @@ class DetectionKnowledgeBase {
       imported += 1;
     }
 
+    this.invalidateCache("brandAliases");
     this.db.exec("INSERT INTO nomenclature_dictionary_fts(nomenclature_dictionary_fts) VALUES('rebuild')");
 
     return {
@@ -1175,6 +1215,27 @@ class DetectionKnowledgeBase {
       const byDomain = profile.sender_domain && profile.sender_domain.toLowerCase() === domain;
       return byEmail || byDomain;
     }) || null;
+  }
+
+  invalidateCache(scope = "all") {
+    if (scope === "all") {
+      this.cache.rules = null;
+      this.cache.brandAliases = null;
+      this.cache.senderProfiles = null;
+      this.cache.ownBrandNames = null;
+      this.cache.ownBrands = null;
+      this.cache.fieldPatterns.clear();
+      return;
+    }
+
+    if (scope === "rules") this.cache.rules = null;
+    if (scope === "brandAliases") this.cache.brandAliases = null;
+    if (scope === "senderProfiles") this.cache.senderProfiles = null;
+    if (scope === "ownBrands") {
+      this.cache.ownBrands = null;
+      this.cache.ownBrandNames = null;
+    }
+    if (scope === "fieldPatterns") this.cache.fieldPatterns.clear();
   }
 
   ingestAnalyzedMessages(projectId, messages = []) {

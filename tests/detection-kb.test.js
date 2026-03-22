@@ -143,3 +143,21 @@ runTest("learns nomenclature from manual feedback", () => {
   assert.equal(exact?.brand, "Feedback Brand");
   assert.equal(exact?.product_name, "Ручной датчик");
 });
+
+runTest("invalidates cached sender profiles after add and deactivate", () => {
+  const created = detectionKb.addSenderProfile({
+    senderEmail: "cache-check@example.com",
+    senderDomain: "example.com",
+    classification: "client",
+    companyHint: "ООО Кэш",
+    brandHint: "ABB",
+    notes: "cache-check"
+  });
+
+  const found = detectionKb.matchSenderProfile("cache-check@example.com");
+  assert.equal(found?.id, created.id);
+
+  detectionKb.deactivateSenderProfile(created.id);
+  const afterDeactivate = detectionKb.matchSenderProfile("cache-check@example.com");
+  assert.equal(afterDeactivate, null);
+});
