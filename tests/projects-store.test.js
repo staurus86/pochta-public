@@ -159,6 +159,58 @@ runTest("applies manual feedback to message brands and classification", async ()
   }
 });
 
+runTest("stores structured manual feedback for core detected fields", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "pochta-store-fb-fields-"));
+
+  try {
+    const store = new ProjectsStore({ dataDir });
+    await store.ensureLoaded();
+
+    const project = await store.createProject({
+      name: "Feedback Fields Test",
+      mailbox: "feedback-fields@example.com"
+    });
+
+    await store.replaceRecentMessages(project.id, [
+      {
+        messageKey: "fb-fields-1",
+        pipelineStatus: "review",
+        analysis: {
+          classification: { label: "Клиент", confidence: 0.6 },
+          detectedBrands: [],
+          sender: { email: "buyer@corp.ru", companyName: "", inn: "", mobilePhone: "" },
+          lead: { articles: [], productNames: [] }
+        }
+      }
+    ]);
+
+    const result = await store.applyMessageFeedback(project.id, "fb-fields-1", {
+      companyName: "ООО Тест",
+      inn: "7702802784",
+      phone: "+7 (999) 123-45-67",
+      addArticles: ["MSS-T25L03-GX16-2"],
+      productNames: [{ article: "MSS-T25L03-GX16-2", name: "Модуль канавочный левый" }]
+    });
+
+    assert.ok(result.changes.includes("+article:MSS-T25L03-GX16-2"));
+    assert.ok(result.changes.some((entry) => entry.startsWith("inn:")));
+    assert.ok(result.changes.some((entry) => entry.startsWith("phone:")));
+    assert.equal(result.analysis.sender.companyName, "ООО Тест");
+    assert.equal(result.analysis.sender.inn, "7702802784");
+    assert.equal(result.analysis.sender.mobilePhone, "+7 (999) 123-45-67");
+    assert.deepEqual(result.analysis.lead.articles, ["MSS-T25L03-GX16-2"]);
+    assert.equal(result.analysis.lead.productNames[0].name, "Модуль канавочный левый");
+
+    const projectAfter = await store.getProject(project.id);
+    const auditEntry = projectAfter.recentMessages[0].auditLog.at(-1);
+    assert.equal(auditEntry.action, "manual_feedback");
+    assert.equal(auditEntry.fields.inn, "7702802784");
+    assert.equal(auditEntry.fields.productNames[0].article, "MSS-T25L03-GX16-2");
+  } finally {
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});
+
 runTest("bulk acknowledges multiple messages at once", async () => {
   const dataDir = await mkdtemp(path.join(os.tmpdir(), "pochta-store-bulk-"));
 

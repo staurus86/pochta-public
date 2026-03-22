@@ -77,7 +77,8 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
         article: item.article || null,
         quantity: item.quantity ?? null,
         unit: item.unit || null,
-        description_ru: item.descriptionRu || null
+        description_ru: item.descriptionRu || null,
+        source: item.source || null
       })),
       detected_brands: lead.detectedBrands || analysis.detectedBrands || [],
       detected_product_types: lead.detectedProductTypes || [],
@@ -95,6 +96,8 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
         avg_price: item.avgPrice ?? null,
         match_type: item.matchType || null
       })),
+      sources: lead.sources || null,
+      recognition_summary: lead.recognitionSummary || null,
       urgency: lead.urgency || "normal",
       has_nameplate_photos: Boolean(lead.hasNameplatePhotos),
       has_article_photos: Boolean(lead.hasArticlePhotos)

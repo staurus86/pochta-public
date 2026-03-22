@@ -149,7 +149,11 @@ export function analyzeEmail(project, payload) {
   classification.detectedBrands = detectionKb.filterOwnBrands(classification.detectedBrands);
   const sender = extractSender(fromName, fromEmail, [bodyForSender, attachmentContent].filter(Boolean).join("\n\n"), attachments);
   mergeAttachmentRequisites(sender, attachmentAnalysis);
-  const lead = extractLead(subject, [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n"), attachments, project.brands || [], classification.detectedBrands);
+  const lead = mergeAttachmentLeadData(
+    extractLead(subject, [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n"), attachments, project.brands || [], classification.detectedBrands),
+    attachmentAnalysis
+  );
+  hydrateRecognitionSummary(lead, sender);
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands, lead });
 
   const suggestedReply = buildSuggestedReply(classification.label, sender, lead, crm);
@@ -232,6 +236,21 @@ function mergeAttachmentRequisites(sender, attachmentAnalysis) {
   if (!sender.inn && allInn.length === 1) sender.inn = allInn[0];
   if (!sender.kpp && allKpp.length === 1) sender.kpp = allKpp[0];
   if (!sender.ogrn && allOgrn.length === 1) sender.ogrn = allOgrn[0];
+}
+
+function hydrateRecognitionSummary(lead, sender) {
+  if (!lead.recognitionSummary) lead.recognitionSummary = {};
+  lead.recognitionSummary.phone = Boolean(sender.cityPhone || sender.mobilePhone);
+  lead.recognitionSummary.company = Boolean(sender.companyName);
+  lead.recognitionSummary.inn = Boolean(sender.inn);
+  const missing = [];
+  if (!lead.recognitionSummary.article) missing.push("article");
+  if (!lead.recognitionSummary.brand) missing.push("brand");
+  if (!lead.recognitionSummary.name) missing.push("name");
+  if (!lead.recognitionSummary.phone) missing.push("phone");
+  if (!lead.recognitionSummary.company) missing.push("company");
+  if (!lead.recognitionSummary.inn) missing.push("inn");
+  lead.recognitionSummary.missing = missing;
 }
 
 function classifyMessage({ subject, body, attachments, fromEmail, projectBrands }) {
@@ -319,7 +338,7 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const hasArticlePhotos = /артик|sku|label/i.test(attachmentsText);
   const lineItems = extractLineItems(body).filter((item) =>
     item.explicitArticle || isLikelyArticle(item.article, forbiddenDigits, item.descriptionRu)
-  );
+  ).map((item) => ({ ...item, source: item.source || "body" }));
   const rawBrands = unique(kbBrands.concat(detectBrands([subject, body, attachmentsText].join("\n"), brands)));
   let detectedBrands = detectionKb.filterOwnBrands(rawBrands);
 
@@ -391,6 +410,108 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     attachmentHints,
     requestType: detectedBrands.length > 1 ? "Мультибрендовая" : detectedBrands.length === 1 ? "Монобрендовая" : finalArticles.length > 0 || detectedProductTypes.length > 0 ? "Не определено (есть артикулы)" : "Не определено"
   };
+}
+
+function mergeAttachmentLeadData(lead, attachmentAnalysis = {}) {
+  const files = attachmentAnalysis.files || [];
+  const attachmentLineItems = files.flatMap((file) => (file.lineItems || []).map((item) => ({
+    article: item.article ? normalizeArticleCode(item.article) : null,
+    quantity: item.quantity ?? null,
+    unit: item.unit || "шт",
+    descriptionRu: item.descriptionRu || null,
+    source: item.source || `attachment:${file.filename || "file"}`
+  })));
+
+  const mergedLineItems = [...(lead.lineItems || [])];
+  for (const item of attachmentLineItems) {
+    if (!item.article && !item.descriptionRu) continue;
+    const existing = mergedLineItems.find((current) =>
+      normalizeArticleCode(current.article) === normalizeArticleCode(item.article) ||
+      (!!item.descriptionRu && current.descriptionRu === item.descriptionRu)
+    );
+    if (!existing) {
+      mergedLineItems.push(item);
+      continue;
+    }
+    if ((!existing.quantity || existing.quantity === 1) && item.quantity) existing.quantity = item.quantity;
+    if ((!existing.descriptionRu || existing.descriptionRu === existing.article) && item.descriptionRu) existing.descriptionRu = item.descriptionRu;
+    if (!existing.unit && item.unit) existing.unit = item.unit;
+    if (!existing.source && item.source) existing.source = item.source;
+  }
+
+  const mergedArticles = unique([
+    ...(lead.articles || []),
+    ...attachmentLineItems.map((item) => item.article).filter(Boolean),
+    ...files.flatMap((file) => file.detectedArticles || []).map(normalizeArticleCode)
+  ].filter(Boolean));
+
+  const mergedProductNames = [...(lead.productNames || [])];
+  for (const item of attachmentLineItems) {
+    if (!item.article || !item.descriptionRu) continue;
+    if (mergedProductNames.some((entry) => normalizeArticleCode(entry.article) === normalizeArticleCode(item.article))) continue;
+    mergedProductNames.push({
+      article: item.article,
+      name: item.descriptionRu,
+      category: null,
+      source: item.source
+    });
+  }
+
+  lead.lineItems = mergedLineItems;
+  lead.articles = mergedArticles;
+  lead.productNames = mergedProductNames;
+  lead.totalPositions = mergedLineItems.length || mergedArticles.length;
+  lead.sources = buildLeadSources(lead, files);
+  lead.recognitionSummary = buildRecognitionSummary(lead, files);
+  return lead;
+}
+
+function buildLeadSources(lead, attachmentFiles = []) {
+  return {
+    articles: summarizeSourceList((lead.lineItems || []).map((item) => item.source).filter(Boolean), lead.articles?.length > 0),
+    names: summarizeSourceList([
+      ...(lead.productNames || []).map((item) => item.source).filter(Boolean),
+      ...(lead.lineItems || []).filter((item) => item.descriptionRu).map((item) => item.source).filter(Boolean)
+    ], getResolvedProductNameCount(lead) > 0),
+    attachmentsProcessed: attachmentFiles.filter((file) => file.status === "processed").map((file) => file.filename)
+  };
+}
+
+function buildRecognitionSummary(lead, attachmentFiles = []) {
+  const nameCount = getResolvedProductNameCount(lead);
+  const hasParsedAttachment = attachmentFiles.some((file) => file.status === "processed");
+  const missing = [];
+  if (!(lead.articles || []).length) missing.push("article");
+  if (!(lead.detectedBrands || []).length) missing.push("brand");
+  if (!nameCount) missing.push("name");
+  return {
+    article: (lead.articles || []).length > 0,
+    brand: (lead.detectedBrands || []).length > 0,
+    name: nameCount > 0,
+    phone: null,
+    company: null,
+    inn: null,
+    parsedAttachment: hasParsedAttachment,
+    missing
+  };
+}
+
+function summarizeSourceList(values, hasData) {
+  if (!hasData) return [];
+  const normalized = [...new Set((values || []).filter(Boolean))];
+  return normalized.length ? normalized : ["body"];
+}
+
+function getResolvedProductNameCount(lead) {
+  return getResolvedProductNames(lead).length;
+}
+
+function getResolvedProductNames(lead) {
+  const names = [
+    ...(lead.productNames || []).map((item) => item.name),
+    ...(lead.lineItems || []).map((item) => item.descriptionRu)
+  ];
+  return [...new Set(names.map((value) => String(value || "").trim()).filter(Boolean))];
 }
 
 function extractProductNames(text, articles, detectedProductTypes, nomenclatureMatches = [], lineItems = []) {

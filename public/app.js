@@ -556,33 +556,63 @@ function filterInboxMessages(tab) {
 }
 
 function matchesRecognitionFilter(message, filterValue) {
-  const analysis = message.analysis || {};
-  const sender = analysis.sender || {};
-  const lead = analysis.lead || {};
-  const brands = [
-    ...(analysis.detectedBrands || []),
-    ...(lead.detectedBrands || [])
-  ].filter(Boolean);
-  const productNames = getLeadProductNameList(lead);
-  const hasArticle = (lead.articles || []).length > 0;
-  const hasBrand = brands.length > 0;
-  const hasName = productNames.length > 0;
-  const hasPhone = Boolean(sender.cityPhone || sender.mobilePhone);
-  const hasCompany = Boolean(sender.companyName);
-  const hasInn = Boolean(sender.inn);
-  const attachmentFiles = analysis.attachmentAnalysis?.files || [];
+  const summary = getRecognitionSummary(message.analysis || {});
   const hasAttachments = (message.attachments || message.attachmentFiles || []).length > 0;
-  const hasParsedAttachment = attachmentFiles.some((file) => file.status === 'processed');
 
-  if (filterValue === 'missing_article') return !hasArticle;
-  if (filterValue === 'missing_brand') return !hasBrand;
-  if (filterValue === 'missing_name') return !hasName;
-  if (filterValue === 'missing_phone') return !hasPhone;
-  if (filterValue === 'missing_company') return !hasCompany;
-  if (filterValue === 'missing_inn') return !hasInn;
-  if (filterValue === 'attachments_unparsed') return hasAttachments && !hasParsedAttachment;
-  if (filterValue === 'all_key_fields') return hasArticle && hasBrand && hasName && hasPhone;
+  if (filterValue === 'missing_article') return !summary.article;
+  if (filterValue === 'missing_brand') return !summary.brand;
+  if (filterValue === 'missing_name') return !summary.name;
+  if (filterValue === 'missing_phone') return !summary.phone;
+  if (filterValue === 'missing_company') return !summary.company;
+  if (filterValue === 'missing_inn') return !summary.inn;
+  if (filterValue === 'attachments_unparsed') return hasAttachments && !summary.parsedAttachment;
+  if (filterValue === 'all_key_fields') return summary.article && summary.brand && summary.name && summary.phone;
   return true;
+}
+
+function getRecognitionSummary(analysis = {}) {
+  const lead = analysis.lead || {};
+  const sender = analysis.sender || {};
+  const summary = lead.recognitionSummary || {};
+  return {
+    article: summary.article ?? ((lead.articles || []).length > 0),
+    brand: summary.brand ?? (((analysis.detectedBrands || []).length + (lead.detectedBrands || []).length) > 0),
+    name: summary.name ?? (getLeadProductNameList(lead).length > 0),
+    phone: summary.phone ?? Boolean(sender.cityPhone || sender.mobilePhone),
+    company: summary.company ?? Boolean(sender.companyName),
+    inn: summary.inn ?? Boolean(sender.inn),
+    parsedAttachment: summary.parsedAttachment ?? ((analysis.attachmentAnalysis?.files || []).some((file) => file.status === 'processed')),
+    missing: summary.missing || []
+  };
+}
+
+function renderRecognitionBadges(analysis = {}) {
+  const summary = getRecognitionSummary(analysis);
+  const badges = [];
+  if (!summary.article) badges.push('<span class="badge badge-unknown" title="Не найден артикул">нет артикула</span>');
+  if (!summary.brand) badges.push('<span class="badge badge-unknown" title="Не найден бренд">нет бренда</span>');
+  if (!summary.name) badges.push('<span class="badge badge-unknown" title="Не найдено наименование">нет имени</span>');
+  if (!summary.phone) badges.push('<span class="badge badge-unknown" title="Не найден телефон">нет телефона</span>');
+  if (summary.parsedAttachment) badges.push('<span class="badge badge-client" title="Есть обработанные вложения">вложения ок</span>');
+  return badges.join('');
+}
+
+function renderRecognitionSummary(summary) {
+  const rows = [
+    ['Артикул', summary.article],
+    ['Бренд', summary.brand],
+    ['Наименование', summary.name],
+    ['Телефон', summary.phone],
+    ['Компания', summary.company],
+    ['ИНН', summary.inn],
+    ['Вложения', summary.parsedAttachment]
+  ];
+  return rows.map(([label, ok]) =>
+    `<div style="display:flex;align-items:center;justify-content:space-between;font-size:11px;padding:3px 0;">
+      <span style="color:var(--text-muted);">${esc(label)}</span>
+      <span class="badge ${ok ? 'badge-client' : 'badge-unknown'}">${ok ? 'найдено' : 'нет'}</span>
+    </div>`
+  ).join('');
 }
 
 function normalizeSubjectForThread(subject) {
@@ -1446,6 +1476,7 @@ function renderInbox() {
     const isRead = readMessages.has(id);
     const a = m.analysis || {};
     const conf = a.classification?.confidence;
+    const recognitionBadges = renderRecognitionBadges(a);
     const indentStyle = indent ? 'padding-left:24px;border-left:2px solid var(--border);' : '';
     return `<div class="message-item-wrap ${active}" data-mid="${esc(id)}" style="${indentStyle}">
       <label class="msg-checkbox" onclick="event.stopPropagation()"><input type="checkbox" ${checked} data-check-mid="${esc(id)}" /></label>
@@ -1460,6 +1491,7 @@ function renderInbox() {
           ${conf != null ? confidenceBadge(conf) : ''}
           <span class="message-mailbox">${esc((m.mailbox || '').split('@')[0])}</span>
         </div>
+        ${recognitionBadges ? `<div class="message-meta" style="margin-top:4px;flex-wrap:wrap;">${recognitionBadges}</div>` : ''}
         <div class="message-meta" style="margin-top:4px;">
           <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);" title="${esc(id)}">ID: ${esc(truncate(id, 22))}</span>
         </div>
@@ -1628,6 +1660,7 @@ function renderEmailView(msg, viewEl, detailEl) {
   const leadFields = [['Тип запроса', lead.requestType], ['Бренды', formatArr(a.detectedBrands || lead.detectedBrands)], ['Артикулы', formatArr(lead.articles)], ['Названия товара', formatArr(productNameList)], ['Позиций', lead.totalPositions], ['Фото шильдика', lead.hasNameplatePhotos ? 'Да' : null], ['Фото артикула', lead.hasArticlePhotos ? 'Да' : null]];
   const crmFields = [['Юрлицо найдено', crm.isExistingCompany ? 'Да' : 'Нет'], ['Компания CRM', crm.company?.legalName], ['МОП', crm.curatorMop], ['МОЗ', crm.curatorMoz], ['Уточнение', crm.needsClarification ? 'Требуется' : 'Нет']];
   const attachmentFiles = a.attachmentAnalysis?.files || [];
+  const recognitionSummary = getRecognitionSummary(a);
 
   try {
   detailEl.innerHTML = `
@@ -1647,6 +1680,10 @@ function renderEmailView(msg, viewEl, detailEl) {
       <div class="detail-section-title">Заявка</div>
       ${leadFields.filter(([,v]) => v).map(([l,v]) => detailField(l, v)).join('')}
       ${lead.lineItems?.length ? `<div style="margin-top:8px;"><table class="data-table" style="font-size:11px;"><thead><tr><th>Артикул</th><th>Наименование</th><th>Кол-во</th><th>Ед.</th></tr></thead><tbody>${lead.lineItems.map((li) => `<tr><td>${esc(li.article)}</td><td style="min-width:180px;color:var(--text-secondary);">${esc(truncate(getLineItemName(li, lead), 90) || '—')}</td><td>${li.quantity}</td><td>${esc(li.unit)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Качество распознавания</div>
+      ${renderRecognitionSummary(recognitionSummary)}
     </div>
     ${attachmentFiles.length ? `<div class="detail-section">
       <div class="detail-section-title">Вложения</div>

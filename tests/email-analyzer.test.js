@@ -737,6 +737,7 @@ runTest("extracts article from stored docx attachment", () => {
 
       assert.equal(result.attachmentAnalysis.meta.processedCount, 1);
       assert.ok(result.lead.articles.includes("MSS-T25L03-GX16-2"));
+      assert.ok(result.lead.lineItems.some((item) => item.article === "MSS-T25L03-GX16-2" && String(item.source || "").startsWith("attachment:")));
     }
   );
 });
@@ -764,6 +765,8 @@ runTest("extracts article and inn from stored xlsx attachment", () => {
       assert.equal(result.attachmentAnalysis.meta.processedCount, 1);
       assert.ok(result.lead.articles.includes("MSS-T25L03-GX16-2"));
       assert.equal(result.sender.inn, "7702802784");
+      assert.ok(result.lead.lineItems.some((item) => item.article === "MSS-T25L03-GX16-2" && item.quantity === 30));
+      assert.ok(result.lead.productNames.some((item) => item.article === "MSS-T25L03-GX16-2"));
     }
   );
 });

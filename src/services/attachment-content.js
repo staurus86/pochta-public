@@ -28,6 +28,7 @@ const INN_PATTERN = /\b\d{10,12}\b/g;
 const KPP_PATTERN = /\b\d{9}\b/g;
 const OGRN_PATTERN = /\b\d{13,15}\b/g;
 const ARTICLE_PATTERN = /\b([A-ZА-ЯЁ0-9][A-ZА-ЯЁ0-9./:_-]{2,})\b/gi;
+const UNIT_PATTERN = /^(шт|штук[аи]?|ед|ед\.|pcs|pc|компл|к-т|set|м|кг|л|уп|рул|бух)$/i;
 
 export function analyzeStoredAttachments(messageKey, attachmentFiles = [], options = {}) {
   const limits = { ...DEFAULT_LIMITS, ...options };
@@ -60,7 +61,14 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
       detectedBrands: [],
       detectedInn: [],
       detectedKpp: [],
-      detectedOgrn: []
+      detectedOgrn: [],
+      lineItems: [],
+      fieldCoverage: {
+        hasArticles: false,
+        hasNames: false,
+        hasQuantities: false,
+        hasRequisites: false
+      }
     };
 
     if (processedCount >= limits.maxFiles) {
@@ -151,6 +159,13 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
       result.detectedInn = uniqueMatches(extractedText, INN_PATTERN).filter((value) => value.length === 10 || value.length === 12);
       result.detectedKpp = uniqueMatches(extractedText, KPP_PATTERN);
       result.detectedOgrn = uniqueMatches(extractedText, OGRN_PATTERN).filter((value) => value.length === 13 || value.length === 15);
+      result.lineItems = extractAttachmentLineItems(extractedText, ext, result.filename).slice(0, 50);
+      result.fieldCoverage = {
+        hasArticles: result.detectedArticles.length > 0 || result.lineItems.some((item) => item.article),
+        hasNames: result.lineItems.some((item) => item.descriptionRu),
+        hasQuantities: result.lineItems.some((item) => item.quantity != null),
+        hasRequisites: result.detectedInn.length > 0 || result.detectedKpp.length > 0 || result.detectedOgrn.length > 0
+      };
 
       if (totalChars < limits.maxCombinedChars) {
         const remaining = limits.maxCombinedChars - totalChars;
@@ -342,7 +357,11 @@ function cleanupExtractedText(text) {
   return String(text || "")
     .replace(/\\([()\\])/g, "$1")
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]+/g, " ")
-    .replace(/\s+/g, " ")
+    .replace(/\r/g, "\n")
+    .replace(/\n{3,}/g, "\n\n")
+    .split("\n")
+    .map((line) => line.replace(/[^\S\n\t]+/g, " ").trim())
+    .join("\n")
     .trim();
 }
 
@@ -365,9 +384,149 @@ function detectAttachmentArticles(text) {
     .filter((value) => value.length >= 4)
     .filter((value) => /\d/.test(value))
     .filter((value) => !/^(ИНН|КПП|ОГРН)$/.test(value))
+    .filter((value) => !/^\d{10,12}$/.test(value))
     .slice(0, 30);
 }
 
 function uniqueMatches(text, pattern) {
   return [...new Set(Array.from(String(text || "").matchAll(pattern), (match) => String(match[1] || match[0] || "").trim()).filter(Boolean))];
+}
+
+function extractAttachmentLineItems(text, ext, filename = "") {
+  const lines = String(text || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  if (ext === ".xlsx" || ext === ".csv" || ext === ".tsv") {
+    return extractTabularLineItems(lines, filename);
+  }
+  return extractLooseAttachmentLineItems(lines, filename);
+}
+
+function extractTabularLineItems(lines, filename) {
+  const rows = lines
+    .map((line) => line.split(/\t|;{1,}/).map((cell) => cleanupCellValue(cell)).filter(Boolean))
+    .filter((row) => row.length >= 2);
+
+  if (rows.length === 0) return [];
+
+  const headerRow = rows.find((row) => row.some((cell) => /артик|наимен|товар|кол-?во|колич|ед\.?|unit|qty/i.test(cell))) || rows[0];
+  const articleIdx = findHeaderIndex(headerRow, /артик|sku|код|part/i);
+  const nameIdx = findHeaderIndex(headerRow, /наимен|товар|описан|позици|product/i);
+  const qtyIdx = findHeaderIndex(headerRow, /кол-?во|колич|qty|quantity/i);
+  const unitIdx = findHeaderIndex(headerRow, /ед\.?|unit|uom/i);
+
+  const startIndex = headerRow === rows[0] ? 1 : Math.max(rows.indexOf(headerRow) + 1, 1);
+  const items = [];
+  for (const row of rows.slice(startIndex)) {
+    const article = normalizeAttachmentArticle(pickRowValue(row, articleIdx) || row.find(isAttachmentArticleCandidate) || "");
+    const descriptionRu = cleanupAttachmentName(pickRowValue(row, nameIdx) || inferDescriptionFromRow(row, { articleIdx, qtyIdx, unitIdx }) || "");
+    const quantity = parseAttachmentQuantity(pickRowValue(row, qtyIdx) || "");
+    const unit = cleanupAttachmentUnit(pickRowValue(row, unitIdx) || inferUnitFromRow(row) || "шт");
+    if (!article && !descriptionRu) continue;
+    if (article && !/\d/.test(article)) continue;
+    items.push({
+      article: article || null,
+      quantity,
+      unit,
+      descriptionRu: descriptionRu || null,
+      source: `attachment:${filename || "table"}`
+    });
+  }
+
+  return dedupeAttachmentLineItems(items);
+}
+
+function extractLooseAttachmentLineItems(lines, filename) {
+  const items = [];
+  for (const line of lines) {
+    const article = normalizeAttachmentArticle(findArticleInText(line) || "");
+    const quantity = parseAttachmentQuantity(line);
+    const descriptionRu = cleanupAttachmentName(article ? line.replace(article, " ").trim() : line);
+    if (!article) continue;
+    items.push({
+      article,
+      quantity,
+      unit: cleanupAttachmentUnit(inferUnitFromRow([line]) || "шт"),
+      descriptionRu: descriptionRu || null,
+      source: `attachment:${filename || "text"}`
+    });
+  }
+  return dedupeAttachmentLineItems(items);
+}
+
+function dedupeAttachmentLineItems(items) {
+  const byKey = new Map();
+  for (const item of items) {
+    const key = `${item.article || ""}|${item.descriptionRu || ""}`.toUpperCase();
+    if (!key.trim()) continue;
+    if (!byKey.has(key)) {
+      byKey.set(key, item);
+      continue;
+    }
+    const current = byKey.get(key);
+    if ((!current.quantity || current.quantity === 1) && item.quantity) current.quantity = item.quantity;
+    if ((!current.descriptionRu || current.descriptionRu.length < (item.descriptionRu || "").length) && item.descriptionRu) current.descriptionRu = item.descriptionRu;
+  }
+  return [...byKey.values()];
+}
+
+function findHeaderIndex(row, pattern) {
+  return row.findIndex((cell) => pattern.test(String(cell || "")));
+}
+
+function pickRowValue(row, index) {
+  return index >= 0 ? row[index] || "" : "";
+}
+
+function inferDescriptionFromRow(row, { articleIdx, qtyIdx, unitIdx }) {
+  return row
+    .filter((cell, idx) => idx !== articleIdx && idx !== qtyIdx && idx !== unitIdx)
+    .filter((cell) => !isAttachmentArticleCandidate(cell))
+    .filter((cell) => !parseAttachmentQuantity(cell))
+    .join(" ");
+}
+
+function inferUnitFromRow(row) {
+  return row.find((cell) => UNIT_PATTERN.test(String(cell || "").trim())) || "";
+}
+
+function findArticleInText(text) {
+  const matches = uniqueMatches(String(text || "").toUpperCase(), ARTICLE_PATTERN)
+    .filter((value) => value.length >= 4)
+    .filter((value) => /\d/.test(value));
+  return matches[0] || null;
+}
+
+function isAttachmentArticleCandidate(value) {
+  const article = normalizeAttachmentArticle(value);
+  return Boolean(article && article.length >= 4 && /\d/.test(article));
+}
+
+function normalizeAttachmentArticle(value) {
+  const cleaned = String(value || "").trim().replace(/^[#№]/, "");
+  if (!cleaned) return "";
+  if (!/\d/.test(cleaned)) return "";
+  return cleaned.toUpperCase();
+}
+
+function parseAttachmentQuantity(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return null;
+  const match = raw.match(/\b(\d+(?:[.,]\d+)?)\b/);
+  if (!match) return null;
+  const parsed = Number(match[1].replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function cleanupAttachmentUnit(value) {
+  const unit = String(value || "").trim();
+  return unit || "шт";
+}
+
+function cleanupAttachmentName(value) {
+  const text = String(value || "").replace(/\s+/g, " ").trim();
+  if (!text) return "";
+  if (isAttachmentArticleCandidate(text)) return "";
+  if (UNIT_PATTERN.test(text)) return "";
+  if (/^\d+(?:[.,]\d+)?$/.test(text)) return "";
+  if (/^(артикул|наименование|товар|позиция|количество|qty|quantity|unit)$/i.test(text)) return "";
+  return text;
 }

@@ -371,6 +371,59 @@ export class ProjectsStore {
       changes.push(`company:${old}→${feedback.companyName}`);
     }
 
+    if (feedback.inn !== undefined && feedback.inn !== (msg.analysis.sender?.inn || "")) {
+      if (!msg.analysis.sender) msg.analysis.sender = {};
+      const old = msg.analysis.sender.inn || "";
+      msg.analysis.sender.inn = feedback.inn;
+      changes.push(`inn:${old}→${feedback.inn}`);
+    }
+
+    if (feedback.phone !== undefined) {
+      if (!msg.analysis.sender) msg.analysis.sender = {};
+      const old = msg.analysis.sender.mobilePhone || msg.analysis.sender.cityPhone || "";
+      msg.analysis.sender.mobilePhone = feedback.phone || null;
+      changes.push(`phone:${old}→${feedback.phone}`);
+    }
+
+    if (feedback.addArticles?.length) {
+      if (!msg.analysis.lead) msg.analysis.lead = {};
+      const current = msg.analysis.lead.articles || [];
+      for (const article of feedback.addArticles) {
+        if (!current.includes(article)) {
+          current.push(article);
+          changes.push(`+article:${article}`);
+        }
+      }
+      msg.analysis.lead.articles = current;
+    }
+
+    if (feedback.removeArticles?.length) {
+      if (!msg.analysis.lead) msg.analysis.lead = {};
+      const current = msg.analysis.lead.articles || [];
+      msg.analysis.lead.articles = current.filter((article) => !feedback.removeArticles.includes(article));
+      for (const article of feedback.removeArticles) changes.push(`-article:${article}`);
+    }
+
+    if (feedback.productNames?.length) {
+      if (!msg.analysis.lead) msg.analysis.lead = {};
+      if (!Array.isArray(msg.analysis.lead.productNames)) msg.analysis.lead.productNames = [];
+      for (const product of feedback.productNames) {
+        const article = String(product.article || "").trim();
+        const name = String(product.name || "").trim();
+        if (!article || !name) continue;
+        const existing = msg.analysis.lead.productNames.find((item) => item.article === article);
+        if (existing) {
+          const old = existing.name || "";
+          existing.name = name;
+          existing.source = "manual_feedback";
+          changes.push(`name:${article}:${old}→${name}`);
+        } else {
+          msg.analysis.lead.productNames.push({ article, name, category: null, source: "manual_feedback" });
+          changes.push(`+name:${article}:${name}`);
+        }
+      }
+    }
+
     // Moderation verdict
     if (feedback.moderationVerdict) {
       const verdict = feedback.moderationVerdict; // "approved" or "needs_rework"
@@ -398,6 +451,14 @@ export class ProjectsStore {
       msg.auditLog.push({
         action: "manual_feedback",
         changes,
+        fields: {
+          companyName: feedback.companyName ?? null,
+          inn: feedback.inn ?? null,
+          phone: feedback.phone ?? null,
+          addArticles: feedback.addArticles || [],
+          removeArticles: feedback.removeArticles || [],
+          productNames: feedback.productNames || []
+        },
         at: now
       });
       if (!msg.feedbackApplied) msg.feedbackApplied = [];
