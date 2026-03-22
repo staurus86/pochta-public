@@ -100,3 +100,46 @@ runTest("imports nomenclature dictionary and finds articles by RAG search", () =
   const search = detectionKb.searchNomenclature("pressure sensor RAG-TEST-001", { limit: 5 });
   assert.ok(search.some((item) => item.article === "RAG-TEST-001"));
 });
+
+runTest("upserts sender profile and merges company and brand hints", () => {
+  const uniqueEmail = "feedback-auto@example.com";
+  const uniqueDomain = "example.com";
+
+  const first = detectionKb.upsertSenderProfile({
+    senderEmail: uniqueEmail,
+    senderDomain: uniqueDomain,
+    classification: "client",
+    companyHint: "ООО Автофидбек",
+    brandHint: "ABB",
+    notes: "test-1"
+  });
+
+  const second = detectionKb.upsertSenderProfile({
+    senderEmail: uniqueEmail,
+    senderDomain: uniqueDomain,
+    classification: "client",
+    companyHint: "",
+    brandHint: "Siemens, ABB",
+    notes: "test-2"
+  });
+
+  assert.equal(first.id, second.id);
+  assert.equal(second.company_hint, "ООО Автофидбек");
+  assert.match(second.brand_hint, /ABB/i);
+  assert.match(second.brand_hint, /Siemens/i);
+
+  detectionKb.deactivateSenderProfile(second.id);
+});
+
+runTest("learns nomenclature from manual feedback", () => {
+  detectionKb.learnNomenclatureFeedback({
+    article: "FB-LEARN-001",
+    brand: "Feedback Brand",
+    productName: "Ручной датчик",
+    sourceFile: "tests-manual-feedback"
+  });
+
+  const exact = detectionKb.findNomenclatureByArticle("fb-learn-001");
+  assert.equal(exact?.brand, "Feedback Brand");
+  assert.equal(exact?.product_name, "Ручной датчик");
+});

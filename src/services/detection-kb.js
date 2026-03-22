@@ -608,6 +608,58 @@ class DetectionKnowledgeBase {
     return this.db.prepare("SELECT * FROM sender_profiles WHERE id = ?").get(Number(result.lastInsertRowid));
   }
 
+  upsertSenderProfile(payload) {
+    const senderEmail = String(payload.senderEmail || "").trim().toLowerCase();
+    const senderDomain = String(payload.senderDomain || "").trim().toLowerCase();
+    const companyHint = cleanup(payload.companyHint || "");
+    const brandHints = dedupeCaseInsensitive(String(payload.brandHint || "").split(/[;,|]/).map((item) => cleanup(item)));
+    const classification = String(payload.classification || "client").trim() || "client";
+    const notes = cleanup(payload.notes || "");
+
+    if (!senderEmail && !senderDomain) return null;
+
+    const existing = this.getSenderProfiles().find((profile) => {
+      const profileEmail = String(profile.sender_email || "").trim().toLowerCase();
+      const profileDomain = String(profile.sender_domain || "").trim().toLowerCase();
+      return (senderEmail && profileEmail === senderEmail) || (senderDomain && profileDomain === senderDomain);
+    });
+
+    if (!existing) {
+      return this.addSenderProfile({
+        senderEmail,
+        senderDomain,
+        classification,
+        companyHint,
+        brandHint: brandHints.join(", "),
+        notes
+      });
+    }
+
+    const mergedCompanyHint = companyHint || existing.company_hint || "";
+    const mergedBrandHint = dedupeCaseInsensitive([
+      ...String(existing.brand_hint || "").split(/[;,|]/),
+      ...brandHints
+    ]).join(", ");
+    const mergedNotes = cleanup([existing.notes || "", notes].filter(Boolean).join(" | "));
+
+    this.db.prepare(`
+      UPDATE sender_profiles
+      SET classification = ?,
+          company_hint = ?,
+          brand_hint = ?,
+          notes = ?
+      WHERE id = ?
+    `).run(
+      classification,
+      mergedCompanyHint,
+      mergedBrandHint,
+      mergedNotes,
+      Number(existing.id)
+    );
+
+    return this.db.prepare("SELECT * FROM sender_profiles WHERE id = ?").get(Number(existing.id));
+  }
+
   deactivateRule(id) {
     this.db.prepare("UPDATE detection_rules SET is_active = 0 WHERE id = ?").run(Number(id));
     return { id, deactivated: true };
@@ -973,6 +1025,26 @@ class DetectionKnowledgeBase {
       ORDER BY source_rows DESC, total_quantity DESC, article
       LIMIT ?
     `).all(Number(limit));
+  }
+
+  learnNomenclatureFeedback(payload = {}) {
+    const article = cleanup(payload.article || "");
+    const articleNormalized = normalizeArticle(article);
+    if (!articleNormalized) return null;
+
+    const current = this.findNomenclatureByArticle(article);
+    const brand = cleanup(payload.brand || current?.brand || "");
+    const productName = cleanup(payload.productName || current?.product_name || "");
+    const description = cleanup(payload.description || current?.description || "");
+    const sourceFile = cleanup(payload.sourceFile || "manual_feedback");
+
+    return this.importNomenclatureCatalog([{
+      article,
+      brand,
+      product_name: productName,
+      description,
+      quantity: 1
+    }], { sourceFile });
   }
 
   classifyMessage({ subject = "", body = "", attachments = [], fromEmail = "", projectBrands = [] }) {

@@ -38,6 +38,18 @@ function getIntegrationClients() {
   return [...envClients, ...dbClients];
 }
 
+function normalizeClassificationForKb(label) {
+  const value = String(label || "").trim().toLowerCase();
+  if (value === "клиент" || value === "client") return "client";
+  if (value === "спам" || value === "spam") return "spam";
+  if (value === "поставщик услуг" || value === "поставщик" || value === "vendor") return "vendor";
+  return "client";
+}
+
+function getEmailDomain(email) {
+  return String(email || "").split("@")[1]?.trim().toLowerCase() || "";
+}
+
 // ── Rate limiter (sliding window) ──
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX || 120);
@@ -839,22 +851,59 @@ async function handleApi(req, res, url) {
     if (!project) {
       return sendJson(res, 404, { error: "Project not found." });
     }
+    const messageKey = decodeURIComponent(messageFeedbackMatch[2]);
     const payload = await parseRequestJson(req);
     const result = await store.applyMessageFeedback(
       project.id,
-      decodeURIComponent(messageFeedbackMatch[2]),
+      messageKey,
       payload
     );
     if (!result) {
       return sendJson(res, 404, { error: "Message not found." });
     }
 
+    const updatedMessage = (project.recentMessages || []).find((item) => (item.messageKey || item.id) === messageKey);
+    const analysis = result.analysis || updatedMessage?.analysis || {};
+    const senderEmail = analysis.sender?.email || "";
+    const senderDomain = getEmailDomain(senderEmail);
+    const detectedBrands = Array.from(new Set([...(analysis.detectedBrands || []), ...(payload.addBrands || [])])).filter(Boolean);
+
     // Auto-learn: if brands were added, update brand_aliases in KB
-    if (payload.addBrands?.length) {
-      for (const brand of payload.addBrands) {
+    if (detectedBrands.length) {
+      for (const brand of detectedBrands) {
         try {
           detectionKb.addBrandAlias({ canonicalBrand: brand, alias: brand.toLowerCase() });
         } catch { /* duplicate ok */ }
+      }
+    }
+
+    if (senderEmail || senderDomain) {
+      try {
+        detectionKb.upsertSenderProfile({
+          senderEmail,
+          senderDomain,
+          classification: normalizeClassificationForKb(payload.classification || analysis.classification?.label),
+          companyHint: payload.companyName || analysis.sender?.companyName || "",
+          brandHint: detectedBrands.join(", "),
+          notes: `Auto-learn from feedback: ${project.id}/${messageKey}`
+        });
+      } catch {
+        /* best effort */
+      }
+    }
+
+    const feedbackNames = Array.isArray(payload.productNames) ? payload.productNames : [];
+    for (const article of payload.addArticles || []) {
+      const nameMatch = feedbackNames.find((item) => String(item.article || "").trim().toUpperCase() === String(article || "").trim().toUpperCase());
+      try {
+        detectionKb.learnNomenclatureFeedback({
+          article,
+          productName: nameMatch?.name || "",
+          brand: detectedBrands[0] || "",
+          sourceFile: `manual_feedback:${project.id}`
+        });
+      } catch {
+        /* duplicate or invalid article: ignore */
       }
     }
 

@@ -148,11 +148,17 @@ export function analyzeEmail(project, payload) {
   // Filter own brands (Siderus, Коловрат, etc.) from classification results
   classification.detectedBrands = detectionKb.filterOwnBrands(classification.detectedBrands);
   const sender = extractSender(fromName, fromEmail, [bodyForSender, attachmentContent].filter(Boolean).join("\n\n"), attachments);
+  applySenderProfileHints(sender, classification, fromEmail);
   mergeAttachmentRequisites(sender, attachmentAnalysis);
   const lead = mergeAttachmentLeadData(
     extractLead(subject, [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n"), attachments, project.brands || [], classification.detectedBrands),
     attachmentAnalysis
   );
+  if (!lead.detectedBrands?.length && classification.detectedBrands?.length) {
+    lead.detectedBrands = [...classification.detectedBrands];
+  } else if (classification.detectedBrands?.length) {
+    lead.detectedBrands = unique([...lead.detectedBrands, ...classification.detectedBrands]);
+  }
   hydrateRecognitionSummary(lead, sender);
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands, lead });
 
@@ -225,6 +231,26 @@ function normalizeAttachments(attachments) {
   }
 
   return [];
+}
+
+function applySenderProfileHints(sender, classification, fromEmail) {
+  const profile = detectionKb.matchSenderProfile(fromEmail);
+  if (!profile) return;
+
+  const hintedCompany = String(profile.company_hint || "").trim();
+  if (hintedCompany && (!sender.companyName || inferCompanyNameFromEmail(fromEmail) === sender.companyName)) {
+    sender.companyName = hintedCompany;
+  }
+
+  const hintedBrands = unique(
+    String(profile.brand_hint || "")
+      .split(/[;,|]/)
+      .map((item) => item.trim())
+      .filter(Boolean)
+  );
+  if (hintedBrands.length > 0) {
+    classification.detectedBrands = detectionKb.filterOwnBrands(unique([...(classification.detectedBrands || []), ...hintedBrands]));
+  }
 }
 
 function mergeAttachmentRequisites(sender, attachmentAnalysis) {

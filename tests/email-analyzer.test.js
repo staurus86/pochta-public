@@ -974,3 +974,29 @@ runTest("extractLead defaults to normal urgency", () => {
   });
   assert.strictEqual(result.lead.urgency, "normal");
 });
+
+runTest("applies sender profile hints to company and brands on future emails", () => {
+  const senderEmail = "repeat-buyer@test-feedback.ru";
+  const profile = detectionKb.upsertSenderProfile({
+    senderEmail,
+    senderDomain: "test-feedback.ru",
+    classification: "client",
+    companyHint: "ООО Повторный клиент",
+    brandHint: "ABB, Siemens",
+    notes: "email-analyzer-test"
+  });
+
+  try {
+    const result = analyzeEmail(project, {
+      fromEmail: senderEmail,
+      subject: "Нужен счёт",
+      body: "Добрый день. Прошу подготовить КП без явного бренда в тексте."
+    });
+
+    assert.equal(result.sender.companyName, "ООО Повторный клиент");
+    assert.ok(result.detectedBrands.includes("ABB"));
+    assert.ok(result.detectedBrands.includes("Siemens"));
+  } finally {
+    if (profile?.id) detectionKb.deactivateSenderProfile(profile.id);
+  }
+});
