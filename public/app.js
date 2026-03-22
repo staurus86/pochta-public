@@ -1080,11 +1080,72 @@ function renderDashboard() {
   ).join('') : '<div style="color:var(--text-muted);font-size:12px;">Нет данных о брендах</div>';
 
   renderProblemQueue();
+  renderQualityAuditTable();
 
   // ═══ Request Analytics ═══
   renderRequestAnalytics();
   renderAccuracyMetrics();
   renderWeeklyTrends();
+}
+
+function renderQualityAuditTable() {
+  const rows = allRunnerMessages
+    .filter((m) => m.pipelineStatus !== 'ignored_spam' && m.pipelineStatus !== 'fetch_error')
+    .map((message) => {
+      const summary = getRecognitionSummary(message.analysis || {});
+      const missing = summary.missing || [];
+      const hasAttachments = (message.attachments || message.attachmentFiles || []).length > 0;
+      const attachmentIssue = hasAttachments && !summary.parsedAttachment ? 'attachments' : null;
+      const primaryProblem = missing[0] || attachmentIssue;
+      if (!primaryProblem) return null;
+      return {
+        message,
+        primaryProblem,
+        confidence: message.analysis?.classification?.confidence || 0,
+        parsedAttachment: summary.parsedAttachment
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => {
+      if (a.primaryProblem !== b.primaryProblem) return a.primaryProblem.localeCompare(b.primaryProblem);
+      return a.confidence - b.confidence;
+    })
+    .slice(0, 20);
+
+  $('#quality-audit-body').innerHTML = rows.length ? rows.map(({ message, primaryProblem, confidence, parsedAttachment }) => `
+    <tr>
+      <td><span class="badge badge-unknown">${esc(problemLabel(primaryProblem))}</span></td>
+      <td style="max-width:320px;"><button onclick="window.__openProblemMessage('${escAttr(mid(message))}')" style="background:none;border:none;padding:0;color:var(--text);cursor:pointer;text-align:left;">${esc(truncate(message.subject || 'Без темы', 70))}</button></td>
+      <td style="font-size:11px;color:var(--text-secondary);">${esc(truncate(message.from || message.analysis?.sender?.email || '', 36))}</td>
+      <td>${confidenceBadge(confidence)}</td>
+      <td>${parsedAttachment ? '<span class="badge badge-client">ok</span>' : '<span class="badge badge-unknown">нет</span>'}</td>
+      <td><button class="btn btn-ghost btn-sm" onclick="window.__openRecognitionFilter('${escAttr(problemToFilter(primaryProblem))}')">Открыть</button></td>
+    </tr>
+  `).join('') : '<tr><td colspan="6" style="text-align:center;color:var(--text-muted);padding:24px;">Проблемных писем нет</td></tr>';
+}
+
+function problemLabel(problem) {
+  return {
+    article: 'Нет артикула',
+    brand: 'Нет бренда',
+    name: 'Нет наименования',
+    phone: 'Нет телефона',
+    company: 'Нет компании',
+    inn: 'Нет ИНН',
+    attachments: 'Вложения не разобраны'
+  }[problem] || problem;
+}
+
+function problemToFilter(problem) {
+  return {
+    article: 'missing_article',
+    brand: 'missing_brand',
+    name: 'missing_name',
+    phone: 'missing_phone',
+    company: 'missing_company',
+    inn: 'missing_inn',
+    attachments: 'attachments_unparsed'
+  }[problem] || '';
 }
 
 function renderProblemQueue() {
