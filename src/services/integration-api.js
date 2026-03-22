@@ -9,6 +9,12 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
   const messageKey = message.messageKey || message.id;
   const updatedAt = resolveMessageUpdatedAt(message);
   const exportState = resolveExportState(message, options.consumerId);
+  const include = normalizeIncludeSet(options.include);
+  const ageHours = resolveMessageAgeHours(message);
+  const recognitionPriority = resolveRecognitionPriority(lead);
+  const recognitionRisk = resolveRecognitionRisk(lead);
+  const hasConflicts = Boolean(lead.recognitionSummary?.hasConflicts || (lead.recognitionDiagnostics?.conflicts || []).length > 0);
+  const confirmedAt = message.recognitionConfirmed?.at || null;
 
   return {
     project_id: project.id,
@@ -21,8 +27,22 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
     subject: message.subject || "",
     from: message.from || "",
     body_preview: message.bodyPreview || "",
+    body_full: include.has("body") ? resolveMessageBody(message, analysis) : null,
     pipeline_status: message.pipelineStatus || "unknown",
     thread_id: message.threadId || null,
+    message_meta: {
+      recognition_confirmed: Boolean(confirmedAt),
+      recognition_confirmed_at: confirmedAt,
+      age_hours: ageHours,
+      priority: recognitionPriority,
+      risk_level: recognitionRisk,
+      has_conflicts: hasConflicts,
+      sla_overdue: isMessageSlaOverdue({ recognitionPriority, ageHours }),
+      moderated: Boolean(message.moderationVerdict),
+      moderation_verdict: message.moderationVerdict || null,
+      moderated_at: message.moderatedAt || null,
+      moderated_by: message.moderatedBy || null
+    },
     export: {
       acknowledged: Boolean(exportState?.acknowledgedAt),
       acknowledged_at: exportState?.acknowledgedAt || null,
@@ -104,6 +124,15 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
       has_nameplate_photos: Boolean(lead.hasNameplatePhotos),
       has_article_photos: Boolean(lead.hasArticlePhotos)
     },
+    attachment_analysis: include.has("attachments_analysis")
+      ? normalizeAttachmentAnalysis(analysis.attachmentAnalysis)
+      : null,
+    extraction_meta: include.has("extraction_meta")
+      ? analysis.extractionMeta || null
+      : null,
+    audit: include.has("audit")
+      ? normalizeAuditLog(message.auditLog || [])
+      : null,
     crm: {
       is_existing_company: Boolean(crm.isExistingCompany),
       needs_clarification: Boolean(crm.needsClarification),
@@ -138,6 +167,16 @@ export function listIntegrationMessages(project, query = {}, options = {}) {
   const attachmentExtFilter = parseAttachmentExtFilter(query.attachment_ext);
   const minAttachments = normalizePositiveInt(query.min_attachments, 0);
   const productTypeFilter = parseProductTypeFilter(query.product_type);
+  const confirmedFilter = parseBooleanFilter(query.confirmed);
+  const priorityFilter = parsePriorityFilter(query.priority);
+  const riskFilter = parseRiskFilter(query.risk);
+  const hasConflicts = parseBooleanFilter(query.has_conflicts);
+  const companyPresent = parseBooleanFilter(query.company_present);
+  const innPresent = parseBooleanFilter(query.inn_present);
+  const phonePresent = parseBooleanFilter(query.phone_present);
+  const articlePresent = parseBooleanFilter(query.article_present);
+  const slaOverdue = parseBooleanFilter(query.sla_overdue);
+  const include = normalizeIncludeSet(query.include);
 
   const allMessages = (project.recentMessages || [])
     .filter((item) => statuses.length === 0 || statuses.includes(item.pipelineStatus))
@@ -195,6 +234,26 @@ export function listIntegrationMessages(project, query = {}, options = {}) {
       const types = item.analysis?.lead?.detectedProductTypes || [];
       return productTypeFilter.some((t) => types.includes(t));
     })
+    .filter((item) => confirmedFilter === null || Boolean(item.recognitionConfirmed?.at) === confirmedFilter)
+    .filter((item) => {
+      if (!priorityFilter) return true;
+      const priority = resolveRecognitionPriority(item.analysis?.lead || {});
+      return priority ? priorityFilter.includes(priority) : false;
+    })
+    .filter((item) => {
+      if (!riskFilter) return true;
+      const risk = resolveRecognitionRisk(item.analysis?.lead || {});
+      return risk ? riskFilter.includes(risk) : false;
+    })
+    .filter((item) => hasConflicts === null || Boolean(item.analysis?.lead?.recognitionSummary?.hasConflicts || (item.analysis?.lead?.recognitionDiagnostics?.conflicts || []).length > 0) === hasConflicts)
+    .filter((item) => companyPresent === null || Boolean(item.analysis?.sender?.companyName) === companyPresent)
+    .filter((item) => innPresent === null || Boolean(item.analysis?.sender?.inn) === innPresent)
+    .filter((item) => phonePresent === null || Boolean(item.analysis?.sender?.mobilePhone || item.analysis?.sender?.cityPhone) === phonePresent)
+    .filter((item) => articlePresent === null || Boolean((item.analysis?.lead?.articles || []).length > 0) === articlePresent)
+    .filter((item) => slaOverdue === null || isMessageSlaOverdue({
+      recognitionPriority: resolveRecognitionPriority(item.analysis?.lead || {}),
+      ageHours: resolveMessageAgeHours(item)
+    }) === slaOverdue)
     .sort(compareMessagesDesc);
 
   const total = allMessages.length;
@@ -203,7 +262,10 @@ export function listIntegrationMessages(project, query = {}, options = {}) {
     : allMessages;
   const offset = cursor ? 0 : (page - 1) * limit;
   const pageItems = filteredMessages.slice(offset, offset + limit);
-  const data = pageItems.map((item) => normalizeIntegrationMessage(project, item, options));
+  const data = pageItems.map((item) => normalizeIntegrationMessage(project, item, {
+    ...options,
+    include
+  }));
   const hasMore = filteredMessages.length > offset + pageItems.length;
   const lastItem = pageItems[pageItems.length - 1] || null;
 
@@ -225,6 +287,16 @@ export function listIntegrationMessages(project, query = {}, options = {}) {
       attachment_ext: attachmentExtFilter,
       min_attachments: minAttachments || null,
       product_type: productTypeFilter,
+      confirmed: confirmedFilter,
+      priority: priorityFilter,
+      risk: riskFilter,
+      has_conflicts: hasConflicts,
+      company_present: companyPresent,
+      inn_present: innPresent,
+      phone_present: phonePresent,
+      article_present: articlePresent,
+      sla_overdue: slaOverdue,
+      include: [...include],
       since: since ? since.toISOString() : null,
       cursor: cursor ? encodeCursor(cursor) : null,
       next_cursor: hasMore && lastItem ? encodeCursor({
@@ -415,6 +487,49 @@ function parseProductTypeFilter(value) {
   return text.split(",").map((t) => t.trim()).filter(Boolean);
 }
 
+function parsePriorityFilter(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (!text) return null;
+  const valid = new Set(["critical", "high", "medium", "low"]);
+  const values = text.split(",").map((item) => item.trim()).filter((item) => valid.has(item));
+  return values.length ? values : null;
+}
+
+function parseRiskFilter(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (!text) return null;
+  const valid = new Set(["high", "medium", "low"]);
+  const values = text.split(",").map((item) => item.trim()).filter((item) => valid.has(item));
+  return values.length ? values : null;
+}
+
+function normalizeIncludeSet(value) {
+  const raw = Array.isArray(value) ? value.join(",") : String(value || "");
+  const items = raw.split(",").map((item) => item.trim().toLowerCase()).filter(Boolean);
+  const normalized = new Set();
+  for (const item of items) {
+    if (item === "all") {
+      normalized.add("body");
+      normalized.add("audit");
+      normalized.add("attachments_analysis");
+      normalized.add("extraction_meta");
+      continue;
+    }
+    normalized.add(item);
+  }
+  return normalized;
+}
+
+function resolveRecognitionPriority(lead = {}) {
+  const value = String(lead.recognitionDecision?.priority || "").trim().toLowerCase();
+  return value || null;
+}
+
+function resolveRecognitionRisk(lead = {}) {
+  const value = String(lead.recognitionSummary?.riskLevel || lead.recognitionDiagnostics?.riskLevel || "").trim().toLowerCase();
+  return value || null;
+}
+
 function parseCursor(value) {
   const text = String(value || "").trim();
   if (!text) {
@@ -498,6 +613,44 @@ function normalizeIntegrationDelivery(item) {
   };
 }
 
+function normalizeAttachmentAnalysis(attachmentAnalysis) {
+  if (!attachmentAnalysis) return null;
+  return {
+    meta: attachmentAnalysis.meta || null,
+    files: (attachmentAnalysis.files || []).map((file) => ({
+      filename: file.filename || null,
+      status: file.status || null,
+      reason: file.reason || null,
+      category: file.category || null,
+      extracted_chars: file.extractedChars ?? null,
+      detected_articles: file.detectedArticles || [],
+      detected_inn: file.detectedInn || [],
+      detected_kpp: file.detectedKpp || [],
+      detected_ogrn: file.detectedOgrn || [],
+      line_items: (file.lineItems || []).map((item) => ({
+        article: item.article || null,
+        quantity: item.quantity ?? null,
+        unit: item.unit || null,
+        description_ru: item.descriptionRu || null
+      }))
+    }))
+  };
+}
+
+function normalizeAuditLog(entries = []) {
+  return entries.map((entry) => ({
+    at: entry.at || null,
+    action: entry.action || null,
+    from: entry.from || null,
+    to: entry.to || null,
+    changes: entry.changes || [],
+    fields: entry.fields || null,
+    consumer: entry.consumer || null,
+    external_id: entry.externalId || null,
+    note: entry.note || null
+  }));
+}
+
 function resolveExportState(message, consumerId) {
   if (consumerId) {
     return message?.integrationExports?.[consumerId] || null;
@@ -510,6 +663,24 @@ function resolveExportState(message, consumerId) {
   const exportsMap = message?.integrationExports || {};
   const firstKey = Object.keys(exportsMap)[0];
   return firstKey ? exportsMap[firstKey] : null;
+}
+
+function resolveMessageBody(message, analysis) {
+  return message.body || analysis?.rawInput?.body || analysis?.lead?.freeText || message.bodyPreview || "";
+}
+
+function resolveMessageAgeHours(message) {
+  const createdAt = Date.parse(message?.createdAt || "");
+  if (!Number.isFinite(createdAt)) return null;
+  return Number(((Date.now() - createdAt) / (1000 * 60 * 60)).toFixed(2));
+}
+
+function isMessageSlaOverdue({ recognitionPriority, ageHours }) {
+  if (!recognitionPriority || !Number.isFinite(ageHours)) return false;
+  if (recognitionPriority === "critical") return ageHours >= 2;
+  if (recognitionPriority === "high") return ageHours >= 8;
+  if (recognitionPriority === "medium") return ageHours >= 24;
+  return ageHours >= 48;
 }
 
 function latestIso(values) {

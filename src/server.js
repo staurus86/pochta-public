@@ -1291,7 +1291,24 @@ async function handleIntegrationApi(req, res, url) {
       status: url.searchParams.get("status"),
       since,
       exported: url.searchParams.get("exported"),
-      cursor
+      cursor,
+      brand: url.searchParams.get("brand"),
+      label: url.searchParams.get("label"),
+      q: url.searchParams.get("q"),
+      has_attachments: url.searchParams.get("has_attachments"),
+      attachment_ext: url.searchParams.get("attachment_ext"),
+      min_attachments: url.searchParams.get("min_attachments"),
+      product_type: url.searchParams.get("product_type"),
+      confirmed: url.searchParams.get("confirmed"),
+      priority: url.searchParams.get("priority"),
+      risk: url.searchParams.get("risk"),
+      has_conflicts: url.searchParams.get("has_conflicts"),
+      company_present: url.searchParams.get("company_present"),
+      inn_present: url.searchParams.get("inn_present"),
+      phone_present: url.searchParams.get("phone_present"),
+      article_present: url.searchParams.get("article_present"),
+      sla_overdue: url.searchParams.get("sla_overdue"),
+      include: url.searchParams.get("include")
     }, {
       consumerId: currentClient.id
     }));

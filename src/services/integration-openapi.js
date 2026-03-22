@@ -90,7 +90,17 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
             queryParameter("has_attachments", "boolean", "Filter by attachment presence"),
             queryParameter("attachment_ext", "string", "Comma-separated file extensions to filter by"),
             queryParameter("min_attachments", "integer", "Minimum number of attachments"),
-            queryParameter("product_type", "string", "Comma-separated product type categories")
+            queryParameter("product_type", "string", "Comma-separated product type categories"),
+            queryParameter("confirmed", "boolean", "Filter by manual recognition confirmation"),
+            queryParameter("priority", "string", "Comma-separated priorities: critical, high, medium, low"),
+            queryParameter("risk", "string", "Comma-separated recognition risk levels: high, medium, low"),
+            queryParameter("has_conflicts", "boolean", "Filter by recognition conflicts"),
+            queryParameter("company_present", "boolean", "Filter by detected company presence"),
+            queryParameter("inn_present", "boolean", "Filter by detected INN presence"),
+            queryParameter("phone_present", "boolean", "Filter by detected phone presence"),
+            queryParameter("article_present", "boolean", "Filter by detected article presence"),
+            queryParameter("sla_overdue", "boolean", "Filter by computed SLA overdue state"),
+            queryParameter("include", "string", "Optional additive payload blocks: body,audit,attachments_analysis,extraction_meta,all")
           ],
           responses: {
             200: {
@@ -467,7 +477,25 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
             subject: { type: "string" },
             from: { type: "string" },
             body_preview: { type: "string" },
+            body_full: { type: ["string", "null"] },
             pipeline_status: { type: "string" },
+            thread_id: { type: ["string", "null"] },
+            message_meta: {
+              type: "object",
+              properties: {
+                recognition_confirmed: { type: "boolean" },
+                recognition_confirmed_at: { type: ["string", "null"], format: "date-time" },
+                age_hours: { type: ["number", "null"] },
+                priority: { type: ["string", "null"] },
+                risk_level: { type: ["string", "null"] },
+                has_conflicts: { type: "boolean" },
+                sla_overdue: { type: "boolean" },
+                moderated: { type: "boolean" },
+                moderation_verdict: { type: ["string", "null"] },
+                moderated_at: { type: ["string", "null"], format: "date-time" },
+                moderated_by: { type: ["string", "null"] }
+              }
+            },
             export: {
               type: "object",
               properties: {
@@ -531,8 +559,57 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
                   type: "array",
                   items: { type: "string" }
                 },
+                product_names: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      article: { type: ["string", "null"] },
+                      name: { type: ["string", "null"] },
+                      category: { type: ["string", "null"] }
+                    }
+                  }
+                },
+                nomenclature_matches: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      article: { type: ["string", "null"] },
+                      brand: { type: ["string", "null"] },
+                      product_name: { type: ["string", "null"] },
+                      description: { type: ["string", "null"] },
+                      source_rows: { type: "integer" },
+                      avg_price: { type: ["number", "null"] },
+                      match_type: { type: ["string", "null"] }
+                    }
+                  }
+                },
+                recognition_decision: { type: ["object", "null"] },
+                sources: { type: ["object", "null"] },
+                recognition_summary: { type: ["object", "null"] },
+                recognition_diagnostics: { type: ["object", "null"] },
                 has_nameplate_photos: { type: "boolean" },
                 has_article_photos: { type: "boolean" }
+              }
+            },
+            attachment_analysis: { type: ["object", "null"] },
+            extraction_meta: { type: ["object", "null"] },
+            audit: {
+              type: ["array", "null"],
+              items: {
+                type: "object",
+                properties: {
+                  at: { type: ["string", "null"], format: "date-time" },
+                  action: { type: ["string", "null"] },
+                  from: { type: ["string", "null"] },
+                  to: { type: ["string", "null"] },
+                  changes: { type: "array", items: { type: "string" } },
+                  fields: { type: ["object", "null"] },
+                  consumer: { type: ["string", "null"] },
+                  external_id: { type: ["string", "null"] },
+                  note: { type: ["string", "null"] }
+                }
               }
             },
             crm: {
@@ -594,6 +671,25 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
                 min_attachments: { type: ["integer", "null"] },
                 product_type: {
                   type: ["array", "null"],
+                  items: { type: "string" }
+                },
+                confirmed: { type: ["boolean", "null"] },
+                priority: {
+                  type: ["array", "null"],
+                  items: { type: "string" }
+                },
+                risk: {
+                  type: ["array", "null"],
+                  items: { type: "string" }
+                },
+                has_conflicts: { type: ["boolean", "null"] },
+                company_present: { type: ["boolean", "null"] },
+                inn_present: { type: ["boolean", "null"] },
+                phone_present: { type: ["boolean", "null"] },
+                article_present: { type: ["boolean", "null"] },
+                sla_overdue: { type: ["boolean", "null"] },
+                include: {
+                  type: "array",
                   items: { type: "string" }
                 },
                 since: { type: ["string", "null"], format: "date-time" },

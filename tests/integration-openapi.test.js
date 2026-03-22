@@ -33,4 +33,10 @@ runTest("builds versioned legacy integration openapi contract", () => {
   assert.equal(spec.paths["/api/integration/projects/{projectId}/messages/{messageKey}/ack"].post.parameters.at(-1).name, "Idempotency-Key");
   assert.ok(spec.components.schemas.IntegrationMessage.properties.sender.properties.kpp);
   assert.ok(spec.components.schemas.IntegrationMessage.properties.sender.properties.ogrn);
+  assert.ok(spec.components.schemas.IntegrationMessage.properties.message_meta);
+  assert.ok(spec.components.schemas.IntegrationMessage.properties.audit);
+  const params = spec.paths["/api/integration/projects/{projectId}/messages"].get.parameters.map((item) => item.name);
+  assert.ok(params.includes("confirmed"));
+  assert.ok(params.includes("priority"));
+  assert.ok(params.includes("include"));
 });

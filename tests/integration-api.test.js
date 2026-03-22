@@ -23,9 +23,11 @@ const project = {
       subject: "Запрос по ABB",
       from: "Иван Петров <ivan@example.com>",
       bodyPreview: "Прошу КП",
+      body: "Полное тело письма с артикулом S201-C16 и реквизитами",
       pipelineStatus: "ready_for_crm",
       attachments: ["spec.pdf", "drawing.xlsx"],
       auditLog: [{ action: "status_change", at: "2026-03-18T10:06:00.000Z" }],
+      recognitionConfirmed: { at: "2026-03-18T11:00:00.000Z", source: "manual_feedback" },
       integrationExport: {
         acknowledgedAt: "2026-03-18T10:07:00.000Z",
         consumer: "crm-sync",
@@ -117,7 +119,10 @@ const project = {
           }
         },
         suggestedReply: "Спасибо за заявку"
-      }
+      },
+      moderationVerdict: "approved",
+      moderatedAt: "2026-03-18T11:10:00.000Z",
+      moderatedBy: "QA Manager"
     },
     {
       messageKey: "msg-2",
@@ -272,7 +277,7 @@ runTest("resolves integration clients and project scopes", () => {
 });
 
 runTest("normalizes integration message shape", () => {
-  const normalized = normalizeIntegrationMessage(project, project.recentMessages[0], { consumerId: "crm-sync" });
+  const normalized = normalizeIntegrationMessage(project, project.recentMessages[0], { consumerId: "crm-sync", include: "all" });
 
   assert.equal(normalized.project_id, "project-3-mailbox-file");
   assert.equal(normalized.message_key, "msg-1");
@@ -285,6 +290,11 @@ runTest("normalizes integration message shape", () => {
   assert.equal(normalized.export.external_id, "REQ-42");
   assert.equal(normalized.sender.kpp, "770101001");
   assert.equal(normalized.sender.ogrn, "1234567890123");
+  assert.equal(normalized.body_full, "Полное тело письма с артикулом S201-C16 и реквизитами");
+  assert.equal(normalized.message_meta.recognition_confirmed, true);
+  assert.equal(normalized.message_meta.priority, "medium");
+  assert.equal(normalized.message_meta.moderation_verdict, "approved");
+  assert.ok(Array.isArray(normalized.audit));
 });
 
 runTest("lists integration messages with pagination and status filter", () => {
@@ -317,6 +327,28 @@ runTest("filters integration messages by export acknowledgement", () => {
   assert.equal(result.data.length, 1);
   assert.equal(result.data[0].message_key, "msg-1");
   assert.equal(result.meta.exported, true);
+});
+
+runTest("filters integration messages by confirmed and priority", () => {
+  const confirmed = listIntegrationMessages(project, { confirmed: "true" });
+  assert.equal(confirmed.data.length, 1);
+  assert.equal(confirmed.data[0].message_key, "msg-1");
+  assert.equal(confirmed.meta.confirmed, true);
+
+  const priority = listIntegrationMessages(project, { priority: "medium" });
+  assert.equal(priority.data.length, 1);
+  assert.equal(priority.data[0].message_key, "msg-1");
+  assert.deepEqual(priority.meta.priority, ["medium"]);
+});
+
+runTest("filters integration messages by risk and field presence", () => {
+  const risk = listIntegrationMessages(project, { risk: "low" });
+  assert.equal(risk.data.length, 1);
+  assert.equal(risk.data[0].message_key, "msg-1");
+
+  const withInn = listIntegrationMessages(project, { inn_present: "true", company_present: "true", phone_present: "true", article_present: "true" });
+  assert.equal(withInn.data.length, 1);
+  assert.equal(withInn.data[0].message_key, "msg-1");
 });
 
 runTest("supports cursor-based integration pagination with stable ordering", () => {
