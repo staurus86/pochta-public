@@ -159,6 +159,8 @@ export function analyzeEmail(project, payload) {
   } else if (classification.detectedBrands?.length) {
     lead.detectedBrands = unique([...lead.detectedBrands, ...classification.detectedBrands]);
   }
+  if (!lead.sources) lead.sources = {};
+  lead.sources.brands = summarizeSourceList(classification.brandSources || [], (lead.detectedBrands || []).length > 0);
   hydrateRecognitionSummary(lead, sender);
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands, lead });
 
@@ -236,10 +238,12 @@ function normalizeAttachments(attachments) {
 function applySenderProfileHints(sender, classification, fromEmail) {
   const profile = detectionKb.matchSenderProfile(fromEmail);
   if (!profile) return;
+  if (!sender.sources) sender.sources = {};
 
   const hintedCompany = String(profile.company_hint || "").trim();
   if (hintedCompany && (!sender.companyName || inferCompanyNameFromEmail(fromEmail) === sender.companyName)) {
     sender.companyName = hintedCompany;
+    sender.sources.company = "sender_profile";
   }
 
   const hintedBrands = unique(
@@ -250,6 +254,7 @@ function applySenderProfileHints(sender, classification, fromEmail) {
   );
   if (hintedBrands.length > 0) {
     classification.detectedBrands = detectionKb.filterOwnBrands(unique([...(classification.detectedBrands || []), ...hintedBrands]));
+    classification.brandSources = unique([...(classification.brandSources || []), "sender_profile"]);
   }
 }
 
@@ -259,9 +264,19 @@ function mergeAttachmentRequisites(sender, attachmentAnalysis) {
   const allKpp = [...new Set(files.flatMap((file) => file.detectedKpp || []))];
   const allOgrn = [...new Set(files.flatMap((file) => file.detectedOgrn || []))];
 
-  if (!sender.inn && allInn.length === 1) sender.inn = allInn[0];
-  if (!sender.kpp && allKpp.length === 1) sender.kpp = allKpp[0];
-  if (!sender.ogrn && allOgrn.length === 1) sender.ogrn = allOgrn[0];
+  if (!sender.sources) sender.sources = {};
+  if (!sender.inn && allInn.length === 1) {
+    sender.inn = allInn[0];
+    sender.sources.inn = "attachment";
+  }
+  if (!sender.kpp && allKpp.length === 1) {
+    sender.kpp = allKpp[0];
+    sender.sources.kpp = "attachment";
+  }
+  if (!sender.ogrn && allOgrn.length === 1) {
+    sender.ogrn = allOgrn[0];
+    sender.sources.ogrn = "attachment";
+  }
 }
 
 function hydrateRecognitionSummary(lead, sender) {
@@ -307,7 +322,9 @@ function extractSender(fromName, fromEmail, body, attachments) {
   const requisites = extractRequisites(body);
   // Filter out own URLs from detected links
   const externalUrls = urls.filter((u) => !OWN_DOMAINS.has(extractDomainFromUrl(u)));
-  const companyName = extractCompanyName(body) || inferCompanyNameFromEmail(fromEmail);
+  const extractedCompanyName = extractCompanyName(body);
+  const inferredCompanyName = inferCompanyNameFromEmail(fromEmail);
+  const companyName = extractedCompanyName || inferredCompanyName;
   const fullName = fromName || extractFullNameFromBody(body) || "Не определено";
   const position = extractPosition(body) || null;
   const website = externalUrls[0] || inferWebsiteFromEmail(fromEmail);
@@ -325,7 +342,15 @@ function extractSender(fromName, fromEmail, body, attachments) {
     inn: requisites.inn,
     kpp: requisites.kpp,
     ogrn: requisites.ogrn,
-    legalCardAttached
+    legalCardAttached,
+    sources: {
+      company: extractedCompanyName ? "body" : inferredCompanyName ? "email_domain" : null,
+      website: externalUrls[0] ? "body" : website ? "email_domain" : null,
+      phone: cityPhone || mobilePhone ? "body" : null,
+      inn: requisites.inn ? "body" : null,
+      kpp: requisites.kpp ? "body" : null,
+      ogrn: requisites.ogrn ? "body" : null
+    }
   };
 }
 

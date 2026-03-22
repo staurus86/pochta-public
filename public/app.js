@@ -615,6 +615,33 @@ function renderRecognitionSummary(summary) {
   ).join('');
 }
 
+function renderDetectionSources(analysis = {}) {
+  const lead = analysis.lead || {};
+  const sender = analysis.sender || {};
+  const sources = lead.sources || {};
+  const senderSources = sender.sources || {};
+  const rows = [
+    ['Компания', senderSources.company],
+    ['Телефон', senderSources.phone],
+    ['ИНН', senderSources.inn],
+    ['Артикулы', (sources.articles || []).join(', ')],
+    ['Наименования', (sources.names || []).join(', ')],
+    ['Бренды', (sources.brands || []).join(', ')],
+    ['Обработанные вложения', (sources.attachmentsProcessed || []).join(', ')]
+  ].filter(([, value]) => value);
+
+  if (!rows.length) {
+    return '<div style="font-size:11px;color:var(--text-muted);">Нет данных об источниках</div>';
+  }
+
+  return rows.map(([label, value]) =>
+    `<div style="display:flex;align-items:flex-start;justify-content:space-between;gap:8px;font-size:11px;padding:3px 0;">
+      <span style="color:var(--text-muted);">${esc(label)}</span>
+      <span style="text-align:right;color:var(--text);max-width:65%;">${esc(value)}</span>
+    </div>`
+  ).join('');
+}
+
 function normalizeSubjectForThread(subject) {
   return String(subject || '')
     .replace(/^(re|fwd?|ответ|переслано)\s*[:]\s*/gi, '')
@@ -1884,6 +1911,10 @@ function renderEmailView(msg, viewEl, detailEl) {
       <div class="detail-section-title">Качество распознавания</div>
       ${renderRecognitionSummary(recognitionSummary)}
     </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Источники детекта</div>
+      ${renderDetectionSources(a)}
+    </div>
     ${attachmentFiles.length ? `<div class="detail-section">
       <div class="detail-section-title">Вложения</div>
       <div style="display:flex;flex-direction:column;gap:8px;">
@@ -2217,7 +2248,7 @@ function renderKb() {
 
   if (kbTab === 'stats') {
     const s = kbData.stats || {};
-    container.innerHTML = `<div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">${[['Правил', s.ruleCount],['Brand aliases', s.brandAliasCount],['Профилей', s.senderProfileCount],['Паттернов', s.fieldPatternCount],['Корпус', s.corpusCount]].map(([l,v]) => `<div class="kpi-card"><div class="kpi-label">${esc(l)}</div><div class="kpi-value accent">${v ?? '—'}</div></div>`).join('')}</div>`;
+    container.innerHTML = `<div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">${[['Правил', s.ruleCount],['Brand aliases', s.brandAliasCount],['Профилей', s.senderProfileCount],['Паттернов', s.fieldPatternCount],['Корпус', s.corpusCount],['Номенклатура', s.nomenclatureCount],['Own brands', s.ownBrandCount]].map(([l,v]) => `<div class="kpi-card"><div class="kpi-label">${esc(l)}</div><div class="kpi-value accent">${v ?? '—'}</div></div>`).join('')}</div>`;
     return;
   }
   if (kbTab === 'rules') {
@@ -2250,10 +2281,11 @@ function renderKb() {
         <div style="font-size:13px;font-weight:700;color:var(--text);margin-bottom:8px;display:flex;align-items:center;gap:8px;">
           ${title} <span class="badge ${badgeCls}" style="font-size:10px;">${profiles.length}</span>
         </div>
-        <table class="data-table"><thead><tr><th>Email / Домен</th><th>Компания</th><th>Заметки</th><th></th></tr></thead>
+        <table class="data-table"><thead><tr><th>Email / Домен</th><th>Компания</th><th>Brand hint</th><th>Заметки</th><th></th></tr></thead>
         <tbody>${profiles.map((s) => `<tr>
           <td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${esc(s.sender_email || `@${s.sender_domain}` || '—')}</td>
           <td>${esc(s.company_hint || '—')}</td>
+          <td style="font-size:11px;color:var(--text-secondary);">${esc(s.brand_hint || '—')}</td>
           <td style="font-size:11px;color:var(--text-muted);">${esc(s.notes || '')}</td>
           <td><button class="btn btn-danger btn-sm" style="padding:2px 6px;font-size:10px;" data-del-sender="${s.id}">×</button></td>
         </tr>`).join('')}</tbody></table>
