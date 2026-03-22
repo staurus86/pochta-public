@@ -1840,6 +1840,8 @@ function renderInbox() {
     const a = m.analysis || {};
     const conf = a.classification?.confidence;
     const recognitionBadges = renderRecognitionBadges(a);
+    const reasonLine = a.lead?.recognitionDecision?.failureReason || '';
+    const priority = a.lead?.recognitionDecision?.priority || '';
     const indentStyle = indent ? 'padding-left:24px;border-left:2px solid var(--border);' : '';
     return `<div class="message-item-wrap ${active}" data-mid="${esc(id)}" style="${indentStyle}">
       <label class="msg-checkbox" onclick="event.stopPropagation()"><input type="checkbox" ${checked} data-check-mid="${esc(id)}" /></label>
@@ -1852,8 +1854,10 @@ function renderInbox() {
         <div class="message-meta">
           ${statusBadge(m.pipelineStatus)}
           ${conf != null ? confidenceBadge(conf) : ''}
+          ${priority ? renderPriorityBadge(priority) : ''}
           <span class="message-mailbox">${esc((m.mailbox || '').split('@')[0])}</span>
         </div>
+        ${reasonLine ? `<div class="message-meta" style="margin-top:4px;font-size:10px;color:var(--text-muted);">${esc(truncate(reasonLine, 80))}</div>` : ''}
         ${recognitionBadges ? `<div class="message-meta" style="margin-top:4px;flex-wrap:wrap;">${recognitionBadges}</div>` : ''}
         <div class="message-meta" style="margin-top:4px;">
           <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);" title="${esc(id)}">ID: ${esc(truncate(id, 22))}</span>
@@ -1972,6 +1976,8 @@ function renderEmailView(msg, viewEl, detailEl) {
   const cls = a.classification || {};
   const rules = cls.signals?.matchedRules || [];
   const msgKey = mid(msg);
+  const recognitionDecision = lead.recognitionDecision || {};
+  const bodyText = msg.bodyPreview || lead.freeText || 'Нет текста';
 
   viewEl.innerHTML = `
     <div class="email-view-header">
@@ -1986,7 +1992,11 @@ function renderEmailView(msg, viewEl, detailEl) {
         <span onclick="window.__copyField('${escAttr(msgKey)}')" title="Скопировать ID письма" style="cursor:pointer;font-family:'JetBrains Mono',monospace;"><strong>ID:</strong> ${esc(truncate(msgKey, 34))}</span>
       </div>
     </div>
-    <div class="email-body-content" id="email-body-text" style="max-height:300px;overflow-y:auto;position:relative;white-space:pre-wrap;word-break:break-word;">${esc(msg.bodyPreview || lead.freeText || 'Нет текста')}</div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:8px;">
+      ${renderPriorityBadge(recognitionDecision.priority || 'low')}
+      ${recognitionDecision.failureReason ? `<span class="badge badge-unknown" title="${escAttr(recognitionDecision.decisionReason || '')}">${esc(truncate(recognitionDecision.failureReason, 80))}</span>` : ''}
+    </div>
+    <div class="email-body-content" id="email-body-text" style="max-height:300px;overflow-y:auto;position:relative;white-space:pre-wrap;word-break:break-word;">${highlightEmailBody(bodyText, a)}</div>
     <button class="btn btn-ghost btn-sm" id="email-body-toggle" style="width:100%;margin-top:4px;">Показать полностью</button>
     ${msg.attachments?.length ? `<div class="attachment-list">${msg.attachments.map((att) => {
       const hints = lead.attachmentHints || [];
@@ -2031,6 +2041,13 @@ function renderEmailView(msg, viewEl, detailEl) {
   try {
   detailEl.innerHTML = `
     <div class="detail-section">
+      <div class="detail-section-title">Решение системы</div>
+      ${detailField('Приоритет', renderPriorityBadge(recognitionDecision.priority || 'low'), true)}
+      ${recognitionDecision.failureReason ? detailField('Причина', recognitionDecision.failureReason) : ''}
+      ${recognitionDecision.decisionReason ? detailField('Почему так', recognitionDecision.decisionReason) : ''}
+      ${recognitionDecision.suggestion ? detailField('Что сделать', recognitionDecision.suggestion) : ''}
+    </div>
+    <div class="detail-section">
       <div class="detail-section-title">Классификация</div>
       <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
         ${classificationBadge(cls.label)}
@@ -2045,7 +2062,7 @@ function renderEmailView(msg, viewEl, detailEl) {
     <div class="detail-section">
       <div class="detail-section-title">Заявка</div>
       ${leadFields.filter(([,v]) => v).map(([l,v]) => detailField(l, v)).join('')}
-      ${lead.lineItems?.length ? `<div style="margin-top:8px;"><table class="data-table" style="font-size:11px;"><thead><tr><th>Артикул</th><th>Наименование</th><th>Кол-во</th><th>Ед.</th></tr></thead><tbody>${lead.lineItems.map((li) => `<tr><td>${esc(li.article)}</td><td style="min-width:180px;color:var(--text-secondary);">${esc(truncate(getLineItemName(li, lead), 90) || '—')}</td><td>${li.quantity}</td><td>${esc(li.unit)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+      ${lead.lineItems?.length ? renderLineItemsEditor(msgKey, lead) : ''}
     </div>
     <div class="detail-section">
       <div class="detail-section-title">Качество распознавания</div>
@@ -2111,9 +2128,9 @@ function renderEmailView(msg, viewEl, detailEl) {
             <input id="feedback-article-${esc(msgKey)}" class="form-input" placeholder="Артикул" value="${esc(primaryArticle)}" style="font-size:11px;padding:6px 8px;font-family:'JetBrains Mono',monospace;" />
             <input id="feedback-name-${esc(msgKey)}" class="form-input" placeholder="Наименование" value="${esc(primaryProductName)}" style="font-size:11px;padding:6px 8px;" />
           </div>
-          <div style="display:flex;gap:6px;">
-            <button class="btn btn-primary btn-sm" style="flex:1;" onclick="window.__saveFieldFeedback('${escAttr(msgKey)}')">Сохранить коррекцию</button>
-            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="window.__clearFieldFeedback('${escAttr(msgKey)}')">Очистить форму</button>
+      <div style="display:flex;gap:6px;">
+        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="window.__saveFieldFeedback('${escAttr(msgKey)}')">Сохранить коррекцию</button>
+        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="window.__clearFieldFeedback('${escAttr(msgKey)}')">Очистить форму</button>
           </div>
         </div>
       </div>
@@ -2150,6 +2167,7 @@ function renderEmailView(msg, viewEl, detailEl) {
       </div>`).join('')}
     </div>` : ''}
     <div class="detail-actions">
+      <button class="btn btn-success btn-sm" style="width:100%" onclick="window.__confirmRecognition('${escAttr(msgKey)}')">Подтвердить как верно</button>
       ${crm.isExistingCompany === false ? '<button class="btn btn-primary btn-sm" style="width:100%">Создать клиента в CRM</button>' : ''}
       ${cls.label === 'Клиент' ? '<button class="btn btn-success btn-sm" style="width:100%">Создать запрос в CRM</button>' : ''}
       ${crm.needsClarification ? '<button class="btn btn-ghost btn-sm" style="width:100%">Запросить реквизиты</button>' : ''}
@@ -2264,6 +2282,72 @@ window.__clearFieldFeedback = (msgKey) => {
     const input = $(`#feedback-${field}-${msgKey}`);
     if (input) input.value = '';
   });
+};
+
+window.__addLineItemRow = (msgKey) => {
+  const tbody = $(`#line-items-editor-${msgKey}`);
+  const currentMsg = allRunnerMessages.find((m) => mid(m) === msgKey);
+  if (!tbody || !currentMsg) return;
+  const lead = currentMsg.analysis?.lead || {};
+  const index = tbody.querySelectorAll('tr').length;
+  tbody.insertAdjacentHTML('beforeend', renderLineItemEditorRow(msgKey, { article: '', quantity: 1, unit: 'шт', descriptionRu: '' }, index, lead));
+};
+
+window.__removeLineItemRow = (msgKey, index) => {
+  const tbody = $(`#line-items-editor-${msgKey}`);
+  const rows = tbody?.querySelectorAll('tr') || [];
+  if (!rows[index]) return;
+  rows[index].remove();
+};
+
+window.__saveLineItems = async (msgKey) => {
+  const currentMsg = allRunnerMessages.find((m) => mid(m) === msgKey);
+  const pid = currentMsg?._projectId || P3_ID;
+  const lineItems = collectLineItemEditorData(msgKey);
+  if (!lineItems.length) {
+    showToast('Добавьте хотя бы одну позицию');
+    return;
+  }
+  try {
+    const res = await fetch(`/api/projects/${pid}/messages/${encodeURIComponent(msgKey)}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ lineItems })
+    });
+    if (!res.ok) {
+      showToast('Ошибка сохранения позиций', true);
+      return;
+    }
+    const data = await res.json();
+    if (currentMsg && data.analysis) currentMsg.analysis = data.analysis;
+    showToast(`Позиции сохранены: ${lineItems.length}`);
+    renderDashboard();
+    renderInbox();
+  } catch (e) {
+    showToast('Ошибка: ' + e.message, true);
+  }
+};
+
+window.__confirmRecognition = async (msgKey) => {
+  const currentMsg = allRunnerMessages.find((m) => mid(m) === msgKey);
+  const pid = currentMsg?._projectId || P3_ID;
+  try {
+    const res = await fetch(`/api/projects/${pid}/messages/${encodeURIComponent(msgKey)}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ confirmed: true })
+    });
+    if (!res.ok) {
+      showToast('Ошибка подтверждения', true);
+      return;
+    }
+    showToast('Письмо отмечено как корректно разобранное');
+    await refreshKb();
+    await refreshProjects();
+    await refreshAllMailboxMessages();
+  } catch (e) {
+    showToast('Ошибка: ' + e.message, true);
+  }
 };
 
 window.__saveFieldFeedback = async (msgKey) => {
@@ -2645,10 +2729,94 @@ function renderAttachmentAnalysisCard(file) {
   </div>`;
 }
 
-function detailField(label, value) {
+function renderPriorityBadge(priority) {
+  const map = {
+    critical: ['CRITICAL', 'badge-spam'],
+    high: ['HIGH', 'badge-vendor'],
+    medium: ['MEDIUM', 'badge-unknown'],
+    low: ['LOW', 'badge-client']
+  };
+  const [label, cls] = map[String(priority || 'low').toLowerCase()] || map.low;
+  return `<span class="badge ${cls}">${label}</span>`;
+}
+
+function highlightEmailBody(text, analysis = {}) {
+  let html = esc(String(text || ''));
+  const sender = analysis.sender || {};
+  const lead = analysis.lead || {};
+  const terms = [
+    ...(lead.articles || []),
+    ...((lead.lineItems || []).map((item) => item.article)),
+    ...(analysis.detectedBrands || []),
+    ...getLeadProductNameList(lead).slice(0, 10),
+    sender.inn,
+    sender.mobilePhone,
+    sender.cityPhone,
+    sender.companyName
+  ].filter(Boolean);
+
+  for (const term of [...new Set(terms.map((item) => String(item).trim()).filter(Boolean))].sort((a, b) => b.length - a.length)) {
+    if (term.length < 3) continue;
+    html = html.replace(new RegExp(escapeRegExp(esc(term)), 'gi'), (match) => `<mark style="background:rgba(230,179,0,0.18);color:inherit;padding:0 2px;border-radius:3px;">${match}</mark>`);
+  }
+
+  return html;
+}
+
+function renderLineItemsEditor(msgKey, lead = {}) {
+  const items = (lead.lineItems || []).length ? lead.lineItems : [{ article: '', quantity: 1, unit: 'шт', descriptionRu: '' }];
+  return `
+    <div style="margin-top:8px;">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+        <div style="font-size:11px;color:var(--text-muted);">Редактирование позиций</div>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-ghost btn-sm" onclick="window.__addLineItemRow('${escAttr(msgKey)}')">+ Строка</button>
+          <button class="btn btn-primary btn-sm" onclick="window.__saveLineItems('${escAttr(msgKey)}')">Сохранить позиции</button>
+        </div>
+      </div>
+      <table class="data-table" style="font-size:11px;">
+        <thead><tr><th>Артикул</th><th>Наименование</th><th>Кол-во</th><th>Ед.</th><th></th></tr></thead>
+        <tbody id="line-items-editor-${escAttr(msgKey)}">
+          ${items.map((li, index) => renderLineItemEditorRow(msgKey, li, index, lead)).join('')}
+        </tbody>
+      </table>
+    </div>
+  `;
+}
+
+function renderLineItemEditorRow(msgKey, lineItem = {}, index = 0, lead = {}) {
+  return `<tr data-line-item-row="${escAttr(msgKey)}">
+    <td><input class="form-input" data-line-item-article="${escAttr(msgKey)}" value="${esc(lineItem.article || '')}" style="font-size:11px;padding:4px 6px;font-family:'JetBrains Mono',monospace;" /></td>
+    <td><input class="form-input" data-line-item-name="${escAttr(msgKey)}" value="${esc(getLineItemName(lineItem, lead) || lineItem.descriptionRu || '')}" style="font-size:11px;padding:4px 6px;min-width:180px;" /></td>
+    <td><input class="form-input" data-line-item-qty="${escAttr(msgKey)}" type="number" min="0" step="0.01" value="${esc(String(lineItem.quantity ?? 1))}" style="font-size:11px;padding:4px 6px;width:82px;" /></td>
+    <td><input class="form-input" data-line-item-unit="${escAttr(msgKey)}" value="${esc(lineItem.unit || 'шт')}" style="font-size:11px;padding:4px 6px;width:64px;" /></td>
+    <td><button class="btn btn-danger btn-sm" onclick="window.__removeLineItemRow('${escAttr(msgKey)}', ${index})">×</button></td>
+  </tr>`;
+}
+
+function collectLineItemEditorData(msgKey) {
+  const selectorKey = cssEscape(msgKey);
+  const articles = [...document.querySelectorAll(`[data-line-item-article="${selectorKey}"]`)].map((el) => el.value.trim());
+  const names = [...document.querySelectorAll(`[data-line-item-name="${selectorKey}"]`)].map((el) => el.value.trim());
+  const qtys = [...document.querySelectorAll(`[data-line-item-qty="${selectorKey}"]`)].map((el) => el.value.trim());
+  const units = [...document.querySelectorAll(`[data-line-item-unit="${selectorKey}"]`)].map((el) => el.value.trim());
+  const result = [];
+  for (let i = 0; i < Math.max(articles.length, names.length, qtys.length, units.length); i += 1) {
+    if (!articles[i] && !names[i]) continue;
+    result.push({
+      article: articles[i] || '',
+      descriptionRu: names[i] || '',
+      quantity: qtys[i] || 1,
+      unit: units[i] || 'шт'
+    });
+  }
+  return result;
+}
+
+function detailField(label, value, allowHtml = false) {
   const v = value || '—';
   const copyable = v !== '—' ? `onclick="window.__copyField('${escAttr(v)}')" title="Нажмите чтобы скопировать" style="cursor:pointer;"` : '';
-  return `<div class="detail-field" ${copyable}><span class="detail-field-label">${esc(label)}</span><span class="detail-field-value">${esc(v)}</span></div>`;
+  return `<div class="detail-field" ${allowHtml ? '' : copyable}><span class="detail-field-label">${esc(label)}</span><span class="detail-field-value">${allowHtml ? v : esc(v)}</span></div>`;
 }
 
 function fmtDate(v) {
@@ -2675,6 +2843,8 @@ function formatArr(items) { return Array.isArray(items) && items.length ? items.
 function truncate(s, n) { return !s ? '' : s.length > n ? s.slice(0, n) + '...' : s; }
 function esc(v) { return String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
 function escAttr(v) { return String(v ?? '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/</g, '\\x3c'); }
+function escapeRegExp(v) { return String(v ?? '').replace(/[.*+?^${}()|[\]\\]/g, '\\$&'); }
+function cssEscape(v) { return String(v ?? '').replace(/\\/g, '\\\\').replace(/"/g, '\\"'); }
 
 async function refreshApiClients() {
   const el = $('#api-clients-list');

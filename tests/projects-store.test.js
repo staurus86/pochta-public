@@ -211,6 +211,55 @@ runTest("stores structured manual feedback for core detected fields", async () =
   }
 });
 
+runTest("replaces line items and marks message as confirmed via feedback", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "pochta-store-lineitems-"));
+
+  try {
+    const store = new ProjectsStore({ dataDir });
+    await store.ensureLoaded();
+
+    const project = await store.createProject({
+      name: "Feedback Line Items Test",
+      mailbox: "feedback-lineitems@example.com"
+    });
+
+    await store.replaceRecentMessages(project.id, [
+      {
+        messageKey: "fb-line-1",
+        pipelineStatus: "review",
+        analysis: {
+          classification: { label: "Клиент", confidence: 0.7 },
+          detectedBrands: [],
+          sender: { email: "buyer@corp.ru" },
+          lead: { articles: ["OLD-1"], productNames: [], lineItems: [{ article: "OLD-1", quantity: 1, unit: "шт", descriptionRu: "Старая позиция" }] }
+        }
+      }
+    ]);
+
+    const result = await store.applyMessageFeedback(project.id, "fb-line-1", {
+      confirmed: true,
+      lineItems: [
+        { article: "NEW-100", quantity: 3, unit: "шт", descriptionRu: "Новая позиция" },
+        { article: "NEW-200", quantity: 1, unit: "компл", descriptionRu: "Комплект" }
+      ]
+    });
+
+    assert.ok(result.changes.includes("lineItems:2"));
+    assert.ok(result.changes.includes("confirmed:true"));
+    assert.deepEqual(result.analysis.lead.articles, ["NEW-100", "NEW-200"]);
+    assert.equal(result.analysis.lead.lineItems[0].source, "manual_feedback");
+    assert.equal(result.analysis.lead.productNames[0].name, "Новая позиция");
+
+    const projectAfter = await store.getProject(project.id);
+    const message = projectAfter.recentMessages[0];
+    assert.equal(message.recognitionConfirmed.source, "manual_feedback");
+    assert.equal(message.auditLog.at(-1).fields.confirmed, true);
+    assert.equal(message.auditLog.at(-1).fields.lineItems.length, 2);
+  } finally {
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});
+
 runTest("bulk acknowledges multiple messages at once", async () => {
   const dataDir = await mkdtemp(path.join(os.tmpdir(), "pochta-store-bulk-"));
 

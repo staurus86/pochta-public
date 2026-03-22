@@ -424,6 +424,40 @@ export class ProjectsStore {
       }
     }
 
+    if (Array.isArray(feedback.lineItems)) {
+      if (!msg.analysis.lead) msg.analysis.lead = {};
+      const normalizedLineItems = feedback.lineItems
+        .map((item) => ({
+          article: String(item.article || "").trim(),
+          quantity: Number.isFinite(Number(item.quantity)) ? Number(item.quantity) : null,
+          unit: String(item.unit || "шт").trim() || "шт",
+          descriptionRu: String(item.descriptionRu || item.name || "").trim(),
+          source: "manual_feedback"
+        }))
+        .filter((item) => item.article || item.descriptionRu);
+
+      msg.analysis.lead.lineItems = normalizedLineItems;
+      msg.analysis.lead.articles = [...new Set(normalizedLineItems.map((item) => item.article).filter(Boolean))];
+      msg.analysis.lead.productNames = normalizedLineItems
+        .filter((item) => item.article && item.descriptionRu)
+        .map((item) => ({
+          article: item.article,
+          name: item.descriptionRu,
+          category: null,
+          source: "manual_feedback"
+        }));
+      msg.analysis.lead.totalPositions = normalizedLineItems.length || msg.analysis.lead.articles.length;
+      changes.push(`lineItems:${normalizedLineItems.length}`);
+    }
+
+    if (feedback.confirmed === true) {
+      msg.recognitionConfirmed = {
+        at: now,
+        source: "manual_feedback"
+      };
+      changes.push("confirmed:true");
+    }
+
     // Moderation verdict
     if (feedback.moderationVerdict) {
       const verdict = feedback.moderationVerdict; // "approved" or "needs_rework"
@@ -457,7 +491,9 @@ export class ProjectsStore {
           phone: feedback.phone ?? null,
           addArticles: feedback.addArticles || [],
           removeArticles: feedback.removeArticles || [],
-          productNames: feedback.productNames || []
+          productNames: feedback.productNames || [],
+          lineItems: feedback.lineItems || [],
+          confirmed: feedback.confirmed === true
         },
         at: now
       });

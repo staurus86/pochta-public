@@ -1027,6 +1027,22 @@ async function handleApi(req, res, url) {
       }
     }
 
+    for (const item of Array.isArray(payload.lineItems) ? payload.lineItems : []) {
+      const article = String(item.article || "").trim();
+      const productName = String(item.descriptionRu || item.name || "").trim();
+      if (!article) continue;
+      try {
+        detectionKb.learnNomenclatureFeedback({
+          article,
+          productName,
+          brand: detectedBrands[0] || "",
+          sourceFile: `manual_feedback:${project.id}`
+        });
+      } catch {
+        /* duplicate or invalid article: ignore */
+      }
+    }
+
     return sendJson(res, 200, result);
   }
 

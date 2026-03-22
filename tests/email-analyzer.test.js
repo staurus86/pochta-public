@@ -1016,6 +1016,8 @@ runTest("builds recognition diagnostics with high confidence for well-structured
   assert.ok(result.lead.recognitionDiagnostics.completenessScore >= 80);
   assert.ok(result.lead.recognitionDiagnostics.fields.article.confidence >= 0.8);
   assert.equal(result.lead.recognitionSummary.hasConflicts, false);
+  assert.equal(result.lead.recognitionDecision.priority, "medium");
+  assert.match(result.lead.recognitionDecision.decisionReason, /класс:Клиент/i);
 });
 
 runTest("detects conflicting quantities and names for same article", () => {

@@ -96,6 +96,7 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
         avg_price: item.avgPrice ?? null,
         match_type: item.matchType || null
       })),
+      recognition_decision: lead.recognitionDecision || null,
       sources: lead.sources || null,
       recognition_summary: lead.recognitionSummary || null,
       recognition_diagnostics: lead.recognitionDiagnostics || null,

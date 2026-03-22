@@ -95,6 +95,12 @@ const project = {
             conflicts: [],
             issues: []
           },
+          recognitionDecision: {
+            priority: "medium",
+            failureReason: "ключевые поля найдены",
+            decisionReason: "класс:Клиент • conf:91%",
+            suggestion: "Письмо можно подтвердить как корректно разобранное."
+          },
           hasNameplatePhotos: false,
           hasArticlePhotos: false
         },
@@ -246,6 +252,7 @@ runTest("normalizes recognition diagnostics in integration payload", () => {
   assert.equal(normalized.lead.recognition_summary?.riskLevel, "low");
   assert.equal(normalized.lead.recognition_diagnostics?.overallConfidence, 0.91);
   assert.equal(normalized.lead.recognition_diagnostics?.fields?.article?.source, "body");
+  assert.equal(normalized.lead.recognition_decision?.priority, "medium");
 });
 
 runTest("resolves integration clients and project scopes", () => {

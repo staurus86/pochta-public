@@ -163,6 +163,7 @@ export function analyzeEmail(project, payload) {
   lead.sources.brands = summarizeSourceList(classification.brandSources || [], (lead.detectedBrands || []).length > 0);
   hydrateRecognitionSummary(lead, sender);
   hydrateRecognitionDiagnostics(lead, sender, attachmentAnalysis, classification);
+  hydrateRecognitionDecision(lead, sender, attachmentAnalysis, classification);
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands, lead });
 
   const suggestedReply = buildSuggestedReply(classification.label, sender, lead, crm);
@@ -304,6 +305,10 @@ function hydrateRecognitionDiagnostics(lead, sender, attachmentAnalysis, classif
   lead.recognitionSummary.riskLevel = diagnostics.riskLevel;
   lead.recognitionSummary.primaryIssue = diagnostics.primaryIssue;
   lead.recognitionSummary.hasConflicts = diagnostics.conflicts.length > 0;
+}
+
+function hydrateRecognitionDecision(lead, sender, attachmentAnalysis, classification) {
+  lead.recognitionDecision = buildRecognitionDecision(lead, sender, attachmentAnalysis, classification);
 }
 
 function classifyMessage({ subject, body, attachments, fromEmail, projectBrands }) {
@@ -557,6 +562,75 @@ function buildRecognitionSummary(lead, attachmentFiles = []) {
     parsedAttachment: hasParsedAttachment,
     missing
   };
+}
+
+function buildRecognitionDecision(lead, sender, attachmentAnalysis = {}, classification = {}) {
+  const diagnostics = lead.recognitionDiagnostics || {};
+  const attachmentFiles = attachmentAnalysis.files || [];
+  const matchedRules = classification.signals?.matchedRules || [];
+  const triggerSignals = [];
+
+  if ((lead.articles || []).length > 0) triggerSignals.push(`артикулы:${(lead.articles || []).slice(0, 3).join(", ")}`);
+  if ((lead.detectedBrands || []).length > 0) triggerSignals.push(`бренды:${(lead.detectedBrands || []).slice(0, 3).join(", ")}`);
+  if (sender.companyName) triggerSignals.push(`компания:${sender.companyName}`);
+  if (sender.inn) triggerSignals.push(`ИНН:${sender.inn}`);
+  if (attachmentFiles.some((file) => file.status === "processed")) triggerSignals.push(`вложения:${attachmentFiles.filter((file) => file.status === "processed").length}`);
+  if (matchedRules.length > 0) triggerSignals.push(`правила:${matchedRules.slice(0, 2).map((rule) => rule.classifier).join(",")}`);
+
+  return {
+    priority: deriveLeadPriority(lead, diagnostics, attachmentFiles),
+    failureReason: summarizeFailureReason(lead, diagnostics, attachmentFiles),
+    decisionReason: summarizeDecisionReason(lead, sender, classification, triggerSignals),
+    suggestion: summarizeDecisionSuggestion(lead, diagnostics),
+    triggerSignals,
+    pipeline: {
+      bodyArticles: (lead.lineItems || []).filter((item) => String(item.source || "") === "body" && item.article).length,
+      attachmentArticles: (lead.lineItems || []).filter((item) => String(item.source || "").startsWith("attachment:") && item.article).length,
+      matchedRuleCount: matchedRules.length,
+      processedAttachments: attachmentFiles.filter((file) => file.status === "processed").length
+    }
+  };
+}
+
+function deriveLeadPriority(lead, diagnostics, attachmentFiles) {
+  if (diagnostics?.conflicts?.length) return "critical";
+  if (lead.urgency === "urgent") return "high";
+  if ((lead.totalPositions || 0) >= 5) return "high";
+  if (attachmentFiles.length > 0 && attachmentFiles.some((file) => file.status === "processed")) return "medium";
+  if ((lead.articles || []).length > 0) return "medium";
+  return "low";
+}
+
+function summarizeFailureReason(lead, diagnostics, attachmentFiles) {
+  const issues = diagnostics?.issues || [];
+  const conflicts = diagnostics?.conflicts || [];
+  if (conflicts.length > 0) {
+    return conflicts.slice(0, 2).map((item) => item.code.replace(/_/g, " ")).join("; ");
+  }
+  if (issues.length > 0) {
+    return issues.slice(0, 3).map((item) => item.code.replace(/^missing_/, "нет ").replace(/^low_confidence_/, "слабый ").replace(/_/g, " ")).join("; ");
+  }
+  if (attachmentFiles.length > 0 && !attachmentFiles.some((file) => file.status === "processed")) {
+    return "вложения не разобраны";
+  }
+  return "ключевые поля найдены";
+}
+
+function summarizeDecisionReason(lead, sender, classification, triggerSignals) {
+  const parts = [];
+  if (classification.label) parts.push(`класс:${classification.label}`);
+  if (classification.confidence != null) parts.push(`conf:${Math.round(classification.confidence * 100)}%`);
+  if (triggerSignals.length > 0) parts.push(`сигналы:${triggerSignals.slice(0, 3).join(" | ")}`);
+  if (sender.email) parts.push(`email:${sender.email}`);
+  return parts.join(" • ");
+}
+
+function summarizeDecisionSuggestion(lead, diagnostics) {
+  if (diagnostics?.conflicts?.length) return "Проверьте line items и подтвердите корректную строку вручную.";
+  if ((diagnostics?.issues || []).some((item) => item.code === "attachment_parse_gap")) return "Есть вложения без полезного разбора. Проверьте PDF/скан.";
+  if ((lead.articles || []).length > 0 && getResolvedProductNameCount(lead) === 0) return "Лучше добавить наименование для артикула и закрепить его в feedback.";
+  if ((diagnostics?.issues || []).some((item) => String(item.code).startsWith("missing_"))) return "Дополните отсутствующие поля через быструю коррекцию.";
+  return "Письмо можно подтвердить как корректно разобранное.";
 }
 
 function buildRecognitionDiagnostics(lead, sender, attachmentAnalysis = {}, classification = {}) {
