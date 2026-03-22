@@ -716,6 +716,20 @@ runTest("skips low quality pdf text so pdf internals do not pollute article dete
   );
 });
 
+runTest("marks image attachments as waiting for OCR instead of unsupported", () => {
+  const result = analyzeEmail(project, {
+    messageKey: "attach-test-msg-image",
+    fromEmail: "buyer@energy.ru",
+    subject: "Фото шильдика",
+    body: "См. фото",
+    attachments: ["photo.jpg"],
+    attachmentFiles: [{ filename: "photo.jpg", safeName: "photo.jpg", size: 1024, contentType: "image/jpeg" }]
+  });
+
+  assert.equal(result.attachmentAnalysis.meta.processedCount, 0);
+  assert.equal(result.attachmentAnalysis.files[0].reason, "ocr_unavailable_image");
+});
+
 runTest("extracts article from stored docx attachment", () => {
   const messageKey = "attach-test-msg-4";
   withArchiveAttachment(

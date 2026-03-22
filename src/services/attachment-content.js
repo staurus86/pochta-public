@@ -6,6 +6,7 @@ import { detectionKb } from "./detection-kb.js";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const ATTACHMENTS_ROOT = path.resolve(__dirname, "../../data/attachments");
+const PYTHON_ATTACHMENT_HELPER = path.resolve(__dirname, "../../scripts/extract_attachment_text.py");
 
 const DEFAULT_LIMITS = {
   maxFiles: 8,
@@ -23,6 +24,7 @@ const TEXT_EXTENSIONS = new Set([
 const PDF_EXTENSIONS = new Set([".pdf"]);
 const OOXML_EXTENSIONS = new Set([".docx", ".xlsx"]);
 const PHASE3_EXTENSIONS = new Set([".xls", ".doc"]);
+const IMAGE_EXTENSIONS = new Set([".jpg", ".jpeg", ".png", ".gif", ".bmp", ".webp", ".tif", ".tiff"]);
 
 const INN_PATTERN = /\b\d{10,12}\b/g;
 const KPP_PATTERN = /\b\d{9}\b/g;
@@ -106,6 +108,13 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
       continue;
     }
 
+    if (IMAGE_EXTENSIONS.has(ext)) {
+      result.reason = "ocr_unavailable_image";
+      files.push(result);
+      skippedCount += 1;
+      continue;
+    }
+
     if (!TEXT_EXTENSIONS.has(ext) && !PDF_EXTENSIONS.has(ext) && !OOXML_EXTENSIONS.has(ext)) {
       result.reason = "unsupported_format";
       files.push(result);
@@ -129,7 +138,15 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
       if (TEXT_EXTENSIONS.has(ext)) {
         extractedText = extractTextFromPlainBuffer(buffer);
       } else if (PDF_EXTENSIONS.has(ext)) {
-        extractedText = extractTextFromPdfBuffer(buffer);
+        const pdfResult = extractTextFromPdf(filePath, buffer);
+        extractedText = pdfResult.text || "";
+        if (!extractedText && pdfResult.needsOcr) {
+          result.reason = "ocr_unavailable_scan_pdf";
+          result.preview = pdfResult.preview || null;
+          files.push(result);
+          skippedCount += 1;
+          continue;
+        }
       } else if (OOXML_EXTENSIONS.has(ext)) {
         extractedText = extractTextFromOfficeOpenXml(filePath, ext);
       }
@@ -217,6 +234,41 @@ function categorizeAttachment(filename, ext, contentType) {
 
 function extractTextFromPlainBuffer(buffer) {
   return buffer.toString("utf8");
+}
+
+function extractTextFromPdf(filePath, buffer) {
+  const pyResult = extractPdfWithPython(filePath);
+  if (pyResult.ok) {
+    return {
+      text: pyResult.text || "",
+      needsOcr: Boolean(pyResult.needs_ocr),
+      preview: String(pyResult.text || "").slice(0, 200),
+      parser: pyResult.parser || "python"
+    };
+  }
+
+  const fallbackText = extractTextFromPdfBuffer(buffer);
+  return {
+    text: fallbackText,
+    needsOcr: false,
+    preview: fallbackText.slice(0, 200),
+    parser: "legacy"
+  };
+}
+
+function extractPdfWithPython(filePath) {
+  const result = spawnSync("python", [PYTHON_ATTACHMENT_HELPER, "pdf", filePath], {
+    encoding: "utf8",
+    timeout: 4000
+  });
+  if (result.status !== 0 || result.error) {
+    return { ok: false, error: result.error?.message || result.stderr || result.stdout || "python_failed" };
+  }
+  try {
+    return JSON.parse(String(result.stdout || "{}"));
+  } catch {
+    return { ok: false, error: "python_invalid_json" };
+  }
 }
 
 function extractTextFromPdfBuffer(buffer) {
