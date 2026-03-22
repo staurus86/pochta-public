@@ -50,6 +50,45 @@ function getEmailDomain(email) {
   return String(email || "").split("@")[1]?.trim().toLowerCase() || "";
 }
 
+function normalizeProcessingBatchSize(value, fallback = 100) {
+  const numeric = Number(value || fallback);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.max(10, Math.min(500, Math.round(numeric)));
+}
+
+function createProcessingTelemetry() {
+  return {
+    batches: 0,
+    yields: 0,
+    processed: 0,
+    totalAnalysisMs: 0,
+    maxAnalysisMs: 0
+  };
+}
+
+function recordProcessingTelemetrySample(telemetry, durationMs) {
+  telemetry.processed += 1;
+  telemetry.totalAnalysisMs += Number(durationMs || 0);
+  telemetry.maxAnalysisMs = Math.max(telemetry.maxAnalysisMs, Number(durationMs || 0));
+}
+
+function finalizeProcessingTelemetry(telemetry, durationMs) {
+  const processed = telemetry.processed || 0;
+  return {
+    batches: telemetry.batches,
+    yields: telemetry.yields,
+    processed,
+    avgAnalysisMs: processed ? Number((telemetry.totalAnalysisMs / processed).toFixed(2)) : 0,
+    maxAnalysisMs: telemetry.maxAnalysisMs,
+    totalAnalysisMs: telemetry.totalAnalysisMs,
+    messagesPerSecond: durationMs > 0 ? Number((processed / (durationMs / 1000)).toFixed(2)) : 0
+  };
+}
+
+function yieldProcessingLoop() {
+  return new Promise((resolve) => setImmediate(resolve));
+}
+
 // ── Rate limiter (sliding window) ──
 const RATE_LIMIT_WINDOW_MS = 60_000;
 const RATE_LIMIT_MAX = Number(process.env.RATE_LIMIT_MAX || 120);
@@ -744,12 +783,13 @@ async function handleApi(req, res, url) {
     }
 
     const payload = await parseRequestJson(req).catch(() => ({}));
-    const BATCH_SIZE = Number(payload.batchSize) || 200;
+    const BATCH_SIZE = normalizeProcessingBatchSize(payload.batchSize, 100);
     const messages = project.recentMessages || [];
     let updated = 0;
     let skipped = 0;
     let errors = 0;
     const startTime = Date.now();
+    const telemetry = createProcessingTelemetry();
 
     for (let i = 0; i < messages.length; i += BATCH_SIZE) {
       const batch = messages.slice(i, i + BATCH_SIZE);
@@ -759,6 +799,7 @@ async function handleApi(req, res, url) {
           continue;
         }
         try {
+          const sampleStartedAt = Date.now();
           const body = msg.body || msg.bodyPreview || msg.analysis?.lead?.freeText || "";
           const newAnalysis = analyzeEmail(project, {
             messageKey: msg.messageKey || msg.id,
@@ -772,14 +813,20 @@ async function handleApi(req, res, url) {
           newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
           msg.analysis = newAnalysis;
           msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
+          recordProcessingTelemetrySample(telemetry, Date.now() - sampleStartedAt);
           updated++;
         } catch {
           errors++;
         }
       }
 
+      telemetry.batches += 1;
       // Persist after each batch to avoid data loss on timeout
       await store.persist();
+      if (i + BATCH_SIZE < messages.length) {
+        telemetry.yields += 1;
+        await yieldProcessingLoop();
+      }
     }
 
     const durationMs = Date.now() - startTime;
@@ -791,7 +838,8 @@ async function handleApi(req, res, url) {
       errors,
       total: messages.length,
       batchSize: BATCH_SIZE,
-      durationMs
+      durationMs,
+      telemetry: finalizeProcessingTelemetry(telemetry, durationMs)
     });
   }
 

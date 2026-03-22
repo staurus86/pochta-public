@@ -51,13 +51,17 @@ async function runTest(name, fn) {
 await runTest("reprocesses saved mailbox messages and removes stale phone fragments", async () => {
   const result = await reprocessMailboxMessages(project, {
     limit: 10,
-    preserveStatus: true
+    preserveStatus: true,
+    batchSize: 10
   });
 
   assert.equal(result.status, "ok");
   assert.equal(result.reprocessed, 1);
   assert.equal(result.changed, 1);
   assert.equal(result.statusChanged, 0);
+  assert.equal(result.batchSize, 10);
+  assert.ok(result.telemetry);
+  assert.equal(result.telemetry.processed, 1);
   assert.equal(result.recentMessages[0].pipelineStatus, "ready_for_crm");
   assert.ok(result.recentMessages[0].analysis.lead.articles.includes("A9N18346"));
   assert.ok(!result.recentMessages[0].analysis.lead.articles.includes("999-99"));

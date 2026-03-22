@@ -171,6 +171,7 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
 export async function reprocessMailboxMessages(project, options = {}) {
   const startedAt = Date.now();
   const limit = Math.max(1, Number(options.limit || 500));
+  const batchSize = normalizeBatchSize(options.batchSize, 100);
   const preserveStatus = options.preserveStatus !== false;
   const statusFilter = parseStatuses(options.status);
   const selectedKeys = new Set(normalizeStringArray(options.messageKeys));
@@ -184,55 +185,67 @@ export async function reprocessMailboxMessages(project, options = {}) {
   const changesPreview = [];
   let changedCount = 0;
   let statusChangedCount = 0;
+  const telemetry = createTelemetry();
 
-  for (const message of sourceMessages) {
-    const { fromName, fromEmail } = splitFromHeader(message.from);
-    const analysis = analyzeEmail(analysisProject, {
-      messageKey: message.messageKey || message.id,
-      fromName,
-      fromEmail,
-      subject: message.subject,
-      body: message.bodyPreview || "",
-      attachments: message.attachments || [],
-      attachmentFiles: message.attachmentFiles || []
-    });
-    const computedStatus = resolvePipelineStatus(message.error, analysis);
-    const nextStatus = preserveStatus ? message.pipelineStatus : computedStatus;
-    const diff = diffAnalysis(message.analysis || {}, analysis, message.pipelineStatus, nextStatus);
+  for (let index = 0; index < sourceMessages.length; index += batchSize) {
+    const batch = sourceMessages.slice(index, index + batchSize);
+    for (const message of batch) {
+      const sampleStartedAt = Date.now();
+      const { fromName, fromEmail } = splitFromHeader(message.from);
+      const analysis = analyzeEmail(analysisProject, {
+        messageKey: message.messageKey || message.id,
+        fromName,
+        fromEmail,
+        subject: message.subject,
+        body: message.bodyPreview || "",
+        attachments: message.attachments || [],
+        attachmentFiles: message.attachmentFiles || []
+      });
+      recordTelemetrySample(telemetry, Date.now() - sampleStartedAt);
+      const computedStatus = resolvePipelineStatus(message.error, analysis);
+      const nextStatus = preserveStatus ? message.pipelineStatus : computedStatus;
+      const diff = diffAnalysis(message.analysis || {}, analysis, message.pipelineStatus, nextStatus);
 
-    if (diff.changed) {
-      changedCount += 1;
-      if (changesPreview.length < 20) {
-        changesPreview.push({
-          messageKey: message.messageKey || message.id,
-          subject: message.subject || "",
-          before: diff.before,
-          after: diff.after
-        });
-      }
-    }
-
-    if (nextStatus !== message.pipelineStatus) {
-      statusChangedCount += 1;
-    }
-
-    updatedByKey.set(message.messageKey || message.id, {
-      ...message,
-      pipelineStatus: nextStatus,
-      analysis,
-      reprocessedAt: new Date().toISOString(),
-      auditLog: [
-        ...(message.auditLog || []),
-        {
-          action: "reprocess",
-          at: new Date().toISOString(),
-          preserveStatus,
-          previousStatus: message.pipelineStatus || null,
-          computedStatus,
-          nextStatus
+      if (diff.changed) {
+        changedCount += 1;
+        if (changesPreview.length < 20) {
+          changesPreview.push({
+            messageKey: message.messageKey || message.id,
+            subject: message.subject || "",
+            before: diff.before,
+            after: diff.after
+          });
         }
-      ]
-    });
+      }
+
+      if (nextStatus !== message.pipelineStatus) {
+        statusChangedCount += 1;
+      }
+
+      updatedByKey.set(message.messageKey || message.id, {
+        ...message,
+        pipelineStatus: nextStatus,
+        analysis,
+        reprocessedAt: new Date().toISOString(),
+        auditLog: [
+          ...(message.auditLog || []),
+          {
+            action: "reprocess",
+            at: new Date().toISOString(),
+            preserveStatus,
+            previousStatus: message.pipelineStatus || null,
+            computedStatus,
+            nextStatus
+          }
+        ]
+      });
+    }
+
+    telemetry.batches += 1;
+    if (index + batchSize < sourceMessages.length) {
+      telemetry.yields += 1;
+      await yieldToEventLoop();
+    }
   }
 
   const recentMessages = (project.recentMessages || []).map((item) => updatedByKey.get(item.messageKey || item.id) || item);
@@ -251,7 +264,9 @@ export async function reprocessMailboxMessages(project, options = {}) {
     preserveStatus,
     statusFilter,
     limit,
+    batchSize,
     durationMs: Date.now() - startedAt,
+    telemetry: finalizeTelemetry(telemetry, Date.now() - startedAt),
     changesPreview,
     newMessages: [],
     recentMessages
@@ -423,6 +438,45 @@ function tailLines(text, count) {
     .split(/\r?\n/)
     .filter(Boolean)
     .slice(-count);
+}
+
+function normalizeBatchSize(value, fallback = 100) {
+  const numeric = Number(value || fallback);
+  if (!Number.isFinite(numeric)) return fallback;
+  return Math.max(10, Math.min(500, Math.round(numeric)));
+}
+
+function createTelemetry() {
+  return {
+    batches: 0,
+    yields: 0,
+    processed: 0,
+    totalAnalysisMs: 0,
+    maxAnalysisMs: 0
+  };
+}
+
+function recordTelemetrySample(telemetry, durationMs) {
+  telemetry.processed += 1;
+  telemetry.totalAnalysisMs += Number(durationMs || 0);
+  telemetry.maxAnalysisMs = Math.max(telemetry.maxAnalysisMs, Number(durationMs || 0));
+}
+
+function finalizeTelemetry(telemetry, durationMs) {
+  const processed = telemetry.processed || 0;
+  return {
+    batches: telemetry.batches,
+    yields: telemetry.yields,
+    processed,
+    avgAnalysisMs: processed ? Number((telemetry.totalAnalysisMs / processed).toFixed(2)) : 0,
+    maxAnalysisMs: telemetry.maxAnalysisMs,
+    totalAnalysisMs: telemetry.totalAnalysisMs,
+    messagesPerSecond: durationMs > 0 ? Number((processed / (durationMs / 1000)).toFixed(2)) : 0
+  };
+}
+
+function yieldToEventLoop() {
+  return new Promise((resolve) => setImmediate(resolve));
 }
 
 function createMessageKey(item, fromEmail) {
