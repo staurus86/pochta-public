@@ -1,6 +1,14 @@
-export const LEGACY_INTEGRATION_API_VERSION = "1.4.0";
+export const LEGACY_INTEGRATION_API_VERSION = "1.5.0";
 
 const CHANGELOG = [
+  {
+    version: "1.5.0",
+    released_at: "2026-03-22",
+    changes: [
+      "Added thread-level integration endpoints for grouped email conversations.",
+      "Added export endpoints for filtered parsed messages in JSON, JSONL, and CSV formats."
+    ]
+  },
   {
     version: "1.4.0",
     released_at: "2026-03-22",

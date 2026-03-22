@@ -242,6 +242,111 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           }
         }
       },
+      "/api/integration/projects/{projectId}/messages/export": {
+        get: {
+          tags: ["Integration"],
+          summary: "Export filtered messages in JSON, JSONL, or CSV",
+          parameters: [
+            pathParameter("projectId", "Project identifier"),
+            queryParameter("format", "string", "Export format: json, jsonl, csv"),
+            queryParameter("status", "string", "Comma-separated pipeline statuses"),
+            queryParameter("since", "string", "ISO datetime filter for updated_at", { format: "date-time" }),
+            queryParameter("exported", "string", "Filter by export acknowledgement state"),
+            queryParameter("brand", "string", "Filter by detected brand name"),
+            queryParameter("label", "string", "Filter by classification label"),
+            queryParameter("q", "string", "Full-text search across message fields"),
+            queryParameter("has_attachments", "boolean", "Filter by attachment presence"),
+            queryParameter("attachment_ext", "string", "Comma-separated file extensions to filter by"),
+            queryParameter("min_attachments", "integer", "Minimum number of attachments"),
+            queryParameter("product_type", "string", "Comma-separated product type categories"),
+            queryParameter("confirmed", "boolean", "Filter by manual recognition confirmation"),
+            queryParameter("priority", "string", "Comma-separated priorities: critical, high, medium, low"),
+            queryParameter("risk", "string", "Comma-separated recognition risk levels: high, medium, low"),
+            queryParameter("has_conflicts", "boolean", "Filter by recognition conflicts"),
+            queryParameter("company_present", "boolean", "Filter by detected company presence"),
+            queryParameter("inn_present", "boolean", "Filter by detected INN presence"),
+            queryParameter("phone_present", "boolean", "Filter by detected phone presence"),
+            queryParameter("article_present", "boolean", "Filter by detected article presence"),
+            queryParameter("sla_overdue", "boolean", "Filter by computed SLA overdue state"),
+            queryParameter("include", "string", "Optional additive payload blocks: body,audit,attachments_analysis,extraction_meta,all")
+          ],
+          responses: {
+            200: {
+              description: "Filtered export file"
+            },
+            401: unauthorizedResponse(),
+            403: errorResponse("Client is not allowed to access this project."),
+            404: errorResponse("Project not found.")
+          }
+        }
+      },
+      "/api/integration/projects/{projectId}/threads": {
+        get: {
+          tags: ["Integration"],
+          summary: "List grouped email threads",
+          parameters: [
+            pathParameter("projectId", "Project identifier"),
+            queryParameter("status", "string", "Comma-separated pipeline statuses"),
+            queryParameter("since", "string", "ISO datetime filter for updated_at", { format: "date-time" }),
+            queryParameter("exported", "string", "Filter by export acknowledgement state"),
+            queryParameter("brand", "string", "Filter by detected brand name"),
+            queryParameter("label", "string", "Filter by classification label"),
+            queryParameter("q", "string", "Full-text search across message fields"),
+            queryParameter("has_attachments", "boolean", "Filter by attachment presence"),
+            queryParameter("attachment_ext", "string", "Comma-separated file extensions to filter by"),
+            queryParameter("min_attachments", "integer", "Minimum number of attachments"),
+            queryParameter("product_type", "string", "Comma-separated product type categories"),
+            queryParameter("confirmed", "boolean", "Filter by manual recognition confirmation"),
+            queryParameter("priority", "string", "Comma-separated priorities: critical, high, medium, low"),
+            queryParameter("risk", "string", "Comma-separated recognition risk levels: high, medium, low"),
+            queryParameter("has_conflicts", "boolean", "Filter by recognition conflicts"),
+            queryParameter("company_present", "boolean", "Filter by detected company presence"),
+            queryParameter("inn_present", "boolean", "Filter by detected INN presence"),
+            queryParameter("phone_present", "boolean", "Filter by detected phone presence"),
+            queryParameter("article_present", "boolean", "Filter by detected article presence"),
+            queryParameter("sla_overdue", "boolean", "Filter by computed SLA overdue state"),
+            queryParameter("include", "string", "Optional additive payload blocks for nested messages"),
+            queryParameter("include_messages", "boolean", "Include normalized messages in each thread record")
+          ],
+          responses: {
+            200: {
+              description: "Grouped message threads",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/IntegrationThreadListResponse" }
+                }
+              }
+            },
+            401: unauthorizedResponse(),
+            403: errorResponse("Client is not allowed to access this project."),
+            404: errorResponse("Project not found.")
+          }
+        }
+      },
+      "/api/integration/projects/{projectId}/threads/{threadId}": {
+        get: {
+          tags: ["Integration"],
+          summary: "Get a single grouped email thread",
+          parameters: [
+            pathParameter("projectId", "Project identifier"),
+            pathParameter("threadId", "Thread identifier"),
+            queryParameter("include", "string", "Optional additive payload blocks for nested messages")
+          ],
+          responses: {
+            200: {
+              description: "Single grouped thread",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/IntegrationThreadResponse" }
+                }
+              }
+            },
+            401: unauthorizedResponse(),
+            403: errorResponse("Client is not allowed to access this project."),
+            404: errorResponse("Thread or project not found.")
+          }
+        }
+      },
       "/api/integration/projects/{projectId}/messages/{messageKey}": {
         get: {
           tags: ["Integration"],
@@ -922,6 +1027,71 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
                 }
               ]
             }
+          }
+        },
+        IntegrationThread: {
+          type: "object",
+          properties: {
+            thread_id: { type: "string" },
+            message_count: { type: "integer" },
+            first_message_at: { type: ["string", "null"], format: "date-time" },
+            last_message_at: { type: ["string", "null"], format: "date-time" },
+            participants: {
+              type: "array",
+              items: { type: "string" }
+            },
+            subjects: {
+              type: "array",
+              items: { type: "string" }
+            },
+            pipeline_statuses: {
+              type: "array",
+              items: { type: "string" }
+            },
+            priorities: {
+              type: "array",
+              items: { type: "string" }
+            },
+            risk_levels: {
+              type: "array",
+              items: { type: "string" }
+            },
+            has_conflicts: { type: "boolean" },
+            sla_overdue: { type: "boolean" },
+            message_keys: {
+              type: "array",
+              items: { type: "string" }
+            },
+            messages: {
+              type: ["array", "null"],
+              items: { $ref: "#/components/schemas/IntegrationMessage" }
+            }
+          }
+        },
+        IntegrationThreadListResponse: {
+          type: "object",
+          properties: {
+            data: {
+              type: "array",
+              items: { $ref: "#/components/schemas/IntegrationThread" }
+            },
+            meta: {
+              allOf: [
+                { $ref: "#/components/schemas/IntegrationMessageQueryMeta" },
+                {
+                  type: "object",
+                  properties: {
+                    include_messages: { type: "boolean" }
+                  }
+                }
+              ]
+            }
+          }
+        },
+        IntegrationThreadResponse: {
+          type: "object",
+          properties: {
+            data: { $ref: "#/components/schemas/IntegrationThread" }
           }
         },
         IntegrationAckRequest: {

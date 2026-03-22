@@ -18,10 +18,13 @@ import { getMailboxFileRuntime, reprocessMailboxMessages, runMailboxFileParser }
 import { detectionKb } from "./services/detection-kb.js";
 import { ManagerAuth } from "./services/manager-auth.js";
 import {
+  exportIntegrationMessages,
   findIntegrationDelivery,
   findIntegrationMessage,
+  findIntegrationThread,
   listIntegrationDeliveries,
   listIntegrationMessages,
+  listIntegrationThreads,
   parseIntegrationCursor,
   summarizeIntegrationCoverage,
   summarizeIntegrationDeliveries,
@@ -1433,6 +1436,110 @@ async function handleIntegrationApi(req, res, url) {
     }));
   }
 
+  const integrationMessageExportMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages\/export$/);
+  if (req.method === "GET" && integrationMessageExportMatch) {
+    const projectId = decodeURIComponent(integrationMessageExportMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
+    const project = await store.getProject(projectId);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    const exported = exportIntegrationMessages(project, {
+      status: url.searchParams.get("status"),
+      since: url.searchParams.get("since"),
+      exported: url.searchParams.get("exported"),
+      brand: url.searchParams.get("brand"),
+      label: url.searchParams.get("label"),
+      q: url.searchParams.get("q"),
+      has_attachments: url.searchParams.get("has_attachments"),
+      attachment_ext: url.searchParams.get("attachment_ext"),
+      min_attachments: url.searchParams.get("min_attachments"),
+      product_type: url.searchParams.get("product_type"),
+      confirmed: url.searchParams.get("confirmed"),
+      priority: url.searchParams.get("priority"),
+      risk: url.searchParams.get("risk"),
+      has_conflicts: url.searchParams.get("has_conflicts"),
+      company_present: url.searchParams.get("company_present"),
+      inn_present: url.searchParams.get("inn_present"),
+      phone_present: url.searchParams.get("phone_present"),
+      article_present: url.searchParams.get("article_present"),
+      sla_overdue: url.searchParams.get("sla_overdue"),
+      include: url.searchParams.get("include"),
+      format: url.searchParams.get("format")
+    }, {
+      consumerId: currentClient.id
+    });
+
+    return sendText(res, 200, exported.body, {
+      contentType: exported.contentType,
+      filename: exported.filename
+    });
+  }
+
+  const integrationThreadsMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/threads$/);
+  if (req.method === "GET" && integrationThreadsMatch) {
+    const projectId = decodeURIComponent(integrationThreadsMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
+    const project = await store.getProject(projectId);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    return sendJson(res, 200, listIntegrationThreads(project, {
+      status: url.searchParams.get("status"),
+      since: url.searchParams.get("since"),
+      exported: url.searchParams.get("exported"),
+      brand: url.searchParams.get("brand"),
+      label: url.searchParams.get("label"),
+      q: url.searchParams.get("q"),
+      has_attachments: url.searchParams.get("has_attachments"),
+      attachment_ext: url.searchParams.get("attachment_ext"),
+      min_attachments: url.searchParams.get("min_attachments"),
+      product_type: url.searchParams.get("product_type"),
+      confirmed: url.searchParams.get("confirmed"),
+      priority: url.searchParams.get("priority"),
+      risk: url.searchParams.get("risk"),
+      has_conflicts: url.searchParams.get("has_conflicts"),
+      company_present: url.searchParams.get("company_present"),
+      inn_present: url.searchParams.get("inn_present"),
+      phone_present: url.searchParams.get("phone_present"),
+      article_present: url.searchParams.get("article_present"),
+      sla_overdue: url.searchParams.get("sla_overdue"),
+      include: url.searchParams.get("include"),
+      include_messages: url.searchParams.get("include_messages")
+    }, {
+      consumerId: currentClient.id
+    }));
+  }
+
+  const integrationThreadMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/threads\/([^/]+)$/);
+  if (req.method === "GET" && integrationThreadMatch) {
+    const projectId = decodeURIComponent(integrationThreadMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
+    const project = await store.getProject(projectId);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    const thread = findIntegrationThread(project, decodeURIComponent(integrationThreadMatch[2]), {
+      include: url.searchParams.get("include")
+    }, {
+      consumerId: currentClient.id
+    });
+    if (!thread) {
+      return sendJson(res, 404, { error: "Thread not found." });
+    }
+
+    return sendJson(res, 200, { data: thread });
+  }
+
   // ── Bulk acknowledge ──
   const integrationBulkAckMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages\/ack$/);
   if (req.method === "POST" && integrationBulkAckMatch) {
@@ -1589,6 +1696,17 @@ async function serveStatic(pathname, res) {
 function sendJson(res, statusCode, payload) {
   res.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
   res.end(JSON.stringify(payload, null, 2));
+}
+
+function sendText(res, statusCode, body, options = {}) {
+  const headers = {
+    "Content-Type": options.contentType || "text/plain; charset=utf-8"
+  };
+  if (options.filename) {
+    headers["Content-Disposition"] = `attachment; filename="${options.filename}"`;
+  }
+  res.writeHead(statusCode, headers);
+  res.end(body);
 }
 
 function contentType(filePath) {

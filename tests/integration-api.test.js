@@ -1,7 +1,10 @@
 import assert from "node:assert/strict";
 import {
+  exportIntegrationMessages,
   findIntegrationMessage,
+  findIntegrationThread,
   listIntegrationMessages,
+  listIntegrationThreads,
   normalizeIntegrationMessage,
   parseIntegrationCursor,
   summarizeIntegrationCoverage,
@@ -28,6 +31,7 @@ const project = {
       bodyPreview: "Прошу КП",
       body: "Полное тело письма с артикулом S201-C16 и реквизитами",
       pipelineStatus: "ready_for_crm",
+      threadId: "thread-1",
       attachments: ["spec.pdf", "drawing.xlsx"],
       auditLog: [{ action: "status_change", at: "2026-03-18T10:06:00.000Z" }],
       recognitionConfirmed: { at: "2026-03-18T11:00:00.000Z", source: "manual_feedback" },
@@ -134,6 +138,7 @@ const project = {
       subject: "Спам",
       from: "spam@example.com",
       pipelineStatus: "ignored_spam",
+      threadId: "thread-2",
       auditLog: [{ action: "status_change", at: "2026-03-17T10:15:00.000Z" }],
       analysis: {
         classification: { label: "СПАМ", confidence: 0.99 },
@@ -149,6 +154,7 @@ const project = {
       subject: "Нужен счет",
       from: "buyer@example.com",
       pipelineStatus: "needs_clarification",
+      threadId: "thread-1",
       auditLog: [{ action: "status_change", at: "2026-03-18T10:06:00.000Z" }],
       analysis: {
         classification: { label: "Клиент", confidence: 0.8 },
@@ -380,6 +386,31 @@ runTest("builds problem queue summary for integration consumers", () => {
   assert.ok(result.data.by_issue.no_brand >= 1);
   assert.ok(result.data.by_issue.no_company >= 1);
   assert.equal(result.data.top_messages[0].message_key, "msg-3");
+});
+
+runTest("groups integration messages into threads", () => {
+  const result = listIntegrationThreads(project, {});
+  assert.equal(result.data.length, 2);
+  assert.equal(result.data[0].thread_id, "thread-1");
+  assert.equal(result.data[0].message_count, 2);
+});
+
+runTest("returns single integration thread with normalized messages", () => {
+  const result = findIntegrationThread(project, "thread-1", { include: "body" });
+  assert.equal(result.thread_id, "thread-1");
+  assert.equal(result.messages.length, 2);
+  assert.equal(result.messages[0].thread_id, "thread-1");
+});
+
+runTest("exports integration messages as jsonl and csv", () => {
+  const jsonl = exportIntegrationMessages(project, { format: "jsonl" });
+  assert.equal(jsonl.contentType, "application/x-ndjson; charset=utf-8");
+  assert.ok(jsonl.body.includes("\"message_key\":\"msg-1\""));
+
+  const csv = exportIntegrationMessages(project, { format: "csv" });
+  assert.equal(csv.contentType, "text/csv; charset=utf-8");
+  assert.ok(csv.body.includes("message_key"));
+  assert.ok(csv.body.includes("msg-1"));
 });
 
 runTest("supports cursor-based integration pagination with stable ordering", () => {

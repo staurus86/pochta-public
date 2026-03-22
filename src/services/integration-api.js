@@ -203,6 +203,120 @@ export function findIntegrationMessage(project, messageKey, options = {}) {
   return message ? normalizeIntegrationMessage(project, message, options) : null;
 }
 
+export function listIntegrationThreads(project, query = {}, options = {}) {
+  const context = buildIntegrationMessageQueryContext(query);
+  const includeMessages = parseBooleanFilter(query.include_messages) === true;
+  const messages = filterIntegrationMessages(project, context, options);
+  const groups = new Map();
+
+  for (const item of messages) {
+    const threadId = resolveThreadId(item);
+    const group = groups.get(threadId) || {
+      thread_id: threadId,
+      message_count: 0,
+      first_message_at: null,
+      last_message_at: null,
+      participants: new Set(),
+      subjects: new Set(),
+      pipeline_statuses: new Set(),
+      priorities: new Set(),
+      risk_levels: new Set(),
+      has_conflicts: false,
+      sla_overdue: false,
+      message_keys: [],
+      messages: []
+    };
+
+    const normalized = normalizeIntegrationMessage(project, item, options);
+    const updatedAt = normalized.updated_at;
+    const createdAt = normalized.created_at;
+    group.message_count += 1;
+    group.first_message_at = minIso(group.first_message_at, createdAt);
+    group.last_message_at = maxIso(group.last_message_at, updatedAt || createdAt);
+    if (normalized.from) group.participants.add(normalized.from);
+    if (normalized.subject) group.subjects.add(normalized.subject);
+    if (normalized.pipeline_status) group.pipeline_statuses.add(normalized.pipeline_status);
+    if (normalized.message_meta?.priority) group.priorities.add(normalized.message_meta.priority);
+    if (normalized.message_meta?.risk_level) group.risk_levels.add(normalized.message_meta.risk_level);
+    group.has_conflicts = group.has_conflicts || Boolean(normalized.message_meta?.has_conflicts);
+    group.sla_overdue = group.sla_overdue || Boolean(normalized.message_meta?.sla_overdue);
+    group.message_keys.push(normalized.message_key);
+    if (includeMessages) {
+      group.messages.push(normalized);
+    }
+    groups.set(threadId, group);
+  }
+
+  const data = [...groups.values()]
+    .map((group) => ({
+      thread_id: group.thread_id,
+      message_count: group.message_count,
+      first_message_at: group.first_message_at,
+      last_message_at: group.last_message_at,
+      participants: [...group.participants],
+      subjects: [...group.subjects],
+      pipeline_statuses: [...group.pipeline_statuses],
+      priorities: [...group.priorities],
+      risk_levels: [...group.risk_levels],
+      has_conflicts: group.has_conflicts,
+      sla_overdue: group.sla_overdue,
+      message_keys: group.message_keys,
+      messages: includeMessages ? group.messages : undefined
+    }))
+    .sort((a, b) => String(b.last_message_at || "").localeCompare(String(a.last_message_at || "")) || String(b.thread_id).localeCompare(String(a.thread_id)));
+
+  return {
+    data,
+    meta: {
+      ...buildIntegrationMessageMeta(context),
+      include_messages: includeMessages
+    }
+  };
+}
+
+export function findIntegrationThread(project, threadId, query = {}, options = {}) {
+  const result = listIntegrationThreads(project, {
+    ...query,
+    include_messages: "true"
+  }, options);
+  return result.data.find((item) => item.thread_id === threadId) || null;
+}
+
+export function exportIntegrationMessages(project, query = {}, options = {}) {
+  const context = buildIntegrationMessageQueryContext(query);
+  const format = parseExportFormat(query.format);
+  const messages = filterIntegrationMessages(project, context, options);
+  const data = messages.map((item) => normalizeIntegrationMessage(project, item, {
+    ...options,
+    include: context.include
+  }));
+
+  if (format === "jsonl") {
+    return {
+      contentType: "application/x-ndjson; charset=utf-8",
+      filename: `integration-messages-${project.id}.jsonl`,
+      body: `${data.map((item) => JSON.stringify(item)).join("\n")}\n`
+    };
+  }
+
+  if (format === "csv") {
+    return {
+      contentType: "text/csv; charset=utf-8",
+      filename: `integration-messages-${project.id}.csv`,
+      body: buildIntegrationMessagesCsv(data)
+    };
+  }
+
+  return {
+    contentType: "application/json; charset=utf-8",
+    filename: `integration-messages-${project.id}.json`,
+    body: JSON.stringify({
+      data,
+      meta: buildIntegrationMessageMeta(context)
+    }, null, 2)
+  };
+}
+
 export function summarizeIntegrationMessages(project, query = {}, options = {}) {
   const context = buildIntegrationMessageQueryContext(query);
   const messages = filterIntegrationMessages(project, context, options);
@@ -527,6 +641,11 @@ function parseProductTypeFilter(value) {
   return text.split(",").map((t) => t.trim()).filter(Boolean);
 }
 
+function parseExportFormat(value) {
+  const text = String(value || "json").trim().toLowerCase();
+  return ["json", "jsonl", "csv"].includes(text) ? text : "json";
+}
+
 function buildIntegrationMessageQueryContext(query = {}) {
   return {
     statuses: parseStatuses(query.status),
@@ -649,6 +768,67 @@ function buildIntegrationMessageMeta(context) {
     include: [...context.include],
     since: context.since ? context.since.toISOString() : null
   };
+}
+
+function buildIntegrationMessagesCsv(data) {
+  const headers = [
+    "project_id",
+    "message_key",
+    "thread_id",
+    "created_at",
+    "updated_at",
+    "pipeline_status",
+    "brand",
+    "subject",
+    "from",
+    "classification_label",
+    "classification_confidence",
+    "company_name",
+    "inn",
+    "phone",
+    "articles",
+    "product_names",
+    "priority",
+    "risk_level",
+    "sla_overdue",
+    "has_conflicts",
+    "recognition_confirmed",
+    "exported",
+    "crm_company_id",
+    "crm_company_name"
+  ];
+
+  const rows = data.map((item) => ([
+    item.project_id,
+    item.message_key,
+    item.thread_id,
+    item.created_at,
+    item.updated_at,
+    item.pipeline_status,
+    item.brand,
+    item.subject,
+    item.from,
+    item.classification?.label,
+    item.classification?.confidence,
+    item.sender?.company_name,
+    item.sender?.inn,
+    item.sender?.mobile_phone || item.sender?.city_phone,
+    (item.lead?.articles || []).join("|"),
+    (item.lead?.product_names || []).map((p) => p.name).filter(Boolean).join("|"),
+    item.message_meta?.priority,
+    item.message_meta?.risk_level,
+    item.message_meta?.sla_overdue,
+    item.message_meta?.has_conflicts,
+    item.message_meta?.recognition_confirmed,
+    item.export?.acknowledged,
+    item.crm?.company?.id,
+    item.crm?.company?.legal_name
+  ]));
+
+  return [
+    headers.join(","),
+    ...rows.map((row) => row.map(escapeCsvValue).join(","))
+  ].join("\n");
 }
 
 function parsePriorityFilter(value) {
@@ -819,6 +999,10 @@ function normalizeAuditLog(entries = []) {
   }));
 }
 
+function resolveThreadId(message) {
+  return String(message.threadId || `message:${resolveMessageKey(message)}`);
+}
+
 function hasDetectedArticle(message) {
   return Boolean((message.analysis?.lead?.articles || []).length > 0);
 }
@@ -922,4 +1106,25 @@ function latestIso(values) {
 
 function earliestIso(values) {
   return values.filter(Boolean).sort((a, b) => String(a).localeCompare(String(b)))[0] || null;
+}
+
+function maxIso(a, b) {
+  if (!a) return b || null;
+  if (!b) return a || null;
+  return String(a) >= String(b) ? a : b;
+}
+
+function minIso(a, b) {
+  if (!a) return b || null;
+  if (!b) return a || null;
+  return String(a) <= String(b) ? a : b;
+}
+
+function escapeCsvValue(value) {
+  if (value == null) return "";
+  const text = String(value);
+  if (/[",\n]/.test(text)) {
+    return `"${text.replace(/"/g, "\"\"")}"`;
+  }
+  return text;
 }
