@@ -52,6 +52,7 @@ let inboxSearch = '';
 let inboxSort = 'date-desc';
 let inboxMailboxFilter = '';
 let inboxAttachmentFilter = '';
+let inboxRecognitionFilter = '';
 let inboxGroupByThread = false;
 let inboxPage = 0;
 const INBOX_PAGE_SIZE = 50;
@@ -397,6 +398,7 @@ function setupForms() {
   $('#inbox-group-threads').addEventListener('change', (e) => { inboxGroupByThread = e.target.checked; inboxPage = 0; renderInbox(); });
   $('#inbox-mailbox-filter').addEventListener('change', (e) => { inboxMailboxFilter = e.target.value; inboxPage = 0; renderInbox(); });
   $('#inbox-attachment-filter')?.addEventListener('change', (e) => { inboxAttachmentFilter = e.target.value; inboxPage = 0; renderInbox(); });
+  $('#inbox-recognition-filter')?.addEventListener('change', (e) => { inboxRecognitionFilter = e.target.value; inboxPage = 0; renderInbox(); });
   $('#inbox-auto-refresh').addEventListener('change', (e) => {
     const sec = Number(e.target.value);
     if (autoRefreshInterval) clearInterval(autoRefreshInterval);
@@ -529,6 +531,11 @@ function filterInboxMessages(tab) {
     else if (af === 'img') msgs = msgs.filter((m) => m.attachments?.some((a) => /\.(jpe?g|png|gif|bmp|webp|tiff?)$/i.test(a)));
   }
 
+  // Recognition quality filter
+  if (inboxRecognitionFilter) {
+    msgs = msgs.filter((m) => matchesRecognitionFilter(m, inboxRecognitionFilter));
+  }
+
   // Search
   if (inboxSearch) {
     msgs = msgs.filter((m) => {
@@ -546,6 +553,36 @@ function filterInboxMessages(tab) {
   else msgs.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
 
   return msgs;
+}
+
+function matchesRecognitionFilter(message, filterValue) {
+  const analysis = message.analysis || {};
+  const sender = analysis.sender || {};
+  const lead = analysis.lead || {};
+  const brands = [
+    ...(analysis.detectedBrands || []),
+    ...(lead.detectedBrands || [])
+  ].filter(Boolean);
+  const productNames = getLeadProductNameList(lead);
+  const hasArticle = (lead.articles || []).length > 0;
+  const hasBrand = brands.length > 0;
+  const hasName = productNames.length > 0;
+  const hasPhone = Boolean(sender.cityPhone || sender.mobilePhone);
+  const hasCompany = Boolean(sender.companyName);
+  const hasInn = Boolean(sender.inn);
+  const attachmentFiles = analysis.attachmentAnalysis?.files || [];
+  const hasAttachments = (message.attachments || message.attachmentFiles || []).length > 0;
+  const hasParsedAttachment = attachmentFiles.some((file) => file.status === 'processed');
+
+  if (filterValue === 'missing_article') return !hasArticle;
+  if (filterValue === 'missing_brand') return !hasBrand;
+  if (filterValue === 'missing_name') return !hasName;
+  if (filterValue === 'missing_phone') return !hasPhone;
+  if (filterValue === 'missing_company') return !hasCompany;
+  if (filterValue === 'missing_inn') return !hasInn;
+  if (filterValue === 'attachments_unparsed') return hasAttachments && !hasParsedAttachment;
+  if (filterValue === 'all_key_fields') return hasArticle && hasBrand && hasName && hasPhone;
+  return true;
 }
 
 function normalizeSubjectForThread(subject) {
