@@ -282,6 +282,68 @@ export function findIntegrationThread(project, threadId, query = {}, options = {
   return result.data.find((item) => item.thread_id === threadId) || null;
 }
 
+export function listIntegrationEvents(project, query = {}, options = {}) {
+  const limit = Math.min(normalizePositiveInt(query.limit, 100), 500);
+  const since = parseSince(query.since);
+  const cursor = parseEventCursor(query.cursor);
+  const typeFilter = parseStringListFilter(query.type);
+  const scopeFilter = parseStringListFilter(query.scope);
+  const context = buildIntegrationMessageQueryContext(query);
+  const allowedMessageKeys = new Set(filterIntegrationMessages(project, context, options).map((item) => resolveMessageKey(item)));
+  const events = buildIntegrationEvents(project, options)
+    .filter((event) => allowedMessageKeys.has(event.message_key))
+    .filter((event) => !since || Date.parse(event.at) >= since.getTime())
+    .filter((event) => !typeFilter || typeFilter.includes(event.type))
+    .filter((event) => !scopeFilter || scopeFilter.includes(event.scope))
+    .filter((event) => !cursor || compareEventToCursor(event, cursor) > 0);
+
+  const pageItems = events.slice(0, limit);
+  const lastItem = pageItems[pageItems.length - 1] || null;
+  const hasMore = events.length > pageItems.length;
+
+  return {
+    data: pageItems,
+    pagination: {
+      limit,
+      total: events.length
+    },
+    meta: {
+      ...buildIntegrationMessageMeta(context),
+      type: typeFilter,
+      scope: scopeFilter,
+      cursor: cursor ? encodeEventCursor(cursor) : null,
+      next_cursor: hasMore && lastItem ? encodeEventCursor({ at: lastItem.at, id: lastItem.id }) : null,
+      since: since ? since.toISOString() : null
+    }
+  };
+}
+
+export function exportIntegrationEvents(project, query = {}, options = {}) {
+  const format = parseExportFormat(query.format);
+  const result = listIntegrationEvents(project, query, options);
+  if (format === "jsonl") {
+    return {
+      contentType: "application/x-ndjson; charset=utf-8",
+      filename: `integration-events-${project.id}.jsonl`,
+      body: `${result.data.map((item) => JSON.stringify(item)).join("\n")}\n`
+    };
+  }
+
+  if (format === "csv") {
+    return {
+      contentType: "text/csv; charset=utf-8",
+      filename: `integration-events-${project.id}.csv`,
+      body: buildIntegrationEventsCsv(result.data)
+    };
+  }
+
+  return {
+    contentType: "application/json; charset=utf-8",
+    filename: `integration-events-${project.id}.json`,
+    body: JSON.stringify(result, null, 2)
+  };
+}
+
 export function exportIntegrationMessages(project, query = {}, options = {}) {
   const context = buildIntegrationMessageQueryContext(query);
   const format = parseExportFormat(query.format);
@@ -646,6 +708,12 @@ function parseExportFormat(value) {
   return ["json", "jsonl", "csv"].includes(text) ? text : "json";
 }
 
+function parseStringListFilter(value) {
+  const text = String(value || "").trim().toLowerCase();
+  if (!text) return null;
+  return text.split(",").map((item) => item.trim()).filter(Boolean);
+}
+
 function buildIntegrationMessageQueryContext(query = {}) {
   return {
     statuses: parseStatuses(query.status),
@@ -831,6 +899,43 @@ function buildIntegrationMessagesCsv(data) {
   ].join("\n");
 }
 
+function buildIntegrationEventsCsv(data) {
+  const headers = [
+    "id",
+    "at",
+    "scope",
+    "type",
+    "project_id",
+    "message_key",
+    "thread_id",
+    "delivery_id",
+    "status",
+    "action",
+    "consumer",
+    "external_id",
+    "summary"
+  ];
+  const rows = data.map((item) => ([
+    item.id,
+    item.at,
+    item.scope,
+    item.type,
+    item.project_id,
+    item.message_key,
+    item.thread_id,
+    item.delivery_id,
+    item.pipeline_status || item.delivery_status || null,
+    item.action || null,
+    item.consumer || null,
+    item.external_id || null,
+    item.summary || null
+  ]));
+  return [
+    headers.join(","),
+    ...rows.map((row) => row.map(escapeCsvValue).join(","))
+  ].join("\n");
+}
+
 function parsePriorityFilter(value) {
   const text = String(value || "").trim().toLowerCase();
   if (!text) return null;
@@ -872,6 +977,28 @@ function resolveRecognitionPriority(lead = {}) {
 function resolveRecognitionRisk(lead = {}) {
   const value = String(lead.recognitionSummary?.riskLevel || lead.recognitionDiagnostics?.riskLevel || "").trim().toLowerCase();
   return value || null;
+}
+
+function parseEventCursor(value) {
+  const text = String(value || "").trim();
+  if (!text) return null;
+  try {
+    const raw = Buffer.from(text, "base64url").toString("utf-8");
+    const parsed = JSON.parse(raw);
+    const at = String(parsed.at || "").trim();
+    const id = String(parsed.id || "").trim();
+    if (!at || !id || Number.isNaN(Date.parse(at))) return null;
+    return { at, id };
+  } catch {
+    return null;
+  }
+}
+
+function encodeEventCursor(value) {
+  return Buffer.from(JSON.stringify({
+    at: value.at,
+    id: value.id
+  }), "utf-8").toString("base64url");
 }
 
 function resolveHasConflicts(lead = {}) {
@@ -959,6 +1086,92 @@ function normalizeIntegrationDelivery(item) {
     response_status: item.responseStatus,
     last_manual_action: item.lastManualAction || null
   };
+}
+
+function buildIntegrationEvents(project, options = {}) {
+  const events = [];
+
+  for (const message of project.recentMessages || []) {
+    const messageKey = resolveMessageKey(message);
+    const threadId = resolveThreadId(message);
+    const pipelineStatus = message.pipelineStatus || "unknown";
+    for (const entry of message.auditLog || []) {
+      const at = entry.at || resolveMessageUpdatedAt(message);
+      if (!at) continue;
+      const action = String(entry.action || "audit").trim().toLowerCase() || "audit";
+      events.push({
+        id: `msg:${messageKey}:${action}:${at}`,
+        at,
+        scope: "message",
+        type: `message.${action}`,
+        project_id: project.id,
+        message_key: messageKey,
+        thread_id: threadId,
+        pipeline_status: pipelineStatus,
+        action,
+        consumer: entry.consumer || null,
+        external_id: entry.externalId || null,
+        summary: buildAuditEventSummary(entry, message)
+      });
+      events.push({
+        id: `thread:${threadId}:${messageKey}:${action}:${at}`,
+        at,
+        scope: "thread",
+        type: "thread.updated",
+        project_id: project.id,
+        message_key: messageKey,
+        thread_id: threadId,
+        pipeline_status: pipelineStatus,
+        action,
+        summary: `Thread ${threadId} updated by ${action}`
+      });
+    }
+  }
+
+  for (const delivery of project.webhookDeliveries || []) {
+    if (options.clientId && delivery.clientId !== options.clientId) {
+      continue;
+    }
+    const at = delivery.updatedAt || delivery.createdAt;
+    if (!at) continue;
+    events.push({
+      id: `delivery:${delivery.id}:${at}`,
+      at,
+      scope: "delivery",
+      type: `delivery.${String(delivery.status || "unknown").toLowerCase()}`,
+      project_id: project.id,
+      message_key: delivery.messageKey || null,
+      thread_id: resolveThreadId((project.recentMessages || []).find((item) => resolveMessageKey(item) === delivery.messageKey) || {}),
+      delivery_id: delivery.id,
+      delivery_status: delivery.status || null,
+      consumer: delivery.clientId || null,
+      external_id: null,
+      summary: `Delivery ${delivery.id} is ${delivery.status || "unknown"}`
+    });
+  }
+
+  return events.sort(compareEventsDesc);
+}
+
+function buildAuditEventSummary(entry, message) {
+  const changes = Array.isArray(entry.changes) ? entry.changes.join("; ") : "";
+  if (changes) return changes;
+  const action = String(entry.action || "updated");
+  return `${action} for ${resolveMessageKey(message)}`;
+}
+
+function compareEventsDesc(a, b) {
+  const atCompare = String(b.at || "").localeCompare(String(a.at || ""));
+  if (atCompare !== 0) return atCompare;
+  return String(b.id || "").localeCompare(String(a.id || ""));
+}
+
+function compareEventToCursor(event, cursor) {
+  const atCompare = String(event.at || "").localeCompare(String(cursor.at || ""));
+  if (atCompare !== 0) {
+    return -atCompare;
+  }
+  return String(cursor.id || "").localeCompare(String(event.id || ""));
 }
 
 function normalizeAttachmentAnalysis(attachmentAnalysis) {

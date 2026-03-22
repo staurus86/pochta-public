@@ -18,7 +18,7 @@ runTest("builds versioned legacy integration openapi contract", () => {
   });
 
   assert.equal(spec.openapi, "3.1.0");
-  assert.equal(spec.info.version, "1.5.0");
+  assert.equal(spec.info.version, "1.6.0");
   assert.equal(spec.servers[0].url, "https://pochta-production.up.railway.app");
   assert.ok(spec.paths["/api/integration/changelog"]);
   assert.ok(spec.paths["/api/integration/projects/{projectId}/messages"]);
@@ -28,6 +28,8 @@ runTest("builds versioned legacy integration openapi contract", () => {
   assert.ok(spec.paths["/api/integration/projects/{projectId}/messages/export"]);
   assert.ok(spec.paths["/api/integration/projects/{projectId}/threads"]);
   assert.ok(spec.paths["/api/integration/projects/{projectId}/threads/{threadId}"]);
+  assert.ok(spec.paths["/api/integration/projects/{projectId}/events"]);
+  assert.ok(spec.paths["/api/integration/projects/{projectId}/events/export"]);
   assert.ok(spec.paths["/api/integration/projects/{projectId}/messages/{messageKey}/ack"]);
   assert.ok(spec.paths["/api/integration/projects/{projectId}/deliveries/stats"]);
   assert.ok(spec.components.schemas.IntegrationMessage);
@@ -46,6 +48,8 @@ runTest("builds versioned legacy integration openapi contract", () => {
   assert.ok(spec.components.schemas.IntegrationProblemQueueResponse);
   assert.ok(spec.components.schemas.IntegrationThread);
   assert.ok(spec.components.schemas.IntegrationThreadListResponse);
+  assert.ok(spec.components.schemas.IntegrationEvent);
+  assert.ok(spec.components.schemas.IntegrationEventListResponse);
   const params = spec.paths["/api/integration/projects/{projectId}/messages"].get.parameters.map((item) => item.name);
   assert.ok(params.includes("confirmed"));
   assert.ok(params.includes("priority"));
@@ -54,4 +58,7 @@ runTest("builds versioned legacy integration openapi contract", () => {
   assert.ok(singleParams.includes("include"));
   const threadParams = spec.paths["/api/integration/projects/{projectId}/threads"].get.parameters.map((item) => item.name);
   assert.ok(threadParams.includes("include_messages"));
+  const eventParams = spec.paths["/api/integration/projects/{projectId}/events"].get.parameters.map((item) => item.name);
+  assert.ok(eventParams.includes("cursor"));
+  assert.ok(eventParams.includes("scope"));
 });

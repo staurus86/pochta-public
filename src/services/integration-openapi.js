@@ -347,6 +347,77 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           }
         }
       },
+      "/api/integration/projects/{projectId}/events": {
+        get: {
+          tags: ["Integration"],
+          summary: "List incremental integration events for messages, threads, and deliveries",
+          parameters: [
+            pathParameter("projectId", "Project identifier"),
+            queryParameter("limit", "integer", "Maximum number of events to return"),
+            queryParameter("since", "string", "ISO datetime filter for event time", { format: "date-time" }),
+            queryParameter("cursor", "string", "Opaque cursor for incremental event polling"),
+            queryParameter("type", "string", "Comma-separated event types"),
+            queryParameter("scope", "string", "Comma-separated event scopes: message, thread, delivery"),
+            queryParameter("status", "string", "Comma-separated pipeline statuses"),
+            queryParameter("exported", "string", "Filter by export acknowledgement state"),
+            queryParameter("brand", "string", "Filter by detected brand name"),
+            queryParameter("label", "string", "Filter by classification label"),
+            queryParameter("q", "string", "Full-text search across message fields"),
+            queryParameter("has_attachments", "boolean", "Filter by attachment presence"),
+            queryParameter("attachment_ext", "string", "Comma-separated file extensions to filter by"),
+            queryParameter("min_attachments", "integer", "Minimum number of attachments"),
+            queryParameter("product_type", "string", "Comma-separated product type categories"),
+            queryParameter("confirmed", "boolean", "Filter by manual recognition confirmation"),
+            queryParameter("priority", "string", "Comma-separated priorities: critical, high, medium, low"),
+            queryParameter("risk", "string", "Comma-separated recognition risk levels: high, medium, low"),
+            queryParameter("has_conflicts", "boolean", "Filter by recognition conflicts"),
+            queryParameter("company_present", "boolean", "Filter by detected company presence"),
+            queryParameter("inn_present", "boolean", "Filter by detected INN presence"),
+            queryParameter("phone_present", "boolean", "Filter by detected phone presence"),
+            queryParameter("article_present", "boolean", "Filter by detected article presence"),
+            queryParameter("sla_overdue", "boolean", "Filter by computed SLA overdue state")
+          ],
+          responses: {
+            200: {
+              description: "Incremental integration event feed",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/IntegrationEventListResponse" }
+                }
+              }
+            },
+            400: errorResponse("Query parameter validation error."),
+            401: unauthorizedResponse(),
+            403: errorResponse("Client is not allowed to access this project."),
+            404: errorResponse("Project not found.")
+          }
+        }
+      },
+      "/api/integration/projects/{projectId}/events/export": {
+        get: {
+          tags: ["Integration"],
+          summary: "Export incremental event feed in JSON, JSONL, or CSV",
+          parameters: [
+            pathParameter("projectId", "Project identifier"),
+            queryParameter("format", "string", "Export format: json, jsonl, csv"),
+            queryParameter("limit", "integer", "Maximum number of events to return"),
+            queryParameter("since", "string", "ISO datetime filter for event time", { format: "date-time" }),
+            queryParameter("cursor", "string", "Opaque cursor for incremental event polling"),
+            queryParameter("type", "string", "Comma-separated event types"),
+            queryParameter("scope", "string", "Comma-separated event scopes"),
+            queryParameter("status", "string", "Comma-separated pipeline statuses"),
+            queryParameter("exported", "string", "Filter by export acknowledgement state")
+          ],
+          responses: {
+            200: {
+              description: "Filtered event export file"
+            },
+            401: unauthorizedResponse(),
+            403: errorResponse("Client is not allowed to access this project."),
+            404: errorResponse("Project not found.")
+          }
+        }
+      },
       "/api/integration/projects/{projectId}/messages/{messageKey}": {
         get: {
           tags: ["Integration"],
@@ -1092,6 +1163,61 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           type: "object",
           properties: {
             data: { $ref: "#/components/schemas/IntegrationThread" }
+          }
+        },
+        IntegrationEvent: {
+          type: "object",
+          properties: {
+            id: { type: "string" },
+            at: { type: "string", format: "date-time" },
+            scope: { type: "string" },
+            type: { type: "string" },
+            project_id: { type: "string" },
+            message_key: { type: ["string", "null"] },
+            thread_id: { type: ["string", "null"] },
+            delivery_id: { type: ["string", "null"] },
+            pipeline_status: { type: ["string", "null"] },
+            delivery_status: { type: ["string", "null"] },
+            action: { type: ["string", "null"] },
+            consumer: { type: ["string", "null"] },
+            external_id: { type: ["string", "null"] },
+            summary: { type: ["string", "null"] }
+          }
+        },
+        IntegrationEventListResponse: {
+          type: "object",
+          properties: {
+            data: {
+              type: "array",
+              items: { $ref: "#/components/schemas/IntegrationEvent" }
+            },
+            pagination: {
+              type: "object",
+              properties: {
+                limit: { type: "integer" },
+                total: { type: "integer" }
+              }
+            },
+            meta: {
+              allOf: [
+                { $ref: "#/components/schemas/IntegrationMessageQueryMeta" },
+                {
+                  type: "object",
+                  properties: {
+                    type: {
+                      type: ["array", "null"],
+                      items: { type: "string" }
+                    },
+                    scope: {
+                      type: ["array", "null"],
+                      items: { type: "string" }
+                    },
+                    cursor: { type: ["string", "null"] },
+                    next_cursor: { type: ["string", "null"] }
+                  }
+                }
+              ]
+            }
           }
         },
         IntegrationAckRequest: {

@@ -18,10 +18,12 @@ import { getMailboxFileRuntime, reprocessMailboxMessages, runMailboxFileParser }
 import { detectionKb } from "./services/detection-kb.js";
 import { ManagerAuth } from "./services/manager-auth.js";
 import {
+  exportIntegrationEvents,
   exportIntegrationMessages,
   findIntegrationDelivery,
   findIntegrationMessage,
   findIntegrationThread,
+  listIntegrationEvents,
   listIntegrationDeliveries,
   listIntegrationMessages,
   listIntegrationThreads,
@@ -1471,6 +1473,103 @@ async function handleIntegrationApi(req, res, url) {
       format: url.searchParams.get("format")
     }, {
       consumerId: currentClient.id
+    });
+
+    return sendText(res, 200, exported.body, {
+      contentType: exported.contentType,
+      filename: exported.filename
+    });
+  }
+
+  const integrationEventsMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/events$/);
+  if (req.method === "GET" && integrationEventsMatch) {
+    const projectId = decodeURIComponent(integrationEventsMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
+    const project = await store.getProject(projectId);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    const cursor = String(url.searchParams.get("cursor") || "").trim();
+    if (cursor) {
+      try {
+        Buffer.from(cursor, "base64url").toString("utf-8");
+      } catch {
+        return sendJson(res, 400, { error: "Query parameter 'cursor' must be a valid event cursor." });
+      }
+    }
+
+    return sendJson(res, 200, listIntegrationEvents(project, {
+      limit: url.searchParams.get("limit"),
+      since: url.searchParams.get("since"),
+      cursor,
+      type: url.searchParams.get("type"),
+      scope: url.searchParams.get("scope"),
+      status: url.searchParams.get("status"),
+      exported: url.searchParams.get("exported"),
+      brand: url.searchParams.get("brand"),
+      label: url.searchParams.get("label"),
+      q: url.searchParams.get("q"),
+      has_attachments: url.searchParams.get("has_attachments"),
+      attachment_ext: url.searchParams.get("attachment_ext"),
+      min_attachments: url.searchParams.get("min_attachments"),
+      product_type: url.searchParams.get("product_type"),
+      confirmed: url.searchParams.get("confirmed"),
+      priority: url.searchParams.get("priority"),
+      risk: url.searchParams.get("risk"),
+      has_conflicts: url.searchParams.get("has_conflicts"),
+      company_present: url.searchParams.get("company_present"),
+      inn_present: url.searchParams.get("inn_present"),
+      phone_present: url.searchParams.get("phone_present"),
+      article_present: url.searchParams.get("article_present"),
+      sla_overdue: url.searchParams.get("sla_overdue")
+    }, {
+      consumerId: currentClient.id,
+      clientId: currentClient.id
+    }));
+  }
+
+  const integrationEventsExportMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/events\/export$/);
+  if (req.method === "GET" && integrationEventsExportMatch) {
+    const projectId = decodeURIComponent(integrationEventsExportMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
+    const project = await store.getProject(projectId);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    const exported = exportIntegrationEvents(project, {
+      format: url.searchParams.get("format"),
+      limit: url.searchParams.get("limit"),
+      since: url.searchParams.get("since"),
+      cursor: url.searchParams.get("cursor"),
+      type: url.searchParams.get("type"),
+      scope: url.searchParams.get("scope"),
+      status: url.searchParams.get("status"),
+      exported: url.searchParams.get("exported"),
+      brand: url.searchParams.get("brand"),
+      label: url.searchParams.get("label"),
+      q: url.searchParams.get("q"),
+      has_attachments: url.searchParams.get("has_attachments"),
+      attachment_ext: url.searchParams.get("attachment_ext"),
+      min_attachments: url.searchParams.get("min_attachments"),
+      product_type: url.searchParams.get("product_type"),
+      confirmed: url.searchParams.get("confirmed"),
+      priority: url.searchParams.get("priority"),
+      risk: url.searchParams.get("risk"),
+      has_conflicts: url.searchParams.get("has_conflicts"),
+      company_present: url.searchParams.get("company_present"),
+      inn_present: url.searchParams.get("inn_present"),
+      phone_present: url.searchParams.get("phone_present"),
+      article_present: url.searchParams.get("article_present"),
+      sla_overdue: url.searchParams.get("sla_overdue")
+    }, {
+      consumerId: currentClient.id,
+      clientId: currentClient.id
     });
 
     return sendText(res, 200, exported.body, {

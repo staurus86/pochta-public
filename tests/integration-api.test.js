@@ -1,8 +1,10 @@
 import assert from "node:assert/strict";
 import {
+  exportIntegrationEvents,
   exportIntegrationMessages,
   findIntegrationMessage,
   findIntegrationThread,
+  listIntegrationEvents,
   listIntegrationMessages,
   listIntegrationThreads,
   normalizeIntegrationMessage,
@@ -411,6 +413,24 @@ runTest("exports integration messages as jsonl and csv", () => {
   assert.equal(csv.contentType, "text/csv; charset=utf-8");
   assert.ok(csv.body.includes("message_key"));
   assert.ok(csv.body.includes("msg-1"));
+});
+
+runTest("lists integration events for incremental sync", () => {
+  const result = listIntegrationEvents(project, { limit: "20" }, { clientId: "crm-sync" });
+  assert.ok(result.data.length > 0);
+  assert.ok(result.data.some((item) => item.scope === "message"));
+  assert.ok(result.data.some((item) => item.scope === "delivery"));
+  assert.ok(result.meta.next_cursor || result.data.length <= 20);
+});
+
+runTest("filters integration events by scope and exports them", () => {
+  const deliveryOnly = listIntegrationEvents(project, { scope: "delivery" }, { clientId: "crm-sync" });
+  assert.ok(deliveryOnly.data.length > 0);
+  assert.ok(deliveryOnly.data.every((item) => item.scope === "delivery"));
+
+  const exported = exportIntegrationEvents(project, { format: "csv", scope: "delivery" }, { clientId: "crm-sync" });
+  assert.equal(exported.contentType, "text/csv; charset=utf-8");
+  assert.ok(exported.body.includes("delivery_id"));
 });
 
 runTest("supports cursor-based integration pagination with stable ordering", () => {

@@ -1,6 +1,14 @@
-export const LEGACY_INTEGRATION_API_VERSION = "1.5.0";
+export const LEGACY_INTEGRATION_API_VERSION = "1.6.0";
 
 const CHANGELOG = [
+  {
+    version: "1.6.0",
+    released_at: "2026-03-22",
+    changes: [
+      "Added incremental integration event feed for message, thread, and delivery changes.",
+      "Added export endpoints for filtered event feeds in JSON, JSONL, and CSV formats."
+    ]
+  },
   {
     version: "1.5.0",
     released_at: "2026-03-22",
