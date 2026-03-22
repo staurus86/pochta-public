@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
-import { mkdirSync, rmSync, writeFileSync } from "node:fs";
+import { spawnSync } from "node:child_process";
+import { mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { analyzeEmail } from "../src/services/email-analyzer.js";
 import { detectionKb } from "../src/services/detection-kb.js";
@@ -51,6 +52,31 @@ function withStoredAttachment(messageKey, filename, contents, fn) {
   writeFileSync(filePath, contents);
   try {
     return fn({ safeName, size: Buffer.byteLength(contents) });
+  } finally {
+    rmSync(dir, { recursive: true, force: true });
+  }
+}
+
+function withArchiveAttachment(messageKey, filename, files, fn) {
+  const dir = path.resolve(process.cwd(), "data", "attachments", messageKey);
+  const buildDir = path.join(dir, "__build__");
+  mkdirSync(buildDir, { recursive: true });
+  for (const [relativePath, contents] of Object.entries(files)) {
+    const fullPath = path.join(buildDir, relativePath);
+    mkdirSync(path.dirname(fullPath), { recursive: true });
+    writeFileSync(fullPath, contents);
+  }
+
+  const safeName = filename.replace(/[<>:"/\\|?*]/g, "_");
+  const archivePath = path.join(dir, safeName);
+  const entries = Object.keys(files);
+  const result = spawnSync("tar", ["-a", "-cf", archivePath, "-C", buildDir, ...entries], { encoding: "utf8" });
+  if (result.status !== 0) {
+    throw new Error(`tar failed: ${result.stderr || result.stdout}`);
+  }
+
+  try {
+    return fn({ safeName, size: statSync(archivePath).size });
   } finally {
     rmSync(dir, { recursive: true, force: true });
   }
@@ -686,6 +712,58 @@ runTest("skips low quality pdf text so pdf internals do not pollute article dete
       assert.equal(result.attachmentAnalysis.meta.processedCount, 0);
       assert.equal(result.attachmentAnalysis.files[0].reason, "low_quality_pdf_text");
       assert.deepEqual(result.lead.articles, []);
+    }
+  );
+});
+
+runTest("extracts article from stored docx attachment", () => {
+  const messageKey = "attach-test-msg-4";
+  withArchiveAttachment(
+    messageKey,
+    "spec.docx",
+    {
+      "[Content_Types].xml": "<Types/>",
+      "word/document.xml": "<w:document><w:body><w:p><w:r><w:t>Модуль канавочный левый MSS-T25L03-GX16-2</w:t></w:r></w:p></w:body></w:document>"
+    },
+    ({ safeName, size }) => {
+      const result = analyzeEmail(project, {
+        messageKey,
+        fromEmail: "buyer@energy.ru",
+        subject: "Запрос",
+        body: "Во вложении docx",
+        attachments: ["spec.docx"],
+        attachmentFiles: [{ filename: "spec.docx", safeName, size, contentType: "application/vnd.openxmlformats-officedocument.wordprocessingml.document" }]
+      });
+
+      assert.equal(result.attachmentAnalysis.meta.processedCount, 1);
+      assert.ok(result.lead.articles.includes("MSS-T25L03-GX16-2"));
+    }
+  );
+});
+
+runTest("extracts article and inn from stored xlsx attachment", () => {
+  const messageKey = "attach-test-msg-5";
+  withArchiveAttachment(
+    messageKey,
+    "spec.xlsx",
+    {
+      "[Content_Types].xml": "<Types/>",
+      "xl/sharedStrings.xml": "<sst><si><t>Артикул</t></si><si><t>Количество</t></si><si><t>ИНН</t></si><si><t>MSS-T25L03-GX16-2</t></si><si><t>7702802784</t></si></sst>",
+      "xl/worksheets/sheet1.xml": "<worksheet><sheetData><row><c t=\"s\"><v>0</v></c><c t=\"s\"><v>1</v></c><c t=\"s\"><v>2</v></c></row><row><c t=\"s\"><v>3</v></c><c><v>30</v></c><c t=\"s\"><v>4</v></c></row></sheetData></worksheet>"
+    },
+    ({ safeName, size }) => {
+      const result = analyzeEmail(project, {
+        messageKey,
+        fromEmail: "buyer@energy.ru",
+        subject: "Запрос",
+        body: "Во вложении xlsx",
+        attachments: ["spec.xlsx"],
+        attachmentFiles: [{ filename: "spec.xlsx", safeName, size, contentType: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" }]
+      });
+
+      assert.equal(result.attachmentAnalysis.meta.processedCount, 1);
+      assert.ok(result.lead.articles.includes("MSS-T25L03-GX16-2"));
+      assert.equal(result.sender.inn, "7702802784");
     }
   );
 });

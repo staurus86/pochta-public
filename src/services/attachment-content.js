@@ -1,4 +1,5 @@
 import { readFileSync, existsSync } from "node:fs";
+import { spawnSync } from "node:child_process";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { detectionKb } from "./detection-kb.js";
@@ -20,7 +21,8 @@ const TEXT_EXTENSIONS = new Set([
 ]);
 
 const PDF_EXTENSIONS = new Set([".pdf"]);
-const PHASE2_EXTENSIONS = new Set([".docx", ".xlsx", ".xls", ".doc"]);
+const OOXML_EXTENSIONS = new Set([".docx", ".xlsx"]);
+const PHASE3_EXTENSIONS = new Set([".xls", ".doc"]);
 
 const INN_PATTERN = /\b\d{10,12}\b/g;
 const KPP_PATTERN = /\b\d{9}\b/g;
@@ -89,14 +91,14 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
       continue;
     }
 
-    if (PHASE2_EXTENSIONS.has(ext)) {
-      result.reason = "phase2_format";
+    if (PHASE3_EXTENSIONS.has(ext)) {
+      result.reason = "phase3_format";
       files.push(result);
       skippedCount += 1;
       continue;
     }
 
-    if (!TEXT_EXTENSIONS.has(ext) && !PDF_EXTENSIONS.has(ext)) {
+    if (!TEXT_EXTENSIONS.has(ext) && !PDF_EXTENSIONS.has(ext) && !OOXML_EXTENSIONS.has(ext)) {
       result.reason = "unsupported_format";
       files.push(result);
       skippedCount += 1;
@@ -120,6 +122,8 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
         extractedText = extractTextFromPlainBuffer(buffer);
       } else if (PDF_EXTENSIONS.has(ext)) {
         extractedText = extractTextFromPdfBuffer(buffer);
+      } else if (OOXML_EXTENSIONS.has(ext)) {
+        extractedText = extractTextFromOfficeOpenXml(filePath, ext);
       }
 
       extractedText = cleanupExtractedText(extractedText).slice(0, limits.maxExtractedCharsPerFile);
@@ -190,7 +194,8 @@ function categorizeAttachment(filename, ext, contentType) {
   if (/прайс|price/i.test(lower)) return "price_list";
   if (PDF_EXTENSIONS.has(ext)) return "pdf";
   if (TEXT_EXTENSIONS.has(ext)) return "text";
-  if (PHASE2_EXTENSIONS.has(ext)) return "phase2_document";
+  if (OOXML_EXTENSIONS.has(ext)) return "office_document";
+  if (PHASE3_EXTENSIONS.has(ext)) return "phase3_document";
   if ((contentType || "").startsWith("image/")) return "image";
   return "other";
 }
@@ -221,6 +226,116 @@ function extractTextFromPdfBuffer(buffer) {
   }
 
   return parts.join(" ");
+}
+
+function extractTextFromOfficeOpenXml(filePath, ext) {
+  if (ext === ".docx") {
+    return extractTextFromDocx(filePath);
+  }
+  if (ext === ".xlsx") {
+    return extractTextFromXlsx(filePath);
+  }
+  return "";
+}
+
+function extractTextFromDocx(filePath) {
+  const entries = listArchiveEntries(filePath)
+    .filter((entry) => /^word\/(document|header\d+|footer\d+)\.xml$/i.test(entry))
+    .slice(0, 6);
+  const parts = [];
+
+  for (const entry of entries) {
+    const xml = extractArchiveEntry(filePath, entry);
+    if (!xml) continue;
+    const lines = [];
+    for (const match of xml.matchAll(/<w:t[^>]*>([\s\S]*?)<\/w:t>/g)) {
+      lines.push(decodeXmlEntities(match[1]));
+    }
+    if (lines.length > 0) {
+      parts.push(lines.join(" "));
+    }
+  }
+
+  return parts.join("\n");
+}
+
+function extractTextFromXlsx(filePath) {
+  const entries = listArchiveEntries(filePath);
+  const sharedStringsXml = extractArchiveEntry(filePath, "xl/sharedStrings.xml");
+  const sharedStrings = parseSharedStrings(sharedStringsXml);
+  const worksheetEntries = entries
+    .filter((entry) => /^xl\/worksheets\/sheet\d+\.xml$/i.test(entry))
+    .slice(0, 10);
+  const lines = [];
+
+  for (const entry of worksheetEntries) {
+    const xml = extractArchiveEntry(filePath, entry);
+    if (!xml) continue;
+    lines.push(...parseWorksheetXml(xml, sharedStrings));
+  }
+
+  return lines.join("\n");
+}
+
+function listArchiveEntries(filePath) {
+  const result = spawnSync("tar", ["-tf", filePath], { encoding: "utf8", timeout: 1200 });
+  if (result.status !== 0 || result.error) return [];
+  return String(result.stdout || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+}
+
+function extractArchiveEntry(filePath, entry) {
+  const result = spawnSync("tar", ["-xOf", filePath, entry], { encoding: "utf8", timeout: 1200 });
+  if (result.status !== 0 || result.error) return "";
+  return String(result.stdout || "");
+}
+
+function parseSharedStrings(xml) {
+  if (!xml) return [];
+  return Array.from(xml.matchAll(/<si[\s\S]*?<\/si>/g), (match) => {
+    const texts = Array.from(match[0].matchAll(/<t[^>]*>([\s\S]*?)<\/t>/g), (part) => decodeXmlEntities(part[1]));
+    return texts.join("").trim();
+  });
+}
+
+function parseWorksheetXml(xml, sharedStrings) {
+  const rows = [];
+  for (const rowMatch of xml.matchAll(/<row\b[\s\S]*?<\/row>/g)) {
+    const values = [];
+    for (const cellMatch of rowMatch[0].matchAll(/<c\b([^>]*)>([\s\S]*?)<\/c>/g)) {
+      const attrs = cellMatch[1] || "";
+      const body = cellMatch[2] || "";
+      const valueMatch = body.match(/<v>([\s\S]*?)<\/v>/);
+      const inlineStringMatch = body.match(/<is>[\s\S]*?<t[^>]*>([\s\S]*?)<\/t>[\s\S]*?<\/is>/);
+      let value = "";
+      if (inlineStringMatch) {
+        value = decodeXmlEntities(inlineStringMatch[1]);
+      } else if (valueMatch) {
+        value = decodeXmlEntities(valueMatch[1]);
+        if (/t="s"/.test(attrs)) {
+          value = sharedStrings[Number(value)] || "";
+        }
+      }
+      value = cleanupCellValue(value);
+      if (value) values.push(value);
+    }
+    if (values.length > 0) {
+      rows.push(values.join("\t"));
+    }
+  }
+  return rows;
+}
+
+function cleanupCellValue(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function decodeXmlEntities(value) {
+  return String(value || "")
+    .replace(/&amp;/g, "&")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&quot;/g, '"')
+    .replace(/&apos;/g, "'");
 }
 
 function cleanupExtractedText(text) {

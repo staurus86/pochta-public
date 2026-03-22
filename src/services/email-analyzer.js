@@ -148,6 +148,7 @@ export function analyzeEmail(project, payload) {
   // Filter own brands (Siderus, Коловрат, etc.) from classification results
   classification.detectedBrands = detectionKb.filterOwnBrands(classification.detectedBrands);
   const sender = extractSender(fromName, fromEmail, [bodyForSender, attachmentContent].filter(Boolean).join("\n\n"), attachments);
+  mergeAttachmentRequisites(sender, attachmentAnalysis);
   const lead = extractLead(subject, [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n"), attachments, project.brands || [], classification.detectedBrands);
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands, lead });
 
@@ -220,6 +221,17 @@ function normalizeAttachments(attachments) {
   }
 
   return [];
+}
+
+function mergeAttachmentRequisites(sender, attachmentAnalysis) {
+  const files = attachmentAnalysis?.files || [];
+  const allInn = [...new Set(files.flatMap((file) => file.detectedInn || []))];
+  const allKpp = [...new Set(files.flatMap((file) => file.detectedKpp || []))];
+  const allOgrn = [...new Set(files.flatMap((file) => file.detectedOgrn || []))];
+
+  if (!sender.inn && allInn.length === 1) sender.inn = allInn[0];
+  if (!sender.kpp && allKpp.length === 1) sender.kpp = allKpp[0];
+  if (!sender.ogrn && allOgrn.length === 1) sender.ogrn = allOgrn[0];
 }
 
 function classifyMessage({ subject, body, attachments, fromEmail, projectBrands }) {
