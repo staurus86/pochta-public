@@ -18,10 +18,11 @@ runTest("builds versioned legacy integration openapi contract", () => {
   });
 
   assert.equal(spec.openapi, "3.1.0");
-  assert.equal(spec.info.version, "1.7.0");
+  assert.equal(spec.info.version, "1.8.0");
   assert.equal(spec.servers[0].url, "https://pochta-production.up.railway.app");
   assert.ok(spec.paths["/api/integration/changelog"]);
   assert.ok(spec.paths["/api/integration/presets"]);
+  assert.ok(spec.paths["/api/integration/presets/{presetId}"]);
   assert.ok(spec.paths["/api/integration/projects/{projectId}/messages"]);
   assert.ok(spec.paths["/api/integration/projects/{projectId}/messages/stats"]);
   assert.ok(spec.paths["/api/integration/projects/{projectId}/messages/coverage"]);
@@ -52,6 +53,8 @@ runTest("builds versioned legacy integration openapi contract", () => {
   assert.ok(spec.components.schemas.IntegrationEvent);
   assert.ok(spec.components.schemas.IntegrationEventListResponse);
   assert.ok(spec.components.schemas.IntegrationPresetListResponse);
+  assert.ok(spec.components.schemas.IntegrationPresetResponse);
+  assert.ok(spec.components.schemas.IntegrationPresetDeleteResponse);
   const params = spec.paths["/api/integration/projects/{projectId}/messages"].get.parameters.map((item) => item.name);
   assert.ok(params.includes("preset"));
   assert.ok(params.includes("confirmed"));

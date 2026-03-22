@@ -161,3 +161,27 @@ runTest("invalidates cached sender profiles after add and deactivate", () => {
   const afterDeactivate = detectionKb.matchSenderProfile("cache-check@example.com");
   assert.equal(afterDeactivate, null);
 });
+
+runTest("stores and reads client-specific API presets", () => {
+  const clientId = "test-client-preset";
+  const saved = detectionKb.upsertApiClientPreset(clientId, {
+    presetKey: "my-problem-view",
+    name: "My Problem View",
+    description: "Only problematic messages",
+    query: {
+      preset: "problem_queue",
+      priority: "high,critical"
+    }
+  });
+
+  assert.equal(saved.clientId, clientId);
+  assert.equal(saved.presetKey, "my-problem-view");
+  assert.equal(saved.query.priority, "high,critical");
+
+  const listed = detectionKb.listApiClientPresets(clientId);
+  assert.ok(listed.some((item) => item.presetKey === "my-problem-view"));
+
+  detectionKb.deleteApiClientPreset(clientId, "my-problem-view");
+  const afterDelete = detectionKb.getApiClientPreset(clientId, "my-problem-view");
+  assert.equal(afterDelete, null);
+});

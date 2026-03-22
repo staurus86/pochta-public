@@ -196,6 +196,19 @@ class DetectionKnowledgeBase {
         notes TEXT DEFAULT ''
       );
 
+      CREATE TABLE IF NOT EXISTS api_client_presets (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        client_id TEXT NOT NULL,
+        preset_key TEXT NOT NULL,
+        name TEXT NOT NULL,
+        description TEXT DEFAULT '',
+        query_json TEXT NOT NULL DEFAULT '{}',
+        is_active INTEGER NOT NULL DEFAULT 1,
+        created_at TEXT NOT NULL,
+        updated_at TEXT NOT NULL,
+        UNIQUE(client_id, preset_key)
+      );
+
       CREATE TABLE IF NOT EXISTS nomenclature_dictionary (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         article TEXT NOT NULL,
@@ -224,6 +237,8 @@ class DetectionKnowledgeBase {
         ON nomenclature_dictionary(source_rows DESC);
       CREATE INDEX IF NOT EXISTS idx_nomenclature_avg_price
         ON nomenclature_dictionary(avg_price);
+      CREATE INDEX IF NOT EXISTS idx_api_client_presets_client
+        ON api_client_presets(client_id, is_active, preset_key);
     `);
 
     // FTS5 virtual table for full-text search over message corpus
@@ -504,6 +519,61 @@ class DetectionKnowledgeBase {
   getApiClientsForAuth() {
     return this.db.prepare("SELECT * FROM api_clients WHERE enabled = 1").all()
       .map(normalizeApiClientRow);
+  }
+
+  listApiClientPresets(clientId) {
+    return this.db.prepare(`
+      SELECT * FROM api_client_presets
+      WHERE client_id = ? AND is_active = 1
+      ORDER BY updated_at DESC, preset_key ASC
+    `).all(String(clientId || "")).map(normalizeApiClientPresetRow);
+  }
+
+  getApiClientPreset(clientId, presetKey) {
+    const row = this.db.prepare(`
+      SELECT * FROM api_client_presets
+      WHERE client_id = ? AND preset_key = ? AND is_active = 1
+    `).get(String(clientId || ""), normalizePresetKey(presetKey));
+    return row ? normalizeApiClientPresetRow(row) : null;
+  }
+
+  upsertApiClientPreset(clientId, payload) {
+    const key = normalizePresetKey(payload.presetKey || payload.id || payload.key || payload.name);
+    if (!key) {
+      throw new Error("preset_key is required");
+    }
+    const name = String(payload.name || key).trim();
+    const description = String(payload.description || "").trim();
+    const query = normalizePresetQuery(payload.query || payload.filters || {});
+    const now = new Date().toISOString();
+
+    const existing = this.db.prepare(`
+      SELECT id FROM api_client_presets WHERE client_id = ? AND preset_key = ?
+    `).get(String(clientId || ""), key);
+
+    if (existing) {
+      this.db.prepare(`
+        UPDATE api_client_presets
+        SET name = ?, description = ?, query_json = ?, is_active = 1, updated_at = ?
+        WHERE client_id = ? AND preset_key = ?
+      `).run(name, description, JSON.stringify(query), now, String(clientId || ""), key);
+    } else {
+      this.db.prepare(`
+        INSERT INTO api_client_presets (client_id, preset_key, name, description, query_json, is_active, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, 1, ?, ?)
+      `).run(String(clientId || ""), key, name, description, JSON.stringify(query), now, now);
+    }
+
+    return this.getApiClientPreset(clientId, key);
+  }
+
+  deleteApiClientPreset(clientId, presetKey) {
+    this.db.prepare(`
+      UPDATE api_client_presets
+      SET is_active = 0, updated_at = ?
+      WHERE client_id = ? AND preset_key = ?
+    `).run(new Date().toISOString(), String(clientId || ""), normalizePresetKey(presetKey));
+    return { clientId, presetKey: normalizePresetKey(presetKey), deleted: true };
   }
 
   importBrandCatalog(brands) {
@@ -1366,6 +1436,16 @@ function normalizeArticle(value) {
     .toUpperCase();
 }
 
+function normalizePresetKey(value) {
+  return String(value || "")
+    .trim()
+    .toLowerCase()
+    .replace(/[^a-z0-9_-]+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "")
+    .slice(0, 80);
+}
+
 function itemLooksExact(query, match) {
   const q = normalizeArticle(query);
   return q && (q === normalizeArticle(match.article) || q === normalizeArticle(match.article_normalized));
@@ -1413,6 +1493,36 @@ function normalizeApiClientRow(row) {
     webhookStatuses: String(row.webhook_statuses || "").split(",").filter(Boolean),
     createdAt: row.created_at,
     notes: row.notes || ""
+  };
+}
+
+function normalizePresetQuery(query) {
+  const result = {};
+  for (const [key, value] of Object.entries(query || {})) {
+    if (value == null) continue;
+    const normalizedKey = String(key || "").trim();
+    if (!normalizedKey) continue;
+    result[normalizedKey] = typeof value === "string" ? value : String(value);
+  }
+  return result;
+}
+
+function normalizeApiClientPresetRow(row) {
+  let query = {};
+  try {
+    query = JSON.parse(String(row.query_json || "{}"));
+  } catch {
+    query = {};
+  }
+  return {
+    id: Number(row.id),
+    clientId: row.client_id,
+    presetKey: row.preset_key,
+    name: row.name,
+    description: row.description || "",
+    query,
+    createdAt: row.created_at,
+    updatedAt: row.updated_at
   };
 }
 

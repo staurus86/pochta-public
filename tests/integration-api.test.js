@@ -417,9 +417,17 @@ runTest("exports integration messages as jsonl and csv", () => {
 });
 
 runTest("lists integration query presets", () => {
-  const result = listIntegrationPresets();
+  const result = listIntegrationPresets({
+    clientPresets: [{
+      id: "buyer_focus",
+      name: "Buyer Focus",
+      description: "Client preset",
+      query: { confirmed: "false" }
+    }]
+  });
   assert.ok(result.data.some((item) => item.id === "problem_queue"));
   assert.ok(result.data.some((item) => item.id === "max_parsed"));
+  assert.ok(result.data.some((item) => item.id === "buyer_focus" && item.scope === "client"));
 });
 
 runTest("applies server-side query presets", () => {
@@ -430,6 +438,19 @@ runTest("applies server-side query presets", () => {
 
   const problemPreset = listIntegrationMessages(project, { preset: "problem_queue" });
   assert.ok(problemPreset.data.some((item) => item.message_key === "msg-3"));
+
+  const clientPreset = listIntegrationMessages(project, {
+    preset: "buyer_focus"
+  }, {
+    clientPresets: [{
+      id: "buyer_focus",
+      query: {
+        q: "buyer@example.com"
+      }
+    }]
+  });
+  assert.equal(clientPreset.data.length, 1);
+  assert.equal(clientPreset.data[0].message_key, "msg-3");
 });
 
 runTest("lists integration events for incremental sync", () => {

@@ -1282,7 +1282,39 @@ async function handleIntegrationApi(req, res, url) {
   }
 
   if (req.method === "GET" && url.pathname === "/api/integration/presets") {
-    return sendJson(res, 200, listIntegrationPresets());
+    return sendJson(res, 200, listIntegrationPresets({
+      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
+    }));
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/integration/presets") {
+    const payload = await parseRequestJson(req);
+    try {
+      const preset = detectionKb.upsertApiClientPreset(currentClient.id, payload);
+      return sendJson(res, 200, { data: preset });
+    } catch (error) {
+      return sendJson(res, 400, { error: error.message || "Invalid preset payload." });
+    }
+  }
+
+  const integrationPresetMatch = url.pathname.match(/^\/api\/integration\/presets\/([^/]+)$/);
+  if (integrationPresetMatch && req.method === "PUT") {
+    const payload = await parseRequestJson(req);
+    try {
+      const preset = detectionKb.upsertApiClientPreset(currentClient.id, {
+        ...payload,
+        presetKey: decodeURIComponent(integrationPresetMatch[1])
+      });
+      return sendJson(res, 200, { data: preset });
+    } catch (error) {
+      return sendJson(res, 400, { error: error.message || "Invalid preset payload." });
+    }
+  }
+
+  if (integrationPresetMatch && req.method === "DELETE") {
+    return sendJson(res, 200, {
+      data: detectionKb.deleteApiClientPreset(currentClient.id, decodeURIComponent(integrationPresetMatch[1]))
+    });
   }
 
   const integrationMessagesMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages$/);
@@ -1331,7 +1363,8 @@ async function handleIntegrationApi(req, res, url) {
       sla_overdue: url.searchParams.get("sla_overdue"),
       include: url.searchParams.get("include")
     }, {
-      consumerId: currentClient.id
+      consumerId: currentClient.id,
+      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
     }));
   }
 
@@ -1368,7 +1401,8 @@ async function handleIntegrationApi(req, res, url) {
       article_present: url.searchParams.get("article_present"),
       sla_overdue: url.searchParams.get("sla_overdue")
     }, {
-      consumerId: currentClient.id
+      consumerId: currentClient.id,
+      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
     }));
   }
 
@@ -1405,7 +1439,8 @@ async function handleIntegrationApi(req, res, url) {
       article_present: url.searchParams.get("article_present"),
       sla_overdue: url.searchParams.get("sla_overdue")
     }, {
-      consumerId: currentClient.id
+      consumerId: currentClient.id,
+      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
     }));
   }
 
@@ -1443,7 +1478,8 @@ async function handleIntegrationApi(req, res, url) {
       sla_overdue: url.searchParams.get("sla_overdue"),
       limit: url.searchParams.get("limit")
     }, {
-      consumerId: currentClient.id
+      consumerId: currentClient.id,
+      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
     }));
   }
 
@@ -1482,7 +1518,8 @@ async function handleIntegrationApi(req, res, url) {
       include: url.searchParams.get("include"),
       format: url.searchParams.get("format")
     }, {
-      consumerId: currentClient.id
+      consumerId: currentClient.id,
+      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
     });
 
     return sendText(res, 200, exported.body, {
@@ -1538,7 +1575,8 @@ async function handleIntegrationApi(req, res, url) {
       sla_overdue: url.searchParams.get("sla_overdue")
     }, {
       consumerId: currentClient.id,
-      clientId: currentClient.id
+      clientId: currentClient.id,
+      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
     }));
   }
 
@@ -1581,7 +1619,8 @@ async function handleIntegrationApi(req, res, url) {
       sla_overdue: url.searchParams.get("sla_overdue")
     }, {
       consumerId: currentClient.id,
-      clientId: currentClient.id
+      clientId: currentClient.id,
+      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
     });
 
     return sendText(res, 200, exported.body, {
@@ -1625,7 +1664,8 @@ async function handleIntegrationApi(req, res, url) {
       include: url.searchParams.get("include"),
       include_messages: url.searchParams.get("include_messages")
     }, {
-      consumerId: currentClient.id
+      consumerId: currentClient.id,
+      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
     }));
   }
 
@@ -1644,7 +1684,8 @@ async function handleIntegrationApi(req, res, url) {
       include: url.searchParams.get("include"),
       preset: url.searchParams.get("preset")
     }, {
-      consumerId: currentClient.id
+      consumerId: currentClient.id,
+      clientPresets: detectionKb.listApiClientPresets(currentClient.id)
     });
     if (!thread) {
       return sendJson(res, 404, { error: "Thread not found." });

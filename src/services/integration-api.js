@@ -191,20 +191,32 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
   };
 }
 
-export function listIntegrationPresets() {
+export function listIntegrationPresets(options = {}) {
+  const clientPresets = normalizeClientPresetMap(options.clientPresets);
   return {
-    data: Object.entries(INTEGRATION_QUERY_PRESETS).map(([id, preset]) => ({
-      id,
-      description: preset.description,
-      query: { ...preset.query }
-    }))
+    data: [
+      ...Object.entries(INTEGRATION_QUERY_PRESETS).map(([id, preset]) => ({
+        id,
+        scope: "global",
+        name: id,
+        description: preset.description,
+        query: { ...preset.query }
+      })),
+      ...Object.values(clientPresets).map((preset) => ({
+        id: preset.id,
+        scope: "client",
+        name: preset.name || preset.id,
+        description: preset.description || "",
+        query: { ...(preset.query || {}) }
+      }))
+    ]
   };
 }
 
 export function listIntegrationMessages(project, query = {}, options = {}) {
   const page = normalizePositiveInt(query.page, 1);
   const limit = Math.min(normalizePositiveInt(query.limit, 50), 200);
-  const context = buildIntegrationMessageQueryContext(query);
+  const context = buildIntegrationMessageQueryContext(query, options);
   const allMessages = filterIntegrationMessages(project, context, options);
 
   const total = allMessages.length;
@@ -252,7 +264,7 @@ export function findIntegrationMessage(project, messageKey, options = {}) {
 }
 
 export function listIntegrationThreads(project, query = {}, options = {}) {
-  const context = buildIntegrationMessageQueryContext(query);
+  const context = buildIntegrationMessageQueryContext(query, options);
   const includeMessages = parseBooleanFilter(query.include_messages) === true;
   const messages = filterIntegrationMessages(project, context, options);
   const groups = new Map();
@@ -336,7 +348,7 @@ export function listIntegrationEvents(project, query = {}, options = {}) {
   const cursor = parseEventCursor(query.cursor);
   const typeFilter = parseStringListFilter(query.type);
   const scopeFilter = parseStringListFilter(query.scope);
-  const context = buildIntegrationMessageQueryContext(query);
+  const context = buildIntegrationMessageQueryContext(query, options);
   const allowedMessageKeys = new Set(filterIntegrationMessages(project, context, options).map((item) => resolveMessageKey(item)));
   const events = buildIntegrationEvents(project, options)
     .filter((event) => allowedMessageKeys.has(event.message_key))
@@ -393,7 +405,7 @@ export function exportIntegrationEvents(project, query = {}, options = {}) {
 }
 
 export function exportIntegrationMessages(project, query = {}, options = {}) {
-  const context = buildIntegrationMessageQueryContext(query);
+  const context = buildIntegrationMessageQueryContext(query, options);
   const format = parseExportFormat(query.format);
   const messages = filterIntegrationMessages(project, context, options);
   const data = messages.map((item) => normalizeIntegrationMessage(project, item, {
@@ -428,7 +440,7 @@ export function exportIntegrationMessages(project, query = {}, options = {}) {
 }
 
 export function summarizeIntegrationMessages(project, query = {}, options = {}) {
-  const context = buildIntegrationMessageQueryContext(query);
+  const context = buildIntegrationMessageQueryContext(query, options);
   const messages = filterIntegrationMessages(project, context, options);
   const priorities = {};
   const risks = {};
@@ -498,7 +510,7 @@ export function summarizeIntegrationMessages(project, query = {}, options = {}) 
 }
 
 export function summarizeIntegrationCoverage(project, query = {}, options = {}) {
-  const context = buildIntegrationMessageQueryContext(query);
+  const context = buildIntegrationMessageQueryContext(query, options);
   const messages = filterIntegrationMessages(project, context, options);
   const total = messages.length;
   const fieldChecks = {
@@ -530,7 +542,7 @@ export function summarizeIntegrationCoverage(project, query = {}, options = {}) 
 }
 
 export function summarizeIntegrationProblems(project, query = {}, options = {}) {
-  const context = buildIntegrationMessageQueryContext(query);
+  const context = buildIntegrationMessageQueryContext(query, options);
   const messages = filterIntegrationMessages(project, context, options);
   const limit = Math.min(normalizePositiveInt(query.limit, 20), 100);
   const byIssue = {};
@@ -756,14 +768,32 @@ function parseExportFormat(value) {
   return ["json", "jsonl", "csv"].includes(text) ? text : "json";
 }
 
+function normalizeClientPresetMap(items = []) {
+  return Object.fromEntries((items || [])
+    .map((item) => {
+      const id = String(item.presetKey || item.id || "").trim().toLowerCase();
+      if (!id) {
+        return null;
+      }
+
+      return [id, {
+        id,
+        name: item.name || item.presetKey || item.id || "",
+        description: item.description || "",
+        query: item.query || {}
+      }];
+    })
+    .filter(Boolean));
+}
+
 function parseStringListFilter(value) {
   const text = String(value || "").trim().toLowerCase();
   if (!text) return null;
   return text.split(",").map((item) => item.trim()).filter(Boolean);
 }
 
-function buildIntegrationMessageQueryContext(query = {}) {
-  const resolved = applyIntegrationQueryPreset(query);
+function buildIntegrationMessageQueryContext(query = {}, options = {}) {
+  const resolved = applyIntegrationQueryPreset(query, options);
   return {
     preset: resolved.preset,
     statuses: parseStatuses(resolved.query.status),
@@ -790,9 +820,10 @@ function buildIntegrationMessageQueryContext(query = {}) {
   };
 }
 
-function applyIntegrationQueryPreset(query = {}) {
+function applyIntegrationQueryPreset(query = {}, options = {}) {
   const preset = String(query.preset || "").trim().toLowerCase();
-  const definition = INTEGRATION_QUERY_PRESETS[preset];
+  const clientPresets = normalizeClientPresetMap(options.clientPresets);
+  const definition = clientPresets[preset] || INTEGRATION_QUERY_PRESETS[preset];
   if (!definition) {
     return { preset: null, query: { ...query } };
   }

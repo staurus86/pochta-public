@@ -87,6 +87,92 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
             },
             401: unauthorizedResponse()
           }
+        },
+        post: {
+          tags: ["Integration"],
+          summary: "Create a client-specific preset",
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    presetKey: { type: ["string", "null"] },
+                    name: { type: ["string", "null"] },
+                    description: { type: ["string", "null"] },
+                    query: { type: ["object", "null"], additionalProperties: { type: "string" } }
+                  }
+                }
+              }
+            }
+          },
+          responses: {
+            200: {
+              description: "Created client preset",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/IntegrationPresetResponse" }
+                }
+              }
+            },
+            400: errorResponse("Invalid preset payload."),
+            401: unauthorizedResponse()
+          }
+        }
+      },
+      "/api/integration/presets/{presetId}": {
+        put: {
+          tags: ["Integration"],
+          summary: "Create or update a client-specific preset",
+          parameters: [
+            pathParameter("presetId", "Preset identifier")
+          ],
+          requestBody: {
+            required: true,
+            content: {
+              "application/json": {
+                schema: {
+                  type: "object",
+                  properties: {
+                    name: { type: ["string", "null"] },
+                    description: { type: ["string", "null"] },
+                    query: { type: ["object", "null"], additionalProperties: { type: "string" } }
+                  }
+                }
+              }
+            }
+          },
+          responses: {
+            200: {
+              description: "Updated client preset",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/IntegrationPresetResponse" }
+                }
+              }
+            },
+            400: errorResponse("Invalid preset payload."),
+            401: unauthorizedResponse()
+          }
+        },
+        delete: {
+          tags: ["Integration"],
+          summary: "Delete a client-specific preset",
+          parameters: [
+            pathParameter("presetId", "Preset identifier")
+          ],
+          responses: {
+            200: {
+              description: "Deleted client preset",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/IntegrationPresetDeleteResponse" }
+                }
+              }
+            },
+            401: unauthorizedResponse()
+          }
         }
       },
       "/api/integration/projects/{projectId}/messages": {
@@ -975,12 +1061,48 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
                 type: "object",
                 properties: {
                   id: { type: "string" },
+                  scope: { type: ["string", "null"] },
+                  name: { type: ["string", "null"] },
                   description: { type: "string" },
                   query: {
                     type: "object",
                     additionalProperties: { type: "string" }
                   }
                 }
+              }
+            }
+          }
+        },
+        IntegrationPresetResponse: {
+          type: "object",
+          properties: {
+            data: {
+              type: "object",
+              properties: {
+                id: { type: ["integer", "null"] },
+                clientId: { type: ["string", "null"] },
+                presetKey: { type: ["string", "null"] },
+                name: { type: ["string", "null"] },
+                description: { type: ["string", "null"] },
+                query: {
+                  type: ["object", "null"],
+                  additionalProperties: { type: "string" }
+                },
+                createdAt: { type: ["string", "null"], format: "date-time" },
+                updatedAt: { type: ["string", "null"], format: "date-time" }
+              }
+            }
+          }
+        },
+        IntegrationPresetDeleteResponse: {
+          type: "object",
+          properties: {
+            data: {
+              type: "object",
+              properties: {
+                clientId: { type: ["string", "null"] },
+                presetKey: { type: ["string", "null"] },
+                deleted: { type: "boolean" }
               }
             }
           }

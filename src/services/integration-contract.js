@@ -1,6 +1,14 @@
-export const LEGACY_INTEGRATION_API_VERSION = "1.7.0";
+export const LEGACY_INTEGRATION_API_VERSION = "1.8.0";
 
 const CHANGELOG = [
+  {
+    version: "1.8.0",
+    released_at: "2026-03-22",
+    changes: [
+      "Added client-specific saved presets persisted in the knowledge base.",
+      "Published preset management endpoints for integration clients and enabled preset resolution across all major integration views."
+    ]
+  },
   {
     version: "1.7.0",
     released_at: "2026-03-22",
