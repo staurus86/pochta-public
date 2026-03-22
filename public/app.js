@@ -1423,6 +1423,9 @@ function renderInbox() {
           ${conf != null ? confidenceBadge(conf) : ''}
           <span class="message-mailbox">${esc((m.mailbox || '').split('@')[0])}</span>
         </div>
+        <div class="message-meta" style="margin-top:4px;">
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--text-muted);" title="${esc(id)}">ID: ${esc(truncate(id, 22))}</span>
+        </div>
       </button>
     </div>`;
   };
@@ -1548,6 +1551,7 @@ function renderEmailView(msg, viewEl, detailEl) {
         <span><strong>От:</strong> ${esc(msg.from || sender.email)}</span>
         <span><strong>Ящик:</strong> ${esc(msg.mailbox)}</span>
         <span><strong>Дата:</strong> ${fmtDate(msg.createdAt)}</span>
+        <span onclick="window.__copyField('${escAttr(msgKey)}')" title="Скопировать ID письма" style="cursor:pointer;font-family:'JetBrains Mono',monospace;"><strong>ID:</strong> ${esc(truncate(msgKey, 34))}</span>
       </div>
     </div>
     <div class="email-body-content" id="email-body-text" style="max-height:300px;overflow-y:auto;position:relative;white-space:pre-wrap;word-break:break-word;">${esc(msg.bodyPreview || lead.freeText || 'Нет текста')}</div>
@@ -1583,7 +1587,8 @@ function renderEmailView(msg, viewEl, detailEl) {
   }
 
   const fields = [['Email', sender.email], ['ФИО', sender.fullName], ['Должность', sender.position], ['Компания', sender.companyName], ['Сайт', sender.website], ['Гор. телефон', sender.cityPhone], ['Моб. телефон', sender.mobilePhone], ['ИНН', sender.inn], ['Реквизиты', sender.legalCardAttached ? 'Приложены' : null]];
-  const leadFields = [['Тип запроса', lead.requestType], ['Бренды', formatArr(a.detectedBrands || lead.detectedBrands)], ['Артикулы', formatArr(lead.articles)], ['Позиций', lead.totalPositions], ['Фото шильдика', lead.hasNameplatePhotos ? 'Да' : null], ['Фото артикула', lead.hasArticlePhotos ? 'Да' : null]];
+  const productNameList = getLeadProductNameList(lead);
+  const leadFields = [['Тип запроса', lead.requestType], ['Бренды', formatArr(a.detectedBrands || lead.detectedBrands)], ['Артикулы', formatArr(lead.articles)], ['Названия товара', formatArr(productNameList)], ['Позиций', lead.totalPositions], ['Фото шильдика', lead.hasNameplatePhotos ? 'Да' : null], ['Фото артикула', lead.hasArticlePhotos ? 'Да' : null]];
   const crmFields = [['Юрлицо найдено', crm.isExistingCompany ? 'Да' : 'Нет'], ['Компания CRM', crm.company?.legalName], ['МОП', crm.curatorMop], ['МОЗ', crm.curatorMoz], ['Уточнение', crm.needsClarification ? 'Требуется' : 'Нет']];
 
   try {
@@ -1603,7 +1608,7 @@ function renderEmailView(msg, viewEl, detailEl) {
     <div class="detail-section">
       <div class="detail-section-title">Заявка</div>
       ${leadFields.filter(([,v]) => v).map(([l,v]) => detailField(l, v)).join('')}
-      ${lead.lineItems?.length ? `<div style="margin-top:8px;"><table class="data-table" style="font-size:11px;"><thead><tr><th>Артикул</th><th>Кол-во</th><th>Ед.</th></tr></thead><tbody>${lead.lineItems.map((li) => `<tr><td>${esc(li.article)}</td><td>${li.quantity}</td><td>${esc(li.unit)}</td></tr>`).join('')}</tbody></table></div>` : ''}
+      ${lead.lineItems?.length ? `<div style="margin-top:8px;"><table class="data-table" style="font-size:11px;"><thead><tr><th>Артикул</th><th>Наименование</th><th>Кол-во</th><th>Ед.</th></tr></thead><tbody>${lead.lineItems.map((li) => `<tr><td>${esc(li.article)}</td><td style="min-width:180px;color:var(--text-secondary);">${esc(truncate(getLineItemName(li, lead), 90) || '—')}</td><td>${li.quantity}</td><td>${esc(li.unit)}</td></tr>`).join('')}</tbody></table></div>` : ''}
     </div>
     <div class="detail-section">
       <div class="detail-section-title">CRM</div>
@@ -1853,7 +1858,7 @@ function showAnalysisResult(data) {
       <div><div class="detail-section-title" style="margin-bottom:8px;">Отправитель</div>${[['Email', sender.email],['ФИО', sender.fullName],['Должность', sender.position],['Компания', sender.companyName],['Сайт', sender.website],['Гор.', sender.cityPhone],['Моб.', sender.mobilePhone],['ИНН', sender.inn]].filter(([,v]) => v).map(([l,v]) => detailField(l, v)).join('')}</div>
       <div><div class="detail-section-title" style="margin-bottom:8px;">CRM</div>${[['Юрлицо', crm.isExistingCompany ? crm.company?.legalName || 'Найдено' : 'Не найдено'],['МОП', crm.curatorMop],['МОЗ', crm.curatorMoz],['Уточнение', crm.needsClarification ? 'Да' : 'Нет']].filter(([,v]) => v).map(([l,v]) => detailField(l, v)).join('')}${crm.actions?.length ? crm.actions.map((a) => `<div style="font-size:11px;color:var(--text-secondary);padding:2px 0;">→ ${esc(a)}</div>`).join('') : ''}</div>
     </div>
-    ${lead.lineItems?.length ? `<div style="margin-top:16px;"><div class="detail-section-title" style="margin-bottom:8px;">Позиции</div><table class="data-table" style="font-size:12px;"><thead><tr><th>Артикул</th><th>Кол-во</th><th>Ед.</th><th>Описание</th></tr></thead><tbody>${lead.lineItems.map((li) => `<tr><td><strong>${esc(li.article)}</strong></td><td>${li.quantity}</td><td>${esc(li.unit)}</td><td style="color:var(--text-muted);font-size:11px;">${esc(truncate(li.descriptionRu, 60))}</td></tr>`).join('')}</tbody></table></div>` : ''}
+    ${lead.lineItems?.length ? `<div style="margin-top:16px;"><div class="detail-section-title" style="margin-bottom:8px;">Позиции</div><table class="data-table" style="font-size:12px;"><thead><tr><th>Артикул</th><th>Наименование</th><th>Кол-во</th><th>Ед.</th><th>Описание</th></tr></thead><tbody>${lead.lineItems.map((li) => `<tr><td><strong>${esc(li.article)}</strong></td><td>${esc(truncate(getLineItemName(li, lead), 70) || '—')}</td><td>${li.quantity}</td><td>${esc(li.unit)}</td><td style="color:var(--text-muted);font-size:11px;">${esc(truncate(li.descriptionRu, 60))}</td></tr>`).join('')}</tbody></table></div>` : ''}
     ${rules.length ? `<div style="margin-top:16px;"><div class="detail-section-title" style="margin-bottom:8px;">Правила</div>${rules.map((r) => `<div style="font-size:11px;padding:3px 0;display:flex;gap:6px;align-items:center;"><span class="badge ${r.classifier === 'spam' ? 'badge-spam' : r.classifier === 'client' ? 'badge-client' : 'badge-vendor'}" style="font-size:9px;">${esc(r.classifier)}</span><span style="color:var(--text-muted);font-family:'JetBrains Mono',monospace;font-size:10px;">${esc(truncate(r.pattern, 40))}</span><span style="color:var(--green);font-weight:600;margin-left:auto;">+${r.weight}</span></div>`).join('')}</div>` : ''}
     ${data.suggestedReply || crm.suggestedReply ? `<div style="margin-top:16px;"><div class="detail-section-title" style="margin-bottom:8px;display:flex;align-items:center;justify-content:space-between;">Шаблон ответа <button class="btn btn-ghost btn-sm" style="font-size:10px;padding:3px 8px;" onclick="window.__copyField(\`${escAttr(data.suggestedReply || crm.suggestedReply)}\`);this.textContent='Скопировано';setTimeout(()=>this.textContent='Копировать',1500)">Копировать</button></div><div style="background:var(--surface-0);border:1px solid var(--border);border-radius:var(--radius-sm);padding:14px;font-size:12px;white-space:pre-wrap;color:var(--text-secondary);">${esc(data.suggestedReply || crm.suggestedReply)}</div></div>` : ''}
   `;
@@ -1996,6 +2001,42 @@ function renderConfBar(conf) {
   const pct = Math.round((conf || 0) * 100);
   const cls = pct >= 70 ? 'high' : pct >= 40 ? 'medium' : 'low';
   return `<div class="confidence-track"><div class="confidence-fill ${cls}" style="width:${pct}%"></div></div><span class="confidence-value">${pct}%</span>`;
+}
+
+function getLeadProductNameList(lead = {}) {
+  const names = [
+    ...(lead.productNames || []).map((item) => item?.name),
+    ...(lead.nomenclatureMatches || []).map((item) => item?.productName || item?.description),
+    ...(lead.lineItems || []).map((item) => item?.descriptionRu)
+  ];
+  return [...new Set(names.map((value) => cleanupProductName(value)).filter(Boolean))];
+}
+
+function getLineItemName(lineItem = {}, lead = {}) {
+  const article = normalizeUiArticle(lineItem.article);
+  if (!article) return cleanupProductName(lineItem.descriptionRu) || '';
+
+  const productNameMatch = (lead.productNames || []).find((item) => normalizeUiArticle(item.article) === article);
+  const nomenclatureMatch = (lead.nomenclatureMatches || []).find((item) => normalizeUiArticle(item.article) === article);
+  return cleanupProductName(
+    productNameMatch?.name ||
+    nomenclatureMatch?.productName ||
+    nomenclatureMatch?.description ||
+    lineItem.descriptionRu
+  ) || '';
+}
+
+function normalizeUiArticle(value) {
+  return String(value || '').trim().toUpperCase();
+}
+
+function cleanupProductName(value) {
+  const text = String(value || '').replace(/\s+/g, ' ').trim();
+  if (!text) return '';
+  if (/^арт\.?\s*:/i.test(text)) return '';
+  if (/^(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?)\.?$/i.test(text)) return '';
+  if (/^\d+(?:[.,]\d+)?$/.test(text)) return '';
+  return text;
 }
 
 function detailField(label, value) {
