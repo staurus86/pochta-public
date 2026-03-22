@@ -72,12 +72,30 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           }
         }
       },
+      "/api/integration/presets": {
+        get: {
+          tags: ["Integration"],
+          summary: "List server-side integration query presets",
+          responses: {
+            200: {
+              description: "Available query presets for integration endpoints",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/IntegrationPresetListResponse" }
+                }
+              }
+            },
+            401: unauthorizedResponse()
+          }
+        }
+      },
       "/api/integration/projects/{projectId}/messages": {
         get: {
           tags: ["Integration"],
           summary: "List parsed messages",
           parameters: [
             pathParameter("projectId", "Project identifier"),
+            queryParameter("preset", "string", "Server-side query preset such as problem_queue, max_parsed, sla_overdue, needs_review, high_priority_open"),
             queryParameter("page", "integer", "Page number for offset pagination"),
             queryParameter("limit", "integer", "Items per page or cursor page size"),
             queryParameter("status", "string", "Comma-separated pipeline statuses"),
@@ -124,6 +142,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           summary: "Get aggregate message quality and pipeline stats",
           parameters: [
             pathParameter("projectId", "Project identifier"),
+            queryParameter("preset", "string", "Server-side query preset"),
             queryParameter("status", "string", "Comma-separated pipeline statuses"),
             queryParameter("since", "string", "ISO datetime filter for updated_at", { format: "date-time" }),
             queryParameter("exported", "string", "Filter by export acknowledgement state"),
@@ -165,6 +184,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           summary: "Get field coverage metrics across messages",
           parameters: [
             pathParameter("projectId", "Project identifier"),
+            queryParameter("preset", "string", "Server-side query preset"),
             queryParameter("status", "string", "Comma-separated pipeline statuses"),
             queryParameter("since", "string", "ISO datetime filter for updated_at", { format: "date-time" }),
             queryParameter("exported", "string", "Filter by export acknowledgement state"),
@@ -206,6 +226,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           summary: "Get problem queue summary and top problematic messages",
           parameters: [
             pathParameter("projectId", "Project identifier"),
+            queryParameter("preset", "string", "Server-side query preset"),
             queryParameter("limit", "integer", "Maximum number of problem messages to include"),
             queryParameter("status", "string", "Comma-separated pipeline statuses"),
             queryParameter("since", "string", "ISO datetime filter for updated_at", { format: "date-time" }),
@@ -248,6 +269,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           summary: "Export filtered messages in JSON, JSONL, or CSV",
           parameters: [
             pathParameter("projectId", "Project identifier"),
+            queryParameter("preset", "string", "Server-side query preset"),
             queryParameter("format", "string", "Export format: json, jsonl, csv"),
             queryParameter("status", "string", "Comma-separated pipeline statuses"),
             queryParameter("since", "string", "ISO datetime filter for updated_at", { format: "date-time" }),
@@ -286,6 +308,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           summary: "List grouped email threads",
           parameters: [
             pathParameter("projectId", "Project identifier"),
+            queryParameter("preset", "string", "Server-side query preset"),
             queryParameter("status", "string", "Comma-separated pipeline statuses"),
             queryParameter("since", "string", "ISO datetime filter for updated_at", { format: "date-time" }),
             queryParameter("exported", "string", "Filter by export acknowledgement state"),
@@ -330,6 +353,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           parameters: [
             pathParameter("projectId", "Project identifier"),
             pathParameter("threadId", "Thread identifier"),
+            queryParameter("preset", "string", "Server-side query preset"),
             queryParameter("include", "string", "Optional additive payload blocks for nested messages")
           ],
           responses: {
@@ -353,6 +377,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           summary: "List incremental integration events for messages, threads, and deliveries",
           parameters: [
             pathParameter("projectId", "Project identifier"),
+            queryParameter("preset", "string", "Server-side query preset"),
             queryParameter("limit", "integer", "Maximum number of events to return"),
             queryParameter("since", "string", "ISO datetime filter for event time", { format: "date-time" }),
             queryParameter("cursor", "string", "Opaque cursor for incremental event polling"),
@@ -399,6 +424,7 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           summary: "Export incremental event feed in JSON, JSONL, or CSV",
           parameters: [
             pathParameter("projectId", "Project identifier"),
+            queryParameter("preset", "string", "Server-side query preset"),
             queryParameter("format", "string", "Export format: json, jsonl, csv"),
             queryParameter("limit", "integer", "Maximum number of events to return"),
             queryParameter("since", "string", "ISO datetime filter for event time", { format: "date-time" }),
@@ -940,9 +966,29 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
             data: { $ref: "#/components/schemas/IntegrationMessage" }
           }
         },
+        IntegrationPresetListResponse: {
+          type: "object",
+          properties: {
+            data: {
+              type: "array",
+              items: {
+                type: "object",
+                properties: {
+                  id: { type: "string" },
+                  description: { type: "string" },
+                  query: {
+                    type: "object",
+                    additionalProperties: { type: "string" }
+                  }
+                }
+              }
+            }
+          }
+        },
         IntegrationMessageQueryMeta: {
           type: "object",
           properties: {
+            preset: { type: ["string", "null"] },
             statuses: {
               type: "array",
               items: { type: "string" }

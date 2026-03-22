@@ -1,6 +1,14 @@
-export const LEGACY_INTEGRATION_API_VERSION = "1.6.0";
+export const LEGACY_INTEGRATION_API_VERSION = "1.7.0";
 
 const CHANGELOG = [
+  {
+    version: "1.7.0",
+    released_at: "2026-03-22",
+    changes: [
+      "Added server-side query presets for reusable integration views such as problem_queue, max_parsed, and sla_overdue.",
+      "Published preset catalog endpoint and applied presets across message, thread, summary, export, and event endpoints."
+    ]
+  },
   {
     version: "1.6.0",
     released_at: "2026-03-22",

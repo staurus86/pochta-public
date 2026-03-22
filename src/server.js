@@ -26,6 +26,7 @@ import {
   listIntegrationEvents,
   listIntegrationDeliveries,
   listIntegrationMessages,
+  listIntegrationPresets,
   listIntegrationThreads,
   parseIntegrationCursor,
   summarizeIntegrationCoverage,
@@ -1280,6 +1281,10 @@ async function handleIntegrationApi(req, res, url) {
     });
   }
 
+  if (req.method === "GET" && url.pathname === "/api/integration/presets") {
+    return sendJson(res, 200, listIntegrationPresets());
+  }
+
   const integrationMessagesMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages$/);
   if (req.method === "GET" && integrationMessagesMatch) {
     const projectId = decodeURIComponent(integrationMessagesMatch[1]);
@@ -1303,6 +1308,7 @@ async function handleIntegrationApi(req, res, url) {
     return sendJson(res, 200, listIntegrationMessages(project, {
       page: url.searchParams.get("page"),
       limit: url.searchParams.get("limit"),
+      preset: url.searchParams.get("preset"),
       status: url.searchParams.get("status"),
       since,
       exported: url.searchParams.get("exported"),
@@ -1341,6 +1347,7 @@ async function handleIntegrationApi(req, res, url) {
     }
 
     return sendJson(res, 200, summarizeIntegrationMessages(project, {
+      preset: url.searchParams.get("preset"),
       status: url.searchParams.get("status"),
       since: url.searchParams.get("since"),
       exported: url.searchParams.get("exported"),
@@ -1377,6 +1384,7 @@ async function handleIntegrationApi(req, res, url) {
     }
 
     return sendJson(res, 200, summarizeIntegrationCoverage(project, {
+      preset: url.searchParams.get("preset"),
       status: url.searchParams.get("status"),
       since: url.searchParams.get("since"),
       exported: url.searchParams.get("exported"),
@@ -1413,6 +1421,7 @@ async function handleIntegrationApi(req, res, url) {
     }
 
     return sendJson(res, 200, summarizeIntegrationProblems(project, {
+      preset: url.searchParams.get("preset"),
       status: url.searchParams.get("status"),
       since: url.searchParams.get("since"),
       exported: url.searchParams.get("exported"),
@@ -1450,6 +1459,7 @@ async function handleIntegrationApi(req, res, url) {
     }
 
     const exported = exportIntegrationMessages(project, {
+      preset: url.searchParams.get("preset"),
       status: url.searchParams.get("status"),
       since: url.searchParams.get("since"),
       exported: url.searchParams.get("exported"),
@@ -1503,6 +1513,7 @@ async function handleIntegrationApi(req, res, url) {
 
     return sendJson(res, 200, listIntegrationEvents(project, {
       limit: url.searchParams.get("limit"),
+      preset: url.searchParams.get("preset"),
       since: url.searchParams.get("since"),
       cursor,
       type: url.searchParams.get("type"),
@@ -1544,6 +1555,7 @@ async function handleIntegrationApi(req, res, url) {
 
     const exported = exportIntegrationEvents(project, {
       format: url.searchParams.get("format"),
+      preset: url.searchParams.get("preset"),
       limit: url.searchParams.get("limit"),
       since: url.searchParams.get("since"),
       cursor: url.searchParams.get("cursor"),
@@ -1590,6 +1602,7 @@ async function handleIntegrationApi(req, res, url) {
     }
 
     return sendJson(res, 200, listIntegrationThreads(project, {
+      preset: url.searchParams.get("preset"),
       status: url.searchParams.get("status"),
       since: url.searchParams.get("since"),
       exported: url.searchParams.get("exported"),
@@ -1628,7 +1641,8 @@ async function handleIntegrationApi(req, res, url) {
     }
 
     const thread = findIntegrationThread(project, decodeURIComponent(integrationThreadMatch[2]), {
-      include: url.searchParams.get("include")
+      include: url.searchParams.get("include"),
+      preset: url.searchParams.get("preset")
     }, {
       consumerId: currentClient.id
     });

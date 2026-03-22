@@ -6,6 +6,7 @@ import {
   findIntegrationThread,
   listIntegrationEvents,
   listIntegrationMessages,
+  listIntegrationPresets,
   listIntegrationThreads,
   normalizeIntegrationMessage,
   parseIntegrationCursor,
@@ -413,6 +414,22 @@ runTest("exports integration messages as jsonl and csv", () => {
   assert.equal(csv.contentType, "text/csv; charset=utf-8");
   assert.ok(csv.body.includes("message_key"));
   assert.ok(csv.body.includes("msg-1"));
+});
+
+runTest("lists integration query presets", () => {
+  const result = listIntegrationPresets();
+  assert.ok(result.data.some((item) => item.id === "problem_queue"));
+  assert.ok(result.data.some((item) => item.id === "max_parsed"));
+});
+
+runTest("applies server-side query presets", () => {
+  const presetResult = listIntegrationMessages(project, { preset: "max_parsed" });
+  assert.equal(presetResult.data.length, 1);
+  assert.equal(presetResult.data[0].message_key, "msg-1");
+  assert.equal(presetResult.meta.preset, "max_parsed");
+
+  const problemPreset = listIntegrationMessages(project, { preset: "problem_queue" });
+  assert.ok(problemPreset.data.some((item) => item.message_key === "msg-3"));
 });
 
 runTest("lists integration events for incremental sync", () => {

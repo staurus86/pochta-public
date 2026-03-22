@@ -1,5 +1,43 @@
 export { isIntegrationAuthorized } from "./integration-clients.js";
 
+const INTEGRATION_QUERY_PRESETS = {
+  problem_queue: {
+    description: "Messages that likely need manual review.",
+    query: {
+      confirmed: "false"
+    }
+  },
+  max_parsed: {
+    description: "Messages with the highest extraction completeness.",
+    query: {
+      article_present: "true",
+      company_present: "true",
+      inn_present: "true",
+      phone_present: "true",
+      risk: "low"
+    }
+  },
+  sla_overdue: {
+    description: "Messages that crossed their computed SLA threshold.",
+    query: {
+      sla_overdue: "true"
+    }
+  },
+  needs_review: {
+    description: "Messages with weak detection, conflicts, or missing core fields.",
+    query: {
+      confirmed: "false"
+    }
+  },
+  high_priority_open: {
+    description: "Unconfirmed high or critical priority messages.",
+    query: {
+      confirmed: "false",
+      priority: "high,critical"
+    }
+  }
+};
+
 export function normalizeIntegrationMessage(project, message, options = {}) {
   const analysis = message.analysis || {};
   const classification = analysis.classification || {};
@@ -150,6 +188,16 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
           }
         : null
     }
+  };
+}
+
+export function listIntegrationPresets() {
+  return {
+    data: Object.entries(INTEGRATION_QUERY_PRESETS).map(([id, preset]) => ({
+      id,
+      description: preset.description,
+      query: { ...preset.query }
+    }))
   };
 }
 
@@ -715,28 +763,45 @@ function parseStringListFilter(value) {
 }
 
 function buildIntegrationMessageQueryContext(query = {}) {
+  const resolved = applyIntegrationQueryPreset(query);
   return {
-    statuses: parseStatuses(query.status),
-    since: parseSince(query.since),
-    exported: parseBooleanFilter(query.exported),
-    cursor: parseCursor(query.cursor),
-    brandFilter: parseBrandFilter(query.brand),
-    labelFilter: parseLabelFilter(query.label),
-    searchQuery: parseSearchQuery(query.q),
-    hasAttachments: parseBooleanFilter(query.has_attachments),
-    attachmentExtFilter: parseAttachmentExtFilter(query.attachment_ext),
-    minAttachments: normalizePositiveInt(query.min_attachments, 0),
-    productTypeFilter: parseProductTypeFilter(query.product_type),
-    confirmedFilter: parseBooleanFilter(query.confirmed),
-    priorityFilter: parsePriorityFilter(query.priority),
-    riskFilter: parseRiskFilter(query.risk),
-    hasConflicts: parseBooleanFilter(query.has_conflicts),
-    companyPresent: parseBooleanFilter(query.company_present),
-    innPresent: parseBooleanFilter(query.inn_present),
-    phonePresent: parseBooleanFilter(query.phone_present),
-    articlePresent: parseBooleanFilter(query.article_present),
-    slaOverdue: parseBooleanFilter(query.sla_overdue),
-    include: normalizeIncludeSet(query.include)
+    preset: resolved.preset,
+    statuses: parseStatuses(resolved.query.status),
+    since: parseSince(resolved.query.since),
+    exported: parseBooleanFilter(resolved.query.exported),
+    cursor: parseCursor(resolved.query.cursor),
+    brandFilter: parseBrandFilter(resolved.query.brand),
+    labelFilter: parseLabelFilter(resolved.query.label),
+    searchQuery: parseSearchQuery(resolved.query.q),
+    hasAttachments: parseBooleanFilter(resolved.query.has_attachments),
+    attachmentExtFilter: parseAttachmentExtFilter(resolved.query.attachment_ext),
+    minAttachments: normalizePositiveInt(resolved.query.min_attachments, 0),
+    productTypeFilter: parseProductTypeFilter(resolved.query.product_type),
+    confirmedFilter: parseBooleanFilter(resolved.query.confirmed),
+    priorityFilter: parsePriorityFilter(resolved.query.priority),
+    riskFilter: parseRiskFilter(resolved.query.risk),
+    hasConflicts: parseBooleanFilter(resolved.query.has_conflicts),
+    companyPresent: parseBooleanFilter(resolved.query.company_present),
+    innPresent: parseBooleanFilter(resolved.query.inn_present),
+    phonePresent: parseBooleanFilter(resolved.query.phone_present),
+    articlePresent: parseBooleanFilter(resolved.query.article_present),
+    slaOverdue: parseBooleanFilter(resolved.query.sla_overdue),
+    include: normalizeIncludeSet(resolved.query.include)
+  };
+}
+
+function applyIntegrationQueryPreset(query = {}) {
+  const preset = String(query.preset || "").trim().toLowerCase();
+  const definition = INTEGRATION_QUERY_PRESETS[preset];
+  if (!definition) {
+    return { preset: null, query: { ...query } };
+  }
+  return {
+    preset,
+    query: {
+      ...definition.query,
+      ...query
+    }
   };
 }
 
@@ -810,11 +875,45 @@ function filterIntegrationMessages(project, context, options = {}) {
       recognitionPriority: resolveRecognitionPriority(item.analysis?.lead || {}),
       ageHours: resolveMessageAgeHours(item)
     }) === context.slaOverdue)
+    .filter((item) => matchPresetSpecialRules(item, context.preset))
     .sort(compareMessagesDesc);
+}
+
+function matchPresetSpecialRules(item, preset) {
+  if (!preset) return true;
+  if (preset === "problem_queue") {
+    return detectMessageIssues(item).length > 0;
+  }
+  if (preset === "needs_review") {
+    const lead = item.analysis?.lead || {};
+    const risk = resolveRecognitionRisk(lead);
+    return detectMessageIssues(item).length > 0 || risk === "high" || risk === "medium" || resolveHasConflicts(lead);
+  }
+  if (preset === "max_parsed") {
+    return hasDetectedArticle(item)
+      && hasDetectedBrand(item)
+      && hasDetectedName(item)
+      && hasDetectedPhone(item)
+      && hasDetectedCompany(item)
+      && hasDetectedInn(item)
+      && !resolveHasConflicts(item.analysis?.lead || {});
+  }
+  if (preset === "high_priority_open") {
+    return !Boolean(item.recognitionConfirmed?.at)
+      && ["high", "critical"].includes(resolveRecognitionPriority(item.analysis?.lead || {}) || "");
+  }
+  if (preset === "sla_overdue") {
+    return isMessageSlaOverdue({
+      recognitionPriority: resolveRecognitionPriority(item.analysis?.lead || {}),
+      ageHours: resolveMessageAgeHours(item)
+    });
+  }
+  return true;
 }
 
 function buildIntegrationMessageMeta(context) {
   return {
+    preset: context.preset,
     statuses: context.statuses,
     exported: context.exported,
     brand: context.brandFilter,
