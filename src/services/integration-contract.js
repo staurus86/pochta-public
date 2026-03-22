@@ -1,6 +1,14 @@
-export const LEGACY_INTEGRATION_API_VERSION = "1.3.0";
+export const LEGACY_INTEGRATION_API_VERSION = "1.4.0";
 
 const CHANGELOG = [
+  {
+    version: "1.4.0",
+    released_at: "2026-03-22",
+    changes: [
+      "Expanded normalized message payloads with message_meta, attachment analysis, extraction metadata, and audit blocks.",
+      "Added quality-oriented message filters and aggregate endpoints for message stats, field coverage, and problem queues."
+    ]
+  },
   {
     version: "1.3.0",
     released_at: "2026-03-18",

@@ -118,13 +118,138 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
           }
         }
       },
+      "/api/integration/projects/{projectId}/messages/stats": {
+        get: {
+          tags: ["Integration"],
+          summary: "Get aggregate message quality and pipeline stats",
+          parameters: [
+            pathParameter("projectId", "Project identifier"),
+            queryParameter("status", "string", "Comma-separated pipeline statuses"),
+            queryParameter("since", "string", "ISO datetime filter for updated_at", { format: "date-time" }),
+            queryParameter("exported", "string", "Filter by export acknowledgement state"),
+            queryParameter("brand", "string", "Filter by detected brand name"),
+            queryParameter("label", "string", "Filter by classification label"),
+            queryParameter("q", "string", "Full-text search across message fields"),
+            queryParameter("has_attachments", "boolean", "Filter by attachment presence"),
+            queryParameter("attachment_ext", "string", "Comma-separated file extensions to filter by"),
+            queryParameter("min_attachments", "integer", "Minimum number of attachments"),
+            queryParameter("product_type", "string", "Comma-separated product type categories"),
+            queryParameter("confirmed", "boolean", "Filter by manual recognition confirmation"),
+            queryParameter("priority", "string", "Comma-separated priorities: critical, high, medium, low"),
+            queryParameter("risk", "string", "Comma-separated recognition risk levels: high, medium, low"),
+            queryParameter("has_conflicts", "boolean", "Filter by recognition conflicts"),
+            queryParameter("company_present", "boolean", "Filter by detected company presence"),
+            queryParameter("inn_present", "boolean", "Filter by detected INN presence"),
+            queryParameter("phone_present", "boolean", "Filter by detected phone presence"),
+            queryParameter("article_present", "boolean", "Filter by detected article presence"),
+            queryParameter("sla_overdue", "boolean", "Filter by computed SLA overdue state")
+          ],
+          responses: {
+            200: {
+              description: "Aggregate message stats for external dashboards",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/IntegrationMessageStatsResponse" }
+                }
+              }
+            },
+            401: unauthorizedResponse(),
+            403: errorResponse("Client is not allowed to access this project."),
+            404: errorResponse("Project not found.")
+          }
+        }
+      },
+      "/api/integration/projects/{projectId}/messages/coverage": {
+        get: {
+          tags: ["Integration"],
+          summary: "Get field coverage metrics across messages",
+          parameters: [
+            pathParameter("projectId", "Project identifier"),
+            queryParameter("status", "string", "Comma-separated pipeline statuses"),
+            queryParameter("since", "string", "ISO datetime filter for updated_at", { format: "date-time" }),
+            queryParameter("exported", "string", "Filter by export acknowledgement state"),
+            queryParameter("brand", "string", "Filter by detected brand name"),
+            queryParameter("label", "string", "Filter by classification label"),
+            queryParameter("q", "string", "Full-text search across message fields"),
+            queryParameter("has_attachments", "boolean", "Filter by attachment presence"),
+            queryParameter("attachment_ext", "string", "Comma-separated file extensions to filter by"),
+            queryParameter("min_attachments", "integer", "Minimum number of attachments"),
+            queryParameter("product_type", "string", "Comma-separated product type categories"),
+            queryParameter("confirmed", "boolean", "Filter by manual recognition confirmation"),
+            queryParameter("priority", "string", "Comma-separated priorities: critical, high, medium, low"),
+            queryParameter("risk", "string", "Comma-separated recognition risk levels: high, medium, low"),
+            queryParameter("has_conflicts", "boolean", "Filter by recognition conflicts"),
+            queryParameter("company_present", "boolean", "Filter by detected company presence"),
+            queryParameter("inn_present", "boolean", "Filter by detected INN presence"),
+            queryParameter("phone_present", "boolean", "Filter by detected phone presence"),
+            queryParameter("article_present", "boolean", "Filter by detected article presence"),
+            queryParameter("sla_overdue", "boolean", "Filter by computed SLA overdue state")
+          ],
+          responses: {
+            200: {
+              description: "Field coverage metrics",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/IntegrationCoverageResponse" }
+                }
+              }
+            },
+            401: unauthorizedResponse(),
+            403: errorResponse("Client is not allowed to access this project."),
+            404: errorResponse("Project not found.")
+          }
+        }
+      },
+      "/api/integration/projects/{projectId}/messages/problems": {
+        get: {
+          tags: ["Integration"],
+          summary: "Get problem queue summary and top problematic messages",
+          parameters: [
+            pathParameter("projectId", "Project identifier"),
+            queryParameter("limit", "integer", "Maximum number of problem messages to include"),
+            queryParameter("status", "string", "Comma-separated pipeline statuses"),
+            queryParameter("since", "string", "ISO datetime filter for updated_at", { format: "date-time" }),
+            queryParameter("exported", "string", "Filter by export acknowledgement state"),
+            queryParameter("brand", "string", "Filter by detected brand name"),
+            queryParameter("label", "string", "Filter by classification label"),
+            queryParameter("q", "string", "Full-text search across message fields"),
+            queryParameter("has_attachments", "boolean", "Filter by attachment presence"),
+            queryParameter("attachment_ext", "string", "Comma-separated file extensions to filter by"),
+            queryParameter("min_attachments", "integer", "Minimum number of attachments"),
+            queryParameter("product_type", "string", "Comma-separated product type categories"),
+            queryParameter("confirmed", "boolean", "Filter by manual recognition confirmation"),
+            queryParameter("priority", "string", "Comma-separated priorities: critical, high, medium, low"),
+            queryParameter("risk", "string", "Comma-separated recognition risk levels: high, medium, low"),
+            queryParameter("has_conflicts", "boolean", "Filter by recognition conflicts"),
+            queryParameter("company_present", "boolean", "Filter by detected company presence"),
+            queryParameter("inn_present", "boolean", "Filter by detected INN presence"),
+            queryParameter("phone_present", "boolean", "Filter by detected phone presence"),
+            queryParameter("article_present", "boolean", "Filter by detected article presence"),
+            queryParameter("sla_overdue", "boolean", "Filter by computed SLA overdue state")
+          ],
+          responses: {
+            200: {
+              description: "Problem queue for external QA and CRM flows",
+              content: {
+                "application/json": {
+                  schema: { $ref: "#/components/schemas/IntegrationProblemQueueResponse" }
+                }
+              }
+            },
+            401: unauthorizedResponse(),
+            403: errorResponse("Client is not allowed to access this project."),
+            404: errorResponse("Project not found.")
+          }
+        }
+      },
       "/api/integration/projects/{projectId}/messages/{messageKey}": {
         get: {
           tags: ["Integration"],
           summary: "Get a single parsed message",
           parameters: [
             pathParameter("projectId", "Project identifier"),
-            pathParameter("messageKey", "Normalized message key")
+            pathParameter("messageKey", "Normalized message key"),
+            queryParameter("include", "string", "Optional additive payload blocks: body,audit,attachments_analysis,extraction_meta,all")
           ],
           responses: {
             200: {
@@ -639,6 +764,52 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
             data: { $ref: "#/components/schemas/IntegrationMessage" }
           }
         },
+        IntegrationMessageQueryMeta: {
+          type: "object",
+          properties: {
+            statuses: {
+              type: "array",
+              items: { type: "string" }
+            },
+            exported: { type: ["boolean", "null"] },
+            brand: { type: ["string", "null"] },
+            label: { type: ["string", "null"] },
+            q: { type: ["string", "null"] },
+            has_attachments: { type: ["boolean", "null"] },
+            attachment_ext: {
+              type: ["array", "null"],
+              items: { type: "string" }
+            },
+            min_attachments: { type: ["integer", "null"] },
+            product_type: {
+              type: ["array", "null"],
+              items: { type: "string" }
+            },
+            confirmed: { type: ["boolean", "null"] },
+            priority: {
+              type: ["array", "null"],
+              items: { type: "string" }
+            },
+            risk: {
+              type: ["array", "null"],
+              items: { type: "string" }
+            },
+            has_conflicts: { type: ["boolean", "null"] },
+            company_present: { type: ["boolean", "null"] },
+            inn_present: { type: ["boolean", "null"] },
+            phone_present: { type: ["boolean", "null"] },
+            article_present: { type: ["boolean", "null"] },
+            sla_overdue: { type: ["boolean", "null"] },
+            include: {
+              type: "array",
+              items: { type: "string" }
+            },
+            since: { type: ["string", "null"], format: "date-time" },
+            cursor: { type: ["string", "null"] },
+            next_cursor: { type: ["string", "null"] },
+            next_since: { type: ["string", "null"], format: "date-time" }
+          }
+        },
         IntegrationMessageListResponse: {
           type: "object",
           properties: {
@@ -655,48 +826,101 @@ export function buildLegacyIntegrationOpenApi(options = {}) {
                 total_pages: { type: ["integer", "null"] }
               }
             },
-            meta: {
+            meta: { $ref: "#/components/schemas/IntegrationMessageQueryMeta" }
+          }
+        },
+        IntegrationMessageStatsResponse: {
+          type: "object",
+          properties: {
+            data: {
               type: "object",
               properties: {
-                statuses: {
-                  type: "array",
-                  items: { type: "string" }
-                },
-                exported: { type: ["boolean", "null"] },
-                has_attachments: { type: ["boolean", "null"] },
-                attachment_ext: {
-                  type: ["array", "null"],
-                  items: { type: "string" }
-                },
-                min_attachments: { type: ["integer", "null"] },
-                product_type: {
-                  type: ["array", "null"],
-                  items: { type: "string" }
-                },
-                confirmed: { type: ["boolean", "null"] },
-                priority: {
-                  type: ["array", "null"],
-                  items: { type: "string" }
-                },
-                risk: {
-                  type: ["array", "null"],
-                  items: { type: "string" }
-                },
-                has_conflicts: { type: ["boolean", "null"] },
-                company_present: { type: ["boolean", "null"] },
-                inn_present: { type: ["boolean", "null"] },
-                phone_present: { type: ["boolean", "null"] },
-                article_present: { type: ["boolean", "null"] },
-                sla_overdue: { type: ["boolean", "null"] },
-                include: {
-                  type: "array",
-                  items: { type: "string" }
-                },
-                since: { type: ["string", "null"], format: "date-time" },
-                cursor: { type: ["string", "null"] },
-                next_cursor: { type: ["string", "null"] },
-                next_since: { type: ["string", "null"], format: "date-time" }
+                total_messages: { type: "integer" },
+                by_status: { type: "object", additionalProperties: { type: "integer" } },
+                by_classification: { type: "object", additionalProperties: { type: "integer" } },
+                priorities: { type: "object", additionalProperties: { type: "integer" } },
+                risks: { type: "object", additionalProperties: { type: "integer" } },
+                confirmed_count: { type: "integer" },
+                unconfirmed_count: { type: "integer" },
+                conflicts_count: { type: "integer" },
+                exported_count: { type: "integer" },
+                with_attachments_count: { type: "integer" },
+                parsed_attachments_count: { type: "integer" },
+                sla_overdue_count: { type: "integer" },
+                avg_confidence: { type: ["number", "null"] },
+                avg_completeness_score: { type: ["number", "null"] },
+                last_message_at: { type: ["string", "null"], format: "date-time" }
               }
+            },
+            meta: { $ref: "#/components/schemas/IntegrationMessageQueryMeta" }
+          }
+        },
+        IntegrationCoverageResponse: {
+          type: "object",
+          properties: {
+            data: {
+              type: "object",
+              properties: {
+                total_messages: { type: "integer" },
+                fields: {
+                  type: "object",
+                  additionalProperties: {
+                    type: "object",
+                    properties: {
+                      present: { type: "integer" },
+                      missing: { type: "integer" },
+                      coverage_rate: { type: ["number", "null"] }
+                    }
+                  }
+                }
+              }
+            },
+            meta: { $ref: "#/components/schemas/IntegrationMessageQueryMeta" }
+          }
+        },
+        IntegrationProblemQueueResponse: {
+          type: "object",
+          properties: {
+            data: {
+              type: "object",
+              properties: {
+                total_problem_messages: { type: "integer" },
+                by_issue: { type: "object", additionalProperties: { type: "integer" } },
+                top_messages: {
+                  type: "array",
+                  items: {
+                    type: "object",
+                    properties: {
+                      message_key: { type: "string" },
+                      subject: { type: "string" },
+                      from: { type: "string" },
+                      pipeline_status: { type: "string" },
+                      updated_at: { type: ["string", "null"], format: "date-time" },
+                      priority: { type: ["string", "null"] },
+                      risk_level: { type: ["string", "null"] },
+                      age_hours: { type: ["number", "null"] },
+                      recognition_confirmed: { type: "boolean" },
+                      issue_keys: {
+                        type: "array",
+                        items: { type: "string" }
+                      },
+                      primary_issue: { type: ["string", "null"] },
+                      sla_overdue: { type: "boolean" }
+                    }
+                  }
+                }
+              }
+            },
+            meta: {
+              allOf: [
+                { $ref: "#/components/schemas/IntegrationMessageQueryMeta" },
+                {
+                  type: "object",
+                  properties: {
+                    limit: { type: "integer" }
+                  }
+                }
+              ]
             }
           }
         },

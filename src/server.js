@@ -17,7 +17,17 @@ import { ProjectScheduler } from "./services/project-scheduler.js";
 import { getMailboxFileRuntime, reprocessMailboxMessages, runMailboxFileParser } from "./services/project3-runner.js";
 import { detectionKb } from "./services/detection-kb.js";
 import { ManagerAuth } from "./services/manager-auth.js";
-import { findIntegrationDelivery, findIntegrationMessage, listIntegrationDeliveries, listIntegrationMessages, parseIntegrationCursor, summarizeIntegrationDeliveries } from "./services/integration-api.js";
+import {
+  findIntegrationDelivery,
+  findIntegrationMessage,
+  listIntegrationDeliveries,
+  listIntegrationMessages,
+  parseIntegrationCursor,
+  summarizeIntegrationCoverage,
+  summarizeIntegrationDeliveries,
+  summarizeIntegrationMessages,
+  summarizeIntegrationProblems
+} from "./services/integration-api.js";
 import { LegacyWebhookDispatcher } from "./services/webhook-dispatcher.js";
 
 const __filename = fileURLToPath(import.meta.url);
@@ -1314,6 +1324,115 @@ async function handleIntegrationApi(req, res, url) {
     }));
   }
 
+  const integrationMessageStatsMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages\/stats$/);
+  if (req.method === "GET" && integrationMessageStatsMatch) {
+    const projectId = decodeURIComponent(integrationMessageStatsMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
+    const project = await store.getProject(projectId);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    return sendJson(res, 200, summarizeIntegrationMessages(project, {
+      status: url.searchParams.get("status"),
+      since: url.searchParams.get("since"),
+      exported: url.searchParams.get("exported"),
+      brand: url.searchParams.get("brand"),
+      label: url.searchParams.get("label"),
+      q: url.searchParams.get("q"),
+      has_attachments: url.searchParams.get("has_attachments"),
+      attachment_ext: url.searchParams.get("attachment_ext"),
+      min_attachments: url.searchParams.get("min_attachments"),
+      product_type: url.searchParams.get("product_type"),
+      confirmed: url.searchParams.get("confirmed"),
+      priority: url.searchParams.get("priority"),
+      risk: url.searchParams.get("risk"),
+      has_conflicts: url.searchParams.get("has_conflicts"),
+      company_present: url.searchParams.get("company_present"),
+      inn_present: url.searchParams.get("inn_present"),
+      phone_present: url.searchParams.get("phone_present"),
+      article_present: url.searchParams.get("article_present"),
+      sla_overdue: url.searchParams.get("sla_overdue")
+    }, {
+      consumerId: currentClient.id
+    }));
+  }
+
+  const integrationMessageCoverageMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages\/coverage$/);
+  if (req.method === "GET" && integrationMessageCoverageMatch) {
+    const projectId = decodeURIComponent(integrationMessageCoverageMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
+    const project = await store.getProject(projectId);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    return sendJson(res, 200, summarizeIntegrationCoverage(project, {
+      status: url.searchParams.get("status"),
+      since: url.searchParams.get("since"),
+      exported: url.searchParams.get("exported"),
+      brand: url.searchParams.get("brand"),
+      label: url.searchParams.get("label"),
+      q: url.searchParams.get("q"),
+      has_attachments: url.searchParams.get("has_attachments"),
+      attachment_ext: url.searchParams.get("attachment_ext"),
+      min_attachments: url.searchParams.get("min_attachments"),
+      product_type: url.searchParams.get("product_type"),
+      confirmed: url.searchParams.get("confirmed"),
+      priority: url.searchParams.get("priority"),
+      risk: url.searchParams.get("risk"),
+      has_conflicts: url.searchParams.get("has_conflicts"),
+      company_present: url.searchParams.get("company_present"),
+      inn_present: url.searchParams.get("inn_present"),
+      phone_present: url.searchParams.get("phone_present"),
+      article_present: url.searchParams.get("article_present"),
+      sla_overdue: url.searchParams.get("sla_overdue")
+    }, {
+      consumerId: currentClient.id
+    }));
+  }
+
+  const integrationMessageProblemsMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages\/problems$/);
+  if (req.method === "GET" && integrationMessageProblemsMatch) {
+    const projectId = decodeURIComponent(integrationMessageProblemsMatch[1]);
+    if (!canClientAccessProject(currentClient, projectId)) {
+      return sendJson(res, 403, { error: "Client is not allowed to access this project." });
+    }
+    const project = await store.getProject(projectId);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+
+    return sendJson(res, 200, summarizeIntegrationProblems(project, {
+      status: url.searchParams.get("status"),
+      since: url.searchParams.get("since"),
+      exported: url.searchParams.get("exported"),
+      brand: url.searchParams.get("brand"),
+      label: url.searchParams.get("label"),
+      q: url.searchParams.get("q"),
+      has_attachments: url.searchParams.get("has_attachments"),
+      attachment_ext: url.searchParams.get("attachment_ext"),
+      min_attachments: url.searchParams.get("min_attachments"),
+      product_type: url.searchParams.get("product_type"),
+      confirmed: url.searchParams.get("confirmed"),
+      priority: url.searchParams.get("priority"),
+      risk: url.searchParams.get("risk"),
+      has_conflicts: url.searchParams.get("has_conflicts"),
+      company_present: url.searchParams.get("company_present"),
+      inn_present: url.searchParams.get("inn_present"),
+      phone_present: url.searchParams.get("phone_present"),
+      article_present: url.searchParams.get("article_present"),
+      sla_overdue: url.searchParams.get("sla_overdue"),
+      limit: url.searchParams.get("limit")
+    }, {
+      consumerId: currentClient.id
+    }));
+  }
+
   // ── Bulk acknowledge ──
   const integrationBulkAckMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/messages\/ack$/);
   if (req.method === "POST" && integrationBulkAckMatch) {
@@ -1438,7 +1557,10 @@ async function handleIntegrationApi(req, res, url) {
       return sendJson(res, 404, { error: "Project not found." });
     }
 
-    const message = findIntegrationMessage(project, decodeURIComponent(integrationMessageMatch[2]), { consumerId: currentClient.id });
+    const message = findIntegrationMessage(project, decodeURIComponent(integrationMessageMatch[2]), {
+      consumerId: currentClient.id,
+      include: url.searchParams.get("include")
+    });
     if (!message) {
       return sendJson(res, 404, { error: "Message not found." });
     }

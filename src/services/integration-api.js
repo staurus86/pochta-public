@@ -156,115 +156,18 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
 export function listIntegrationMessages(project, query = {}, options = {}) {
   const page = normalizePositiveInt(query.page, 1);
   const limit = Math.min(normalizePositiveInt(query.limit, 50), 200);
-  const statuses = parseStatuses(query.status);
-  const since = parseSince(query.since);
-  const exported = parseBooleanFilter(query.exported);
-  const cursor = parseCursor(query.cursor);
-  const brandFilter = parseBrandFilter(query.brand);
-  const labelFilter = parseLabelFilter(query.label);
-  const searchQuery = parseSearchQuery(query.q);
-  const hasAttachments = parseBooleanFilter(query.has_attachments);
-  const attachmentExtFilter = parseAttachmentExtFilter(query.attachment_ext);
-  const minAttachments = normalizePositiveInt(query.min_attachments, 0);
-  const productTypeFilter = parseProductTypeFilter(query.product_type);
-  const confirmedFilter = parseBooleanFilter(query.confirmed);
-  const priorityFilter = parsePriorityFilter(query.priority);
-  const riskFilter = parseRiskFilter(query.risk);
-  const hasConflicts = parseBooleanFilter(query.has_conflicts);
-  const companyPresent = parseBooleanFilter(query.company_present);
-  const innPresent = parseBooleanFilter(query.inn_present);
-  const phonePresent = parseBooleanFilter(query.phone_present);
-  const articlePresent = parseBooleanFilter(query.article_present);
-  const slaOverdue = parseBooleanFilter(query.sla_overdue);
-  const include = normalizeIncludeSet(query.include);
-
-  const allMessages = (project.recentMessages || [])
-    .filter((item) => statuses.length === 0 || statuses.includes(item.pipelineStatus))
-    .filter((item) => exported === null || Boolean(resolveExportState(item, options.consumerId)?.acknowledgedAt) === exported)
-    .filter((item) => {
-      if (!since) {
-        return true;
-      }
-
-      const updatedAt = resolveMessageUpdatedAt(item);
-      return updatedAt ? Date.parse(updatedAt) >= since.getTime() : false;
-    })
-    .filter((item) => {
-      if (!brandFilter) return true;
-      const brands = (item.detectedBrands || item.analysis?.detectedBrands || [])
-        .map((b) => String(b).toLowerCase());
-      return brands.some((b) => b.includes(brandFilter));
-    })
-    .filter((item) => {
-      if (!labelFilter) return true;
-      const label = String(item.classification || item.analysis?.classification || "").toLowerCase();
-      return label === labelFilter;
-    })
-    .filter((item) => {
-      if (!searchQuery) return true;
-      const haystack = [
-        item.subject || "",
-        item.bodyPreview || "",
-        item.fromEmail || "",
-        item.companyName || item.analysis?.companyName || "",
-        ...(item.detectedBrands || item.analysis?.detectedBrands || [])
-      ].join(" ").toLowerCase();
-      return searchQuery.every((term) => haystack.includes(term));
-    })
-    .filter((item) => {
-      if (hasAttachments === null) return true;
-      const attachCount = (item.attachmentFiles || item.attachments || []).length;
-      return hasAttachments ? attachCount > 0 : attachCount === 0;
-    })
-    .filter((item) => {
-      if (!attachmentExtFilter) return true;
-      const files = (item.attachmentFiles || item.attachments || []);
-      const fileNames = files.map((f) => typeof f === "string" ? f : (f.filename || f.name || ""));
-      return fileNames.some((name) => {
-        const ext = name.split(".").pop()?.toLowerCase();
-        return ext && attachmentExtFilter.includes(ext);
-      });
-    })
-    .filter((item) => {
-      if (!minAttachments) return true;
-      return (item.attachmentFiles || item.attachments || []).length >= minAttachments;
-    })
-    .filter((item) => {
-      if (!productTypeFilter) return true;
-      const types = item.analysis?.lead?.detectedProductTypes || [];
-      return productTypeFilter.some((t) => types.includes(t));
-    })
-    .filter((item) => confirmedFilter === null || Boolean(item.recognitionConfirmed?.at) === confirmedFilter)
-    .filter((item) => {
-      if (!priorityFilter) return true;
-      const priority = resolveRecognitionPriority(item.analysis?.lead || {});
-      return priority ? priorityFilter.includes(priority) : false;
-    })
-    .filter((item) => {
-      if (!riskFilter) return true;
-      const risk = resolveRecognitionRisk(item.analysis?.lead || {});
-      return risk ? riskFilter.includes(risk) : false;
-    })
-    .filter((item) => hasConflicts === null || Boolean(item.analysis?.lead?.recognitionSummary?.hasConflicts || (item.analysis?.lead?.recognitionDiagnostics?.conflicts || []).length > 0) === hasConflicts)
-    .filter((item) => companyPresent === null || Boolean(item.analysis?.sender?.companyName) === companyPresent)
-    .filter((item) => innPresent === null || Boolean(item.analysis?.sender?.inn) === innPresent)
-    .filter((item) => phonePresent === null || Boolean(item.analysis?.sender?.mobilePhone || item.analysis?.sender?.cityPhone) === phonePresent)
-    .filter((item) => articlePresent === null || Boolean((item.analysis?.lead?.articles || []).length > 0) === articlePresent)
-    .filter((item) => slaOverdue === null || isMessageSlaOverdue({
-      recognitionPriority: resolveRecognitionPriority(item.analysis?.lead || {}),
-      ageHours: resolveMessageAgeHours(item)
-    }) === slaOverdue)
-    .sort(compareMessagesDesc);
+  const context = buildIntegrationMessageQueryContext(query);
+  const allMessages = filterIntegrationMessages(project, context, options);
 
   const total = allMessages.length;
-  const filteredMessages = cursor
-    ? allMessages.filter((item) => compareMessageToCursor(item, cursor) > 0)
+  const filteredMessages = context.cursor
+    ? allMessages.filter((item) => compareMessageToCursor(item, context.cursor) > 0)
     : allMessages;
-  const offset = cursor ? 0 : (page - 1) * limit;
+  const offset = context.cursor ? 0 : (page - 1) * limit;
   const pageItems = filteredMessages.slice(offset, offset + limit);
   const data = pageItems.map((item) => normalizeIntegrationMessage(project, item, {
     ...options,
-    include
+    include: context.include
   }));
   const hasMore = filteredMessages.length > offset + pageItems.length;
   const lastItem = pageItems[pageItems.length - 1] || null;
@@ -272,33 +175,14 @@ export function listIntegrationMessages(project, query = {}, options = {}) {
   return {
     data,
     pagination: {
-      page: cursor ? null : page,
+      page: context.cursor ? null : page,
       limit,
       total,
-      total_pages: cursor ? null : Math.max(1, Math.ceil(total / limit))
+      total_pages: context.cursor ? null : Math.max(1, Math.ceil(total / limit))
     },
     meta: {
-      statuses,
-      exported,
-      brand: brandFilter,
-      label: labelFilter,
-      q: searchQuery ? searchQuery.join(" ") : null,
-      has_attachments: hasAttachments,
-      attachment_ext: attachmentExtFilter,
-      min_attachments: minAttachments || null,
-      product_type: productTypeFilter,
-      confirmed: confirmedFilter,
-      priority: priorityFilter,
-      risk: riskFilter,
-      has_conflicts: hasConflicts,
-      company_present: companyPresent,
-      inn_present: innPresent,
-      phone_present: phonePresent,
-      article_present: articlePresent,
-      sla_overdue: slaOverdue,
-      include: [...include],
-      since: since ? since.toISOString() : null,
-      cursor: cursor ? encodeCursor(cursor) : null,
+      ...buildIntegrationMessageMeta(context),
+      cursor: context.cursor ? encodeCursor(context.cursor) : null,
       next_cursor: hasMore && lastItem ? encodeCursor({
         updatedAt: resolveMessageUpdatedAt(lastItem),
         messageKey: resolveMessageKey(lastItem)
@@ -317,6 +201,162 @@ export function listIntegrationMessages(project, query = {}, options = {}) {
 export function findIntegrationMessage(project, messageKey, options = {}) {
   const message = (project.recentMessages || []).find((item) => (item.messageKey || item.id) === messageKey);
   return message ? normalizeIntegrationMessage(project, message, options) : null;
+}
+
+export function summarizeIntegrationMessages(project, query = {}, options = {}) {
+  const context = buildIntegrationMessageQueryContext(query);
+  const messages = filterIntegrationMessages(project, context, options);
+  const priorities = {};
+  const risks = {};
+  const byStatus = {};
+  const byClassification = {};
+  let confirmedCount = 0;
+  let conflictsCount = 0;
+  let attachmentCount = 0;
+  let parsedAttachmentsCount = 0;
+  let exportedCount = 0;
+  let confidenceSum = 0;
+  let confidenceCount = 0;
+  let completenessSum = 0;
+  let completenessCount = 0;
+
+  for (const item of messages) {
+    const analysis = item.analysis || {};
+    const lead = analysis.lead || {};
+    const classification = String(analysis.classification?.label || "unknown").trim().toLowerCase() || "unknown";
+    const priority = resolveRecognitionPriority(lead) || "unknown";
+    const risk = resolveRecognitionRisk(lead) || "unknown";
+    const overallConfidence = Number(lead.recognitionDiagnostics?.overallConfidence ?? lead.recognitionSummary?.overallConfidence);
+    const completenessScore = Number(lead.recognitionDiagnostics?.completenessScore ?? lead.recognitionSummary?.completenessScore);
+
+    byStatus[String(item.pipelineStatus || "unknown")] = (byStatus[String(item.pipelineStatus || "unknown")] || 0) + 1;
+    byClassification[classification] = (byClassification[classification] || 0) + 1;
+    priorities[priority] = (priorities[priority] || 0) + 1;
+    risks[risk] = (risks[risk] || 0) + 1;
+    if (item.recognitionConfirmed?.at) confirmedCount += 1;
+    if (resolveHasConflicts(lead)) conflictsCount += 1;
+    if ((item.attachmentFiles || item.attachments || []).length > 0) attachmentCount += 1;
+    if (hasParsedAttachmentSignal(item)) parsedAttachmentsCount += 1;
+    if (resolveExportState(item, options.consumerId)?.acknowledgedAt) exportedCount += 1;
+    if (Number.isFinite(overallConfidence)) {
+      confidenceSum += overallConfidence;
+      confidenceCount += 1;
+    }
+    if (Number.isFinite(completenessScore)) {
+      completenessSum += completenessScore;
+      completenessCount += 1;
+    }
+  }
+
+  return {
+    data: {
+      total_messages: messages.length,
+      by_status: byStatus,
+      by_classification: byClassification,
+      priorities,
+      risks,
+      confirmed_count: confirmedCount,
+      unconfirmed_count: Math.max(0, messages.length - confirmedCount),
+      conflicts_count: conflictsCount,
+      exported_count: exportedCount,
+      with_attachments_count: attachmentCount,
+      parsed_attachments_count: parsedAttachmentsCount,
+      sla_overdue_count: messages.filter((item) => isMessageSlaOverdue({
+        recognitionPriority: resolveRecognitionPriority(item.analysis?.lead || {}),
+        ageHours: resolveMessageAgeHours(item)
+      })).length,
+      avg_confidence: confidenceCount ? Number((confidenceSum / confidenceCount).toFixed(4)) : null,
+      avg_completeness_score: completenessCount ? Number((completenessSum / completenessCount).toFixed(2)) : null,
+      last_message_at: latestIso(messages.map((item) => resolveMessageUpdatedAt(item)))
+    },
+    meta: buildIntegrationMessageMeta(context)
+  };
+}
+
+export function summarizeIntegrationCoverage(project, query = {}, options = {}) {
+  const context = buildIntegrationMessageQueryContext(query);
+  const messages = filterIntegrationMessages(project, context, options);
+  const total = messages.length;
+  const fieldChecks = {
+    article: (item) => hasDetectedArticle(item),
+    brand: (item) => hasDetectedBrand(item),
+    name: (item) => hasDetectedName(item),
+    phone: (item) => hasDetectedPhone(item),
+    company: (item) => hasDetectedCompany(item),
+    inn: (item) => hasDetectedInn(item),
+    parsed_attachment: (item) => hasParsedAttachmentSignal(item)
+  };
+
+  const fields = Object.fromEntries(Object.entries(fieldChecks).map(([key, check]) => {
+    const present = messages.filter(check).length;
+    return [key, {
+      present,
+      missing: Math.max(0, total - present),
+      coverage_rate: total > 0 ? Number((present / total).toFixed(4)) : null
+    }];
+  }));
+
+  return {
+    data: {
+      total_messages: total,
+      fields
+    },
+    meta: buildIntegrationMessageMeta(context)
+  };
+}
+
+export function summarizeIntegrationProblems(project, query = {}, options = {}) {
+  const context = buildIntegrationMessageQueryContext(query);
+  const messages = filterIntegrationMessages(project, context, options);
+  const limit = Math.min(normalizePositiveInt(query.limit, 20), 100);
+  const byIssue = {};
+  const topMessages = [];
+  let totalProblemMessages = 0;
+
+  for (const item of messages) {
+    const issues = detectMessageIssues(item);
+    if (issues.length === 0) {
+      continue;
+    }
+    totalProblemMessages += 1;
+
+    for (const issue of issues) {
+      byIssue[issue] = (byIssue[issue] || 0) + 1;
+    }
+
+    if (topMessages.length < limit) {
+      const lead = item.analysis?.lead || {};
+      topMessages.push({
+        message_key: resolveMessageKey(item),
+        subject: item.subject || "",
+        from: item.from || "",
+        pipeline_status: item.pipelineStatus || "unknown",
+        updated_at: resolveMessageUpdatedAt(item),
+        priority: resolveRecognitionPriority(lead),
+        risk_level: resolveRecognitionRisk(lead),
+        age_hours: resolveMessageAgeHours(item),
+        recognition_confirmed: Boolean(item.recognitionConfirmed?.at),
+        issue_keys: issues,
+        primary_issue: lead.recognitionSummary?.primaryIssue || lead.recognitionDiagnostics?.primaryIssue || issues[0],
+        sla_overdue: isMessageSlaOverdue({
+          recognitionPriority: resolveRecognitionPriority(lead),
+          ageHours: resolveMessageAgeHours(item)
+        })
+      });
+    }
+  }
+
+  return {
+    data: {
+      total_problem_messages: totalProblemMessages,
+      by_issue: byIssue,
+      top_messages: topMessages
+    },
+    meta: {
+      ...buildIntegrationMessageMeta(context),
+      limit
+    }
+  };
 }
 
 export function listIntegrationDeliveries(project, query = {}, options = {}) {
@@ -487,6 +527,130 @@ function parseProductTypeFilter(value) {
   return text.split(",").map((t) => t.trim()).filter(Boolean);
 }
 
+function buildIntegrationMessageQueryContext(query = {}) {
+  return {
+    statuses: parseStatuses(query.status),
+    since: parseSince(query.since),
+    exported: parseBooleanFilter(query.exported),
+    cursor: parseCursor(query.cursor),
+    brandFilter: parseBrandFilter(query.brand),
+    labelFilter: parseLabelFilter(query.label),
+    searchQuery: parseSearchQuery(query.q),
+    hasAttachments: parseBooleanFilter(query.has_attachments),
+    attachmentExtFilter: parseAttachmentExtFilter(query.attachment_ext),
+    minAttachments: normalizePositiveInt(query.min_attachments, 0),
+    productTypeFilter: parseProductTypeFilter(query.product_type),
+    confirmedFilter: parseBooleanFilter(query.confirmed),
+    priorityFilter: parsePriorityFilter(query.priority),
+    riskFilter: parseRiskFilter(query.risk),
+    hasConflicts: parseBooleanFilter(query.has_conflicts),
+    companyPresent: parseBooleanFilter(query.company_present),
+    innPresent: parseBooleanFilter(query.inn_present),
+    phonePresent: parseBooleanFilter(query.phone_present),
+    articlePresent: parseBooleanFilter(query.article_present),
+    slaOverdue: parseBooleanFilter(query.sla_overdue),
+    include: normalizeIncludeSet(query.include)
+  };
+}
+
+function filterIntegrationMessages(project, context, options = {}) {
+  return (project.recentMessages || [])
+    .filter((item) => context.statuses.length === 0 || context.statuses.includes(item.pipelineStatus))
+    .filter((item) => context.exported === null || Boolean(resolveExportState(item, options.consumerId)?.acknowledgedAt) === context.exported)
+    .filter((item) => {
+      if (!context.since) return true;
+      const updatedAt = resolveMessageUpdatedAt(item);
+      return updatedAt ? Date.parse(updatedAt) >= context.since.getTime() : false;
+    })
+    .filter((item) => {
+      if (!context.brandFilter) return true;
+      const brands = (item.detectedBrands || item.analysis?.detectedBrands || []).map((b) => String(b).toLowerCase());
+      return brands.some((b) => b.includes(context.brandFilter));
+    })
+    .filter((item) => {
+      if (!context.labelFilter) return true;
+      const label = String(item.classification || item.analysis?.classification || "").toLowerCase();
+      return label === context.labelFilter;
+    })
+    .filter((item) => {
+      if (!context.searchQuery) return true;
+      const haystack = [
+        item.subject || "",
+        item.bodyPreview || "",
+        item.fromEmail || item.from || "",
+        item.companyName || item.analysis?.companyName || item.analysis?.sender?.companyName || "",
+        ...(item.detectedBrands || item.analysis?.detectedBrands || [])
+      ].join(" ").toLowerCase();
+      return context.searchQuery.every((term) => haystack.includes(term));
+    })
+    .filter((item) => {
+      if (context.hasAttachments === null) return true;
+      const attachCount = (item.attachmentFiles || item.attachments || []).length;
+      return context.hasAttachments ? attachCount > 0 : attachCount === 0;
+    })
+    .filter((item) => {
+      if (!context.attachmentExtFilter) return true;
+      const files = (item.attachmentFiles || item.attachments || []);
+      const fileNames = files.map((f) => typeof f === "string" ? f : (f.filename || f.name || ""));
+      return fileNames.some((name) => {
+        const ext = name.split(".").pop()?.toLowerCase();
+        return ext && context.attachmentExtFilter.includes(ext);
+      });
+    })
+    .filter((item) => !context.minAttachments || (item.attachmentFiles || item.attachments || []).length >= context.minAttachments)
+    .filter((item) => {
+      if (!context.productTypeFilter) return true;
+      const types = item.analysis?.lead?.detectedProductTypes || [];
+      return context.productTypeFilter.some((t) => types.includes(t));
+    })
+    .filter((item) => context.confirmedFilter === null || Boolean(item.recognitionConfirmed?.at) === context.confirmedFilter)
+    .filter((item) => {
+      if (!context.priorityFilter) return true;
+      const priority = resolveRecognitionPriority(item.analysis?.lead || {});
+      return priority ? context.priorityFilter.includes(priority) : false;
+    })
+    .filter((item) => {
+      if (!context.riskFilter) return true;
+      const risk = resolveRecognitionRisk(item.analysis?.lead || {});
+      return risk ? context.riskFilter.includes(risk) : false;
+    })
+    .filter((item) => context.hasConflicts === null || resolveHasConflicts(item.analysis?.lead || {}) === context.hasConflicts)
+    .filter((item) => context.companyPresent === null || hasDetectedCompany(item) === context.companyPresent)
+    .filter((item) => context.innPresent === null || hasDetectedInn(item) === context.innPresent)
+    .filter((item) => context.phonePresent === null || hasDetectedPhone(item) === context.phonePresent)
+    .filter((item) => context.articlePresent === null || hasDetectedArticle(item) === context.articlePresent)
+    .filter((item) => context.slaOverdue === null || isMessageSlaOverdue({
+      recognitionPriority: resolveRecognitionPriority(item.analysis?.lead || {}),
+      ageHours: resolveMessageAgeHours(item)
+    }) === context.slaOverdue)
+    .sort(compareMessagesDesc);
+}
+
+function buildIntegrationMessageMeta(context) {
+  return {
+    statuses: context.statuses,
+    exported: context.exported,
+    brand: context.brandFilter,
+    label: context.labelFilter,
+    q: context.searchQuery ? context.searchQuery.join(" ") : null,
+    has_attachments: context.hasAttachments,
+    attachment_ext: context.attachmentExtFilter,
+    min_attachments: context.minAttachments || null,
+    product_type: context.productTypeFilter,
+    confirmed: context.confirmedFilter,
+    priority: context.priorityFilter,
+    risk: context.riskFilter,
+    has_conflicts: context.hasConflicts,
+    company_present: context.companyPresent,
+    inn_present: context.innPresent,
+    phone_present: context.phonePresent,
+    article_present: context.articlePresent,
+    sla_overdue: context.slaOverdue,
+    include: [...context.include],
+    since: context.since ? context.since.toISOString() : null
+  };
+}
+
 function parsePriorityFilter(value) {
   const text = String(value || "").trim().toLowerCase();
   if (!text) return null;
@@ -528,6 +692,10 @@ function resolveRecognitionPriority(lead = {}) {
 function resolveRecognitionRisk(lead = {}) {
   const value = String(lead.recognitionSummary?.riskLevel || lead.recognitionDiagnostics?.riskLevel || "").trim().toLowerCase();
   return value || null;
+}
+
+function resolveHasConflicts(lead = {}) {
+  return Boolean(lead.recognitionSummary?.hasConflicts || (lead.recognitionDiagnostics?.conflicts || []).length > 0);
 }
 
 function parseCursor(value) {
@@ -649,6 +817,71 @@ function normalizeAuditLog(entries = []) {
     external_id: entry.externalId || null,
     note: entry.note || null
   }));
+}
+
+function hasDetectedArticle(message) {
+  return Boolean((message.analysis?.lead?.articles || []).length > 0);
+}
+
+function hasDetectedBrand(message) {
+  return Boolean((message.analysis?.lead?.detectedBrands || message.analysis?.detectedBrands || []).length > 0);
+}
+
+function hasDetectedName(message) {
+  const lead = message.analysis?.lead || {};
+  return Boolean(
+    (lead.productNames || []).length > 0
+    || (lead.nomenclatureMatches || []).some((item) => item?.productName)
+    || (lead.lineItems || []).some((item) => item?.descriptionRu)
+  );
+}
+
+function hasDetectedPhone(message) {
+  return Boolean(message.analysis?.sender?.mobilePhone || message.analysis?.sender?.cityPhone);
+}
+
+function hasDetectedCompany(message) {
+  return Boolean(message.analysis?.sender?.companyName);
+}
+
+function hasDetectedInn(message) {
+  return Boolean(message.analysis?.sender?.inn);
+}
+
+function hasParsedAttachmentSignal(message) {
+  const lead = message.analysis?.lead || {};
+  if (lead.recognitionSummary?.parsedAttachment) {
+    return true;
+  }
+  const files = message.analysis?.attachmentAnalysis?.files || [];
+  return files.some((file) => {
+    const status = String(file.status || "").toLowerCase();
+    return status === "processed" || Number(file.extractedChars) > 0 || (file.lineItems || []).length > 0;
+  });
+}
+
+function detectMessageIssues(message) {
+  const lead = message.analysis?.lead || {};
+  const issues = [];
+  if (!hasDetectedArticle(message)) issues.push("no_article");
+  if (!hasDetectedBrand(message)) issues.push("no_brand");
+  if (!hasDetectedName(message)) issues.push("no_name");
+  if (!hasDetectedPhone(message)) issues.push("no_phone");
+  if (!hasDetectedCompany(message)) issues.push("no_company");
+  if (!hasDetectedInn(message)) issues.push("no_inn");
+  if ((message.attachmentFiles || message.attachments || []).length > 0 && !hasParsedAttachmentSignal(message)) {
+    issues.push("attachments_unparsed");
+  }
+  const risk = resolveRecognitionRisk(lead);
+  const confidence = Number(lead.recognitionDiagnostics?.overallConfidence ?? lead.recognitionSummary?.overallConfidence);
+  if (risk === "high" || risk === "medium" || (Number.isFinite(confidence) && confidence < 0.75)) {
+    issues.push("weak_detection");
+  }
+  if (resolveHasConflicts(lead)) issues.push("has_conflicts");
+  if (isMessageSlaOverdue({ recognitionPriority: resolveRecognitionPriority(lead), ageHours: resolveMessageAgeHours(message) })) {
+    issues.push("sla_overdue");
+  }
+  return issues;
 }
 
 function resolveExportState(message, consumerId) {

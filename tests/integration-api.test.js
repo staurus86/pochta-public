@@ -4,7 +4,10 @@ import {
   listIntegrationMessages,
   normalizeIntegrationMessage,
   parseIntegrationCursor,
-  summarizeIntegrationDeliveries
+  summarizeIntegrationCoverage,
+  summarizeIntegrationDeliveries,
+  summarizeIntegrationMessages,
+  summarizeIntegrationProblems
 } from "../src/services/integration-api.js";
 import { canClientAccessProject, isIntegrationAuthorized, loadIntegrationClients, resolveIntegrationClient } from "../src/services/integration-clients.js";
 
@@ -349,6 +352,34 @@ runTest("filters integration messages by risk and field presence", () => {
   const withInn = listIntegrationMessages(project, { inn_present: "true", company_present: "true", phone_present: "true", article_present: "true" });
   assert.equal(withInn.data.length, 1);
   assert.equal(withInn.data[0].message_key, "msg-1");
+});
+
+runTest("summarizes integration messages for external dashboards", () => {
+  const result = summarizeIntegrationMessages(project, {});
+  assert.equal(result.data.total_messages, 3);
+  assert.equal(result.data.by_status.ready_for_crm, 1);
+  assert.equal(result.data.by_classification["клиент"], 2);
+  assert.equal(result.data.priorities.medium, 1);
+  assert.equal(result.data.risks.low, 1);
+  assert.equal(result.data.confirmed_count, 1);
+  assert.equal(result.data.with_attachments_count, 1);
+});
+
+runTest("summarizes field coverage across filtered messages", () => {
+  const result = summarizeIntegrationCoverage(project, {});
+  assert.equal(result.data.total_messages, 3);
+  assert.equal(result.data.fields.article.present, 2);
+  assert.equal(result.data.fields.brand.present, 1);
+  assert.equal(result.data.fields.company.present, 1);
+  assert.equal(result.data.fields.inn.present, 1);
+});
+
+runTest("builds problem queue summary for integration consumers", () => {
+  const result = summarizeIntegrationProblems(project, {});
+  assert.equal(result.data.total_problem_messages, 3);
+  assert.ok(result.data.by_issue.no_brand >= 1);
+  assert.ok(result.data.by_issue.no_company >= 1);
+  assert.equal(result.data.top_messages[0].message_key, "msg-3");
 });
 
 runTest("supports cursor-based integration pagination with stable ordering", () => {
