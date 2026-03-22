@@ -1079,13 +1079,12 @@ function renderDashboard() {
     </div>`
   ).join('') : '<div style="color:var(--text-muted);font-size:12px;">Нет данных о брендах</div>';
 
-  renderProblemQueue();
-  renderQualityAuditTable();
-
-  // ═══ Request Analytics ═══
   renderRequestAnalytics();
   renderAccuracyMetrics();
   renderWeeklyTrends();
+  renderFieldCoverage();
+  renderProblemQueue();
+  renderQualityAuditTable();
 }
 
 function renderQualityAuditTable() {
@@ -1375,11 +1374,75 @@ function renderAccuracyMetrics() {
       <div class="kpi-card"><div class="kpi-label">Точность</div><div class="kpi-value" style="color:${accuracyColor}">${accuracy}%</div></div>
       <div class="kpi-card"><div class="kpi-label">Всего писем</div><div class="kpi-value">${total}</div></div>
       <div class="kpi-card"><div class="kpi-label">Скорректировано</div><div class="kpi-value rose">${corrected}</div></div>
-      <div class="kpi-card"><div class="kpi-label">Feedback брендов</div><div class="kpi-value accent">${feedbackCount}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Feedback писем</div><div class="kpi-value accent">${feedbackCount}</div></div>
     </div>
     ${corrected > 0 ? `<div style="font-size:11px;color:var(--text-muted);">
       Коррекции: → Клиент: ${correctionsByType.client}, → Спам: ${correctionsByType.spam}, → Поставщик: ${correctionsByType.vendor}
     </div>` : '<div style="font-size:11px;color:var(--green);">Все классификации корректны</div>'}
+  `;
+}
+
+function renderFieldCoverage() {
+  const el = $('#field-coverage');
+  if (!el) return;
+
+  const total = allRunnerMessages.length;
+  if (total === 0) {
+    el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:8px;">Нет данных</div>';
+    return;
+  }
+
+  const fields = [
+    { label: 'Артикул', filter: 'missing_article', ok: (a) => (a.lead?.articles || []).length > 0 || (a.lead?.lineItems || []).some((item) => item.article) },
+    { label: 'Бренд', filter: 'missing_brand', ok: (a) => (a.detectedBrands || a.lead?.detectedBrands || []).length > 0 },
+    { label: 'Наименование', filter: 'missing_name', ok: (a) => getLeadProductNameList(a.lead || {}).length > 0 || (a.lead?.lineItems || []).some((item) => getLineItemName(item, a.lead || {})) },
+    { label: 'Компания', filter: 'missing_company', ok: (a) => Boolean(a.sender?.companyName || a.crm?.company?.legalName) },
+    { label: 'Телефон', filter: 'missing_phone', ok: (a) => Boolean(a.sender?.mobilePhone || a.sender?.cityPhone) },
+    { label: 'ИНН', filter: 'missing_inn', ok: (a) => Boolean(a.sender?.inn) },
+    { label: 'Разбор вложений', filter: 'attachments_unparsed', ok: (a, msg) => {
+      const attachments = msg.attachments || [];
+      if (!attachments.length) return true;
+      const files = a.attachmentAnalysis?.files || [];
+      return files.some((file) => file.status === 'processed');
+    } }
+  ];
+
+  const stats = fields.map((field) => {
+    const found = allRunnerMessages.filter((msg) => field.ok(msg.analysis || {}, msg)).length;
+    const missing = total - found;
+    const pct = Math.round(found / total * 100);
+    return { ...field, found, missing, pct };
+  });
+
+  const strongest = [...stats].sort((a, b) => b.pct - a.pct)[0];
+  const weakest = [...stats].sort((a, b) => a.pct - b.pct)[0];
+  const keyFieldGaps = allRunnerMessages.filter((msg) => {
+    const a = msg.analysis || {};
+    const hasArticle = (a.lead?.articles || []).length > 0;
+    const hasName = getLeadProductNameList(a.lead || {}).length > 0;
+    const hasBrand = (a.detectedBrands || []).length > 0;
+    return !(hasArticle && (hasName || hasBrand));
+  }).length;
+
+  el.innerHTML = `
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:12px;">
+      <div class="kpi-card"><div class="kpi-label">Лучшее покрытие</div><div class="kpi-value green">${strongest?.pct || 0}%</div><div style="font-size:11px;color:var(--text-muted);">${esc(strongest?.label || '—')}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Слабое место</div><div class="kpi-value rose">${weakest?.pct || 0}%</div><div style="font-size:11px;color:var(--text-muted);">${esc(weakest?.label || '—')}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Писем с влож.</div><div class="kpi-value accent">${allRunnerMessages.filter((msg) => (msg.attachments || []).length > 0).length}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Без ключ. полей</div><div class="kpi-value amber">${keyFieldGaps}</div></div>
+    </div>
+    <div style="display:grid;gap:8px;">
+      ${stats.map((item) => `
+        <button onclick="window.__openRecognitionFilter('${item.filter}')" style="display:grid;grid-template-columns:140px 1fr 72px 58px;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-0);cursor:pointer;text-align:left;">
+          <span style="font-size:12px;font-weight:600;color:var(--text);">${esc(item.label)}</span>
+          <span style="height:10px;background:var(--surface-2);border-radius:999px;overflow:hidden;">
+            <span style="display:block;height:100%;width:${item.pct}%;background:${item.pct >= 80 ? 'var(--green)' : item.pct >= 50 ? 'var(--amber)' : 'var(--rose)'};"></span>
+          </span>
+          <span style="font-size:12px;font-weight:700;color:${item.pct >= 80 ? 'var(--green)' : item.pct >= 50 ? 'var(--amber)' : 'var(--rose)'};">${item.pct}%</span>
+          <span style="font-size:11px;color:var(--text-muted);">нет ${item.missing}</span>
+        </button>
+      `).join('')}
+    </div>
   `;
 }
 
@@ -1794,6 +1857,9 @@ function renderEmailView(msg, viewEl, detailEl) {
   const crmFields = [['Юрлицо найдено', crm.isExistingCompany ? 'Да' : 'Нет'], ['Компания CRM', crm.company?.legalName], ['МОП', crm.curatorMop], ['МОЗ', crm.curatorMoz], ['Уточнение', crm.needsClarification ? 'Требуется' : 'Нет']];
   const attachmentFiles = a.attachmentAnalysis?.files || [];
   const recognitionSummary = getRecognitionSummary(a);
+  const primaryArticle = (lead.articles || [])[0] || lead.lineItems?.find((item) => item.article)?.article || '';
+  const primaryProductName = getLeadProductNameList(lead)[0] || getLineItemName(lead.lineItems?.[0] || {}, lead) || '';
+  const primaryPhone = sender.mobilePhone || sender.cityPhone || '';
 
   try {
   detailEl.innerHTML = `
@@ -1856,6 +1922,24 @@ function renderEmailView(msg, viewEl, detailEl) {
           <input id="feedback-brand-${esc(msgKey)}" class="form-input" placeholder="Название бренда..." style="flex:1;font-size:11px;padding:4px 8px;" />
           <button class="btn btn-sm" style="font-size:10px;padding:2px 8px;background:var(--green-dim);color:var(--green);border:1px solid var(--green);" onclick="window.__feedbackBrand('${escAttr(msgKey)}','add')">+</button>
           <button class="btn btn-sm" style="font-size:10px;padding:2px 8px;background:var(--rose-dim);color:var(--rose);border:1px solid var(--rose);" onclick="window.__feedbackBrand('${escAttr(msgKey)}','remove')">−</button>
+        </div>
+      </div>
+      <div style="margin-bottom:8px;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-0);">
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Быстрая коррекция полей:</div>
+        <div style="display:grid;gap:6px;">
+          <input id="feedback-company-${esc(msgKey)}" class="form-input" placeholder="Компания" value="${esc(sender.companyName || '')}" style="font-size:11px;padding:6px 8px;" />
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <input id="feedback-inn-${esc(msgKey)}" class="form-input" placeholder="ИНН" value="${esc(sender.inn || '')}" style="font-size:11px;padding:6px 8px;" />
+            <input id="feedback-phone-${esc(msgKey)}" class="form-input" placeholder="Телефон" value="${esc(primaryPhone)}" style="font-size:11px;padding:6px 8px;" />
+          </div>
+          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
+            <input id="feedback-article-${esc(msgKey)}" class="form-input" placeholder="Артикул" value="${esc(primaryArticle)}" style="font-size:11px;padding:6px 8px;font-family:'JetBrains Mono',monospace;" />
+            <input id="feedback-name-${esc(msgKey)}" class="form-input" placeholder="Наименование" value="${esc(primaryProductName)}" style="font-size:11px;padding:6px 8px;" />
+          </div>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-primary btn-sm" style="flex:1;" onclick="window.__saveFieldFeedback('${escAttr(msgKey)}')">Сохранить коррекцию</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="window.__clearFieldFeedback('${escAttr(msgKey)}')">Очистить форму</button>
+          </div>
         </div>
       </div>
       <div id="rule-form-${esc(msgKey)}" style="display:none;">
@@ -1998,6 +2082,55 @@ window.__feedbackBrand = async (msgKey, action) => {
     showToast(`${action === 'add' ? '+' : '−'} ${brand}`);
     renderInbox();
   } catch (e) { showToast('Ошибка: ' + e.message, true); }
+};
+
+window.__clearFieldFeedback = (msgKey) => {
+  ['company', 'inn', 'phone', 'article', 'name'].forEach((field) => {
+    const input = $(`#feedback-${field}-${msgKey}`);
+    if (input) input.value = '';
+  });
+};
+
+window.__saveFieldFeedback = async (msgKey) => {
+  const currentMsg = allRunnerMessages.find((m) => mid(m) === msgKey);
+  const pid = currentMsg?._projectId || P3_ID;
+  const companyName = $(`#feedback-company-${msgKey}`)?.value?.trim() || '';
+  const inn = $(`#feedback-inn-${msgKey}`)?.value?.trim() || '';
+  const phone = $(`#feedback-phone-${msgKey}`)?.value?.trim() || '';
+  const article = $(`#feedback-article-${msgKey}`)?.value?.trim() || '';
+  const name = $(`#feedback-name-${msgKey}`)?.value?.trim() || '';
+
+  if (!companyName && !inn && !phone && !article && !name) {
+    showToast('Заполните хотя бы одно поле');
+    return;
+  }
+
+  const payload = {
+    companyName,
+    inn,
+    phone,
+    addArticles: article ? [article] : [],
+    productNames: article && name ? [{ article, name }] : []
+  };
+
+  try {
+    const res = await fetch(`/api/projects/${pid}/messages/${encodeURIComponent(msgKey)}/feedback`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (!res.ok) {
+      showToast('Ошибка сохранения', true);
+      return;
+    }
+    const data = await res.json();
+    if (currentMsg && data.analysis) currentMsg.analysis = data.analysis;
+    showToast('Коррекция сохранена');
+    renderDashboard();
+    renderInbox();
+  } catch (e) {
+    showToast('Ошибка: ' + e.message, true);
+  }
 };
 
 window.__showRuleForm = (msgKey) => {
