@@ -1000,3 +1000,35 @@ runTest("applies sender profile hints to company and brands on future emails", (
     if (profile?.id) detectionKb.deactivateSenderProfile(profile.id);
   }
 });
+
+runTest("builds recognition diagnostics with high confidence for well-structured request", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@factory.ru",
+    fromName: "Иван Петров",
+    subject: "Запрос по S201-C16",
+    body: `Добрый день
+ООО "Ромашка" ИНН 7701234567
+Телефон: +7 (495) 123-45-67
+Просим выставить счет на ABB S201-C16 - 5 шт`
+  });
+
+  assert.equal(result.lead.recognitionDiagnostics.riskLevel, "low");
+  assert.ok(result.lead.recognitionDiagnostics.completenessScore >= 80);
+  assert.ok(result.lead.recognitionDiagnostics.fields.article.confidence >= 0.8);
+  assert.equal(result.lead.recognitionSummary.hasConflicts, false);
+});
+
+runTest("detects conflicting quantities and names for same article", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@factory.ru",
+    subject: "Спецификация",
+    body: `1. Клапан KV-100 - 2 шт
+2. Клапан специальный KV-100 - 4 шт`
+  });
+
+  const conflicts = result.lead.recognitionDiagnostics.conflicts || [];
+  assert.ok(conflicts.some((item) => item.code === "article_quantity_conflict" && item.article === "KV-100"));
+  assert.ok(conflicts.some((item) => item.code === "article_name_conflict" && item.article === "KV-100"));
+  assert.equal(result.lead.recognitionDiagnostics.riskLevel, "high");
+  assert.equal(result.lead.recognitionSummary.hasConflicts, true);
+});

@@ -557,6 +557,7 @@ function filterInboxMessages(tab) {
 
 function matchesRecognitionFilter(message, filterValue) {
   const summary = getRecognitionSummary(message.analysis || {});
+  const diagnostics = getRecognitionDiagnostics(message.analysis || {});
   const hasAttachments = (message.attachments || message.attachmentFiles || []).length > 0;
 
   if (filterValue === 'missing_article') return !summary.article;
@@ -566,6 +567,8 @@ function matchesRecognitionFilter(message, filterValue) {
   if (filterValue === 'missing_company') return !summary.company;
   if (filterValue === 'missing_inn') return !summary.inn;
   if (filterValue === 'attachments_unparsed') return hasAttachments && !summary.parsedAttachment;
+  if (filterValue === 'weak_detection') return diagnostics.riskLevel === 'high' || (diagnostics.completenessScore || 0) < 70 || (diagnostics.overallConfidence || 0) < 0.72;
+  if (filterValue === 'has_conflicts') return (diagnostics.conflicts || []).length > 0;
   if (filterValue === 'all_key_fields') return summary.article && summary.brand && summary.name && summary.phone;
   if (filterValue === 'fully_parsed') {
     return summary.article
@@ -595,14 +598,33 @@ function getRecognitionSummary(analysis = {}) {
   };
 }
 
+function getRecognitionDiagnostics(analysis = {}) {
+  const lead = analysis.lead || {};
+  const summary = getRecognitionSummary(analysis);
+  const stored = lead.recognitionDiagnostics || {};
+  const presentCount = ['article', 'brand', 'name', 'phone', 'company', 'inn'].filter((field) => summary[field]).length;
+  return {
+    completenessScore: stored.completenessScore ?? Math.round((presentCount / 6) * 100),
+    overallConfidence: stored.overallConfidence ?? 0,
+    riskLevel: stored.riskLevel || (summary.missing?.length > 2 ? 'high' : summary.missing?.length > 0 ? 'medium' : 'low'),
+    primaryIssue: stored.primaryIssue || summary.missing?.[0] || null,
+    fields: stored.fields || {},
+    conflicts: stored.conflicts || [],
+    issues: stored.issues || []
+  };
+}
+
 function renderRecognitionBadges(analysis = {}) {
   const summary = getRecognitionSummary(analysis);
+  const diagnostics = getRecognitionDiagnostics(analysis);
   const badges = [];
   if (!summary.article) badges.push('<span class="badge badge-unknown" title="Не найден артикул">нет артикула</span>');
   if (!summary.brand) badges.push('<span class="badge badge-unknown" title="Не найден бренд">нет бренда</span>');
   if (!summary.name) badges.push('<span class="badge badge-unknown" title="Не найдено наименование">нет имени</span>');
   if (!summary.phone) badges.push('<span class="badge badge-unknown" title="Не найден телефон">нет телефона</span>');
   if (summary.parsedAttachment) badges.push('<span class="badge badge-client" title="Есть обработанные вложения">вложения ок</span>');
+  if ((diagnostics.conflicts || []).length) badges.push('<span class="badge badge-spam" title="Есть конфликтующие данные по полям">есть конфликт</span>');
+  if (diagnostics.riskLevel === 'high') badges.push('<span class="badge badge-vendor" title="Нужна ручная проверка">слабый детект</span>');
   return badges.join('');
 }
 
@@ -622,6 +644,82 @@ function renderRecognitionSummary(summary) {
       <span class="badge ${ok ? 'badge-client' : 'badge-unknown'}">${ok ? 'найдено' : 'нет'}</span>
     </div>`
   ).join('');
+}
+
+function renderRecognitionDiagnostics(analysis = {}) {
+  const diagnostics = getRecognitionDiagnostics(analysis);
+  const fieldDiagnostics = diagnostics.fields || {};
+  const fieldRows = [
+    ['Артикул', fieldDiagnostics.article],
+    ['Бренд', fieldDiagnostics.brand],
+    ['Наименование', fieldDiagnostics.name],
+    ['Телефон', fieldDiagnostics.phone],
+    ['Компания', fieldDiagnostics.company],
+    ['ИНН', fieldDiagnostics.inn]
+  ];
+  const issues = diagnostics.issues || [];
+  const conflicts = diagnostics.conflicts || [];
+  const riskColor = diagnostics.riskLevel === 'low' ? 'var(--green)' : diagnostics.riskLevel === 'medium' ? 'var(--amber)' : 'var(--rose)';
+
+  return `
+    <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px;">
+      <div class="kpi-card" style="padding:10px;">
+        <div class="kpi-label">Покрытие</div>
+        <div class="kpi-value" style="color:${riskColor};">${diagnostics.completenessScore || 0}%</div>
+      </div>
+      <div class="kpi-card" style="padding:10px;">
+        <div class="kpi-label">Уверенность</div>
+        <div class="kpi-value accent">${Math.round((diagnostics.overallConfidence || 0) * 100)}%</div>
+      </div>
+      <div class="kpi-card" style="padding:10px;">
+        <div class="kpi-label">Риск</div>
+        <div class="kpi-value" style="color:${riskColor};text-transform:uppercase;">${esc(diagnostics.riskLevel || 'low')}</div>
+      </div>
+    </div>
+    <div style="display:grid;gap:6px;margin-bottom:10px;">
+      ${fieldRows.map(([label, field]) => `
+        <div style="display:grid;grid-template-columns:92px 1fr 58px;align-items:center;gap:8px;font-size:11px;">
+          <span style="color:var(--text-muted);">${esc(label)}</span>
+          <div class="confidence-bar">${renderConfBar(field?.confidence || 0)}</div>
+          <span style="color:var(--text-secondary);text-align:right;">${esc(field?.source || '—')}</span>
+        </div>
+      `).join('')}
+    </div>
+    ${issues.length ? `<div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:${conflicts.length ? '8px' : '0'};">
+      ${issues.slice(0, 6).map((issue) => `<span class="badge ${issue.severity === 'high' ? 'badge-spam' : issue.severity === 'medium' ? 'badge-vendor' : 'badge-unknown'}" title="${esc(issue.code)}">${esc(issueLabel(issue.code))}</span>`).join('')}
+    </div>` : ''}
+    ${conflicts.length ? `<div style="display:grid;gap:6px;">
+      ${conflicts.slice(0, 4).map((conflict) => `<div style="font-size:11px;padding:8px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-0);">
+        <div style="font-weight:600;color:var(--rose);margin-bottom:4px;">${esc(issueLabel(conflict.code))}</div>
+        <div style="color:var(--text-secondary);">${esc((conflict.values || []).join(' / ') || '—')}</div>
+        ${conflict.article ? `<div style="margin-top:2px;color:var(--text-muted);font-family:'JetBrains Mono',monospace;">${esc(conflict.article)}</div>` : ''}
+      </div>`).join('')}
+    </div>` : ''}
+  `;
+}
+
+function issueLabel(code) {
+  return {
+    missing_article: 'нет артикула',
+    missing_brand: 'нет бренда',
+    missing_name: 'нет наименования',
+    missing_phone: 'нет телефона',
+    missing_company: 'нет компании',
+    missing_inn: 'нет ИНН',
+    attachment_parse_gap: 'вложения не разобраны',
+    low_confidence_article: 'слабый артикул',
+    low_confidence_brand: 'слабый бренд',
+    low_confidence_name: 'слабое наименование',
+    low_confidence_phone: 'слабый телефон',
+    low_confidence_company: 'слабая компания',
+    low_confidence_inn: 'слабый ИНН',
+    low_classification_confidence: 'слабая классификация',
+    multiple_brands_detected: 'несколько брендов',
+    detection_conflicts_present: 'есть конфликты',
+    article_quantity_conflict: 'конфликт количества',
+    article_name_conflict: 'конфликт названия',
+    multiple_inn_candidates: 'несколько ИНН'
+  }[code] || code;
 }
 
 function renderDetectionSources(analysis = {}) {
@@ -1128,31 +1226,32 @@ function renderQualityAuditTable() {
     .filter((m) => m.pipelineStatus !== 'ignored_spam' && m.pipelineStatus !== 'fetch_error')
     .map((message) => {
       const summary = getRecognitionSummary(message.analysis || {});
-      const missing = summary.missing || [];
-      const hasAttachments = (message.attachments || message.attachmentFiles || []).length > 0;
-      const attachmentIssue = hasAttachments && !summary.parsedAttachment ? 'attachments' : null;
-      const primaryProblem = missing[0] || attachmentIssue;
+      const diagnostics = getRecognitionDiagnostics(message.analysis || {});
+      const primaryProblem = diagnostics.primaryIssue || (summary.missing || [])[0] || null;
       if (!primaryProblem) return null;
       return {
         message,
         primaryProblem,
         confidence: message.analysis?.classification?.confidence || 0,
-        parsedAttachment: summary.parsedAttachment
+        parsedAttachment: summary.parsedAttachment,
+        diagnostics
       };
     })
     .filter(Boolean)
     .sort((a, b) => {
+      const riskWeight = { high: 0, medium: 1, low: 2 };
+      if ((a.diagnostics.riskLevel || '') !== (b.diagnostics.riskLevel || '')) return (riskWeight[a.diagnostics.riskLevel] ?? 99) - (riskWeight[b.diagnostics.riskLevel] ?? 99);
       if (a.primaryProblem !== b.primaryProblem) return a.primaryProblem.localeCompare(b.primaryProblem);
-      return a.confidence - b.confidence;
+      return (a.diagnostics.overallConfidence || a.confidence) - (b.diagnostics.overallConfidence || b.confidence);
     })
     .slice(0, 20);
 
-  $('#quality-audit-body').innerHTML = rows.length ? rows.map(({ message, primaryProblem, confidence, parsedAttachment }) => `
+  $('#quality-audit-body').innerHTML = rows.length ? rows.map(({ message, primaryProblem, confidence, parsedAttachment, diagnostics }) => `
     <tr>
       <td><span class="badge badge-unknown">${esc(problemLabel(primaryProblem))}</span></td>
       <td style="max-width:320px;"><button onclick="window.__openProblemMessage('${escAttr(mid(message))}')" style="background:none;border:none;padding:0;color:var(--text);cursor:pointer;text-align:left;">${esc(truncate(message.subject || 'Без темы', 70))}</button></td>
       <td style="font-size:11px;color:var(--text-secondary);">${esc(truncate(message.from || message.analysis?.sender?.email || '', 36))}</td>
-      <td>${confidenceBadge(confidence)}</td>
+      <td>${confidenceBadge(diagnostics.overallConfidence || confidence)}</td>
       <td>${parsedAttachment ? '<span class="badge badge-client">ok</span>' : '<span class="badge badge-unknown">нет</span>'}</td>
       <td><button class="btn btn-ghost btn-sm" onclick="window.__openRecognitionFilter('${escAttr(problemToFilter(primaryProblem))}')">Открыть</button></td>
     </tr>
@@ -1167,7 +1266,20 @@ function problemLabel(problem) {
     phone: 'Нет телефона',
     company: 'Нет компании',
     inn: 'Нет ИНН',
-    attachments: 'Вложения не разобраны'
+    attachments: 'Вложения не разобраны',
+    attachment_parse_gap: 'Вложения не разобраны',
+    low_confidence_article: 'Слабый артикул',
+    low_confidence_brand: 'Слабый бренд',
+    low_confidence_name: 'Слабое наименование',
+    low_confidence_phone: 'Слабый телефон',
+    low_confidence_company: 'Слабая компания',
+    low_confidence_inn: 'Слабый ИНН',
+    low_classification_confidence: 'Слабая классификация',
+    article_quantity_conflict: 'Конфликт количества',
+    article_name_conflict: 'Конфликт названия',
+    multiple_inn_candidates: 'Несколько ИНН',
+    multiple_brands_detected: 'Несколько брендов',
+    detection_conflicts_present: 'Есть конфликты'
   }[problem] || problem;
 }
 
@@ -1179,7 +1291,20 @@ function problemToFilter(problem) {
     phone: 'missing_phone',
     company: 'missing_company',
     inn: 'missing_inn',
-    attachments: 'attachments_unparsed'
+    attachments: 'attachments_unparsed',
+    attachment_parse_gap: 'attachments_unparsed',
+    low_confidence_article: 'weak_detection',
+    low_confidence_brand: 'weak_detection',
+    low_confidence_name: 'weak_detection',
+    low_confidence_phone: 'weak_detection',
+    low_confidence_company: 'weak_detection',
+    low_confidence_inn: 'weak_detection',
+    low_classification_confidence: 'weak_detection',
+    article_quantity_conflict: 'has_conflicts',
+    article_name_conflict: 'has_conflicts',
+    multiple_inn_candidates: 'has_conflicts',
+    detection_conflicts_present: 'has_conflicts',
+    multiple_brands_detected: 'weak_detection'
   }[problem] || '';
 }
 
@@ -1192,7 +1317,9 @@ function renderProblemQueue() {
     { key: 'missing_phone', label: 'Нет телефона' },
     { key: 'missing_company', label: 'Нет компании' },
     { key: 'missing_inn', label: 'Нет ИНН' },
-    { key: 'attachments_unparsed', label: 'Вложения не разобраны' }
+    { key: 'attachments_unparsed', label: 'Вложения не разобраны' },
+    { key: 'weak_detection', label: 'Слабый детект' },
+    { key: 'has_conflicts', label: 'Есть конфликты' }
   ];
 
   const stats = problemDefs.map((item) => ({
@@ -1452,6 +1579,8 @@ function renderFieldCoverage() {
 
   const strongest = [...stats].sort((a, b) => b.pct - a.pct)[0];
   const weakest = [...stats].sort((a, b) => a.pct - b.pct)[0];
+  const weakDetectionCount = allRunnerMessages.filter((msg) => matchesRecognitionFilter(msg, 'weak_detection')).length;
+  const conflictCount = allRunnerMessages.filter((msg) => matchesRecognitionFilter(msg, 'has_conflicts')).length;
   const keyFieldGaps = allRunnerMessages.filter((msg) => {
     const a = msg.analysis || {};
     const hasArticle = (a.lead?.articles || []).length > 0;
@@ -1464,6 +1593,8 @@ function renderFieldCoverage() {
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:12px;">
       <div class="kpi-card"><div class="kpi-label">Лучшее покрытие</div><div class="kpi-value green">${strongest?.pct || 0}%</div><div style="font-size:11px;color:var(--text-muted);">${esc(strongest?.label || '—')}</div></div>
       <div class="kpi-card"><div class="kpi-label">Слабое место</div><div class="kpi-value rose">${weakest?.pct || 0}%</div><div style="font-size:11px;color:var(--text-muted);">${esc(weakest?.label || '—')}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Слабый детект</div><div class="kpi-value amber">${weakDetectionCount}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Конфликты</div><div class="kpi-value rose">${conflictCount}</div></div>
       <div class="kpi-card"><div class="kpi-label">Писем с влож.</div><div class="kpi-value accent">${allRunnerMessages.filter((msg) => (msg.attachments || []).length > 0).length}</div></div>
       <div class="kpi-card"><div class="kpi-label">Без ключ. полей</div><div class="kpi-value amber">${keyFieldGaps}</div></div>
     </div>
@@ -1919,6 +2050,10 @@ function renderEmailView(msg, viewEl, detailEl) {
     <div class="detail-section">
       <div class="detail-section-title">Качество распознавания</div>
       ${renderRecognitionSummary(recognitionSummary)}
+    </div>
+    <div class="detail-section">
+      <div class="detail-section-title">Диагностика детекта</div>
+      ${renderRecognitionDiagnostics(a)}
     </div>
     <div class="detail-section">
       <div class="detail-section-title">Источники детекта</div>

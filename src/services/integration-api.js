@@ -98,6 +98,7 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
       })),
       sources: lead.sources || null,
       recognition_summary: lead.recognitionSummary || null,
+      recognition_diagnostics: lead.recognitionDiagnostics || null,
       urgency: lead.urgency || "normal",
       has_nameplate_photos: Boolean(lead.hasNameplatePhotos),
       has_article_photos: Boolean(lead.hasArticlePhotos)

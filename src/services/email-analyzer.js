@@ -162,6 +162,7 @@ export function analyzeEmail(project, payload) {
   if (!lead.sources) lead.sources = {};
   lead.sources.brands = summarizeSourceList(classification.brandSources || [], (lead.detectedBrands || []).length > 0);
   hydrateRecognitionSummary(lead, sender);
+  hydrateRecognitionDiagnostics(lead, sender, attachmentAnalysis, classification);
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands, lead });
 
   const suggestedReply = buildSuggestedReply(classification.label, sender, lead, crm);
@@ -292,6 +293,17 @@ function hydrateRecognitionSummary(lead, sender) {
   if (!lead.recognitionSummary.company) missing.push("company");
   if (!lead.recognitionSummary.inn) missing.push("inn");
   lead.recognitionSummary.missing = missing;
+}
+
+function hydrateRecognitionDiagnostics(lead, sender, attachmentAnalysis, classification) {
+  const diagnostics = buildRecognitionDiagnostics(lead, sender, attachmentAnalysis, classification);
+  lead.recognitionDiagnostics = diagnostics;
+  if (!lead.recognitionSummary) lead.recognitionSummary = {};
+  lead.recognitionSummary.completenessScore = diagnostics.completenessScore;
+  lead.recognitionSummary.overallConfidence = diagnostics.overallConfidence;
+  lead.recognitionSummary.riskLevel = diagnostics.riskLevel;
+  lead.recognitionSummary.primaryIssue = diagnostics.primaryIssue;
+  lead.recognitionSummary.hasConflicts = diagnostics.conflicts.length > 0;
 }
 
 function classifyMessage({ subject, body, attachments, fromEmail, projectBrands }) {
@@ -545,6 +557,293 @@ function buildRecognitionSummary(lead, attachmentFiles = []) {
     parsedAttachment: hasParsedAttachment,
     missing
   };
+}
+
+function buildRecognitionDiagnostics(lead, sender, attachmentAnalysis = {}, classification = {}) {
+  const files = attachmentAnalysis?.files || [];
+  const fields = {
+    article: buildFieldDiagnostic("article", lead, sender),
+    brand: buildFieldDiagnostic("brand", lead, sender),
+    name: buildFieldDiagnostic("name", lead, sender),
+    phone: buildFieldDiagnostic("phone", lead, sender),
+    company: buildFieldDiagnostic("company", lead, sender),
+    inn: buildFieldDiagnostic("inn", lead, sender)
+  };
+
+  const conflicts = [
+    ...collectArticleQuantityConflicts(lead),
+    ...collectArticleNameConflicts(lead),
+    ...collectAttachmentRequisiteConflicts(files)
+  ];
+
+  const issues = collectRecognitionIssues({
+    lead,
+    sender,
+    files,
+    fields,
+    conflicts,
+    classification
+  });
+
+  const availableFieldCount = Object.values(fields).filter((field) => field.found).length;
+  const overallConfidence = averageConfidence(Object.values(fields).map((field) => field.confidence));
+  const completenessScore = Math.round((availableFieldCount / Object.keys(fields).length) * 100);
+  const riskLevel = deriveRecognitionRiskLevel({ completenessScore, overallConfidence, issues, conflicts });
+  const primaryIssue = conflicts[0]?.code || issues[0]?.code || null;
+
+  return {
+    completenessScore,
+    overallConfidence,
+    riskLevel,
+    primaryIssue,
+    fields,
+    conflicts,
+    issues
+  };
+}
+
+function buildFieldDiagnostic(field, lead, sender) {
+  const lineItems = lead.lineItems || [];
+  const productNames = lead.productNames || [];
+  const nomenclatureMatches = lead.nomenclatureMatches || [];
+  const brandSources = lead.sources?.brands || [];
+  const articleSources = lead.sources?.articles || [];
+  const nameSources = lead.sources?.names || [];
+
+  if (field === "article") {
+    const found = (lead.articles || []).length > 0;
+    const hasExplicit = lineItems.some((item) => item?.explicitArticle);
+    const hasBodyItem = lineItems.some((item) => item?.article && String(item.source || "") === "body");
+    const hasAttachmentItem = lineItems.some((item) => item?.article && String(item.source || "").startsWith("attachment:"));
+    const hasNomenclature = nomenclatureMatches.some((item) => item?.article);
+    return {
+      found,
+      confidence: !found ? 0 : hasExplicit ? 0.96 : hasBodyItem && hasNomenclature ? 0.93 : hasAttachmentItem && hasNomenclature ? 0.9 : hasBodyItem || hasAttachmentItem ? 0.84 : articleSources.length ? 0.74 : 0.68,
+      source: hasExplicit ? "explicit_article_block" : hasBodyItem ? "body" : hasAttachmentItem ? "attachment" : articleSources[0] || null
+    };
+  }
+
+  if (field === "brand") {
+    const brands = lead.detectedBrands || [];
+    const found = brands.length > 0;
+    const hasNomenclature = nomenclatureMatches.some((item) => item?.brand);
+    const hasSenderProfile = brandSources.includes("sender_profile");
+    return {
+      found,
+      confidence: !found ? 0 : hasNomenclature ? 0.9 : hasSenderProfile ? 0.85 : brands.length === 1 ? 0.78 : 0.62,
+      source: hasNomenclature ? "nomenclature" : brandSources[0] || null
+    };
+  }
+
+  if (field === "name") {
+    const found = getResolvedProductNameCount(lead) > 0;
+    const hasStructuredLineItem = lineItems.some((item) => item?.article && cleanup(item?.descriptionRu || ""));
+    const hasAttachmentName = nameSources.some((source) => String(source).startsWith("attachment:"));
+    const hasNomenclature = nomenclatureMatches.some((item) => item?.productName);
+    return {
+      found,
+      confidence: !found ? 0 : hasStructuredLineItem ? 0.92 : hasAttachmentName ? 0.88 : productNames.length > 0 ? 0.84 : hasNomenclature ? 0.8 : 0.68,
+      source: hasStructuredLineItem ? lineItems.find((item) => item?.article && cleanup(item?.descriptionRu || ""))?.source || null : nameSources[0] || null
+    };
+  }
+
+  if (field === "phone") {
+    const source = sender.sources?.phone || null;
+    const found = Boolean(sender.cityPhone || sender.mobilePhone);
+    return {
+      found,
+      confidence: !found ? 0 : source === "body" ? 0.9 : source === "sender_profile" ? 0.8 : 0.72,
+      source
+    };
+  }
+
+  if (field === "company") {
+    const source = sender.sources?.company || null;
+    const found = Boolean(sender.companyName);
+    return {
+      found,
+      confidence: !found ? 0 : source === "body" ? 0.92 : source === "sender_profile" ? 0.84 : source === "email_domain" ? 0.5 : 0.7,
+      source
+    };
+  }
+
+  if (field === "inn") {
+    const source = sender.sources?.inn || null;
+    const found = Boolean(sender.inn);
+    return {
+      found,
+      confidence: !found ? 0 : source === "body" ? 0.93 : source === "attachment" ? 0.84 : 0.72,
+      source
+    };
+  }
+
+  return { found: false, confidence: 0, source: null };
+}
+
+function collectArticleQuantityConflicts(lead) {
+  const itemsByArticle = new Map();
+  for (const item of lead.lineItems || []) {
+    const article = normalizeArticleCode(item?.article);
+    if (!article) continue;
+    if (!itemsByArticle.has(article)) itemsByArticle.set(article, []);
+    itemsByArticle.get(article).push(item);
+  }
+
+  const conflicts = [];
+  for (const [article, items] of itemsByArticle.entries()) {
+    const quantities = [...new Set(items.map((item) => Number(item?.quantity)).filter((value) => Number.isFinite(value) && value > 0))];
+    if (quantities.length > 1) {
+      conflicts.push({
+        code: "article_quantity_conflict",
+        field: "article",
+        severity: "high",
+        article,
+        values: quantities,
+        sources: unique(items.map((item) => item?.source).filter(Boolean))
+      });
+    }
+  }
+
+  return conflicts;
+}
+
+function collectArticleNameConflicts(lead) {
+  const nameByArticle = new Map();
+  for (const item of lead.lineItems || []) {
+    const article = normalizeArticleCode(item?.article);
+    const name = cleanup(item?.descriptionRu || "");
+    if (!article || !name) continue;
+    if (!nameByArticle.has(article)) nameByArticle.set(article, []);
+    nameByArticle.get(article).push({ name, source: item?.source || null });
+  }
+  for (const item of lead.productNames || []) {
+    const article = normalizeArticleCode(item?.article);
+    const name = cleanup(item?.name || "");
+    if (!article || !name) continue;
+    if (!nameByArticle.has(article)) nameByArticle.set(article, []);
+    nameByArticle.get(article).push({ name, source: item?.source || null });
+  }
+
+  const conflicts = [];
+  for (const [article, variants] of nameByArticle.entries()) {
+    const names = [...new Set(variants.map((item) => item.name))];
+    if (names.length > 1) {
+      conflicts.push({
+        code: "article_name_conflict",
+        field: "name",
+        severity: "medium",
+        article,
+        values: names.slice(0, 4),
+        sources: unique(variants.map((item) => item.source).filter(Boolean))
+      });
+    }
+  }
+
+  return conflicts;
+}
+
+function collectAttachmentRequisiteConflicts(files) {
+  const inns = [...new Set(files.flatMap((file) => file.detectedInn || []).filter(Boolean))];
+  const conflicts = [];
+  if (inns.length > 1) {
+    conflicts.push({
+      code: "multiple_inn_candidates",
+      field: "inn",
+      severity: "medium",
+      values: inns,
+      sources: files.filter((file) => (file.detectedInn || []).length > 0).map((file) => file.filename)
+    });
+  }
+  return conflicts;
+}
+
+function collectRecognitionIssues({ lead, sender, files, fields, conflicts, classification }) {
+  const issues = [];
+  const hasAttachments = files.length > 0;
+  const severityByMissingField = {
+    article: "high",
+    brand: "medium",
+    name: "medium",
+    phone: "medium",
+    company: "medium",
+    inn: "medium"
+  };
+
+  for (const [field, diagnostic] of Object.entries(fields)) {
+    if (!diagnostic.found) {
+      issues.push({
+        code: `missing_${field}`,
+        field,
+        severity: severityByMissingField[field] || "medium"
+      });
+      continue;
+    }
+    if (diagnostic.confidence > 0 && diagnostic.confidence < 0.75) {
+      issues.push({
+        code: `low_confidence_${field}`,
+        field,
+        severity: "medium",
+        confidence: diagnostic.confidence
+      });
+    }
+  }
+
+  if (hasAttachments && !files.some((file) => file.status === "processed")) {
+    issues.push({
+      code: "attachment_parse_gap",
+      field: "attachment",
+      severity: "medium"
+    });
+  }
+
+  if ((lead.detectedBrands || []).length > 1) {
+    issues.push({
+      code: "multiple_brands_detected",
+      field: "brand",
+      severity: "low",
+      values: lead.detectedBrands.slice(0, 5)
+    });
+  }
+
+  if ((classification.confidence ?? 1) < 0.7) {
+    issues.push({
+      code: "low_classification_confidence",
+      field: "classification",
+      severity: "medium",
+      confidence: classification.confidence
+    });
+  }
+
+  if (conflicts.length > 0) {
+    issues.push({
+      code: "detection_conflicts_present",
+      field: "recognition",
+      severity: "high",
+      count: conflicts.length
+    });
+  }
+
+  return issues.sort(compareRecognitionIssues);
+}
+
+function compareRecognitionIssues(a, b) {
+  const weight = { high: 0, medium: 1, low: 2 };
+  return (weight[a.severity] ?? 99) - (weight[b.severity] ?? 99) || String(a.code || "").localeCompare(String(b.code || ""));
+}
+
+function deriveRecognitionRiskLevel({ completenessScore, overallConfidence, issues, conflicts }) {
+  if (conflicts.length > 0) return "high";
+  if (completenessScore < 50) return "high";
+  if (overallConfidence < 0.65) return "high";
+  if (issues.some((issue) => issue.severity === "high")) return "high";
+  if (completenessScore < 80 || overallConfidence < 0.8 || issues.some((issue) => issue.severity === "medium")) return "medium";
+  return "low";
+}
+
+function averageConfidence(values) {
+  const filtered = (values || []).filter((value) => Number.isFinite(value) && value > 0);
+  if (!filtered.length) return 0;
+  return Number((filtered.reduce((sum, value) => sum + value, 0) / filtered.length).toFixed(2));
 }
 
 function summarizeSourceList(values, hasData) {

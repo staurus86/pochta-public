@@ -69,6 +69,32 @@ const project = {
           lineItems: [{ article: "S201-C16", quantity: 5, unit: "шт", descriptionRu: "ABB S201-C16" }],
           detectedBrands: ["ABB"],
           detectedProductTypes: ["sensors", "drives"],
+          recognitionSummary: {
+            article: true,
+            brand: true,
+            name: true,
+            phone: true,
+            company: true,
+            inn: true,
+            parsedAttachment: false,
+            completenessScore: 100,
+            overallConfidence: 0.91,
+            riskLevel: "low",
+            primaryIssue: null,
+            hasConflicts: false
+          },
+          recognitionDiagnostics: {
+            completenessScore: 100,
+            overallConfidence: 0.91,
+            riskLevel: "low",
+            primaryIssue: null,
+            fields: {
+              article: { found: true, confidence: 0.95, source: "body" },
+              brand: { found: true, confidence: 0.9, source: "nomenclature" }
+            },
+            conflicts: [],
+            issues: []
+          },
           hasNameplatePhotos: false,
           hasArticlePhotos: false
         },
@@ -213,6 +239,13 @@ runTest("authorizes integration requests by x-api-key and bearer token", () => {
   assert.equal(isIntegrationAuthorized({ "x-api-key": "secret" }, "secret"), true);
   assert.equal(isIntegrationAuthorized({ authorization: "Bearer secret" }, "secret"), true);
   assert.equal(isIntegrationAuthorized({ authorization: "Bearer wrong" }, "secret"), false);
+});
+
+runTest("normalizes recognition diagnostics in integration payload", () => {
+  const normalized = normalizeIntegrationMessage(project, project.recentMessages[0]);
+  assert.equal(normalized.lead.recognition_summary?.riskLevel, "low");
+  assert.equal(normalized.lead.recognition_diagnostics?.overallConfidence, 0.91);
+  assert.equal(normalized.lead.recognition_diagnostics?.fields?.article?.source, "body");
 });
 
 runTest("resolves integration clients and project scopes", () => {

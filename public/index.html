@@ -245,6 +245,8 @@
                 <option value="missing_company">Нет компании</option>
                 <option value="missing_inn">Нет ИНН</option>
                 <option value="attachments_unparsed">Вложения не разобраны</option>
+                <option value="weak_detection">Слабый детект</option>
+                <option value="has_conflicts">Есть конфликты</option>
                 <option value="all_key_fields">Ключевые поля найдены</option>
                 <option value="fully_parsed">Максимально разобранные</option>
               </select>
@@ -627,7 +629,15 @@ https://promsnab.ru</textarea>
     "articles": ["S201-C16", "509-1720"],
     "line_items": [{ "article": "S201-C16", "quantity": 20, "unit": "шт" }],
     "total_positions": 2,
-    "detected_brands": ["ABB"]
+    "detected_brands": ["ABB"],
+    "recognition_summary": { "completenessScore": 83, "riskLevel": "medium", "hasConflicts": false },
+    "recognition_diagnostics": {
+      "overallConfidence": 0.81,
+      "primaryIssue": "missing_inn",
+      "fields": { "article": { "confidence": 0.95, "source": "body" } },
+      "conflicts": [],
+      "issues": [{ "code": "missing_inn", "severity": "medium" }]
+    }
   },
   "crm": {
     "is_existing_company": true,
