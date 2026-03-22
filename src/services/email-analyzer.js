@@ -330,7 +330,8 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     searchText,
     finalArticles,
     detectedProductTypes,
-    nomenclatureMatches
+    nomenclatureMatches,
+    lineItems
   );
 
   const urgency = detectUrgency([subject, body].join("\n"));
@@ -370,18 +371,26 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   };
 }
 
-function extractProductNames(text, articles, detectedProductTypes, nomenclatureMatches = []) {
+function extractProductNames(text, articles, detectedProductTypes, nomenclatureMatches = [], lineItems = []) {
   const productNames = [];
   const lower = text.toLowerCase();
   const nomenclatureByArticle = new Map(
     (nomenclatureMatches || []).map((item) => [normalizeArticleCode(item.article), item])
+  );
+  const lineItemByArticle = new Map(
+    (lineItems || [])
+      .filter((item) => item?.article)
+      .map((item) => [normalizeArticleCode(item.article), item])
   );
 
   for (const article of articles) {
     const articleLower = article.toLowerCase();
     const articleIdx = lower.indexOf(articleLower);
     const nomenclatureMatch = nomenclatureByArticle.get(normalizeArticleCode(article)) || null;
+    const lineItem = lineItemByArticle.get(normalizeArticleCode(article)) || null;
     if (articleIdx === -1 && !nomenclatureMatch) continue;
+
+    const lineItemName = extractProductNameFromLineItem(lineItem, article);
 
     // Look at 60 chars before the article for context
     const contextStart = articleIdx >= 0 ? Math.max(0, articleIdx - 60) : 0;
@@ -409,12 +418,55 @@ function extractProductNames(text, articles, detectedProductTypes, nomenclatureM
 
     productNames.push({
       article,
-      name: productName || nomenclatureMatch?.product_name || null,
+      name: lineItemName || sanitizeProductNameCandidate(productName) || nomenclatureMatch?.product_name || null,
       category: matchedCategory || inferCategoryFromNomenclature(nomenclatureMatch, detectedProductTypes) || null
     });
   }
 
   return productNames;
+}
+
+function extractProductNameFromLineItem(lineItem, article) {
+  const description = cleanup(lineItem?.descriptionRu || "");
+  if (!description) return null;
+
+  const normalizedArticle = normalizeArticleCode(article);
+  const articleIndex = normalizedArticle
+    ? description.toLowerCase().indexOf(normalizedArticle.toLowerCase())
+    : -1;
+
+  let candidate = articleIndex >= 0 ? description.slice(0, articleIndex).trim() : description;
+  candidate = candidate
+    .replace(/(?:^|.*?:\s*)(\d+\.\s*)/i, "$1")
+    .replace(/^(?:здравствуйте|добрый день|добрый вечер)[.!]?\s*/i, "")
+    .replace(/^(?:просим|прошу)\s+(?:прислать|выставить|направить|подготовить)\s+(?:сч[её]т|кп|коммерческое предложение)[^:]*:\s*/i, "")
+    .replace(/^(?:на\s+следующие\s+позиции|следующие\s+позиции)\s*:?\s*/i, "")
+    .replace(/^\d+\.\s*/, "")
+    .trim();
+
+  return sanitizeProductNameCandidate(candidate);
+}
+
+function sanitizeProductNameCandidate(value) {
+  let candidate = cleanup(value);
+  if (!candidate) return null;
+
+  candidate = candidate
+    .replace(/\s*[-–—]\s*\d+(?:[.,]\d+)?\s*(?:шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?)\.?.*$/i, "")
+    .replace(/\b(?:прописать|указать|сообщить)\s+срок[^\n]*$/i, "")
+    .replace(/\bкарточк[аи]\s+предприятия[^\n]*$/i, "")
+    .replace(/\bво\s+вложени[ияи]\b.*$/i, "")
+    .replace(/\bс\s+уважением\b.*$/i, "")
+    .replace(/\bпономарева\b.*$/i, "")
+    .replace(/\b(?:ООО|АО|ПАО|ОАО|ЗАО|ИП)\b.*$/i, "")
+    .replace(/[;,.:\s-]+$/g, "")
+    .trim();
+
+  if (!candidate) return null;
+  if (candidate.length < 3) return null;
+  if (/^(?:просим|прошу|здравствуйте|добрый день|на следующие позиции)/i.test(candidate)) return null;
+  if (/^(?:сч[её]т|кп|коммерческое предложение)$/i.test(candidate)) return null;
+  return candidate;
 }
 
 function detectProductTypes(text) {

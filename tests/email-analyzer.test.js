@@ -599,6 +599,18 @@ runTest("extractLead detects product names from context", () => {
   assert.ok(names.length > 0, "Should detect at least one product name from context");
 });
 
+runTest("extractLead trims product name noise around line item requests", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@energy.ru",
+    subject: "Запрос КП",
+    body: 'Здравствуйте. Просим прислать счет или КП на следующие позиции: 1. Модуль канавочный левый MSS-T25L03-GX16-2 - 30 шт. Прописать срок доставки. Карточка предприятия во вложении. Пономарева Валерия Владимировна ПАО "Энергия"'
+  });
+
+  const match = result.lead.productNames.find((item) => item.article === "MSS-T25L03-GX16-2");
+  assert.ok(match, "Should have a product name entry for MSS-T25L03-GX16-2");
+  assert.equal(match.name, "Модуль канавочный левый");
+});
+
 runTest("enriches articles from nomenclature dictionary when name is missing in email", () => {
   detectionKb.importNomenclatureCatalog([
     {
