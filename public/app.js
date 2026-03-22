@@ -567,6 +567,15 @@ function matchesRecognitionFilter(message, filterValue) {
   if (filterValue === 'missing_inn') return !summary.inn;
   if (filterValue === 'attachments_unparsed') return hasAttachments && !summary.parsedAttachment;
   if (filterValue === 'all_key_fields') return summary.article && summary.brand && summary.name && summary.phone;
+  if (filterValue === 'fully_parsed') {
+    return summary.article
+      && summary.brand
+      && summary.name
+      && summary.phone
+      && summary.company
+      && summary.inn
+      && (!hasAttachments || summary.parsedAttachment);
+  }
   return true;
 }
 
@@ -2580,6 +2589,7 @@ window.deleteClient = async function(id) {
 
 async function refreshApiDocsHealth() {
   const el = $('#api-health-status');
+  const extraEl = $('#api-ops-health-extra');
   if (!el) return;
   try {
     const [health, kb] = await Promise.all([
@@ -2620,10 +2630,39 @@ async function refreshApiDocsHealth() {
           <div style="font-size:11px;color:var(--text-tertiary);">Clients / req/min</div>
         </div>
       </div>`;
+    if (extraEl) {
+      extraEl.innerHTML = `
+        <div style="display:flex;gap:16px;flex-wrap:wrap;">
+          <span>Running jobs: <strong>${health.background?.runningJobs || 0}</strong></span>
+          <span>Failed jobs: <strong>${health.background?.failedJobs || 0}</strong></span>
+          <span>Retained jobs: <strong>${health.background?.retainedJobs || 0}</strong></span>
+        </div>`;
+    }
   } catch {
     el.innerHTML = '<span style="color:var(--rose);">Failed to load API health</span>';
+    if (extraEl) extraEl.textContent = '';
   }
 }
+
+$('#api-refresh-health-btn')?.addEventListener('click', async () => {
+  $('#api-ops-status').textContent = 'Обновляю...';
+  await refreshApiDocsHealth();
+  $('#api-ops-status').textContent = 'Health обновлён';
+  setTimeout(() => { $('#api-ops-status').textContent = ''; }, 2000);
+});
+
+$('#api-cleanup-jobs-btn')?.addEventListener('click', async () => {
+  $('#api-ops-status').textContent = 'Очищаю...';
+  try {
+    const res = await fetch('/api/admin/background-jobs/cleanup', { method: 'POST' });
+    const data = await res.json();
+    await refreshApiDocsHealth();
+    $('#api-ops-status').textContent = `Удалено jobs: ${data.removed ?? 0}`;
+  } catch (e) {
+    $('#api-ops-status').textContent = 'Ошибка очистки';
+  }
+  setTimeout(() => { $('#api-ops-status').textContent = ''; }, 2500);
+});
 
 // ═══ CRM Config ═══
 async function refreshCrmConfig() {

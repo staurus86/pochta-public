@@ -246,6 +246,7 @@
                 <option value="missing_inn">Нет ИНН</option>
                 <option value="attachments_unparsed">Вложения не разобраны</option>
                 <option value="all_key_fields">Ключевые поля найдены</option>
+                <option value="fully_parsed">Максимально разобранные</option>
               </select>
               <input class="form-input" id="inbox-search" placeholder="Поиск по теме, email..." style="width:200px;font-size:11px;padding:6px 10px;" />
               <select class="form-select" id="inbox-sort" style="font-size:11px;padding:6px 8px;width:130px;">
@@ -662,6 +663,18 @@ https://promsnab.ru</textarea>
                 <p style="margin:4px 0;"><strong>needs_clarification</strong> — не хватает данных (нет реквизитов, неизвестный отправитель)</p>
                 <p style="margin:4px 0;"><strong>review</strong> — требует ручной модерации</p>
               </div>
+            </div>
+          </div>
+
+          <div class="panel" style="margin-top:16px;">
+            <div class="panel-header"><h3>System Operations</h3></div>
+            <div class="panel-body">
+              <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+                <button class="btn btn-primary btn-sm" id="api-refresh-health-btn">Обновить Health</button>
+                <button class="btn btn-ghost btn-sm" id="api-cleanup-jobs-btn">Очистить старые Jobs</button>
+                <span id="api-ops-status" style="font-size:11px;color:var(--text-muted);"></span>
+              </div>
+              <div id="api-ops-health-extra" style="font-size:12px;color:var(--text-secondary);"></div>
             </div>
           </div>
         </div>

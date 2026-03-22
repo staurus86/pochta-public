@@ -32,6 +32,7 @@ const port = Number(process.env.PORT || 3000);
 const jsonBodyLimitBytes = resolveJsonBodyLimit(process.env.LEGACY_MAX_JSON_BODY_BYTES, 64 * 1024);
 const backgroundRole = normalizeBackgroundRole(process.env.LEGACY_BACKGROUND_ROLE || "all");
 const envClients = loadIntegrationClients(process.env);
+const BACKGROUND_JOB_TTL_MS = Number(process.env.LEGACY_BACKGROUND_JOB_TTL_MS || 60 * 60 * 1000);
 
 function getIntegrationClients() {
   const dbClients = detectionKb.getApiClientsForAuth();
@@ -141,6 +142,7 @@ const scheduler = new ProjectScheduler({
 
 // Background job tracking for long-running tasks
 const backgroundJobs = new Map();
+setInterval(cleanupBackgroundJobs, 10 * 60 * 1000).unref();
 
 // ── SSE (Server-Sent Events) for real-time notifications ──
 const sseClients = new Set();
@@ -227,13 +229,48 @@ function createBackgroundJob(projectId) {
   const job = {
     id: jobId,
     projectId,
+    kind: "generic",
     status: "running",
     run: null,
     error: null,
-    startedAt: new Date().toISOString()
+    startedAt: new Date().toISOString(),
+    finishedAt: null
   };
   backgroundJobs.set(jobId, job);
   return job;
+}
+
+function createTypedBackgroundJob(projectId, kind) {
+  const job = createBackgroundJob(projectId);
+  job.kind = kind;
+  return job;
+}
+
+function finishBackgroundJob(job, { status, run = null, error = null } = {}) {
+  job.status = status || "done";
+  job.run = run;
+  job.error = error || null;
+  job.finishedAt = new Date().toISOString();
+}
+
+function findRunningProjectJob(projectId, kinds = []) {
+  for (const job of backgroundJobs.values()) {
+    if (job.projectId !== projectId) continue;
+    if (job.status !== "running") continue;
+    if (kinds.length > 0 && !kinds.includes(job.kind)) continue;
+    return job;
+  }
+  return null;
+}
+
+function cleanupBackgroundJobs() {
+  const cutoff = Date.now() - BACKGROUND_JOB_TTL_MS;
+  for (const [id, job] of backgroundJobs.entries()) {
+    const finishedAt = job.finishedAt ? Date.parse(job.finishedAt) : null;
+    if (job.status !== "running" && finishedAt && finishedAt < cutoff) {
+      backgroundJobs.delete(id);
+    }
+  }
 }
 
 async function finalizeProjectRun(job, project, run) {
@@ -244,8 +281,7 @@ async function finalizeProjectRun(job, project, run) {
   if (Array.isArray(run.newMessages) && run.newMessages.length > 0) {
     await webhookDispatcher.enqueueProjectMessages(project.id, run.newMessages);
   }
-  job.status = "done";
-  job.run = run;
+  finishBackgroundJob(job, { status: "done", run });
   // SSE notification
   const msgCount = run.recentMessages?.length || run.newMessages?.length || 0;
   if (msgCount > 0) notifyNewMessages(project.id, msgCount, "run");
@@ -434,12 +470,21 @@ async function handleApi(req, res, url) {
       background: {
         role: backgroundRole,
         schedulerEnabled: shouldRunScheduler(backgroundRole),
-        webhooksEnabled: shouldRunWebhooks(backgroundRole)
+        webhooksEnabled: shouldRunWebhooks(backgroundRole),
+        runningJobs: [...backgroundJobs.values()].filter((job) => job.status === "running").length,
+        failedJobs: [...backgroundJobs.values()].filter((job) => job.status === "error").length,
+        retainedJobs: backgroundJobs.size
       },
       ai: getAiConfig(),
       sse: { clients: sseClients.size },
       rateLimit: { max: RATE_LIMIT_MAX, windowSeconds: RATE_LIMIT_WINDOW_MS / 1000 }
     });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/admin/background-jobs/cleanup") {
+    const before = backgroundJobs.size;
+    cleanupBackgroundJobs();
+    return sendJson(res, 200, { ok: true, before, after: backgroundJobs.size, removed: before - backgroundJobs.size });
   }
 
   if (req.method === "GET" && url.pathname === "/api/detection-kb") {
@@ -721,9 +766,18 @@ async function handleApi(req, res, url) {
     }
 
     const payload = await parseRequestJson(req);
+    const activeJob = findRunningProjectJob(project.id, ["run", "reprocess"]);
+    if (activeJob) {
+      return sendJson(res, 409, {
+        error: "A background job is already running for this project.",
+        jobId: activeJob.id,
+        status: activeJob.status,
+        kind: activeJob.kind
+      });
+    }
 
     if (["mailbox-file-parser", "tender-importer"].includes(project.type)) {
-      const job = createBackgroundJob(project.id);
+      const job = createTypedBackgroundJob(project.id, "run");
       const runner = project.type === "mailbox-file-parser"
         ? () => runMailboxFileParser(project, rootDir, payload)
         : () => runTenderImporter(project, rootDir, payload);
@@ -733,10 +787,12 @@ async function handleApi(req, res, url) {
           await finalizeProjectRun(job, project, run);
         })
         .catch((error) => {
-          job.status = "error";
-          job.error = error.code === "EPERM"
-            ? "Process spawning is blocked in the current sandbox. Run locally or on Railway."
-            : error.message;
+          finishBackgroundJob(job, {
+            status: "error",
+            error: error.code === "EPERM"
+              ? "Process spawning is blocked in the current sandbox. Run locally or on Railway."
+              : error.message
+          });
         });
 
       return sendJson(res, 202, {
@@ -758,15 +814,23 @@ async function handleApi(req, res, url) {
     }
 
     const payload = await parseRequestJson(req);
-    const job = createBackgroundJob(project.id);
+    const activeJob = findRunningProjectJob(project.id, ["run", "reprocess"]);
+    if (activeJob) {
+      return sendJson(res, 409, {
+        error: "A background job is already running for this project.",
+        jobId: activeJob.id,
+        status: activeJob.status,
+        kind: activeJob.kind
+      });
+    }
+    const job = createTypedBackgroundJob(project.id, "reprocess");
 
     reprocessMailboxMessages(project, payload)
       .then(async (run) => {
         await finalizeProjectRun(job, project, run);
       })
       .catch((error) => {
-        job.status = "error";
-        job.error = error.message;
+        finishBackgroundJob(job, { status: "error", error: error.message });
       });
 
     return sendJson(res, 202, {
