@@ -1079,11 +1079,83 @@ function renderDashboard() {
     </div>`
   ).join('') : '<div style="color:var(--text-muted);font-size:12px;">Нет данных о брендах</div>';
 
+  renderProblemQueue();
+
   // ═══ Request Analytics ═══
   renderRequestAnalytics();
   renderAccuracyMetrics();
   renderWeeklyTrends();
 }
+
+function renderProblemQueue() {
+  const nonSpamMessages = allRunnerMessages.filter((m) => m.pipelineStatus !== 'ignored_spam' && m.pipelineStatus !== 'fetch_error');
+  const problemDefs = [
+    { key: 'missing_article', label: 'Нет артикула' },
+    { key: 'missing_brand', label: 'Нет бренда' },
+    { key: 'missing_name', label: 'Нет наименования' },
+    { key: 'missing_phone', label: 'Нет телефона' },
+    { key: 'missing_company', label: 'Нет компании' },
+    { key: 'missing_inn', label: 'Нет ИНН' },
+    { key: 'attachments_unparsed', label: 'Вложения не разобраны' }
+  ];
+
+  const stats = problemDefs.map((item) => ({
+    ...item,
+    count: nonSpamMessages.filter((message) => matchesRecognitionFilter(message, item.key)).length
+  })).sort((a, b) => b.count - a.count);
+
+  const totalProblemMessages = nonSpamMessages.filter((message) => {
+    const summary = getRecognitionSummary(message.analysis || {});
+    return summary.missing?.length > 0 || ((message.attachments || message.attachmentFiles || []).length > 0 && !summary.parsedAttachment);
+  }).length;
+
+  const topExamples = nonSpamMessages
+    .map((message) => ({ message, summary: getRecognitionSummary(message.analysis || {}) }))
+    .filter(({ summary, message }) => summary.missing?.length > 0 || ((message.attachments || message.attachmentFiles || []).length > 0 && !summary.parsedAttachment))
+    .slice(0, 6);
+
+  $('#problem-queue').innerHTML = `
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px;">
+      <div class="kpi-card" style="min-width:180px;">
+        <div class="kpi-label">Проблемных писем</div>
+        <div class="kpi-value amber">${totalProblemMessages}</div>
+      </div>
+      ${stats.slice(0, 4).map((item) => `
+        <button class="kpi-card" onclick="window.__openRecognitionFilter('${item.key}')" style="min-width:180px;text-align:left;cursor:pointer;">
+          <div class="kpi-label">${esc(item.label)}</div>
+          <div class="kpi-value rose">${item.count}</div>
+        </button>
+      `).join('')}
+    </div>
+    <div style="display:grid;gap:8px;">
+      ${topExamples.map(({ message, summary }) => `
+        <button onclick="window.__openProblemMessage('${escAttr(mid(message))}', '${escAttr(message._projectId || '')}')" style="text-align:left;padding:10px 12px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-0);cursor:pointer;">
+          <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;">
+            <div style="font-size:12px;font-weight:600;color:var(--text);">${esc(truncate(message.subject || 'Без темы', 90))}</div>
+            <span style="font-size:10px;color:var(--text-muted);">${fmtDate(message.createdAt)}</span>
+          </div>
+          <div style="font-size:10px;color:var(--text-secondary);margin-top:4px;">${esc(message.from || message.analysis?.sender?.email || '')}</div>
+          <div style="display:flex;gap:6px;flex-wrap:wrap;margin-top:6px;">${renderRecognitionBadges(message.analysis || {})}</div>
+        </button>
+      `).join('') || '<div style="color:var(--text-muted);font-size:12px;">Проблемных писем сейчас нет</div>'}
+    </div>
+  `;
+}
+
+window.__openRecognitionFilter = (filterValue) => {
+  inboxRecognitionFilter = filterValue;
+  const select = $('#inbox-recognition-filter');
+  if (select) select.value = filterValue;
+  inboxPage = 0;
+  navigateTo('inbox');
+  renderInbox();
+};
+
+window.__openProblemMessage = (messageId) => {
+  selectedMessageId = messageId;
+  navigateTo('inbox');
+  renderInbox();
+};
 
 function renderRequestAnalytics() {
   const requests = allRunnerMessages.filter((m) => m.pipelineStatus === 'ready_for_crm' || m.pipelineStatus === 'needs_clarification');
