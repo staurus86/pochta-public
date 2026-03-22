@@ -394,6 +394,7 @@ async function handleApi(req, res, url) {
   if (req.method === "GET" && url.pathname === "/api/detection-kb") {
     return sendJson(res, 200, {
       stats: detectionKb.getStats(),
+      nomenclatureStats: detectionKb.getNomenclatureStats(),
       rules: detectionKb.getRules(),
       brandAliases: detectionKb.getBrandAliases(),
       senderProfiles: detectionKb.getSenderProfiles(),
@@ -482,6 +483,38 @@ async function handleApi(req, res, url) {
 
   if (req.method === "DELETE" && url.pathname === "/api/detection-kb/brand-catalog") {
     const result = detectionKb.clearBrandAliases();
+    return sendJson(res, 200, result);
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/detection-kb/nomenclature") {
+    const limit = Math.min(Number(url.searchParams.get("limit")) || 50, 200);
+    return sendJson(res, 200, {
+      stats: detectionKb.getNomenclatureStats(),
+      items: detectionKb.getNomenclature(limit)
+    });
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/detection-kb/nomenclature/search") {
+    const q = url.searchParams.get("q") || "";
+    const brand = url.searchParams.get("brand") || null;
+    const limit = Math.min(Number(url.searchParams.get("limit")) || 20, 100);
+    if (!q.trim()) {
+      return sendJson(res, 400, { error: "Query parameter 'q' is required." });
+    }
+    return sendJson(res, 200, {
+      results: detectionKb.searchNomenclature(q, { brand, limit }),
+      stats: detectionKb.getNomenclatureStats()
+    });
+  }
+
+  if (req.method === "POST" && url.pathname === "/api/detection-kb/nomenclature/import") {
+    const payload = await parseRequestJson(req);
+    if (!Array.isArray(payload.items)) {
+      return sendJson(res, 400, { error: "Field 'items' must be an array of nomenclature entries." });
+    }
+    const result = detectionKb.importNomenclatureCatalog(payload.items, {
+      sourceFile: payload.sourceFile || ""
+    });
     return sendJson(res, 200, result);
   }
 

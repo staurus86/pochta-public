@@ -52,6 +52,7 @@
     "managerPool": {
       "defaultMop": "Ольга Демидова",
       "defaultMoz": "Андрей Назаров",
+      "articleOwners": [],
       "brandOwners": [
         {
           "brand": "ABB",
@@ -74,6 +75,9 @@
         "domain": "promsnab.ru",
         "curatorMop": "Иван Колесов",
         "curatorMoz": "Мария Петрова",
+        "brands": [],
+        "articleHistory": [],
+        "nomenclatureHints": [],
         "contacts": [
           {
             "fullName": "Павел Ильин",
@@ -132,6 +136,7 @@
     "managerPool": {
       "defaultMop": "Не назначен",
       "defaultMoz": "Не назначен",
+      "articleOwners": [],
       "brandOwners": []
     },
     "runtime": {
@@ -165,6 +170,7 @@
     "managerPool": {
       "defaultMop": "Не назначен",
       "defaultMoz": "Не назначен",
+      "articleOwners": [],
       "brandOwners": []
     },
     "runtime": {
@@ -754,6 +760,7 @@
     "managerPool": {
       "defaultMop": "Не назначен",
       "defaultMoz": "Не назначен",
+      "articleOwners": [],
       "brandOwners": []
     },
     "runtime": {

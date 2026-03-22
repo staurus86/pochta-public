@@ -200,3 +200,44 @@ runTest("bulk acknowledges multiple messages at once", async () => {
     await rm(dataDir, { recursive: true, force: true });
   }
 });
+
+runTest("normalizes article owners and company history fields from projects json", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "pochta-store-routing-"));
+
+  try {
+    const store = new ProjectsStore({ dataDir });
+    await store.ensureLoaded();
+
+    const project = await store.createProject({
+      name: "Routing Template Test",
+      mailbox: "routing@example.com"
+    });
+
+    project.managerPool = {
+      defaultMop: "MOP",
+      defaultMoz: "MOZ",
+      articleOwners: [{ article: " ACS580-01-12A7 ", mop: "Ivan", moz: "Maria" }],
+      brandOwners: [{ brand: " ABB ", mop: "Ivan", moz: "Maria" }]
+    };
+    project.knownCompanies = [{
+      id: "client-1",
+      legalName: "ООО Тест",
+      brands: "ABB, Siemens",
+      articles: ["ACS580-01-12A7"],
+      contacts: null
+    }];
+    await store.persist();
+
+    const reloaded = new ProjectsStore({ dataDir });
+    await reloaded.ensureLoaded();
+    const persisted = await reloaded.getProject(project.id);
+
+    assert.equal(persisted.managerPool.articleOwners[0].article, "ACS580-01-12A7");
+    assert.equal(persisted.managerPool.brandOwners[0].brand, "ABB");
+    assert.deepEqual(persisted.knownCompanies[0].brands, ["ABB", "Siemens"]);
+    assert.deepEqual(persisted.knownCompanies[0].articleHistory, ["ACS580-01-12A7"]);
+    assert.deepEqual(persisted.knownCompanies[0].contacts, []);
+  } finally {
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});

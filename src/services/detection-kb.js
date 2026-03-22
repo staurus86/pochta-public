@@ -5,6 +5,7 @@ import { DatabaseSync } from "node:sqlite";
 
 const DEFAULT_DATA_DIR = path.resolve(process.cwd(), process.env.DATA_DIR || "data");
 const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "mail.ru", "bk.ru", "list.ru", "inbox.ru", "yandex.ru", "ya.ru", "hotmail.com", "outlook.com", "icloud.com", "me.com", "live.com", "yahoo.com", "rambler.ru", "ro.ru", "autorambler.ru", "myrambler.ru", "lenta.ru", "aol.com", "protonmail.com", "proton.me", "zoho.com"]);
+const BRAND_FALSE_POSITIVE_ALIASES = new Set(["top", "moro", "ydra", "hydra", "global"]);
 
 const DEFAULT_RULES = [
   { scope: "body", classifier: "spam", matchType: "regex", pattern: "casino|crypto|легкий заработок|раскрут(ка|им)|seo[- ]?продвиж|unsubscr|viagra|скидк|распродаж|кэшбэк|отписа|подписк|рассылк|промокод|sale", weight: 6, notes: "Базовый spam filter" },
@@ -99,6 +100,8 @@ class DetectionKnowledgeBase {
     mkdirSync(this.dataDir, { recursive: true });
     this.dbPath = path.join(this.dataDir, "detection-kb.sqlite");
     this.db = new DatabaseSync(this.dbPath);
+    this.db.exec("PRAGMA journal_mode = WAL;");
+    this.db.exec("PRAGMA busy_timeout = 5000;");
     this.initialize();
   }
 
@@ -184,6 +187,35 @@ class DetectionKnowledgeBase {
         created_at TEXT NOT NULL,
         notes TEXT DEFAULT ''
       );
+
+      CREATE TABLE IF NOT EXISTS nomenclature_dictionary (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        article TEXT NOT NULL,
+        article_normalized TEXT NOT NULL UNIQUE,
+        brand TEXT DEFAULT '',
+        product_name TEXT DEFAULT '',
+        description TEXT DEFAULT '',
+        synonyms TEXT DEFAULT '[]',
+        source_deal_ids TEXT DEFAULT '[]',
+        source_rows INTEGER NOT NULL DEFAULT 0,
+        total_quantity REAL NOT NULL DEFAULT 0,
+        min_price REAL,
+        max_price REAL,
+        avg_price REAL,
+        last_imported_at TEXT NOT NULL,
+        source_file TEXT DEFAULT ''
+      );
+    `);
+
+    this.db.exec(`
+      CREATE INDEX IF NOT EXISTS idx_message_corpus_project_created
+        ON message_corpus(project_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_nomenclature_brand
+        ON nomenclature_dictionary(brand);
+      CREATE INDEX IF NOT EXISTS idx_nomenclature_source_rows
+        ON nomenclature_dictionary(source_rows DESC);
+      CREATE INDEX IF NOT EXISTS idx_nomenclature_avg_price
+        ON nomenclature_dictionary(avg_price);
     `);
 
     // FTS5 virtual table for full-text search over message corpus
@@ -205,6 +237,18 @@ class DetectionKnowledgeBase {
       );
     `);
 
+    this.db.exec(`
+      CREATE VIRTUAL TABLE IF NOT EXISTS nomenclature_dictionary_fts USING fts5(
+        article,
+        brand,
+        product_name,
+        description,
+        synonyms,
+        content='nomenclature_dictionary',
+        content_rowid='id'
+      );
+    `);
+
     // Rebuild FTS index on startup to sync with corpus
     try {
       const corpusCount = this.db.prepare("SELECT COUNT(*) as n FROM message_corpus").get().n;
@@ -215,9 +259,19 @@ class DetectionKnowledgeBase {
       // FTS rebuild is best-effort
     }
 
+    try {
+      const nomenclatureCount = this.db.prepare("SELECT COUNT(*) as n FROM nomenclature_dictionary").get().n;
+      if (nomenclatureCount > 0) {
+        this.db.exec("INSERT INTO nomenclature_dictionary_fts(nomenclature_dictionary_fts) VALUES('rebuild')");
+      }
+    } catch {
+      // FTS rebuild is best-effort
+    }
+
     this.seedDefaults();
     this.seedOwnBrands();
     this.seedBrandCatalog();
+    this.seedNomenclatureCatalog();
     this.migrateLegacyRules();
   }
 
@@ -301,6 +355,33 @@ class DetectionKnowledgeBase {
         return;
       } catch (err) {
         console.error("[detection-kb] Failed to seed brand catalog:", err.message);
+      }
+    }
+  }
+
+  seedNomenclatureCatalog() {
+    const count = this.db.prepare("SELECT COUNT(*) AS count FROM nomenclature_dictionary").get().count;
+    if (count > 0) return;
+
+    const candidates = [
+      path.join(this.dataDir, "nomenclature-dictionary.json"),
+      path.resolve(process.cwd(), "data", "nomenclature-dictionary.json")
+    ];
+
+    for (const catalogPath of candidates) {
+      if (!existsSync(catalogPath)) continue;
+      try {
+        const entries = JSON.parse(readFileSync(catalogPath, "utf8"));
+        if (!Array.isArray(entries) || entries.length === 0) continue;
+        const result = this.importNomenclatureCatalog(entries, {
+          sourceFile: path.relative(process.cwd(), catalogPath)
+        });
+        if (result.imported > 0) {
+          console.log(`[detection-kb] Nomenclature catalog: +${result.imported} items from ${catalogPath}`);
+        }
+        return;
+      } catch (err) {
+        console.error("[detection-kb] Failed to seed nomenclature catalog:", err.message);
       }
     }
   }
@@ -550,7 +631,8 @@ class DetectionKnowledgeBase {
       senderProfileCount: this.db.prepare("SELECT COUNT(*) AS count FROM sender_profiles WHERE is_active = 1").get().count,
       fieldPatternCount: this.db.prepare("SELECT COUNT(*) AS count FROM field_patterns WHERE is_active = 1").get().count,
       ownBrandCount: this.db.prepare("SELECT COUNT(*) AS count FROM own_brands WHERE is_active = 1").get().count,
-      corpusCount: this.db.prepare("SELECT COUNT(*) AS count FROM message_corpus").get().count
+      corpusCount: this.db.prepare("SELECT COUNT(*) AS count FROM message_corpus").get().count,
+      nomenclatureCount: this.db.prepare("SELECT COUNT(*) AS count FROM nomenclature_dictionary").get().count
     };
   }
 
@@ -608,6 +690,289 @@ class DetectionKnowledgeBase {
     this.db.exec(`
       INSERT INTO message_corpus_fts(message_corpus_fts) VALUES('rebuild');
     `);
+    this.db.exec(`
+      INSERT INTO nomenclature_dictionary_fts(nomenclature_dictionary_fts) VALUES('rebuild');
+    `);
+  }
+
+  getNomenclatureStats() {
+    return this.db.prepare(`
+      SELECT
+        COUNT(*) AS total,
+        COUNT(DISTINCT brand) AS brands,
+        SUM(source_rows) AS source_rows
+      FROM nomenclature_dictionary
+    `).get();
+  }
+
+  getNomenclature(limit = 50) {
+    return this.db.prepare(`
+      SELECT *
+      FROM nomenclature_dictionary
+      ORDER BY source_rows DESC, total_quantity DESC, article
+      LIMIT ?
+    `).all(Number(limit));
+  }
+
+  searchNomenclature(query, { limit = 20, brand = null } = {}) {
+    const normalizedQuery = normalizeArticle(query);
+    if (!normalizedQuery) {
+      return this.getNomenclature(limit);
+    }
+
+    const exact = this.db.prepare(`
+      SELECT *, 1000 AS relevance
+      FROM nomenclature_dictionary
+      WHERE article_normalized = ?
+      LIMIT ?
+    `).all(normalizedQuery, Number(limit));
+    if (exact.length > 0) {
+      return exact;
+    }
+
+    const sanitized = String(query || "")
+      .replace(/['"*():^~{}[\]\\]/g, " ")
+      .trim();
+    if (!sanitized) {
+      return [];
+    }
+
+    const ftsQuery = sanitized
+      .split(/\s+/)
+      .filter(Boolean)
+      .map((word) => `"${word}"*`)
+      .join(" ");
+
+    if (brand) {
+      return this.db.prepare(`
+        SELECT nd.*, bm25(nomenclature_dictionary_fts, 1.0, 1.2, 1.5, 0.8, 0.6) AS relevance
+        FROM nomenclature_dictionary nd
+        JOIN nomenclature_dictionary_fts fts ON nd.id = fts.rowid
+        WHERE nomenclature_dictionary_fts MATCH ?
+          AND lower(nd.brand) = lower(?)
+        ORDER BY relevance, nd.source_rows DESC, nd.total_quantity DESC
+        LIMIT ?
+      `).all(ftsQuery, brand, Number(limit));
+    }
+
+    return this.db.prepare(`
+      SELECT nd.*, bm25(nomenclature_dictionary_fts, 1.0, 1.2, 1.5, 0.8, 0.6) AS relevance
+      FROM nomenclature_dictionary nd
+      JOIN nomenclature_dictionary_fts fts ON nd.id = fts.rowid
+      WHERE nomenclature_dictionary_fts MATCH ?
+      ORDER BY relevance, nd.source_rows DESC, nd.total_quantity DESC
+      LIMIT ?
+    `).all(ftsQuery, Number(limit));
+  }
+
+  findNomenclatureByArticle(article) {
+    const normalized = normalizeArticle(article);
+    if (!normalized) return null;
+    return this.db.prepare(`
+      SELECT *
+      FROM nomenclature_dictionary
+      WHERE article_normalized = ?
+      LIMIT 1
+    `).get(normalized) || null;
+  }
+
+  findNomenclatureByArticleFragment(article, limit = 5) {
+    const normalized = normalizeArticle(article);
+    if (!isUsefulArticleQuery(normalized)) return [];
+    return this.db.prepare(`
+      SELECT *
+      FROM nomenclature_dictionary
+      WHERE article_normalized LIKE ?
+      ORDER BY
+        CASE
+          WHEN article_normalized = ? THEN 0
+          WHEN article_normalized LIKE ? THEN 1
+          ELSE 2
+        END,
+        source_rows DESC,
+        total_quantity DESC
+      LIMIT ?
+    `).all(`%${normalized}%`, normalized, `${normalized}%`, Number(limit));
+  }
+
+  findNomenclatureCandidates({ article = "", text = "", brands = [], limit = 8 } = {}) {
+    const candidates = [];
+    const exact = article ? this.findNomenclatureByArticle(article) : null;
+    if (exact) {
+      candidates.push({ ...exact, match_type: "article_exact" });
+    }
+
+    if (!exact && article) {
+      for (const match of this.findNomenclatureByArticleFragment(article, limit)) {
+        if (!candidates.some((item) => item.article_normalized === match.article_normalized)) {
+          candidates.push({ ...match, match_type: "article_fragment" });
+        }
+      }
+    }
+
+    if (brands.length > 0 && article && !exact && candidates.length === 0) {
+      for (const brand of brands) {
+        if (!isUsefulArticleQuery(article)) continue;
+        for (const match of this.searchNomenclature(article, { limit, brand })) {
+          if (!candidates.some((item) => item.article_normalized === match.article_normalized)) {
+            candidates.push({ ...match, match_type: "brand_semantic" });
+          }
+        }
+      }
+    }
+
+    if (!article && text) {
+      for (const match of this.searchNomenclature(String(text).slice(0, 180), { limit })) {
+        if (!candidates.some((item) => item.article_normalized === match.article_normalized)) {
+          candidates.push({ ...match, match_type: "semantic" });
+        }
+      }
+    }
+
+    return candidates.slice(0, limit);
+  }
+
+  importNomenclatureCatalog(entries, options = {}) {
+    const now = new Date().toISOString();
+    const sourceFile = String(options.sourceFile || "").trim();
+    const insertDictionary = this.db.prepare(`
+      INSERT INTO nomenclature_dictionary (
+        article,
+        article_normalized,
+        brand,
+        product_name,
+        description,
+        synonyms,
+        source_deal_ids,
+        source_rows,
+        total_quantity,
+        min_price,
+        max_price,
+        avg_price,
+        last_imported_at,
+        source_file
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(article_normalized) DO UPDATE SET
+        article = excluded.article,
+        brand = excluded.brand,
+        product_name = excluded.product_name,
+        description = excluded.description,
+        synonyms = excluded.synonyms,
+        source_deal_ids = excluded.source_deal_ids,
+        source_rows = excluded.source_rows,
+        total_quantity = excluded.total_quantity,
+        min_price = excluded.min_price,
+        max_price = excluded.max_price,
+        avg_price = excluded.avg_price,
+        last_imported_at = excluded.last_imported_at,
+        source_file = excluded.source_file
+    `);
+
+    const grouped = new Map();
+    let scanned = 0;
+    for (const entry of entries || []) {
+      scanned += 1;
+      const rawArticle = cleanup(entry["Артикул"] || entry.article || entry.sku || "");
+      const articleNormalized = normalizeArticle(rawArticle);
+      if (!articleNormalized) continue;
+
+      const key = articleNormalized;
+      if (!grouped.has(key)) {
+        grouped.set(key, {
+          article: rawArticle,
+          articleNormalized,
+          brand: cleanup(entry["Бренд"] || entry.brand || ""),
+          productName: cleanup(entry["Наименование"] || entry.product_name || entry.name || ""),
+          description: cleanup(entry["Описание"] || entry.description || ""),
+          sourceDealIds: new Set(),
+          sourceRows: 0,
+          totalQuantity: 0,
+          minPrice: null,
+          maxPrice: null,
+          sumPrice: 0,
+          priceCount: 0,
+          synonyms: new Set()
+        });
+      }
+
+      const bucket = grouped.get(key);
+      const dealId = cleanup(entry["ID сделки"] || entry.deal_id || "");
+      const qty = Number(entry["Кол-во"] || entry.quantity || 0);
+      const price = Number(entry["Цена продажи 1 шт."] || entry.price || 0);
+      const productName = cleanup(entry["Наименование"] || entry.product_name || entry.name || "");
+      const description = cleanup(entry["Описание"] || entry.description || "");
+      const brand = cleanup(entry["Бренд"] || entry.brand || "");
+
+      bucket.sourceRows += 1;
+      bucket.totalQuantity += Number.isFinite(qty) ? qty : 0;
+      if (dealId) bucket.sourceDealIds.add(dealId);
+      if (brand && !bucket.brand) bucket.brand = brand;
+      if (productName && (!bucket.productName || productName.length > bucket.productName.length)) bucket.productName = productName;
+      if (description && (!bucket.description || description.length > bucket.description.length)) bucket.description = description;
+      if (brand) bucket.synonyms.add(brand);
+      if (productName) bucket.synonyms.add(productName);
+      if (description) bucket.synonyms.add(description);
+
+      if (Number.isFinite(price) && price > 0) {
+        bucket.minPrice = bucket.minPrice == null ? price : Math.min(bucket.minPrice, price);
+        bucket.maxPrice = bucket.maxPrice == null ? price : Math.max(bucket.maxPrice, price);
+        bucket.sumPrice += price;
+        bucket.priceCount += 1;
+      }
+    }
+
+    let imported = 0;
+    for (const item of grouped.values()) {
+      const synonyms = Array.from(item.synonyms)
+        .map((value) => cleanup(value))
+        .filter(Boolean)
+        .filter((value, index, array) => array.indexOf(value) === index)
+        .slice(0, 12);
+      insertDictionary.run(
+        item.article,
+        item.articleNormalized,
+        item.brand,
+        item.productName,
+        item.description,
+        JSON.stringify(synonyms),
+        JSON.stringify(Array.from(item.sourceDealIds).slice(0, 20)),
+        item.sourceRows,
+        Number(item.totalQuantity.toFixed(3)),
+        item.minPrice,
+        item.maxPrice,
+        item.priceCount > 0 ? Number((item.sumPrice / item.priceCount).toFixed(2)) : null,
+        now,
+        sourceFile
+      );
+      if (item.brand) {
+        const alias = item.brand.toLowerCase();
+        this.db.prepare(`
+          INSERT INTO brand_aliases (canonical_brand, alias)
+          SELECT ?, ?
+          WHERE NOT EXISTS (
+            SELECT 1 FROM brand_aliases WHERE canonical_brand = ? AND alias = ?
+          )
+        `).run(item.brand, alias, item.brand, alias);
+      }
+      imported += 1;
+    }
+
+    this.db.exec("INSERT INTO nomenclature_dictionary_fts(nomenclature_dictionary_fts) VALUES('rebuild')");
+
+    return {
+      scanned,
+      imported,
+      stats: this.getNomenclatureStats()
+    };
+  }
+
+  exportNomenclatureDictionary(limit = 100000) {
+    return this.db.prepare(`
+      SELECT *
+      FROM nomenclature_dictionary
+      ORDER BY source_rows DESC, total_quantity DESC, article
+      LIMIT ?
+    `).all(Number(limit));
   }
 
   classifyMessage({ subject = "", body = "", attachments = [], fromEmail = "", projectBrands = [] }) {
@@ -673,22 +1038,33 @@ class DetectionKnowledgeBase {
     const matched = aliases
       .filter((entry) => {
         const alias = entry.alias.toLowerCase();
+        if (BRAND_FALSE_POSITIVE_ALIASES.has(alias)) {
+          return false;
+        }
         // Short aliases (< 4 chars like "ilt", "smc", "abb") require word boundary
         if (alias.length < 4) {
           return new RegExp(`\\b${escapeRegex(alias)}\\b`, "i").test(lowered);
         }
         return padded.includes(alias);
       })
-      .map((entry) => entry.canonical_brand);
+      .map((entry) => preferProjectBrandCase(entry.canonical_brand, projectBrands));
 
     const projectMatched = (projectBrands || []).filter((brand) => {
       const b = String(brand).toLowerCase();
+      if (BRAND_FALSE_POSITIVE_ALIASES.has(b)) {
+        return false;
+      }
       if (b.length < 4) {
         return new RegExp(`\\b${escapeRegex(b)}\\b`, "i").test(lowered);
       }
       return padded.includes(b);
     });
-    return [...new Set([...matched, ...projectMatched])];
+
+    if (projectMatched.length > 0) {
+      return dedupeCaseInsensitive(projectMatched);
+    }
+
+    return dedupeCaseInsensitive([...matched, ...projectMatched]);
   }
 
   matchField(fieldName, text) {
@@ -829,6 +1205,49 @@ function escapeRegex(str) {
 
 function randomHex(length) {
   return randomBytes(length / 2).toString("hex");
+}
+
+function normalizeArticle(value) {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/[“”«»"]/g, "")
+    .toUpperCase();
+}
+
+function itemLooksExact(query, match) {
+  const q = normalizeArticle(query);
+  return q && (q === normalizeArticle(match.article) || q === normalizeArticle(match.article_normalized));
+}
+
+function cleanup(value) {
+  return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function isUsefulArticleQuery(value) {
+  const normalized = normalizeArticle(value);
+  if (!normalized || normalized.length < 4) return false;
+  if (!/\d/.test(normalized)) return false;
+  if (/^\d{1,3}$/.test(normalized)) return false;
+  return true;
+}
+
+function dedupeCaseInsensitive(items) {
+  const seen = new Set();
+  const result = [];
+  for (const item of items || []) {
+    const normalized = String(item || "").trim().toLowerCase();
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    result.push(String(item).trim());
+  }
+  return result;
+}
+
+function preferProjectBrandCase(brand, projectBrands = []) {
+  const normalized = String(brand || "").trim().toLowerCase();
+  const preferred = (projectBrands || []).find((item) => String(item || "").trim().toLowerCase() === normalized);
+  return preferred || brand;
 }
 
 function normalizeApiClientRow(row) {

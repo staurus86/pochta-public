@@ -13,6 +13,22 @@ function inferWebsite(domain) {
   return `https://${domain}`;
 }
 
+function normalizeText(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[«»"]/g, "")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function normalizeArticle(value) {
+  return String(value || "")
+    .trim()
+    .replace(/\s+/g, " ")
+    .replace(/[“”«»"]/g, "")
+    .toUpperCase();
+}
+
 const FREE_EMAIL_DOMAINS = new Set([
   "gmail.com", "mail.ru", "bk.ru", "list.ru", "inbox.ru", "yandex.ru", "ya.ru",
   "hotmail.com", "outlook.com", "icloud.com", "me.com", "live.com", "yahoo.com",
@@ -23,64 +39,74 @@ const FREE_EMAIL_DOMAINS = new Set([
 export function matchCompanyInCrm(project, analysis) {
   const companyCandidates = project.knownCompanies || [];
   const senderDomain = normalizeDomain(analysis.sender.email);
-  const normalizedCompany = String(analysis.sender.companyName || "").toLowerCase();
-  const senderName = String(analysis.sender.fullName || "").toLowerCase();
-
+  const normalizedCompany = normalizeText(analysis.sender.companyName);
+  const senderName = normalizeText(analysis.sender.fullName);
   const senderEmail = String(analysis.sender.email || "").toLowerCase();
   const senderInn = analysis.sender.inn;
+  const detectedBrands = unique((analysis.detectedBrands || []).map(normalizeText).filter(Boolean));
+  const detectedArticles = collectDetectedArticles(analysis);
 
-  const match =
-    // 1. Exact INN match (most reliable)
+  const exactMatch =
     companyCandidates.find((company) => senderInn && company.inn && company.inn === senderInn) ||
-    // 2. Exact domain match
-    companyCandidates.find((company) => senderDomain && company.domain && company.domain === senderDomain) ||
-    // 3. Website domain match (extract domain from website URL)
+    companyCandidates.find((company) => senderDomain && company.domain && normalizeText(company.domain) === senderDomain) ||
     companyCandidates.find((company) => {
       if (!senderDomain || !company.website) return false;
       try {
         const wsHost = new URL(company.website).hostname.replace(/^www\./, "");
         return wsHost === senderDomain;
-      } catch { return false; }
+      } catch {
+        return false;
+      }
     }) ||
-    // 4. Company name contains match
-    companyCandidates.find((company) => normalizedCompany && normalizedCompany.length > 3 && company.legalName.toLowerCase().includes(normalizedCompany)) ||
-    // 5. Reverse: CRM company name found in sender company name
+    companyCandidates.find((company) => normalizedCompany && normalizedCompany.length > 3 && normalizeText(company.legalName).includes(normalizedCompany)) ||
     companyCandidates.find((company) => {
-      const crmName = company.legalName.toLowerCase().replace(/[ооо|ао|зао|пао|ип]\s*/i, "").replace(/[«»"]/g, "").trim();
+      const crmName = normalizeText(company.legalName).replace(/^(ооо|ао|зао|пао|ип)\s+/i, "").trim();
       return crmName.length > 3 && normalizedCompany.includes(crmName);
     }) ||
-    // 6. Contact email or name match
     companyCandidates.find((company) =>
       (company.contacts || []).some((contact) => {
-        const sameEmail = senderEmail && contact.email?.toLowerCase() === senderEmail;
-        const sameName = senderName.length > 4 && contact.fullName?.toLowerCase() === senderName;
+        const sameEmail = senderEmail && normalizeText(contact.email) === senderEmail;
+        const sameName = senderName.length > 4 && normalizeText(contact.fullName) === senderName;
         return sameEmail || sameName;
       })
     );
 
-  if (match) {
-    const brandOwners = resolveBrandOwners(project, analysis.detectedBrands);
-    return {
-      company: match,
-      isExistingCompany: true,
-      curatorMop: brandOwners.mop || match.curatorMop || project.managerPool?.defaultMop || "Не назначен",
-      curatorMoz: brandOwners.moz || match.curatorMoz || project.managerPool?.defaultMoz || "Не назначен",
-      needsClarification: false,
-      actions: [
-        "Разложить письмо по полям CRM",
-        "Привязать заявку к существующему юрлицу",
-        "Создать запрос и назначить менеджеров"
-      ],
-      suggestedReply: null
-    };
+  if (exactMatch) {
+    const managers = resolveManagerOwners(project, { brands: analysis.detectedBrands, articles: detectedArticles });
+    return buildMatchedResult(project, exactMatch, {
+      method: "exact",
+      score: 100,
+      managers
+    });
   }
 
-  const brandOwners = resolveBrandOwners(project, analysis.detectedBrands);
+  const historyMatch = scoreCompanyByNomenclature(companyCandidates, {
+    senderDomain,
+    detectedBrands,
+    detectedArticles
+  });
+
+  if (historyMatch) {
+    const managers = resolveManagerOwners(project, { brands: analysis.detectedBrands, articles: detectedArticles });
+    return buildMatchedResult(project, historyMatch.company, {
+      method: historyMatch.method,
+      score: historyMatch.score,
+      managers,
+      actions: [
+        "Привязать письмо к клиенту по совпадению исторической номенклатуры",
+        "Проверить реквизиты и контакт перед автоматическим созданием запроса",
+        "Создать запрос и назначить профильных менеджеров"
+      ]
+    });
+  }
+
+  const managers = resolveManagerOwners(project, { brands: analysis.detectedBrands, articles: detectedArticles });
   const inferredWebsite = analysis.sender.website || inferWebsite(senderDomain);
   const missingLegalData = !analysis.sender.inn && !analysis.sender.companyName;
   const actions = [
     "Проверить контактное лицо и домен на совпадение с CRM",
     inferredWebsite ? `Использовать сайт ${inferredWebsite} для поиска реквизитов` : "Сайт не найден автоматически",
+    detectedArticles.length > 0 ? `Сверить запрос по артикулам: ${detectedArticles.slice(0, 5).join(", ")}` : "Сверить номенклатуру вручную не требуется",
     "Если ИНН не найден, запросить реквизиты ответным письмом",
     "После получения реквизитов создать карточку клиента и контактное лицо"
   ];
@@ -88,8 +114,8 @@ export function matchCompanyInCrm(project, analysis) {
   return {
     company: null,
     isExistingCompany: false,
-    curatorMop: brandOwners.mop || project.managerPool?.defaultMop || "Не назначен",
-    curatorMoz: brandOwners.moz || project.managerPool?.defaultMoz || "Не назначен",
+    curatorMop: managers.mop || project.managerPool?.defaultMop || "Не назначен",
+    curatorMoz: managers.moz || project.managerPool?.defaultMoz || "Не назначен",
     needsClarification: missingLegalData,
     actions,
     suggestedReply: missingLegalData
@@ -102,23 +128,146 @@ export function matchCompanyInCrm(project, analysis) {
           "После получения данных мы сразу заведем карточку клиента и продолжим обработку заявки."
         ].join("\n")
       : null,
-    inferredWebsite
+    inferredWebsite,
+    matchMethod: "none",
+    matchConfidence: 0
   };
 }
 
-function resolveBrandOwners(project, brands) {
-  const owners = project.managerPool?.brandOwners || [];
-  const firstBrand = brands[0];
-  if (!firstBrand) {
-    return {
-      mop: project.managerPool?.defaultMop,
-      moz: project.managerPool?.defaultMoz
-    };
+function buildMatchedResult(project, company, options = {}) {
+  const managers = options.managers || resolveManagerOwners(project, { brands: [], articles: [] });
+  return {
+    company,
+    isExistingCompany: true,
+    curatorMop: managers.mop || company.curatorMop || project.managerPool?.defaultMop || "Не назначен",
+    curatorMoz: managers.moz || company.curatorMoz || project.managerPool?.defaultMoz || "Не назначен",
+    needsClarification: false,
+    actions: options.actions || [
+      "Разложить письмо по полям CRM",
+      "Привязать заявку к существующему юрлицу",
+      "Создать запрос и назначить менеджеров"
+    ],
+    suggestedReply: null,
+    matchMethod: options.method || "exact",
+    matchConfidence: Number(((options.score || 100) / 100).toFixed(2))
+  };
+}
+
+function resolveManagerOwners(project, { brands = [], articles = [] } = {}) {
+  const pool = project.managerPool || {};
+  const articleOwners = pool.articleOwners || pool.nomenclatureOwners || [];
+  const normalizedArticles = articles.map(normalizeArticle).filter(Boolean);
+  for (const article of normalizedArticles) {
+    const owner = articleOwners.find((item) => normalizeArticle(item.article) === article);
+    if (owner) {
+      return {
+        mop: owner.mop || pool.defaultMop,
+        moz: owner.moz || pool.defaultMoz,
+        reason: `article:${article}`
+      };
+    }
   }
 
-  const owner = owners.find((item) => item.brand.toLowerCase() === firstBrand.toLowerCase());
+  const owners = pool.brandOwners || [];
+  const normalizedBrands = (brands || []).map(normalizeText).filter(Boolean);
+  for (const brand of normalizedBrands) {
+    const owner = owners.find((item) => normalizeText(item.brand) === brand);
+    if (owner) {
+      return {
+        mop: owner.mop || pool.defaultMop,
+        moz: owner.moz || pool.defaultMoz,
+        reason: `brand:${brand}`
+      };
+    }
+  }
+
   return {
-    mop: owner?.mop || project.managerPool?.defaultMop,
-    moz: owner?.moz || project.managerPool?.defaultMoz
+    mop: pool.defaultMop,
+    moz: pool.defaultMoz,
+    reason: "default"
   };
+}
+
+function collectDetectedArticles(analysis) {
+  const leadArticles = analysis.lead?.articles || [];
+  const nomenclatureArticles = (analysis.lead?.nomenclatureMatches || []).map((item) => item.article);
+  return unique([...leadArticles, ...nomenclatureArticles].map(normalizeArticle).filter(Boolean));
+}
+
+function scoreCompanyByNomenclature(companies, { senderDomain, detectedBrands = [], detectedArticles = [] }) {
+  if (companies.length === 0 || (detectedBrands.length === 0 && detectedArticles.length === 0 && !senderDomain)) {
+    return null;
+  }
+
+  let best = null;
+  for (const company of companies) {
+    let score = 0;
+    const reasons = [];
+    const companyBrands = collectCompanyBrands(company);
+    const companyArticles = collectCompanyArticles(company);
+
+    for (const brand of detectedBrands) {
+      if (companyBrands.has(brand)) {
+        score += 18;
+        reasons.push(`brand:${brand}`);
+      }
+    }
+
+    for (const article of detectedArticles) {
+      if (companyArticles.has(article)) {
+        score += 32;
+        reasons.push(`article:${article}`);
+      }
+    }
+
+    if (senderDomain && company.domain && normalizeText(company.domain) === senderDomain) {
+      score += 12;
+      reasons.push(`domain:${senderDomain}`);
+    }
+
+    if (score > (best?.score || 0)) {
+      best = { company, score, reasons };
+    }
+  }
+
+  if (!best || best.score < 30) {
+    return null;
+  }
+
+  return {
+    company: best.company,
+    score: Math.min(best.score, 95),
+    method: best.reasons.some((reason) => reason.startsWith("article:"))
+      ? "nomenclature_history"
+      : "brand_history",
+    reasons: best.reasons
+  };
+}
+
+function collectCompanyBrands(company) {
+  return new Set(
+    [
+      ...(company.brands || []),
+      ...(company.brandHistory || []),
+      ...(company.detectedBrands || [])
+    ]
+      .map(normalizeText)
+      .filter(Boolean)
+  );
+}
+
+function collectCompanyArticles(company) {
+  return new Set(
+    [
+      ...(company.articles || []),
+      ...(company.articleHistory || []),
+      ...(company.nomenclatureHints || [])
+    ]
+      .map(normalizeArticle)
+      .filter(Boolean)
+  );
+}
+
+function unique(items) {
+  return [...new Set(items)];
 }

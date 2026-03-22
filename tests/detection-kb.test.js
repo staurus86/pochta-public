@@ -68,3 +68,35 @@ runTest("searchCorpus returns results via FTS5", () => {
   detectionKb.db.prepare("DELETE FROM message_corpus WHERE message_key = ?").run("fts-test-1");
   detectionKb.rebuildFtsIndex();
 });
+
+runTest("imports nomenclature dictionary and finds articles by RAG search", () => {
+  const result = detectionKb.importNomenclatureCatalog([
+    {
+      "ID сделки": 900001,
+      "Бренд": "Acme Controls",
+      "Артикул": "RAG-TEST-001",
+      "Наименование": "Датчик давления",
+      "Описание": "Pressure sensor 4-20mA",
+      "Кол-во": 3,
+      "Цена продажи 1 шт.": 150.25
+    },
+    {
+      "ID сделки": 900002,
+      "Бренд": "Acme Controls",
+      "Артикул": "RAG-TEST-001",
+      "Наименование": "Датчик давления",
+      "Описание": "Pressure sensor 4-20mA",
+      "Кол-во": 1,
+      "Цена продажи 1 шт.": 175.5
+    }
+  ], { sourceFile: "tests-fixture" });
+
+  assert.ok(result.imported >= 1);
+
+  const exact = detectionKb.findNomenclatureByArticle("rag-test-001");
+  assert.equal(exact?.brand, "Acme Controls");
+  assert.equal(exact?.source_rows, 2);
+
+  const search = detectionKb.searchNomenclature("pressure sensor RAG-TEST-001", { limit: 5 });
+  assert.ok(search.some((item) => item.article === "RAG-TEST-001"));
+});

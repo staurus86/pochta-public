@@ -14,6 +14,7 @@ const DEFAULT_PROJECTS = [
     managerPool: {
       defaultMop: "Ольга Демидова",
       defaultMoz: "Андрей Назаров",
+      articleOwners: [],
       brandOwners: [
         { brand: "ABB", mop: "Иван Колесов", moz: "Мария Петрова" },
         { brand: "Schneider Electric", mop: "Елена Соколова", moz: "Роман Кравцов" }
@@ -28,6 +29,9 @@ const DEFAULT_PROJECTS = [
         "domain": "promsnab.ru",
         "curatorMop": "Иван Колесов",
         "curatorMoz": "Мария Петрова",
+        "brands": [],
+        "articleHistory": [],
+        "nomenclatureHints": [],
         "contacts": [
           {
             "fullName": "Павел Ильин",
@@ -57,6 +61,7 @@ const DEFAULT_PROJECTS = [
     managerPool: {
       defaultMop: "Не назначен",
       defaultMoz: "Не назначен",
+      articleOwners: [],
       brandOwners: []
     },
     runtime: {
@@ -87,6 +92,7 @@ const DEFAULT_PROJECTS = [
     managerPool: {
       defaultMop: "Не назначен",
       defaultMoz: "Не назначен",
+      articleOwners: [],
       brandOwners: []
     },
     runtime: {
@@ -115,6 +121,7 @@ const DEFAULT_PROJECTS = [
     managerPool: {
       defaultMop: "Не назначен",
       defaultMoz: "Не назначен",
+      articleOwners: [],
       brandOwners: []
     },
     runtime: {
@@ -168,6 +175,8 @@ export class ProjectsStore {
           integrationExports: normalizeIntegrationExports(message),
           integrationIdempotency: normalizeIntegrationIdempotency(message)
         })),
+        managerPool: normalizeManagerPool(project.managerPool),
+        knownCompanies: normalizeKnownCompanies(project.knownCompanies),
         webhookDeliveries: project.webhookDeliveries || [],
         schedule: normalizeSchedule(project.schedule)
       }));
@@ -219,6 +228,7 @@ export class ProjectsStore {
       managerPool: {
         defaultMop: payload.defaultMop?.trim() || "Не назначен",
         defaultMoz: payload.defaultMoz?.trim() || "Не назначен",
+        articleOwners: [],
         brandOwners: []
       },
       knownCompanies: [],
@@ -756,6 +766,38 @@ function normalizeStringArray(value) {
   }
 
   return [];
+}
+
+function normalizeManagerPool(pool) {
+  return {
+    defaultMop: pool?.defaultMop || "Не назначен",
+    defaultMoz: pool?.defaultMoz || "Не назначен",
+    articleOwners: Array.isArray(pool?.articleOwners)
+      ? pool.articleOwners.map((item) => ({
+          article: String(item.article || "").trim(),
+          mop: String(item.mop || "").trim(),
+          moz: String(item.moz || "").trim()
+        })).filter((item) => item.article)
+      : [],
+    brandOwners: Array.isArray(pool?.brandOwners)
+      ? pool.brandOwners.map((item) => ({
+          brand: String(item.brand || "").trim(),
+          mop: String(item.mop || "").trim(),
+          moz: String(item.moz || "").trim()
+        })).filter((item) => item.brand)
+      : []
+  };
+}
+
+function normalizeKnownCompanies(companies) {
+  if (!Array.isArray(companies)) return [];
+  return companies.map((company) => ({
+    ...company,
+    brands: normalizeStringArray(company?.brands),
+    articleHistory: normalizeStringArray(company?.articleHistory || company?.articles),
+    nomenclatureHints: normalizeStringArray(company?.nomenclatureHints),
+    contacts: Array.isArray(company?.contacts) ? company.contacts : []
+  }));
 }
 
 function normalizeIntegrationExports(message) {

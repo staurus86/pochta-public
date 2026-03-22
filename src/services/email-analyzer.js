@@ -92,6 +92,13 @@ const BRAND_NOISE = new Set([
   "ENDRESS", "HAUSER", "STAHL", "VAHLE"
 ]);
 
+const BRAND_FALSE_POSITIVE_ALIASES = new Set([
+  "top", "moro", "ydra", "hydra", "global"
+]);
+
+const GENERIC_IMAGE_ATTACHMENT_PATTERN =
+  /^(?:img|image|photo|scan|scanner|whatsapp(?:\s+image)?|dsc|pict|screenshot|screen-shot|file)[-_ ]*\d[\w-]*$/i;
+
 export function analyzeEmail(project, payload) {
   const subject = String(payload.subject || "");
   const rawBody = String(payload.body || "");
@@ -135,7 +142,7 @@ export function analyzeEmail(project, payload) {
   classification.detectedBrands = detectionKb.filterOwnBrands(classification.detectedBrands);
   const sender = extractSender(fromName, fromEmail, bodyForSender, attachments);
   const lead = extractLead(subject, primaryBody || body, attachments, project.brands || [], classification.detectedBrands);
-  const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands });
+  const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands, lead });
 
   const suggestedReply = buildSuggestedReply(classification.label, sender, lead, crm);
 
@@ -274,6 +281,7 @@ function detectUrgency(text) {
 
 function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const freeText = body.trim().slice(0, 2000);
+  const searchText = [subject, body].join("\n");
   const forbiddenDigits = collectForbiddenArticleDigits(body);
   const prefixedArticles = Array.from(body.matchAll(ARTICLE_PATTERN))
     .map((match) => normalizeArticleCode(match[1]))
@@ -289,26 +297,45 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const hasArticlePhotos = /артик|sku|label/i.test(attachmentsText);
   const lineItems = extractLineItems(body).filter((item) => isLikelyArticle(item.article, forbiddenDigits, item.descriptionRu));
   const rawBrands = unique(kbBrands.concat(detectBrands([subject, body, attachmentsText].join("\n"), brands)));
-  const detectedBrands = detectionKb.filterOwnBrands(rawBrands);
+  let detectedBrands = detectionKb.filterOwnBrands(rawBrands);
 
   const attachmentHints = parseAttachmentHints(attachments);
 
   const detectedProductTypes = detectProductTypes([subject, body].join("\n"));
   const finalArticles = unique(allArticles.concat(lineItems.map((item) => normalizeArticleCode(item.article))).filter(Boolean));
+  const nomenclatureMatches = finalArticles
+    .map((article) => {
+      const candidates = detectionKb.findNomenclatureCandidates({
+        article,
+        text: searchText,
+        brands: detectedBrands,
+        limit: 3
+      });
+      return candidates.find((item) => normalizeArticleCode(item.article) === normalizeArticleCode(article)) || candidates[0] || null;
+    })
+    .filter(Boolean);
+
+  detectedBrands = detectionKb.filterOwnBrands(unique([
+    ...detectedBrands,
+    ...nomenclatureMatches.map((item) => item.brand).filter(Boolean)
+  ]));
 
   const productNames = extractProductNames(
-    [subject, body].join("\n"),
+    searchText,
     finalArticles,
-    detectedProductTypes
+    detectedProductTypes,
+    nomenclatureMatches
   );
 
   const urgency = detectUrgency([subject, body].join("\n"));
 
   // Enrich lineItems descriptionRu from productNames
   for (const item of lineItems) {
-      if (!item.descriptionRu && item.article) {
-          const pn = productNames.find((p) => p.article === item.article);
-          if (pn?.name) item.descriptionRu = pn.name;
+      if (item.article) {
+          const pn = productNames.find((p) => normalizeArticleCode(p.article) === normalizeArticleCode(item.article));
+          if ((!item.descriptionRu || item.descriptionRu === item.article) && pn?.name) {
+              item.descriptionRu = pn.name;
+          }
       }
   }
 
@@ -322,24 +349,37 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     detectedBrands,
     detectedProductTypes,
     productNames,
+    nomenclatureMatches: nomenclatureMatches.map((item) => ({
+      article: item.article,
+      brand: item.brand || null,
+      productName: item.product_name || null,
+      description: item.description || null,
+      sourceRows: item.source_rows || 0,
+      avgPrice: item.avg_price ?? null,
+      matchType: item.match_type || "semantic"
+    })),
     urgency,
     attachmentHints,
     requestType: detectedBrands.length > 1 ? "Мультибрендовая" : detectedBrands.length === 1 ? "Монобрендовая" : finalArticles.length > 0 || detectedProductTypes.length > 0 ? "Не определено (есть артикулы)" : "Не определено"
   };
 }
 
-function extractProductNames(text, articles, detectedProductTypes) {
+function extractProductNames(text, articles, detectedProductTypes, nomenclatureMatches = []) {
   const productNames = [];
   const lower = text.toLowerCase();
+  const nomenclatureByArticle = new Map(
+    (nomenclatureMatches || []).map((item) => [normalizeArticleCode(item.article), item])
+  );
 
   for (const article of articles) {
     const articleLower = article.toLowerCase();
     const articleIdx = lower.indexOf(articleLower);
-    if (articleIdx === -1) continue;
+    const nomenclatureMatch = nomenclatureByArticle.get(normalizeArticleCode(article)) || null;
+    if (articleIdx === -1 && !nomenclatureMatch) continue;
 
     // Look at 60 chars before the article for context
-    const contextStart = Math.max(0, articleIdx - 60);
-    const context = lower.slice(contextStart, articleIdx).trim();
+    const contextStart = articleIdx >= 0 ? Math.max(0, articleIdx - 60) : 0;
+    const context = articleIdx >= 0 ? lower.slice(contextStart, articleIdx).trim() : "";
 
     // Try to match a product type keyword from the context
     let productName = null;
@@ -363,8 +403,8 @@ function extractProductNames(text, articles, detectedProductTypes) {
 
     productNames.push({
       article,
-      name: productName || null,
-      category: matchedCategory || null
+      name: productName || nomenclatureMatch?.product_name || null,
+      category: matchedCategory || inferCategoryFromNomenclature(nomenclatureMatch, detectedProductTypes) || null
     });
   }
 
@@ -391,6 +431,18 @@ function detectProductTypes(text) {
     }
   }
   return found;
+}
+
+function inferCategoryFromNomenclature(match, detectedProductTypes = []) {
+  if (!match) return detectedProductTypes[0] || null;
+  const haystack = [match.product_name, match.description].filter(Boolean).join(" ").toLowerCase();
+  for (const [category, data] of Object.entries(productTypes?.categories || {})) {
+    const keywords = [...(data.ru || []), ...(data.en || [])];
+    if (keywords.some((keyword) => haystack.includes(String(keyword).toLowerCase()))) {
+      return category;
+    }
+  }
+  return detectedProductTypes[0] || null;
 }
 
 function buildIntakeFlow(classification, crm, lead) {
@@ -799,6 +851,9 @@ function extractBrandAdjacentCodes(text, forbiddenDigits = new Set()) {
 function extractArticlesFromAttachments(attachments, forbiddenDigits = new Set()) {
   const articles = [];
   for (const name of attachments) {
+    if (!isAttachmentLikelyToContainArticle(name)) {
+      continue;
+    }
     // Strip extension
     const baseName = name.replace(/\.[^.]+$/, "").replace(/[_\s]+/g, "-");
     for (const m of baseName.matchAll(STANDALONE_CODE_PATTERN)) {
@@ -810,6 +865,17 @@ function extractArticlesFromAttachments(attachments, forbiddenDigits = new Set()
     articles.push(...extractNumericArticles(baseName, forbiddenDigits));
   }
   return unique(articles);
+}
+
+function isAttachmentLikelyToContainArticle(name) {
+  const filename = String(name || "").trim();
+  if (!filename) return false;
+  const ext = path.extname(filename).toLowerCase();
+  const baseName = filename.replace(/\.[^.]+$/, "").trim();
+  const isImage = [".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp", ".tif", ".tiff", ".heic"].includes(ext);
+  if (!isImage) return true;
+  if (GENERIC_IMAGE_ATTACHMENT_PATTERN.test(baseName)) return false;
+  return /[A-Za-zА-Яа-яЁё]+\d|\d+[A-Za-zА-Яа-яЁё]|[-/.]/.test(baseName);
 }
 
 function separateQuotedText(text) {
@@ -1050,15 +1116,38 @@ function detectBrands(text, brands) {
 
   for (const entry of aliases) {
     if (matchesBrand(normalizedText, entry.alias)) {
-      matched.add(entry.canonical_brand);
+      matched.add(preferProjectBrandCase(entry.canonical_brand, brands));
     }
   }
 
-  return [...matched];
+  const projectMatches = (brands || []).filter((brand) => matchesBrand(normalizedText, brand));
+  if (projectMatches.length > 0) {
+    return dedupeCaseInsensitive(projectMatches);
+  }
+
+  return dedupeCaseInsensitive([...matched]);
 }
 
 function unique(items) {
   return [...new Set(items)];
+}
+
+function dedupeCaseInsensitive(items) {
+  const seen = new Set();
+  const result = [];
+  for (const item of items || []) {
+    const normalized = String(item || "").trim().toLowerCase();
+    if (!normalized || seen.has(normalized)) continue;
+    seen.add(normalized);
+    result.push(String(item).trim());
+  }
+  return result;
+}
+
+function preferProjectBrandCase(brand, brands = []) {
+  const normalized = String(brand || "").trim().toLowerCase();
+  const preferred = (brands || []).find((item) => String(item || "").trim().toLowerCase() === normalized);
+  return preferred || brand;
 }
 
 function cleanup(value) {
@@ -1145,7 +1234,15 @@ function matchesBrand(normalizedText, candidate) {
     return false;
   }
 
+  const candidateWords = normalizedCandidate.trim().split(/\s+/).filter(Boolean);
+  if (candidateWords.length === 1 && BRAND_FALSE_POSITIVE_ALIASES.has(candidateWords[0])) {
+    return false;
+  }
+
   if (normalizedText.includes(normalizedCandidate)) {
+    if (candidateWords.length === 1 && candidateWords[0].length < 4 && !BRAND_CONTEXT_PATTERN.test(normalizedText)) {
+      return false;
+    }
     return true;
   }
 
@@ -1153,7 +1250,7 @@ function matchesBrand(normalizedText, candidate) {
     return false;
   }
 
-  const parts = normalizedCandidate.trim().split(/\s+/).filter((item) => item.length >= 3);
+  const parts = candidateWords.filter((item) => item.length >= 3 && !BRAND_FALSE_POSITIVE_ALIASES.has(item));
   return parts.length > 1 && parts.every((part) => normalizedText.includes(` ${part} `));
 }
 

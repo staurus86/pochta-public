@@ -1,5 +1,6 @@
 import assert from "node:assert/strict";
 import { analyzeEmail } from "../src/services/email-analyzer.js";
+import { detectionKb } from "../src/services/detection-kb.js";
 
 const project = {
   mailbox: "inbox@example.com",
@@ -596,6 +597,127 @@ runTest("extractLead detects product names from context", () => {
   // At least one should have a name with "датчик" or "клапан" or "насос"
   const names = lead.productNames.map(p => p.name).filter(Boolean);
   assert.ok(names.length > 0, "Should detect at least one product name from context");
+});
+
+runTest("enriches articles from nomenclature dictionary when name is missing in email", () => {
+  detectionKb.importNomenclatureCatalog([
+    {
+      "ID сделки": 910001,
+      "Бренд": "Acme Controls",
+      "Артикул": "RAG-EMAIL-01",
+      "Наименование": "Датчик давления",
+      "Описание": "Pressure transmitter 4-20mA",
+      "Кол-во": 2,
+      "Цена продажи 1 шт.": 210.5
+    }
+  ], { sourceFile: "email-test-fixture" });
+
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос по RAG-EMAIL-01",
+    body: "Добрый день. Прошу выставить счет на RAG-EMAIL-01 - 2 шт."
+  });
+
+  assert.ok(result.detectedBrands.includes("Acme Controls"));
+  assert.ok(result.lead.productNames.some((item) => item.article === "RAG-EMAIL-01" && item.name === "Датчик давления"));
+  assert.ok(result.lead.nomenclatureMatches.some((item) => item.article === "RAG-EMAIL-01"));
+});
+
+runTest("prioritizes managers by article owner before brand owner", () => {
+  detectionKb.importNomenclatureCatalog([
+    {
+      "ID сделки": 910002,
+      "Бренд": "ABB",
+      "Артикул": "VIP-ABB-01",
+      "Наименование": "Спецпривод",
+      "Описание": "ABB drive",
+      "Кол-во": 1,
+      "Цена продажи 1 шт.": 500
+    }
+  ], { sourceFile: "manager-priority-fixture" });
+
+  const projectWithArticleOwners = {
+    ...project,
+    managerPool: {
+      ...project.managerPool,
+      articleOwners: [
+        { article: "VIP-ABB-01", mop: "Спец МOP", moz: "Спец MOZ" }
+      ]
+    }
+  };
+
+  const result = analyzeEmail(projectWithArticleOwners, {
+    fromEmail: "buyer@unknown.ru",
+    subject: "Запрос на VIP-ABB-01",
+    body: "Прошу КП на VIP-ABB-01 - 1 шт"
+  });
+
+  assert.equal(result.crm.curatorMop, "Спец МOP");
+  assert.equal(result.crm.curatorMoz, "Спец MOZ");
+});
+
+runTest("matches CRM company by historical nomenclature when legal data absent", () => {
+  detectionKb.importNomenclatureCatalog([
+    {
+      "ID сделки": 910003,
+      "Бренд": "Acme Controls",
+      "Артикул": "HIST-MATCH-77",
+      "Наименование": "Контроллер",
+      "Описание": "PLC controller",
+      "Кол-во": 2,
+      "Цена продажи 1 шт.": 990
+    }
+  ], { sourceFile: "crm-history-fixture" });
+
+  const projectWithHistory = {
+    ...project,
+    knownCompanies: [
+      ...project.knownCompanies,
+      {
+        id: "client-history-1",
+        legalName: "ООО Исторический клиент",
+        domain: "history-client.ru",
+        curatorMop: "Исторический МOP",
+        curatorMoz: "Исторический MOZ",
+        brands: ["Acme Controls"],
+        articleHistory: ["HIST-MATCH-77"],
+        contacts: []
+      }
+    ]
+  };
+
+  const result = analyzeEmail(projectWithHistory, {
+    fromEmail: "buyer@gmail.com",
+    subject: "Нужен HIST-MATCH-77",
+    body: "Добрый день. Прошу выставить счет на HIST-MATCH-77 - 2 шт."
+  });
+
+  assert.equal(result.crm.isExistingCompany, true);
+  assert.equal(result.crm.company?.id, "client-history-1");
+  assert.equal(result.crm.matchMethod, "nomenclature_history");
+  assert.ok(result.crm.matchConfidence >= 0.3);
+});
+
+runTest("does not extract generic camera image filename as article", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Фото шильдика",
+    attachments: "IMG_20260310_144651.jpg, photo_12345.png",
+    body: "Добрый день. Направляю фотографии."
+  });
+
+  assert.ok(!result.lead.articles.includes("IMG-20260310-144651"));
+  assert.equal(result.lead.articles.length, 0);
+});
+
+runTest("does not detect noisy short alias TOP as brand", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Re: Запрос",
+    body: "Подтверждаю, спасибо. top level discussion without brand context."
+  });
+
+  assert.ok(!result.detectedBrands.includes("TOP"));
 });
 
 // ═══ Urgency detection tests ═══

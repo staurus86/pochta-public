@@ -86,6 +86,15 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
         name: p.name,
         category: p.category
       })),
+      nomenclature_matches: (lead.nomenclatureMatches || []).map((item) => ({
+        article: item.article || null,
+        brand: item.brand || null,
+        product_name: item.productName || null,
+        description: item.description || null,
+        source_rows: item.sourceRows || 0,
+        avg_price: item.avgPrice ?? null,
+        match_type: item.matchType || null
+      })),
       urgency: lead.urgency || "normal",
       has_nameplate_photos: Boolean(lead.hasNameplatePhotos),
       has_article_photos: Boolean(lead.hasArticlePhotos)
@@ -95,6 +104,8 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
       needs_clarification: Boolean(crm.needsClarification),
       curator_mop: crm.curatorMop || null,
       curator_moz: crm.curatorMoz || null,
+      match_method: crm.matchMethod || null,
+      match_confidence: crm.matchConfidence ?? null,
       suggested_reply: crm.suggestedReply || analysis.suggestedReply || null,
       company: crm.company
         ? {
