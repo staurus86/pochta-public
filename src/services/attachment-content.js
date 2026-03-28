@@ -742,16 +742,18 @@ function normalizeAttachmentArticle(value) {
   if (/^\d+:[A-Z]{4,}/.test(normalized)) return "";
   // CSS vendor-prefixed tokens: MS-TEXT-SIZE-ADJUST:100, WEBKIT-*
   if (/^(?:MS|WEBKIT|MOZ|O)-[A-Z-]+:\d/i.test(normalized)) return "";
-  // PDF metadata: GTS_PDFA1, CAOLAN80, 20ROMAN
-  if (/^(?:GTS_PDF|CAOLAN\d|ADOBE\d)/i.test(normalized)) return "";
+  // PDF metadata: GTS_PDFA1, CAOLAN80, 20ROMAN, ALLLEX86, ALFABY2X
+  if (/^(?:GTS_PDF|CAOLAN\d|ADOBE\d|ALLLEX\d|ALFABY\d)/i.test(normalized)) return "";
   if (/^\d+ROMAN$/i.test(normalized)) return "";
+  // Simple fractions/thread sizes: 1/2, 1/4, 1/1, 10/2 (without prefix like G or M)
+  if (/^\d{1,2}\/\d{1,2}$/.test(normalized)) return "";
   // Office document paths and filenames: DRS/E2ODOC.XML, drs/e2oDoc.xmlPK, e2oDoc.xml
   if (/^DRS\//i.test(normalized) || /\.XMLPK$/i.test(normalized)) return "";
   if (/^E2ODOC/i.test(normalized)) return "";
   // Hash-like strings (24+ uppercase without separators)
   if (/^[A-Z0-9]{24,}$/.test(normalized)) return "";
-  // Bank account/BIK patterns: 30101810*, 40702810*, 04452*
-  if (/^(?:301|407|044)\d{6,17}$/.test(normalized)) return "";
+  // Bank account/BIK/corr.account patterns: 30101810*, 40702810*, 04452*
+  if (/^(?:301|407|044)\d{5,17}$/.test(normalized)) return "";
   // KPP (9 digits ending in 001/01): 390601001, 771801001
   if (/^\d{9}$/.test(normalized) && /001$/.test(normalized)) return "";
   // Russian postal indexes (6 digits): 600014, 107031

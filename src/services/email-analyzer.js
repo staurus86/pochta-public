@@ -2666,8 +2666,10 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^CAOLAN\d/i.test(normalized)) return true;
   // Decimal numbers: 595.2, 841.9
   if (/^\d{2,4}\.\d{1,2}$/.test(normalized)) return true;
-  // Bank account numbers (20 digits) and BIK (9 digits starting with 0)
-  if (/^[034]\d{7,19}$/.test(normalized) && /^(?:30|40|04|03)\d+$/.test(normalized)) return true;
+  // Bank account/BIK/corr.account: 30101810*, 40702810*, 04452*
+  if (/^(?:301|407|044)\d{5,17}$/.test(normalized)) return true;
+  // Simple fractions: 1/2, 1/4, 1/1, 10/2
+  if (/^\d{1,2}\/\d{1,2}$/.test(normalized)) return true;
   // Hash-like strings (24+ uppercase alphanumeric without separators)
   if (/^[A-Z0-9]{24,}$/.test(normalized) && !/[-/.]/.test(normalized)) return true;
   // PDF Unicode escape residue: 000A, 000C, 004A, 004O etc.
