@@ -193,7 +193,7 @@ const PDF_INTERNAL_TEXT_NOISE_PATTERNS = [
 ];
 // CSS tokens: font-size:17px, padding:16px, max-width:480px, line-height:165, mso-line-height-alt:24
 const CSS_STYLE_TOKEN_PATTERN = /^(?:FONT|LINE|LETTER|WORD|TEXT|MARGIN|PADDING|BORDER|BACKGROUND|COLOR|WIDTH|HEIGHT|TOP|LEFT|RIGHT|BOTTOM|DISPLAY|POSITION|MIN|MAX|MSO)(?:-[A-Z]+)*:\S+$/i;
-const WORD_INTERNAL_TOKEN_PATTERN = /^WW8[A-Z0-9]+$/i;
+const WORD_INTERNAL_TOKEN_PATTERN = /^(?:WW8[A-Z0-9]+|WRD000[0-3])$/i;
 const WORD_STYLE_TOKEN_PATTERN = /^(?:WW-[A-Za-z0-9-]+|\d+ROMAN(?:\/[A-Z]+)?|V\d+)$/i;
 const STANDARD_TOKEN_PATTERN = /^(?:IEC|ISO|EN|DIN)\d+(?:[.-]\d+){1,}$/i;
 const ARTICLE_POSITIVE_PATTERNS = [
@@ -884,13 +884,16 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
 
 function mergeAttachmentLeadData(lead, attachmentAnalysis = {}) {
   const files = attachmentAnalysis.files || [];
-  const attachmentLineItems = files.flatMap((file) => (file.lineItems || []).map((item) => ({
-    article: item.article ? normalizeArticleCode(item.article) : null,
-    quantity: item.quantity ?? null,
-    unit: item.unit || "шт",
-    descriptionRu: item.descriptionRu || null,
-    source: item.source || `attachment:${file.filename || "file"}`
-  })));
+  const attachmentLineItems = files.flatMap((file) => (file.lineItems || []).map((item) => {
+    const article = item.article ? normalizeArticleCode(item.article) : null;
+    return {
+      article: article && !isObviousArticleNoise(article, "") ? article : null,
+      quantity: item.quantity ?? null,
+      unit: item.unit || "шт",
+      descriptionRu: item.descriptionRu || null,
+      source: item.source || `attachment:${file.filename || "file"}`
+    };
+  }));
 
   const mergedLineItems = [...(lead.lineItems || [])];
   for (const item of attachmentLineItems) {
@@ -909,10 +912,16 @@ function mergeAttachmentLeadData(lead, attachmentAnalysis = {}) {
     if (!existing.source && item.source) existing.source = item.source;
   }
 
+  // Validate attachment-derived articles through the same noise/scoring pipeline
+  const validatedAttachmentArticles = files
+    .flatMap((file) => file.detectedArticles || [])
+    .map(normalizeArticleCode)
+    .filter((code) => code && !isObviousArticleNoise(code, ""));
+
   const mergedArticles = unique([
     ...(lead.articles || []),
     ...attachmentLineItems.map((item) => item.article).filter(Boolean),
-    ...files.flatMap((file) => file.detectedArticles || []).map(normalizeArticleCode)
+    ...validatedAttachmentArticles
   ].filter(Boolean));
 
   const mergedProductNames = [...(lead.productNames || [])];
@@ -2666,8 +2675,12 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^(?:CAOLAN|ALLLEX|ALFABY|CALIBRI\d|ARIAL\d|CYR\d)/i.test(normalized)) return true;
   // Date patterns: 01-2026, 03-2025
   if (/^\d{2}-(?:19|20)\d{2}$/.test(normalized)) return true;
-  // URL slugs: fdmrn8c0b-bilge-level-switch-float (4+ lowercase-word segments)
-  if (/^[a-z0-9]+-[a-z]+-[a-z]+-[a-z]+/i.test(normalized) && normalized.length > 20) return true;
+  // URL slugs: fdmrn8c0b-bilge-level-switch-float, n8-30x32l-nbr-connecting-type
+  // Slugs have 4+ segments with at least 2 long lowercase word segments (4+ chars each)
+  if (normalized.split("-").length >= 4 && normalized.length > 20) {
+    const longWordSegments = normalized.split("-").filter((s) => /^[a-z]{4,}$/i.test(s)).length;
+    if (longWordSegments >= 2) return true;
+  }
   // Decimal numbers: 595.2, 841.9
   if (/^\d{2,4}\.\d{1,2}$/.test(normalized)) return true;
   // Bank account/BIK/corr.account: 30101810*, 40702810*, 04452*
