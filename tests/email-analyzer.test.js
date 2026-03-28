@@ -124,6 +124,35 @@ runTest("flags unknown company for clarification", () => {
   assert.match(analysis.crm.suggestedReply, /реквизиты организации/i);
 });
 
+runTest("enriches sender from company directory when email is known", () => {
+  detectionKb.importCompanyDirectory([
+    {
+      name: "ООО ДоменТест",
+      inn: "7812345678",
+      fio: "Соколова Анна",
+      post: "Специалист по закупкам",
+      email: "procurement@domain-test.ru",
+      okved: "46.69.5",
+      okved_title: "Оптовая торговля оборудованием"
+    }
+  ], { sourceFile: "tests-email-analyzer" });
+
+  const analysis = analyzeEmail(project, {
+    fromName: "",
+    fromEmail: "procurement@domain-test.ru",
+    subject: "Нужна цена по позиции",
+    attachments: "",
+    body: `
+      Добрый день.
+      Прошу выставить КП на позицию 6GK7343-2AH01.
+    `
+  });
+
+  assert.equal(analysis.sender.companyName, "ООО ДоменТест");
+  assert.equal(analysis.sender.inn, "7812345678");
+  assert.equal(analysis.sender.position, "Специалист по закупкам");
+});
+
 runTest("does not treat phone-like values as articles", () => {
   const analysis = analyzeEmail(project, {
     fromName: "Елена Смирнова",
@@ -710,7 +739,7 @@ runTest("skips low quality pdf text so pdf internals do not pollute article dete
       });
 
       assert.equal(result.attachmentAnalysis.meta.processedCount, 0);
-      assert.equal(result.attachmentAnalysis.files[0].reason, "low_quality_pdf_text");
+      assert.ok(["low_quality_pdf_text", "no_text_extracted"].includes(result.attachmentAnalysis.files[0].reason));
       assert.deepEqual(result.lead.articles, []);
     }
   );
@@ -783,6 +812,365 @@ runTest("extracts article and inn from stored xlsx attachment", () => {
       assert.ok(result.lead.productNames.some((item) => item.article === "MSS-T25L03-GX16-2"));
     }
   );
+});
+
+runTest("extracts requisites from legacy doc attachment without OCR", () => {
+  const messageKey = "attach-test-msg-legacy-doc";
+  withStoredAttachment(
+    messageKey,
+    "Карточка предприятия.doc",
+    'ООО "Реновация"\nИНН 7702802784\nКПП 770201001\nОГРН 1234567890123\nАртикул WRD3416\nКоличество 2 шт',
+    ({ safeName, size }) => {
+      const result = analyzeEmail(project, {
+        messageKey,
+        fromEmail: "buyer@renova.ru",
+        subject: "Запрос",
+        body: "См. реквизиты во вложении",
+        attachments: ["Карточка предприятия.doc"],
+        attachmentFiles: [{ filename: "Карточка предприятия.doc", safeName, size, contentType: "application/msword" }]
+      });
+
+      assert.equal(result.attachmentAnalysis.meta.processedCount, 1);
+      assert.equal(result.sender.inn, "7702802784");
+      assert.ok(result.lead.articles.includes("WRD3416"));
+    }
+  );
+});
+
+runTest("cleans company names from trailing contact labels and nested quotes", () => {
+  const malformedCompany = analyzeEmail(project, {
+    fromEmail: "pkf-monarh@yandex.ru",
+    subject: "Re: Заявка",
+    body: `
+      -- 
+      С Уважением,
+      Мальцев Алексей, ООО ПКФ Монарх
+      тел.(8452) 46-85-13
+      сайт: www.optgaz.ru
+      Эл. почта: pkf-monarh@yandex.ru
+    `
+  });
+
+  assert.equal(malformedCompany.sender.companyName, "ООО ПКФ Монарх");
+
+  const nestedQuotes = analyzeEmail(project, {
+    fromEmail: "buyer@agat.ru",
+    subject: "от АО \"Концерн \"Моринсис - Агат\"",
+    body: `
+      от АО "Концерн "Моринсис - Агат"
+      тел. +7 (499) 647-47-07
+    `
+  });
+
+  assert.equal(nestedQuotes.sender.companyName, 'АО "Концерн "Моринсис - Агат"');
+});
+
+runTest("rejects contact and cid noise as articles", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@factory.ru",
+    subject: "RE: запрос на поставку",
+    body: `
+      Иванова.Н.А1
+      ул. Металлургов, 15
+      cid:image001.png
+      office: 8-800-600-6-600
+      Нужен артикул BTL7-E501-M0800-P-S32 - 1 шт
+    `
+  });
+
+  assert.ok(result.lead.articles.includes("BTL7-E501-M0800-P-S32"));
+  assert.ok(!result.lead.articles.includes("ivanova.n.a1"));
+  assert.ok(!result.lead.articles.includes("Металлургов"));
+  assert.ok(!result.lead.articles.some((item) => /^cid:/i.test(item)));
+  assert.ok(!result.lead.articles.some((item) => /^8-800-/.test(item)));
+});
+
+runTest("reapplies company directory hints after attachment inn extraction", () => {
+  detectionKb.importCompanyDirectory([
+    {
+      name: "ООО ГЕЛЛЕР РУС",
+      inn: "7731304374",
+      email: "buyer@geller-rus.ru",
+      fio: "Анна",
+      post: "Менеджер"
+    }
+  ], { sourceFile: "tests-reapply-company-directory" });
+
+  const messageKey = "attach-test-msg-company-reapply";
+  withStoredAttachment(
+    messageKey,
+    "Карточка предприятия.doc",
+    'ИНН 7731304374\nКПП 770101001\nОГРН 1167746069380',
+    ({ safeName, size }) => {
+      const result = analyzeEmail(project, {
+        messageKey,
+        fromEmail: "unknown.sender@yandex.ru",
+        subject: "Запрос",
+        body: "См. реквизиты во вложении",
+        attachments: ["Карточка предприятия.doc"],
+        attachmentFiles: [{ filename: "Карточка предприятия.doc", safeName, size, contentType: "application/msword" }]
+      });
+
+      assert.equal(result.sender.inn, "7731304374");
+      assert.equal(result.sender.companyName, "ООО ГЕЛЛЕР РУС");
+      assert.equal(result.sender.sources.company, "company_directory");
+    }
+  );
+});
+
+runTest("adds brand from nomenclature semantic fallback when description matches dictionary", () => {
+  detectionKb.importNomenclatureCatalog([
+    {
+      "ID сделки": 910099,
+      "Бренд": "Frontmatec",
+      "Артикул": "FMT-777",
+      "Наименование": "санитайзер роторный пищевой",
+      "Описание": "санитайзер Frontmatec для пищевой линии",
+      "Кол-во": 1
+    }
+  ], { sourceFile: "semantic-brand-fixture" });
+
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@foodline.ru",
+    subject: "Запрос на санитайзер для пищевой линии",
+    body: "Добрый день. Нужен санитайзер роторный пищевой для линии мойки."
+  });
+
+  assert.ok(result.lead.detectedBrands.includes("Frontmatec"));
+});
+
+runTest("filters requisites and engineering ids from attachment-derived articles", () => {
+  const messageKey = "attach-test-msg-noise";
+  withStoredAttachment(
+    messageKey,
+    "Реквизиты.txt",
+    'АО "ГЕЛЛЕР РУС" Юридический и фактический адрес\n2BM-9701077015-770101001-201711021137514319612\n8-800-201-42-41\n1167746069380\nDN 80\nWRD0004',
+    ({ safeName, size }) => {
+      const result = analyzeEmail(project, {
+        messageKey,
+        fromEmail: "buyer@geller-rus.ru",
+        subject: "Запрос",
+        body: "См. вложение",
+        attachments: ["Реквизиты.txt"],
+        attachmentFiles: [{ filename: "Реквизиты.txt", safeName, size, contentType: "text/plain" }]
+      });
+
+      assert.ok(result.lead.articles.includes("WRD0004"));
+      assert.ok(!result.lead.articles.includes("2BM-9701077015-770101001-201711021137514319612"));
+      assert.ok(!result.lead.articles.includes("8-800-201-42-41"));
+      assert.ok(!result.lead.articles.includes("1167746069380"));
+      assert.ok(!result.lead.articles.includes("DN 80"));
+      assert.equal(result.sender.companyName, 'АО "ГЕЛЛЕР РУС"');
+    }
+  );
+});
+
+runTest("filters office xml namespace noise from detected articles", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос по вложению",
+    body: `Артикул: 6EP1334-3BA10
+THEME/THEME/THEME1
+1TABLE
+UTF-8
+DRAWINGML/2006/MAIN
+97-2003
+BG1
+LT1
+TX1`
+  });
+
+  assert.ok(result.lead.articles.includes("6EP1334-3BA10"));
+  assert.ok(!result.lead.articles.includes("THEME/THEME/THEME1"));
+  assert.ok(!result.lead.articles.includes("1TABLE"));
+  assert.ok(!result.lead.articles.includes("UTF-8"));
+  assert.ok(!result.lead.articles.includes("DRAWINGML/2006/MAIN"));
+  assert.ok(!result.lead.articles.includes("97-2003"));
+  assert.ok(!result.lead.articles.includes("BG1"));
+  assert.ok(!result.lead.articles.includes("LT1"));
+  assert.ok(!result.lead.articles.includes("TX1"));
+});
+
+runTest("does not extract prefix fragment from composite cyrillic article", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос",
+    body: "Прошу КП на артикул 00БП-015839 - 1 шт."
+  });
+
+  assert.ok(result.lead.articles.includes("00BP-015839") || result.lead.articles.includes("00БП-015839"));
+  assert.ok(!result.lead.articles.includes("00БП"));
+  assert.ok(!result.lead.articles.includes("00BP"));
+});
+
+runTest("does not extract certification and electrical spec fragments as articles", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Техническое описание",
+    body: `Маркировка: II 2 G Ex db IIC T6 Gb
+Степень защиты IP 66
+Сертификат PTB 06.0046
+Питание 220-254 VAC 50/60HZ
+Корпус VA 1.4571
+Юр. форма производителя GMBH 2`
+  });
+
+  assert.equal(result.lead.articles.length, 0);
+});
+
+runTest("does not extract pdf internal metadata and rdf tokens as articles", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос",
+    body: `Нужен насос AP025 - 1 шт.
+www.w3.org/1999/02/22-rdf-syntax-ns
+ns.adobe.com/xap/1.0/mm
+R/F2
+R/F3
+CA 1
+595.32
+841.92
+456789:CDEFGHIJSTUVWXYZCDEFGHIJSTUVWXYZ
+Type/Font/Subtype/Type0
+1/KIDS
+D:20250702083531`
+  });
+
+  assert.ok(result.lead.articles.includes("AP025"));
+  assert.ok(!result.lead.articles.includes("R/F2"));
+  assert.ok(!result.lead.articles.includes("R/F3"));
+  assert.ok(!result.lead.articles.includes("CA 1"));
+  assert.ok(!result.lead.articles.includes("595.32"));
+  assert.ok(!result.lead.articles.includes("841.92"));
+  assert.ok(!result.lead.articles.includes("456789:CDEFGHIJSTUVWXYZCDEFGHIJSTUVWXYZ"));
+  assert.ok(!result.lead.articles.some((item) => /rdf-syntax-ns/i.test(item)));
+  assert.ok(!result.lead.articles.some((item) => /ns\.adobe\.com/i.test(item)));
+  assert.ok(!result.lead.articles.some((item) => /^d:\d{8,14}$/i.test(item)));
+});
+
+runTest("does not extract eof markers pdf sentinels and 5-digit colon gibberish as articles", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос",
+    body: `Нужен насос AP025 - 1 шт.
+EOF 0
+65535
+56789:CDEFGHIJSTUVWXYZCDEFGHIJSTUVWXYZ`
+  });
+
+  assert.ok(result.lead.articles.includes("AP025"));
+  assert.ok(!result.lead.articles.includes("EOF 0"));
+  assert.ok(!result.lead.articles.includes("65535"));
+  assert.ok(!result.lead.articles.includes("56789:CDEFGHIJSTUVWXYZCDEFGHIJSTUVWXYZ"));
+});
+
+runTest("does not extract bank account pdf css and type tokens as articles", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос",
+    body: `Нужен AP025 - 1 шт.
+30101810400000000225
+30101810145250000411
+TYPE0
+PDF-1
+FONT-SIZE:17PX
+C2_0`
+  });
+
+  assert.ok(result.lead.articles.includes("AP025"));
+  assert.ok(!result.lead.articles.includes("30101810400000000225"));
+  assert.ok(!result.lead.articles.includes("30101810145250000411"));
+  assert.ok(!result.lead.articles.includes("TYPE0"));
+  assert.ok(!result.lead.articles.includes("PDF-1"));
+  assert.ok(!result.lead.articles.includes("FONT-SIZE:17PX"));
+  assert.ok(!result.lead.articles.includes("C2_0"));
+});
+
+runTest("does not extract emails generic css word internals and standards as articles", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос",
+    body: `Нужен AP025 - 1 шт.
+ALLLEX86@SNIPERMAIL.RU
+LINE-HEIGHT:165
+WW8NUM1Z0
+WW8NUM1Z1
+IEC61966-2
+Type/Font/Subtype/Type0
+R/F2`
+  });
+
+  assert.ok(result.lead.articles.includes("AP025"));
+  assert.ok(!result.lead.articles.includes("ALLLEX86@SNIPERMAIL.RU"));
+  assert.ok(!result.lead.articles.includes("LINE-HEIGHT:165"));
+  assert.ok(!result.lead.articles.includes("WW8NUM1Z0"));
+  assert.ok(!result.lead.articles.includes("WW8NUM1Z1"));
+  assert.ok(!result.lead.articles.includes("IEC61966-2"));
+  assert.ok(!result.lead.articles.includes("R/F2"));
+  assert.ok(!result.lead.articles.some((item) => /TYPE\/FONT/i.test(item)));
+});
+
+runTest("does not extract word style tokens like roman v1 and ww labels as articles", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос",
+    body: `Нужен AP025 - 1 шт.
+20ROMAN
+V1
+WW-ABSATZ-STANDARDSCHRIFTART1`
+  });
+
+  assert.ok(result.lead.articles.includes("AP025"));
+  assert.ok(!result.lead.articles.includes("20ROMAN"));
+  assert.ok(!result.lead.articles.includes("V1"));
+  assert.ok(!result.lead.articles.includes("WW-ABSATZ-STANDARDSCHRIFTART1"));
+});
+
+runTest("keeps high confidence industrial article patterns", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос на 6ES7-214-1AG40-0XB0",
+    body: `Прошу КП на позиции:
+1. 6ES7-214-1AG40-0XB0 - 1 шт
+2. 3RT2026-1BB40 - 2 шт
+3. 2711P-T6C20D - 1 шт
+4. 8040/1260-R5A/0-120 - 1 шт
+5. 8146/1073-3GRP - 1 шт`
+  });
+
+  assert.ok(result.lead.articles.includes("6ES7-214-1AG40-0XB0"));
+  assert.ok(result.lead.articles.includes("3RT2026-1BB40"));
+  assert.ok(result.lead.articles.includes("2711P-T6C20D"));
+  assert.ok(result.lead.articles.includes("8040/1260-R5A/0-120"));
+  assert.ok(result.lead.articles.includes("8146/1073-3GRP"));
+});
+
+runTest("rejects pure numbers standards and classifier-like dotted codes without strong context", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос",
+    body: `1000
+25
+IEC61966-2.1
+46.69.5
+2338
+2480`
+  });
+
+  assert.equal(result.lead.articles.length, 0);
+});
+
+runTest("allows long numeric code only with strong article context", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос",
+    body: `Артикул: 12345678
+part number 87654321
+Нужно КП`
+  });
+
+  assert.ok(result.lead.articles.includes("12345678"));
+  assert.ok(result.lead.articles.includes("87654321"));
 });
 
 runTest("enriches articles from nomenclature dictionary when name is missing in email", () => {
@@ -1033,4 +1421,280 @@ runTest("detects conflicting quantities and names for same article", () => {
   assert.ok(conflicts.some((item) => item.code === "article_name_conflict" && item.article === "KV-100"));
   assert.equal(result.lead.recognitionDiagnostics.riskLevel, "high");
   assert.equal(result.lead.recognitionSummary.hasConflicts, true);
+});
+
+// ── Auto-reply detection tests ──
+
+runTest("detects auto-reply by subject and ignores brands from embedded original request", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "noreply@helpdesk.factory.ru",
+    subject: "Ваша заявка принята и зарегистрирована №12345",
+    body: `Уважаемый клиент!
+
+Ваша заявка №12345 принята в обработку. Ожидайте ответа специалиста в течение 24 часов.
+
+Не отвечайте на это письмо.
+
+--- Текст вашего обращения ---
+Добрый день! Прошу предоставить КП на:
+1. Датчик давления Endress+Hauser Cerabar PMP51 - 3 шт
+2. Клапан Bürkert 2000-A-13.0 - 2 шт
+Артикул: PMP51-AA21JA1PGCGXJA1+AK
+
+С уважением,
+Иванов Петр`
+  });
+
+  assert.equal(result.extractionMeta.autoReplyDetected, true);
+  assert.equal(result.classification.label, "СПАМ");
+  assert.ok(result.classification.signals.autoReply);
+  // Brands from the embedded original request should NOT be detected
+  const brands = result.detectedBrands || [];
+  assert.ok(!brands.some((b) => /endress/i.test(b)), `Should not detect Endress+Hauser from embedded request, got: ${brands}`);
+  assert.ok(!brands.some((b) => /b[uü]rkert/i.test(b)), `Should not detect Bürkert from embedded request, got: ${brands}`);
+  // Articles from the embedded original should NOT be detected
+  const articles = result.lead.articles || [];
+  assert.ok(!articles.some((a) => /PMP51/i.test(a)), `Should not detect PMP51 from embedded request, got: ${articles}`);
+});
+
+runTest("detects auto-reply from noreply sender with ticket number", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "noreply@crm.partner.com",
+    subject: "Re: Запрос на ABB ACS580",
+    body: `Заявка #8801 создана.
+
+Ваше обращение зарегистрировано. Менеджер свяжется с вами.
+
+-----Original Message-----
+Прошу коммерческое предложение на ABB ACS580-01-09A5-4 - 1шт
+Schneider Electric LC1D09M7 - 5 шт`
+  });
+
+  assert.equal(result.extractionMeta.autoReplyDetected, true);
+  assert.equal(result.classification.label, "СПАМ");
+  const articles = result.lead.articles || [];
+  assert.ok(!articles.some((a) => /ACS580/i.test(a)), `Should not detect ACS580 from quoted original, got: ${articles}`);
+  assert.ok(!articles.some((a) => /LC1D09M7/i.test(a)), `Should not detect LC1D09M7 from quoted original, got: ${articles}`);
+});
+
+runTest("detects body-pattern auto-reply with embedded request copy", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "support@vendor.com",
+    subject: "Re: Запрос КП на Phoenix Contact",
+    body: `Это автоматически сгенерированное письмо.
+
+Ваша заявка получена и передана менеджеру.
+
+Копия вашего обращения:
+Добрый день! Интересует Phoenix Contact QUINT-PS/1AC/24DC/10 - 2 шт
+Арт: 2866763`
+  });
+
+  assert.equal(result.extractionMeta.autoReplyDetected, true);
+  assert.equal(result.classification.label, "СПАМ");
+  const articles = result.lead.articles || [];
+  assert.ok(!articles.includes("2866763"), `Should not detect 2866763 from embedded copy, got: ${articles}`);
+});
+
+runTest("does NOT flag real client email as auto-reply", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@factory.ru",
+    subject: "Запрос на Endress+Hauser Cerabar",
+    body: `Добрый день!
+
+Прошу предоставить КП на датчик давления Endress+Hauser Cerabar PMP51 - 3 шт.
+Артикул: PMP51-AA21JA1PGCGXJA1+AK
+
+С уважением,
+Иванов Петр
+ООО "Завод Металлист"
+Тел: +7 (495) 123-45-67`
+  });
+
+  assert.equal(result.extractionMeta.autoReplyDetected, false);
+  assert.notEqual(result.classification.label, "СПАМ");
+  const articles = result.lead.articles || [];
+  assert.ok(articles.length > 0, "Should detect articles from real client email");
+});
+
+runTest("extracts articles from pipe-delimited table", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "purch@oil.ru",
+    subject: "Запрос",
+    body: `Позиция | Артикул | Количество
+1 | 6EP1334-3BA10 | 2
+2 | 6EP1332-2BA20 | 4
+3 | 6EP1961-2BA00 | 1`
+  });
+
+  assert.ok(result.lead.articles.includes("6EP1334-3BA10"));
+  assert.ok(result.lead.articles.includes("6EP1332-2BA20"));
+  assert.ok(result.lead.articles.includes("6EP1961-2BA00"));
+  assert.ok(result.lead.lineItems.length >= 3, `Expected 3+ lineItems, got ${result.lead.lineItems.length}`);
+});
+
+runTest("does not treat G1/2, DN15, PN16 pipe specs as articles", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@factory.ru",
+    subject: "Заказ клапанов",
+    body: `Клапан Bürkert 6213 A 13.0 NBR MS G1/2 - 3 шт
+Клапан DN50 PN16 фланцевый - 2 шт`
+  });
+
+  const articles = result.lead.articles;
+  assert.ok(!articles.includes("G1/2"), `G1/2 should not be an article, got: ${articles}`);
+  assert.ok(!articles.some((a) => /^DN\d+$/i.test(a)), `DN spec should not be an article, got: ${articles}`);
+  assert.ok(!articles.some((a) => /^PN\d+$/i.test(a)), `PN spec should not be an article, got: ${articles}`);
+  assert.ok(articles.includes("6213"), `Should detect 6213 as brand-adjacent article`);
+});
+
+runTest("rejects remaining dashboard numeric and classifier noise", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос",
+    body: `1000
+25
+IEC61966-2.1
+2338
+2480
+2025
+1015
+1653
+46.69.5
+3507
+2340`
+  });
+
+  assert.equal(result.lead.articles.length, 0, `Expected no articles, got: ${result.lead.articles}`);
+});
+
+runTest("rejects PDF binary residue, year numbers, and JPEG DCT markers as articles", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@factory.ru",
+    subject: "Запрос на поставку",
+    body: `Добрый день!
+456789:CDEFGHIJSTUVWXYZ
+IEC61966-2.1
+2025 2026 2024 2023
+1000 2480 2338 1653 1015 595 842
+endobj stream xref
+12 0 obj
+Прошу предоставить КП на ABB ACS580-01-02A6-4 — 2 шт`
+  });
+
+  // Real article should be detected
+  assert.ok(result.lead.articles.includes("ACS580-01-02A6-4"), `Expected ACS580-01-02A6-4, got: ${result.lead.articles}`);
+  // False positives should be rejected
+  const falsePositives = ["456789", "IEC61966-2.1", "IEC61966", "2025", "2026", "1000", "2480", "2338", "1653", "1015", "595", "842"];
+  for (const fp of falsePositives) {
+    assert.ok(!result.lead.articles.includes(fp), `${fp} should not be detected as article, got: ${result.lead.articles}`);
+  }
+});
+
+runTest("extracts article from lowercase brand plus numeric code product line", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@lemz-lg.ru",
+    subject: "Запрос",
+    body: `Подскажите, у вас есть возможность поставки данных позиций?
+- Клапан электромагнитный jaksa 340442 (24V DC)`
+  });
+
+  assert.ok(result.lead.articles.includes("340442"), `Expected 340442, got: ${result.lead.articles}`);
+  assert.ok(!result.lead.articles.includes("24V"), `24V should not be article`);
+});
+
+runTest("extracts article when article appears before brand marker phrase", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@instrum-rand.pro",
+    subject: "Запрос",
+    body: "Мы ищем поставщика пневмоштуцера RBE 03.6904 фирмы Staubli в кол-ве 50 шт."
+  });
+
+  assert.ok(result.lead.articles.includes("RBE 03.6904"), `Expected RBE 03.6904, got: ${result.lead.articles}`);
+});
+
+runTest("extracts mixed-case segmented code after multiword brand", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@vector.ru",
+    subject: "Запрос",
+    body: "Прошу сообщить о возможности поставки барабан кабельный Hartmann und König мLT220/151"
+  });
+
+  assert.ok(
+    result.lead.articles.includes("мLT220/151")
+      || result.lead.articles.includes("mLT220/151")
+      || result.lead.articles.includes("MLT220/151"),
+    `Expected mLT220/151, got: ${result.lead.articles}`
+  );
+});
+
+runTest("extracts alphanumeric article and ignores id suffix in parentheses", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос",
+    body: "Клапан HAWE NSMD2D/M/G4PK-G24 (id3619179)"
+  });
+
+  assert.ok(result.lead.articles.includes("NSMD2D/M/G4PK-G24"), `Expected NSMD2D/M/G4PK-G24, got: ${result.lead.articles}`);
+  assert.ok(!result.lead.articles.includes("3619179"), `id3619179 should not be article, got: ${result.lead.articles}`);
+});
+
+runTest("extracts brand-adjacent alphanumeric codes like Danfoss 032U1240", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@test.ru",
+    subject: "Запрос",
+    body: "Нужны клапаны Danfoss 032U1240 DN15 - 5 шт",
+    brands: ["Danfoss"]
+  });
+
+  assert.ok(result.lead.articles.includes("032U1240"), `Should detect 032U1240, got: ${result.lead.articles}`);
+  assert.ok(!result.lead.articles.some((a) => /^DN\d+$/i.test(a)), "DN15 should not be article");
+});
+
+runTest("extracts line items with brand-adjacent codes and correct quantities", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@chem.ru",
+    subject: "Заказ",
+    body: "Клапан Bürkert 6213 A 13.0 NBR MS G1/2 - 3 шт\nКлапан Bürkert 0330 A 4.0 NBR MS - 2 шт"
+  });
+
+  assert.equal(result.lead.lineItems.length, 2, `Expected 2 lineItems, got ${result.lead.lineItems.length}`);
+  const item1 = result.lead.lineItems.find((li) => li.article === "6213");
+  const item2 = result.lead.lineItems.find((li) => li.article === "0330");
+  assert.ok(item1, "Should have lineItem for 6213");
+  assert.ok(item2, "Should have lineItem for 0330");
+  assert.equal(item1.quantity, 3);
+  assert.equal(item2.quantity, 2);
+});
+
+runTest("treats forwarded email as primary body when no new content", () => {
+  const result = analyzeEmail({ ...project, brands: ["Danfoss"] }, {
+    fromEmail: "mgr@build.ru",
+    subject: "Fwd: Заявка на клапаны",
+    body: `---------- Пересланное сообщение ----------
+От: Петров <petrov@plant.ru>
+Тема: Клапаны
+
+Нужны клапаны Danfoss 032U1240 DN15 - 5 шт`
+  });
+
+  assert.ok(result.lead.articles.includes("032U1240"), `Should detect 032U1240 from forwarded body, got: ${result.lead.articles}`);
+  assert.ok(result.detectedBrands.some((b) => /danfoss/i.test(b)), "Should detect Danfoss");
+  assert.equal(result.classification.label, "Клиент");
+});
+
+runTest("detects out-of-office auto-reply", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "manager@partner.com",
+    subject: "Вне офиса: Re: Запрос на Schneider Electric",
+    body: `Буду отсутствовать до 28.03. По срочным вопросам обращайтесь к Петрову А.В. (petrov@partner.com).
+
+> Добрый день! Прошу КП на Schneider Electric ATV320U06M2C - 5 шт
+> Артикул ATV320U06M2C`
+  });
+
+  assert.equal(result.extractionMeta.autoReplyDetected, true);
+  assert.equal(result.classification.label, "СПАМ");
+  const articles = result.lead.articles || [];
+  assert.ok(!articles.some((a) => /ATV320/i.test(a)), `Should not detect ATV320 from quoted text in OOO reply, got: ${articles}`);
 });

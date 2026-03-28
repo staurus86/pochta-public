@@ -31,6 +31,49 @@ const KPP_PATTERN = /\b\d{9}\b/g;
 const OGRN_PATTERN = /\b\d{13,15}\b/g;
 const ARTICLE_PATTERN = /\b([A-ZА-ЯЁ0-9][A-ZА-ЯЁ0-9./:_-]{2,})\b/gi;
 const UNIT_PATTERN = /^(шт|штук[аи]?|ед|ед\.|pcs|pc|компл|к-т|set|м|кг|л|уп|рул|бух)$/i;
+const OFFICE_XML_ARTICLE_NOISE_PATTERNS = [
+  /^UTF-?8$/i,
+  /^97-2003$/i,
+  /^1TABLE$/i,
+  /^(?:BG|LT|TX)\d{1,2}$/i,
+  /^THEME(?:\/THEME){1,}(?:\d+)?$/i,
+  /^DRAWINGML\/\d{4}\/MAIN$/i,
+  /^OPENXMLFORMATS(?:\/[A-Z0-9._-]+){1,}$/i,
+  /^SCHEMAS(?:\/[A-Z0-9._:-]+){1,}$/i,
+  /^RELATIONSHIPS(?:\/[A-Z0-9._:-]+){1,}$/i,
+  /^CONTENT[-_ ]?TYPES$/i
+];
+const OFFICE_XML_TEXT_NOISE_PATTERNS = [
+  /\b(?:_rels|docprops|\[content_types\]\.xml|content[_-]?types|word\/|xl\/|ppt\/)\b/i,
+  /\b(?:schemas\.openxmlformats\.org|openxmlformats\.org|drawingml\/\d{4}\/main)\b/i,
+  /\b(?:theme\/theme\/theme\d+\.xml|word\.document\.8)\b/i,
+  /\bPK[\x03\x05\x07]/i
+];
+const PDF_INTERNAL_TEXT_NOISE_PATTERNS = [
+  /\b(?:type\/font|subtype\/|cidfonttype2|fontdescriptor|cidtogidmap|colorspace\/device|filter\/flatedecode|xobject|objstm|xref|italicangle|fontbbox|fontfile2|length1|length2|length3|kids|capheight|ascent|descent|avgwidth|maxwidth|stemv|outputintent)\b/i,
+  /\b(?:ns\.adobe\.com|purl\.org|www\.w3\.org\/1999\/02\/22-rdf|rdf-syntax-ns)\b/i,
+  /^\s*(?:r\/f\d+|r\/gs\d+|r\/image\d+|image\d+|im\d+|gs\d+|ca\s+\d+|lc\s+\d+|lj\s+\d+|lw\s+\d+|ml\s+\d+)\s*$/i,
+  /^\s*d:\d{8,14}\s*$/i,
+  /^\s*feff[0-9a-f]{12,}\s*$/i,
+  /^\s*[0-9a-f]{24,}\s*$/i,
+  // PDF stream object markers and binary content
+  /\b(?:endobj|endstream|startxref|\/Width|\/Height|\/Length\b|\/BitsPerComponent|\/DCTDecode|\/FlateDecode|\/Filter|\/BaseFont|\/FontDescriptor|\/ToUnicode|\/CIDFont|\/ColorSpace|\/XObject|\/Resources|\/MediaBox|\/CropBox|\/Rotate|\/Pages|\/Root|\/Info)\b/i,
+  // PDF font metrics lines: "DW 1000", "W [67 [500 250]]", "/Ascent 891", "MaxWidth 2614"
+  /^\s*(?:DW|W|CW)\s+[\d\[\].\s]+$/i,
+  // PDF image dimension lines: standalone numbers after /Width or /Height context
+  /\/(?:Width|Height)\s+\d+/i,
+  // JPEG DCT decode markers (456789:CDEFGHIJSTUVWXYZ...)
+  /\d{4,}:[A-Z]{6,}/i,
+  // ICC color profile identifiers (IEC61966-2.1 = sRGB)
+  /\bIEC\s*61966(?:[-.]?\d+)*\b/i,
+  // PDF object references: "0 obj", "0 R", stream markers
+  /^\s*\d+\s+\d+\s+(?:obj|R)\s*$/i,
+  /^\s*(?:stream|endstream|endobj|xref|trailer)\s*$/i
+];
+const CSS_STYLE_TOKEN_PATTERN = /^(?:FONT|LINE|LETTER|WORD|TEXT|MARGIN|PADDING|BORDER|BACKGROUND|COLOR|WIDTH|HEIGHT|TOP|LEFT|RIGHT|BOTTOM|DISPLAY|POSITION)(?:-[A-Z]+)+:\S+$/i;
+const WORD_INTERNAL_TOKEN_PATTERN = /^WW8[A-Z0-9]+$/i;
+const WORD_STYLE_TOKEN_PATTERN = /^(?:WW-[A-Z0-9-]+|\d+ROMAN|V\d+)$/i;
+const STANDARD_TOKEN_PATTERN = /^(?:IEC|ISO|EN|DIN)\d+(?:[-/.]\d+)*$/i;
 
 export function analyzeStoredAttachments(messageKey, attachmentFiles = [], options = {}) {
   const limits = { ...DEFAULT_LIMITS, ...options };
@@ -101,13 +144,6 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
       continue;
     }
 
-    if (PHASE3_EXTENSIONS.has(ext)) {
-      result.reason = "phase3_format";
-      files.push(result);
-      skippedCount += 1;
-      continue;
-    }
-
     if (IMAGE_EXTENSIONS.has(ext)) {
       result.reason = "ocr_unavailable_image";
       files.push(result);
@@ -115,7 +151,7 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
       continue;
     }
 
-    if (!TEXT_EXTENSIONS.has(ext) && !PDF_EXTENSIONS.has(ext) && !OOXML_EXTENSIONS.has(ext)) {
+    if (!TEXT_EXTENSIONS.has(ext) && !PDF_EXTENSIONS.has(ext) && !OOXML_EXTENSIONS.has(ext) && !PHASE3_EXTENSIONS.has(ext)) {
       result.reason = "unsupported_format";
       files.push(result);
       skippedCount += 1;
@@ -149,6 +185,8 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
         }
       } else if (OOXML_EXTENSIONS.has(ext)) {
         extractedText = extractTextFromOfficeOpenXml(filePath, ext);
+      } else if (PHASE3_EXTENSIONS.has(ext)) {
+        extractedText = extractTextFromLegacyOfficeBuffer(buffer, ext);
       }
 
       extractedText = cleanupExtractedText(extractedText).slice(0, limits.maxExtractedCharsPerFile);
@@ -159,7 +197,7 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
         continue;
       }
 
-      if (PDF_EXTENSIONS.has(ext) && !isUsablePdfText(extractedText)) {
+      if (PDF_EXTENSIONS.has(ext) && !isUsablePdfText(extractedText) && !hasUsefulExtractedSignals(extractedText)) {
         result.reason = "low_quality_pdf_text";
         result.preview = extractedText.slice(0, 200);
         files.push(result);
@@ -233,7 +271,15 @@ function categorizeAttachment(filename, ext, contentType) {
 }
 
 function extractTextFromPlainBuffer(buffer) {
-  return buffer.toString("utf8");
+  const utf8 = buffer.toString("utf8");
+  if (!utf8.includes("\uFFFD")) {
+    return utf8;
+  }
+  const utf16 = buffer.toString("utf16le");
+  if (countNaturalWords(utf16) > countNaturalWords(utf8)) {
+    return utf16;
+  }
+  return utf8;
 }
 
 function extractTextFromPdf(filePath, buffer) {
@@ -296,6 +342,13 @@ function extractTextFromPdfBuffer(buffer) {
 }
 
 function extractTextFromOfficeOpenXml(filePath, ext) {
+  const pythonKind = ext === ".docx" ? "docx" : ext === ".xlsx" ? "xlsx" : null;
+  if (pythonKind) {
+    const pyResult = extractOoxmlWithPython(filePath, pythonKind);
+    if (pyResult.ok && pyResult.text) {
+      return pyResult.text;
+    }
+  }
   if (ext === ".docx") {
     return extractTextFromDocx(filePath);
   }
@@ -303,6 +356,21 @@ function extractTextFromOfficeOpenXml(filePath, ext) {
     return extractTextFromXlsx(filePath);
   }
   return "";
+}
+
+function extractOoxmlWithPython(filePath, kind) {
+  const result = spawnSync("python", [PYTHON_ATTACHMENT_HELPER, kind, filePath], {
+    encoding: "utf8",
+    timeout: 4000
+  });
+  if (result.status !== 0 || result.error) {
+    return { ok: false, error: result.error?.message || result.stderr || result.stdout || "python_failed" };
+  }
+  try {
+    return JSON.parse(String(result.stdout || "{}"));
+  } catch {
+    return { ok: false, error: "python_invalid_json" };
+  }
 }
 
 function extractTextFromDocx(filePath) {
@@ -411,10 +479,68 @@ function cleanupExtractedText(text) {
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]+/g, " ")
     .replace(/\r/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
+    // Strip JPEG DCT markers that leak from PDF binary streams (456789:CDEFGHIJSTUVWXYZ...)
+    .replace(/\d{4,}:[A-Z]{6,}[A-Za-z]*/g, "")
+    // Strip ICC color profile references (IEC61966-2.1 sRGB)
+    .replace(/\bIEC\s*61966(?:[-.]?\d+)*/gi, "")
+    // Strip PDF font metric fragments: "DW 1000", "/Ascent 891", "/MaxWidth 2614"
+    .replace(/\/(?:Ascent|Descent|AvgWidth|MaxWidth|StemV|CapHeight|ItalicAngle|FontBBox|DW|CW|W)\s+[-\d\[\].\s]+/gi, "")
+    // Strip PDF dimension fragments: "/Width 2480", "/Height 2338"
+    .replace(/\/(?:Width|Height|Length|BitsPerComponent)\s+\d+/gi, "")
     .split("\n")
     .map((line) => line.replace(/[^\S\n\t]+/g, " ").trim())
+    .filter((line) => line
+      && !OFFICE_XML_TEXT_NOISE_PATTERNS.some((pattern) => pattern.test(line))
+      && !PDF_INTERNAL_TEXT_NOISE_PATTERNS.some((pattern) => pattern.test(line))
+      // Filter lines that are mostly PDF object syntax
+      && !isPdfBinaryNoiseLine(line))
     .join("\n")
     .trim();
+}
+
+function isPdfBinaryNoiseLine(line) {
+  // Lines that are pure PDF object syntax: "12 0 obj", "endobj", "stream", "/Type /Font"
+  if (/^\s*\d+\s+\d+\s+obj\s*$/.test(line)) return true;
+  if (/^\s*(?:endobj|endstream|stream|startxref|xref|trailer)\s*$/i.test(line)) return true;
+  // Lines with high ratio of PDF operators: /Name tokens
+  const slashTokens = (line.match(/\/[A-Za-z]\w+/g) || []).length;
+  if (slashTokens >= 3 && line.length < 200) return true;
+  // Lines that are only numbers and brackets (font width arrays)
+  if (/^\s*[\d\s\[\].,-]+\s*$/.test(line) && line.length > 10) return true;
+  return false;
+}
+
+function extractTextFromLegacyOfficeBuffer(buffer, ext = "") {
+  const chunks = [];
+  for (const encoding of ["utf8", "utf16le", "latin1"]) {
+    try {
+      const decoded = buffer.toString(encoding);
+      const strings = extractHumanReadableStrings(decoded, ext);
+      if (strings) {
+        chunks.push(strings);
+      }
+    } catch {
+      // ignore decoding failures
+    }
+  }
+  return [...new Set(chunks.filter(Boolean))].join("\n");
+}
+
+function extractHumanReadableStrings(text, ext = "") {
+  const matches = String(text || "").match(/[A-Za-zА-Яа-яЁё0-9@"«»().,:;\/\\_+=\- ]{6,}/g) || [];
+  const cleaned = matches
+    .map((part) => cleanupExtractedText(part))
+    .filter((part) => part.length >= 6)
+    .filter((part) => !OFFICE_XML_TEXT_NOISE_PATTERNS.some((pattern) => pattern.test(part)))
+    .filter((part) => !PDF_INTERNAL_TEXT_NOISE_PATTERNS.some((pattern) => pattern.test(part)))
+    .filter((part) => !/^PK\b/.test(part))
+    .filter((part) => countNaturalWords(part) > 0 || /\b\d{10,12}\b/.test(part) || /(?:ООО|АО|ОАО|ЗАО|ПАО|ИП)\b/.test(part));
+
+  const joined = cleaned.join("\n");
+  if (ext === ".doc" || ext === ".xls") {
+    return joined.slice(0, 16000);
+  }
+  return joined.slice(0, 12000);
 }
 
 function isUsablePdfText(text) {
@@ -431,12 +557,22 @@ function isUsablePdfText(text) {
   return true;
 }
 
+function countNaturalWords(text) {
+  const sample = String(text || "").slice(0, 4000);
+  return (sample.match(/[A-Za-zА-Яа-яЁё]{3,}/g) || []).length;
+}
+
+function hasUsefulExtractedSignals(text) {
+  const sample = String(text || "").slice(0, 6000);
+  return /\b\d{10,12}\b/.test(sample)
+    || /\b(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)\b/.test(sample)
+    || /\b[A-ZА-ЯЁ0-9][A-ZА-ЯЁ0-9./:_-]{4,}\b/.test(sample);
+}
+
 function detectAttachmentArticles(text) {
   return uniqueMatches(text.toUpperCase(), ARTICLE_PATTERN)
-    .filter((value) => value.length >= 4)
-    .filter((value) => /\d/.test(value))
-    .filter((value) => !/^(ИНН|КПП|ОГРН)$/.test(value))
-    .filter((value) => !/^\d{10,12}$/.test(value))
+    .map((value) => normalizeAttachmentArticle(value))
+    .filter(Boolean)
     .slice(0, 30);
 }
 
@@ -555,8 +691,45 @@ function isAttachmentArticleCandidate(value) {
 function normalizeAttachmentArticle(value) {
   const cleaned = String(value || "").trim().replace(/^[#№]/, "");
   if (!cleaned) return "";
-  if (!/\d/.test(cleaned)) return "";
-  return cleaned.toUpperCase();
+  const normalized = cleaned.toUpperCase();
+  if (!/\d/.test(normalized)) return "";
+  if (normalized.includes("@")) return "";
+  if (/^(?:ИНН|КПП|ОГРН)$/.test(normalized)) return "";
+  if (/^\d{10,15}$/.test(normalized)) return "";
+  if (/^(?:8|7)?-?800(?:-\d{1,4}){1,}$/.test(normalized)) return "";
+  if (/^\d{2,4}(?:-\d{2}){2,}$/.test(normalized)) return "";
+  if (/^2BM-[A-Z0-9-]+$/i.test(normalized)) return "";
+  // Engineering specs: DN50, PN16, G1/2 — but not article-like PN2271 (4+ digits)
+  if (/^(?:DN\s*\d{1,4}|PN\s*\d{1,3}|NPS\s*\d+|G\s*\d+(?:[/.]\d+)?|R\s*\d+(?:[/.]\d+)?|RC\s*\d+(?:[/.]\d+)?|RP\s*\d+(?:[/.]\d+)?)$/i.test(normalized)) return "";
+  if (/^CID:/i.test(normalized)) return "";
+  if (/^[A-ZА-ЯЁ]{1,3}\s+\d{1,3}$/.test(normalized) && /^(?:DN|PN)$/i.test(normalized.split(/\s+/)[0])) return "";
+  if (OFFICE_XML_ARTICLE_NOISE_PATTERNS.some((pattern) => pattern.test(normalized))) return "";
+  if (PDF_INTERNAL_TEXT_NOISE_PATTERNS.some((pattern) => pattern.test(normalized))) return "";
+  if (/^(?:R\/[A-Z0-9]+|TYPE\/[A-Z0-9/_-]+|[A-Z]+\/[A-Z0-9/_-]+)$/i.test(normalized)) return "";
+  if (/^(?:\d+\/[A-Z][A-Z0-9/_-]*|[A-Z][A-Z0-9/_-]*\/\d+)$/i.test(normalized)) return "";
+  if (/^(?:TYPE\d+|PDF-\d(?:\.\d+)?|C\d+_\d+)$/i.test(normalized)) return "";
+  if (CSS_STYLE_TOKEN_PATTERN.test(normalized)) return "";
+  if (WORD_INTERNAL_TOKEN_PATTERN.test(normalized)) return "";
+  if (WORD_STYLE_TOKEN_PATTERN.test(normalized)) return "";
+  if (STANDARD_TOKEN_PATTERN.test(normalized)) return "";
+  if (/^\d+\.\d{2,5}$/.test(normalized)) return "";
+  if (/^EOF\s+\d+$/i.test(normalized)) return "";
+  if (/^65535$/.test(normalized)) return "";
+  if (/^\d{20}$/.test(normalized)) return "";
+  if (/^0+\d*$/.test(normalized)) return "";
+  if (/^\d{5,}:[A-Z]{8,}$/i.test(normalized)) return "";
+  if (/^(?:XML|DOCX|XLSX|WORD|EXCEL)\/[A-Z0-9/_-]+$/i.test(normalized)) return "";
+  // Reject pure 3-4 digit numbers (almost always false positives from PDF: dimensions, metrics, years)
+  if (/^\d{3,4}$/.test(normalized)) return "";
+  // Reject year-like numbers 2000-2039
+  if (/^20[0-3]\d$/.test(normalized)) return "";
+  // Reject ICC color profile and standard identifiers
+  if (/^IEC\d/i.test(normalized)) return "";
+  // Reject PDF dimension values (common A4 dimensions at various DPI)
+  if (/^(?:2480|2338|1653|1169|842|595|1240|1754|3508|4961|3307|2339)$/.test(normalized)) return "";
+  // Reject JPEG DCT marker residue
+  if (/^\d+:[A-Z]{4,}/.test(normalized)) return "";
+  return normalized;
 }
 
 function parseAttachmentQuantity(value) {
@@ -579,6 +752,7 @@ function cleanupAttachmentName(value) {
   if (isAttachmentArticleCandidate(text)) return "";
   if (UNIT_PATTERN.test(text)) return "";
   if (/^\d+(?:[.,]\d+)?$/.test(text)) return "";
+  if (/^(?:юридический\s+и\s+фактический|юридический|фактический|почтовый)\b/i.test(text)) return "";
   if (/^(артикул|наименование|товар|позиция|количество|qty|quantity|unit)$/i.test(text)) return "";
   return text;
 }
