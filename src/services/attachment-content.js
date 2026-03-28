@@ -487,6 +487,12 @@ function cleanupExtractedText(text) {
     .replace(/\/(?:Ascent|Descent|AvgWidth|MaxWidth|StemV|CapHeight|ItalicAngle|FontBBox|DW|CW|W)\s+[-\d\[\].\s]+/gi, "")
     // Strip PDF dimension fragments: "/Width 2480", "/Height 2338"
     .replace(/\/(?:Width|Height|Length|BitsPerComponent)\s+\d+/gi, "")
+    // Strip Office binary structure markers (1Table, CompObj, WordDocument)
+    .replace(/\b(?:1Table|0Table|CompObj|WordDocument|SummaryInformation|DocumentSummaryInformation)\b/gi, "")
+    // Strip theme/xml paths with PK zip signatures
+    .replace(/\b(?:theme\/theme\/theme\d+\.xml(?:PK)?|word\.document\.\d)\b/gi, "")
+    // Strip PDF version markers (1.0, 2.0 at start of content)
+    .replace(/(?:^|\s)(?:PDF-?\d+\.\d+|\d\.\d)(?:\s|$)/g, " ")
     .split("\n")
     .map((line) => line.replace(/[^\S\n\t]+/g, " ").trim())
     .filter((line) => line
