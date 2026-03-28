@@ -722,6 +722,8 @@ function normalizeAttachmentArticle(value) {
   if (WORD_STYLE_TOKEN_PATTERN.test(normalized)) return "";
   if (STANDARD_TOKEN_PATTERN.test(normalized)) return "";
   if (/^\d+\.\d{2,5}$/.test(normalized)) return "";
+  // Version numbers: 1.0, 2.0, 0.0, 3.0, decimal dimensions: 595.2, 841.9
+  if (/^\d{1,4}\.\d{1,2}$/.test(normalized)) return "";
   if (/^EOF\s+\d+$/i.test(normalized)) return "";
   if (/^65535$/.test(normalized)) return "";
   if (/^\d{20}$/.test(normalized)) return "";
@@ -738,6 +740,19 @@ function normalizeAttachmentArticle(value) {
   if (/^(?:2480|2338|1653|1169|842|595|1240|1754|3508|4961|3307|2339|2614|2558|1000|65535)$/.test(normalized)) return "";
   // Reject JPEG DCT marker residue
   if (/^\d+:[A-Z]{4,}/.test(normalized)) return "";
+  // CSS vendor-prefixed tokens: MS-TEXT-SIZE-ADJUST:100, WEBKIT-*
+  if (/^(?:MS|WEBKIT|MOZ|O)-[A-Z-]+:\d/i.test(normalized)) return "";
+  // PDF metadata: GTS_PDFA1, CAOLAN80, 20ROMAN
+  if (/^(?:GTS_PDF|CAOLAN\d|ADOBE\d)/i.test(normalized)) return "";
+  if (/^\d+ROMAN$/i.test(normalized)) return "";
+  // Office document paths: DRS/E2ODOC.XML, drs/e2oDoc.xmlPK
+  if (/^DRS\//i.test(normalized) || /\.XMLPK$/i.test(normalized)) return "";
+  // Hash-like strings (24+ uppercase without separators)
+  if (/^[A-Z0-9]{24,}$/.test(normalized)) return "";
+  // Bank account/BIK patterns: 30101810*, 40702810*, 04452*
+  if (/^(?:301|407|044)\d{6,17}$/.test(normalized)) return "";
+  // OKVED classifier codes: 46.69.5, 46.69.9
+  if (/^\d{2}\.\d{2}\.\d{1,3}$/.test(normalized)) return "";
   return normalized;
 }
 
