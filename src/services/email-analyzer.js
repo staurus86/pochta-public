@@ -294,7 +294,7 @@ export function analyzeEmail(project, payload) {
     payload.attachmentFiles || [],
     payload.attachmentProcessingOptions || {}
   );
-  const attachmentContent = attachmentAnalysis.combinedText || "";
+  const attachmentContent = sanitizeAttachmentText(attachmentAnalysis.combinedText || "");
 
   // Detect auto-replies before any entity extraction
   const autoReplyDetection = detectAutoReply(subject, primaryBody || body, fromEmail);
@@ -423,6 +423,19 @@ export async function analyzeEmailAsync(project, payload) {
   }
 
   return result;
+}
+
+function sanitizeAttachmentText(text) {
+  // Strip PDF/Office noise tokens from attachment combined text before article extraction
+  return String(text || "")
+    .replace(/\b\d+Roman\b/gi, "")                              // Word style: 20Roman
+    .replace(/\b0{3,}\d?[A-Z]\b/gi, "")                         // PDF Unicode escapes: 000A, 004O
+    .replace(/\b\d{4}\/\d{2}\/\d{2}-[a-z-]+/gi, "")             // RDF namespace paths
+    .replace(/\b(?:XYZ|RGB|CMYK)\s+\d/gi, "")                   // Color space: XYZ 0, RGB 255
+    .replace(/\b0001-000\d\b/g, "")                              // PDF xref offsets: 0001-0000
+    .replace(/\b(?:WRD000\d|WW8\w+)\b/gi, "")                   // Word internal: WRD0002, WW8Num1z0
+    .replace(/\b\d{2}-(?:19|20)\d{2}\b/g, "")                   // Date: 01-2026
+    .replace(/\b0-\d{2,4}\b/g, "");                              // Range: 0-100
 }
 
 function normalizeAttachments(attachments) {
