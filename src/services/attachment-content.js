@@ -732,8 +732,8 @@ function normalizeAttachmentArticle(value) {
   if (/^0{2,}\d?[A-Z]$/i.test(normalized)) return "";
   if (/^\d{5,}:[A-Z]{8,}$/i.test(normalized)) return "";
   if (/^(?:XML|DOCX|XLSX|WORD|EXCEL)\/[A-Z0-9/_-]+$/i.test(normalized)) return "";
-  // Reject year-like numbers 2000-2039 (never real articles in attachments)
-  if (/^20[0-3]\d$/.test(normalized)) return "";
+  // Reject year-like numbers 1990-2039 (never real articles in attachments)
+  if (/^(?:19\d{2}|20[0-3]\d)$/.test(normalized)) return "";
   // Reject ICC color profile and standard identifiers
   if (/^IEC\d/i.test(normalized)) return "";
   // Reject known PDF dimension/metric values (common A4/A3 at various DPI, font metrics)
@@ -762,6 +762,12 @@ function normalizeAttachmentArticle(value) {
   if (/^\d{6}$/.test(normalized)) return "";
   // OKVED classifier codes: 46.69.5, 46.69.9
   if (/^\d{2}\.\d{2}\.\d{1,3}$/.test(normalized)) return "";
+  // URL slugs with multiple English words: fdmrn8c0b-bilge-level-switch-float
+  if (/^[a-z0-9]+-[a-z]+-[a-z]+-[a-z]+/i.test(normalized) && normalized.length > 20) return "";
+  // Strings containing commas (addresses, multi-value fields) — never valid articles
+  if (normalized.includes(",")) return "";
+  // Strings > 40 chars — too long for article codes
+  if (normalized.length > 40) return "";
   return normalized;
 }
 

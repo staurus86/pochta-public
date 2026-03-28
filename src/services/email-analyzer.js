@@ -2666,6 +2666,8 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^(?:CAOLAN|ALLLEX|ALFABY|CALIBRI\d|ARIAL\d|CYR\d)/i.test(normalized)) return true;
   // Date patterns: 01-2026, 03-2025
   if (/^\d{2}-(?:19|20)\d{2}$/.test(normalized)) return true;
+  // URL slugs: fdmrn8c0b-bilge-level-switch-float (4+ lowercase-word segments)
+  if (/^[a-z0-9]+-[a-z]+-[a-z]+-[a-z]+/i.test(normalized) && normalized.length > 20) return true;
   // Decimal numbers: 595.2, 841.9
   if (/^\d{2,4}\.\d{1,2}$/.test(normalized)) return true;
   // Bank account/BIK/corr.account: 30101810*, 40702810*, 04452*
