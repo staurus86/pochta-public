@@ -717,16 +717,16 @@ function normalizeAttachmentArticle(value) {
   if (/^65535$/.test(normalized)) return "";
   if (/^\d{20}$/.test(normalized)) return "";
   if (/^0+\d*$/.test(normalized)) return "";
+  // PDF Unicode null-byte escape residue: 000A, 000C, 000S etc.
+  if (/^0{2,}[A-Z]$/i.test(normalized)) return "";
   if (/^\d{5,}:[A-Z]{8,}$/i.test(normalized)) return "";
   if (/^(?:XML|DOCX|XLSX|WORD|EXCEL)\/[A-Z0-9/_-]+$/i.test(normalized)) return "";
-  // Reject pure 3-4 digit numbers (almost always false positives from PDF: dimensions, metrics, years)
-  if (/^\d{3,4}$/.test(normalized)) return "";
-  // Reject year-like numbers 2000-2039
+  // Reject year-like numbers 2000-2039 (never real articles in attachments)
   if (/^20[0-3]\d$/.test(normalized)) return "";
   // Reject ICC color profile and standard identifiers
   if (/^IEC\d/i.test(normalized)) return "";
-  // Reject PDF dimension values (common A4 dimensions at various DPI)
-  if (/^(?:2480|2338|1653|1169|842|595|1240|1754|3508|4961|3307|2339)$/.test(normalized)) return "";
+  // Reject known PDF dimension/metric values (common A4/A3 at various DPI, font metrics)
+  if (/^(?:2480|2338|1653|1169|842|595|1240|1754|3508|4961|3307|2339|2614|2558|1000|65535)$/.test(normalized)) return "";
   // Reject JPEG DCT marker residue
   if (/^\d+:[A-Z]{4,}/.test(normalized)) return "";
   return normalized;

@@ -2654,6 +2654,10 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^(?:EUR|USD|RUB|GBP|CHF)\s+\d/i.test(normalized)) return true;
   // PDF version markers: PDF-1.7, PDF-1.3
   if (/^PDF-\d+(?:\.\d+)?$/i.test(normalized)) return true;
+  // PDF Unicode null-byte escape residue: 000A, 000C, 000S
+  if (/^0{2,}[A-Z]$/i.test(normalized)) return true;
+  // Page/section references: СТР.1, CTP.1, стр.2 (Cyrillic С→C, Т→T, Р→P after transliteration)
+  if (/^(?:CTP|СТР|CTR|STR|PAG)\.\d{1,3}$/i.test(normalized)) return true;
   if (/^(?:8|7)?-?800(?:-\d{1,4}){1,}$/.test(normalized)) return true;
   if (/^[a-z]+(?:\.[a-z0-9]+){2,}$/i.test(normalized)) return true;
   // URL paths with domain-like segments: ns.adobe.com/xap/1.0, purl.org/dc/elements/1.1
