@@ -2666,6 +2666,11 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^(?:PT|NTC|PTC|KTY)\d{2,5}(?:K)?$/i.test(normalized)) return true;
   // PDF metadata: font creators, producer names (CAOLAN80, ADOBEPS5)
   if (/^(?:CAOLAN|ADOBEPS|ADOBE)\d+$/i.test(normalized)) return true;
+  // Office internal zip paths: drs/e2oDoc.xmlPK, word/document.xmlPK
+  if (/(?:\.xmlPK|\.relsPK|drs\/|word\/|xl\/)$/i.test(normalized)) return true;
+  // UI/spam artifact: "51Просмотр", "24Просмотр" (garbled Cyrillic "Просмотр"=View)
+  if (/\d+[Пп][рp][оo][сc][мm][оo][тt][рp]/i.test(normalized)) return true;
+  if (/Пpocmotp$/i.test(normalized)) return true;
   if (/^(?:8|7)?-?800(?:-\d{1,4}){1,}$/.test(normalized)) return true;
   if (/^[a-z]+(?:\.[a-z0-9]+){2,}$/i.test(normalized)) return true;
   // URL paths with domain-like segments: ns.adobe.com/xap/1.0, purl.org/dc/elements/1.1
