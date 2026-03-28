@@ -728,8 +728,8 @@ function normalizeAttachmentArticle(value) {
   if (/^65535$/.test(normalized)) return "";
   if (/^\d{20}$/.test(normalized)) return "";
   if (/^0+\d*$/.test(normalized)) return "";
-  // PDF Unicode null-byte escape residue: 000A, 000C, 000S etc.
-  if (/^0{2,}[A-Z]$/i.test(normalized)) return "";
+  // PDF Unicode escape residue: 000A, 000C, 004A, 004O etc.
+  if (/^0{2,}\d?[A-Z]$/i.test(normalized)) return "";
   if (/^\d{5,}:[A-Z]{8,}$/i.test(normalized)) return "";
   if (/^(?:XML|DOCX|XLSX|WORD|EXCEL)\/[A-Z0-9/_-]+$/i.test(normalized)) return "";
   // Reject year-like numbers 2000-2039 (never real articles in attachments)
@@ -745,12 +745,17 @@ function normalizeAttachmentArticle(value) {
   // PDF metadata: GTS_PDFA1, CAOLAN80, 20ROMAN
   if (/^(?:GTS_PDF|CAOLAN\d|ADOBE\d)/i.test(normalized)) return "";
   if (/^\d+ROMAN$/i.test(normalized)) return "";
-  // Office document paths: DRS/E2ODOC.XML, drs/e2oDoc.xmlPK
+  // Office document paths and filenames: DRS/E2ODOC.XML, drs/e2oDoc.xmlPK, e2oDoc.xml
   if (/^DRS\//i.test(normalized) || /\.XMLPK$/i.test(normalized)) return "";
+  if (/^E2ODOC/i.test(normalized)) return "";
   // Hash-like strings (24+ uppercase without separators)
   if (/^[A-Z0-9]{24,}$/.test(normalized)) return "";
   // Bank account/BIK patterns: 30101810*, 40702810*, 04452*
   if (/^(?:301|407|044)\d{6,17}$/.test(normalized)) return "";
+  // KPP (9 digits ending in 001/01): 390601001, 771801001
+  if (/^\d{9}$/.test(normalized) && /001$/.test(normalized)) return "";
+  // Russian postal indexes (6 digits): 600014, 107031
+  if (/^\d{6}$/.test(normalized)) return "";
   // OKVED classifier codes: 46.69.5, 46.69.9
   if (/^\d{2}\.\d{2}\.\d{1,3}$/.test(normalized)) return "";
   return normalized;

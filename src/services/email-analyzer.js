@@ -2670,8 +2670,10 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^[034]\d{7,19}$/.test(normalized) && /^(?:30|40|04|03)\d+$/.test(normalized)) return true;
   // Hash-like strings (24+ uppercase alphanumeric without separators)
   if (/^[A-Z0-9]{24,}$/.test(normalized) && !/[-/.]/.test(normalized)) return true;
-  // PDF Unicode null-byte escape residue: 000A, 000C, 000S
-  if (/^0{2,}[A-Z]$/i.test(normalized)) return true;
+  // PDF Unicode escape residue: 000A, 000C, 004A, 004O etc.
+  if (/^0{2,}\d?[A-Z]$/i.test(normalized)) return true;
+  // Office document filenames: e2oDoc.xml, e2oDoc.xmlPK
+  if (/^E2ODOC/i.test(normalized)) return true;
   // Page/section references: СТР.1, CTP.1, стр.2 (Cyrillic С→C, Т→T, Р→P after transliteration)
   if (/^(?:CTP|СТР|CTR|STR|PAG)\.\d{1,3}$/i.test(normalized)) return true;
   // Year with Cyrillic suffix: 2026г, 2025г (год = year)
