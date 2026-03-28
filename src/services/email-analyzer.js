@@ -2658,6 +2658,14 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^0{2,}[A-Z]$/i.test(normalized)) return true;
   // Page/section references: СТР.1, CTP.1, стр.2 (Cyrillic С→C, Т→T, Р→P after transliteration)
   if (/^(?:CTP|СТР|CTR|STR|PAG)\.\d{1,3}$/i.test(normalized)) return true;
+  // Year with Cyrillic suffix: 2026г, 2025г (год = year)
+  if (/^(?:19|20)\d{2}[гГgG]$/i.test(normalized)) return true;
+  // Russian ordinal numbers: 1-я, 2-й, 3-е, 15-го (addresses, dates)
+  if (/^\d{1,3}-[яйеому](?:[йаяе])?$/i.test(normalized)) return true;
+  // Sensor type designations that are not articles: PT100, PT500, PT1000, NTC10K
+  if (/^(?:PT|NTC|PTC|KTY)\d{2,5}(?:K)?$/i.test(normalized)) return true;
+  // PDF metadata: font creators, producer names (CAOLAN80, ADOBEPS5)
+  if (/^(?:CAOLAN|ADOBEPS|ADOBE)\d+$/i.test(normalized)) return true;
   if (/^(?:8|7)?-?800(?:-\d{1,4}){1,}$/.test(normalized)) return true;
   if (/^[a-z]+(?:\.[a-z0-9]+){2,}$/i.test(normalized)) return true;
   // URL paths with domain-like segments: ns.adobe.com/xap/1.0, purl.org/dc/elements/1.1
