@@ -133,11 +133,11 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
   const newEmails = analyzedEmails.filter((item) => !existingKeys.has(item.messageKey));
   const duplicateCount = analyzedEmails.length - newEmails.length;
 
-  const nonSpamMessages = newEmails.filter((item) => item.pipelineStatus !== "ignored_spam" && item.pipelineStatus !== "fetch_error");
-  detectionKb.ingestAnalyzedMessages(project.id, nonSpamMessages);
-
   // Thread resolution: assign threadId based on In-Reply-To / References / Message-ID
   resolveThreadIds([...newEmails, ...(project.recentMessages || [])]);
+  applyThreadDuplicateStatuses(newEmails, project.recentMessages || []);
+  const nonSpamMessages = newEmails.filter((item) => !isIgnoredPipelineStatus(item.pipelineStatus));
+  detectionKb.ingestAnalyzedMessages(project.id, nonSpamMessages);
 
   // Merge: keep existing messages + add new ones (cap at 2000)
   const mergedMessages = [...newEmails, ...(project.recentMessages || [])].slice(0, 5000);
@@ -150,7 +150,7 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
     maxEmails,
     processed: nonSpamMessages.length,
     added: newEmails.length,
-    skipped: analyzedEmails.filter((item) => item.pipelineStatus === "ignored_spam").length,
+    skipped: analyzedEmails.filter((item) => item.pipelineStatus === "ignored_spam" || item.pipelineStatus === "ignored_duplicate").length,
     duplicates: duplicateCount,
     failed: payload.errorCount || 0,
     durationMs: Date.now() - startedAt,
@@ -158,6 +158,7 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
     fetchedEmailCount: payload.fetchedEmailCount || 0,
     totalMessages: analyzedEmails.length,
     spamCount: analyzedEmails.filter((item) => item.pipelineStatus === "ignored_spam").length,
+    duplicateReplyCount: analyzedEmails.filter((item) => item.pipelineStatus === "ignored_duplicate").length,
     readyForCrmCount: analyzedEmails.filter((item) => item.pipelineStatus === "ready_for_crm").length,
     clarificationCount: analyzedEmails.filter((item) => item.pipelineStatus === "needs_clarification").length,
     stdout: tailLines(result.stdout, 20),
@@ -250,7 +251,8 @@ export async function reprocessMailboxMessages(project, options = {}) {
 
   const recentMessages = (project.recentMessages || []).map((item) => updatedByKey.get(item.messageKey || item.id) || item);
   resolveThreadIds(recentMessages);
-  const nonSpamMessages = recentMessages.filter((item) => item.pipelineStatus !== "ignored_spam" && item.pipelineStatus !== "fetch_error");
+  applyThreadDuplicateStatuses(recentMessages);
+  const nonSpamMessages = recentMessages.filter((item) => !isIgnoredPipelineStatus(item.pipelineStatus));
   detectionKb.ingestAnalyzedMessages(project.id, nonSpamMessages);
 
   return {
@@ -322,6 +324,123 @@ function resolvePipelineStatus(error, analysis) {
   }
 
   return "review";
+}
+
+function isIgnoredPipelineStatus(status) {
+  return status === "ignored_spam" || status === "fetch_error" || status === "ignored_duplicate";
+}
+
+function applyThreadDuplicateStatuses(targetMessages, existingMessages = []) {
+  const allMessages = [...targetMessages, ...existingMessages]
+    .filter(Boolean)
+    .sort((a, b) => {
+      const byDate = String(a.createdAt || "").localeCompare(String(b.createdAt || ""));
+      if (byDate !== 0) return byDate;
+      return String(a.messageKey || a.id || "").localeCompare(String(b.messageKey || b.id || ""));
+    });
+  const threadHistory = new Map();
+
+  for (const message of allMessages) {
+    const threadId = String(message.threadId || "").trim();
+    const history = threadHistory.get(threadId) || [];
+    const isTarget = targetMessages.includes(message);
+
+    if (isTarget && shouldIgnoreAsReplyDuplicate(message, history)) {
+      message.pipelineStatus = "ignored_duplicate";
+      message.analysis = message.analysis || {};
+      message.analysis.threadDedup = {
+        isDuplicateReply: true,
+        duplicateOfMessageKey: history[history.length - 1]?.messageKey || history[history.length - 1]?.id || null,
+        reason: "reply_without_new_signal"
+      };
+    } else if (isTarget && message.analysis?.threadDedup?.isDuplicateReply) {
+      delete message.analysis.threadDedup;
+    }
+
+    history.push(message);
+    threadHistory.set(threadId, history);
+  }
+}
+
+function shouldIgnoreAsReplyDuplicate(message, history = []) {
+  if (!message || !history.length) return false;
+  if (isIgnoredPipelineStatus(message.pipelineStatus)) return false;
+  if (message.analysis?.classification?.label !== "Клиент") return false;
+  if (!isReplyLikeMessage(message)) return false;
+
+  const priorRelevant = history.filter((item) =>
+    item &&
+    !isIgnoredPipelineStatus(item.pipelineStatus) &&
+    item.analysis?.classification?.label === "Клиент"
+  );
+  if (!priorRelevant.length) return false;
+
+  const previousSignal = buildThreadSignal(priorRelevant);
+  const currentSignal = buildThreadSignal([message]);
+
+  if (hasMeaningfulSignalDelta(currentSignal, previousSignal)) return false;
+  if (hasMeaningfulReplyText(message)) return false;
+
+  return true;
+}
+
+function isReplyLikeMessage(message) {
+  return Boolean(
+    String(message.inReplyTo || "").trim() ||
+    String(message.references || "").trim() ||
+    /^(?:re|ответ)\s*:/i.test(String(message.subject || "").trim())
+  );
+}
+
+function buildThreadSignal(messages = []) {
+  const signal = {
+    articles: new Set(),
+    lineItems: new Set(),
+    attachments: new Set(),
+    requisites: new Set()
+  };
+
+  for (const message of messages) {
+    const lead = message.analysis?.lead || {};
+    const sender = message.analysis?.sender || {};
+    for (const article of lead.articles || []) {
+      const value = String(article || "").trim().toUpperCase();
+      if (value) signal.articles.add(value);
+    }
+    for (const item of lead.lineItems || []) {
+      const article = String(item.article || "").trim().toUpperCase();
+      const name = String(item.descriptionRu || item.name || "").trim().toUpperCase();
+      if (article || name) signal.lineItems.add(`${article}|${name}`);
+    }
+    for (const attachment of [...(message.attachments || []), ...(message.attachmentFiles || []).map((item) => item?.filename || item?.name || "")]) {
+      const value = String(attachment || "").trim().toUpperCase();
+      if (value) signal.attachments.add(value);
+    }
+    for (const value of [sender.companyName, sender.inn, sender.phone, sender.mobilePhone, sender.cityPhone]) {
+      const normalized = String(value || "").trim().toUpperCase();
+      if (normalized) signal.requisites.add(normalized);
+    }
+  }
+
+  return signal;
+}
+
+function hasMeaningfulSignalDelta(currentSignal, previousSignal) {
+  return ["articles", "lineItems", "attachments", "requisites"].some((key) => {
+    for (const value of currentSignal[key]) {
+      if (!previousSignal[key].has(value)) return true;
+    }
+    return false;
+  });
+}
+
+function hasMeaningfulReplyText(message) {
+  const body = String(message.bodyPreview || "").replace(/\s+/g, " ").trim();
+  if (!body) return false;
+  if (body.length >= 120) return true;
+
+  const acknowledgementOnly = /^(?:re\s*:)?\s*(?:спасибо|благодарю|принято|ок|ok|получили|получено|принял|приняли|добрый день[,! ]*)[\s!.]*$/i;
+  return !acknowledgementOnly.test(body) && body.length >= 40;
 }
 
 function diffAnalysis(previous, next, previousStatus, nextStatus) {

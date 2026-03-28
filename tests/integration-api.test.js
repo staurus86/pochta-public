@@ -525,6 +525,13 @@ runTest("filters integration messages by brand", () => {
   assert.equal(result.meta.brand, "abb");
 });
 
+runTest("filters integration messages by article", () => {
+  const result = listIntegrationMessages(project, { article: "S201-C16" });
+  assert.equal(result.data.length, 1);
+  assert.equal(result.data[0].message_key, "msg-1");
+  assert.equal(result.meta.article, "S201-C16");
+});
+
 runTest("filters integration messages by label (classification)", () => {
   const result = listIntegrationMessages(project, { label: "client" });
   // msg-1 (Клиент) and msg-3 (Клиент) — but label filter matches lowercase "client"

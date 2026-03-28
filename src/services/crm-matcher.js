@@ -5,6 +5,17 @@ function normalizeDomain(email) {
     .trim() || "";
 }
 
+function extractRootDomain(domain) {
+  const parts = String(domain || "").split(".");
+  if (parts.length <= 2) return domain;
+  // Handle co.uk, com.ru etc.
+  const tld = parts.slice(-2).join(".");
+  if (["co.uk", "co.jp", "com.au", "com.br", "com.ru"].includes(tld)) {
+    return parts.slice(-3).join(".");
+  }
+  return parts.slice(-2).join(".");
+}
+
 function inferWebsite(domain) {
   if (!domain || FREE_EMAIL_DOMAINS.has(domain)) {
     return null;
@@ -53,7 +64,8 @@ export function matchCompanyInCrm(project, analysis) {
       if (!senderDomain || !company.website) return false;
       try {
         const wsHost = new URL(company.website).hostname.replace(/^www\./, "");
-        return wsHost === senderDomain;
+        // Exact domain match or root domain match (subdomain.example.com → example.com)
+        return wsHost === senderDomain || extractRootDomain(wsHost) === extractRootDomain(senderDomain);
       } catch {
         return false;
       }
@@ -88,15 +100,26 @@ export function matchCompanyInCrm(project, analysis) {
 
   if (historyMatch) {
     const managers = resolveManagerOwners(project, { brands: analysis.detectedBrands, articles: detectedArticles });
+    const isWeakMatch = historyMatch.score < 50;
+    const actions = isWeakMatch
+      ? [
+          "Совпадение по номенклатуре слабое — проверьте соответствие артикулов вручную",
+          "Подтвердите привязку к клиенту перед синхронизацией в CRM",
+          `Основание: ${historyMatch.reasons.join(", ")}`
+        ]
+      : [
+          "Привязать письмо к клиенту по совпадению номенклатуры",
+          "Создать запрос и назначить профильных менеджеров",
+          `Основание: ${historyMatch.reasons.join(", ")}`
+        ];
+    if (historyMatch.multiCompanySignal) {
+      actions.push("Внимание: несколько компаний совпадают по брендам — возможен трейдер");
+    }
     return buildMatchedResult(project, historyMatch.company, {
       method: historyMatch.method,
       score: historyMatch.score,
       managers,
-      actions: [
-        "Привязать письмо к клиенту по совпадению исторической номенклатуры",
-        "Проверить реквизиты и контакт перед автоматическим созданием запроса",
-        "Создать запрос и назначить профильных менеджеров"
-      ]
+      actions
     });
   }
 
@@ -230,9 +253,17 @@ function scoreCompanyByNomenclature(companies, { senderDomain, detectedBrands = 
     }
   }
 
-  if (!best || best.score < 30) {
+  if (!best || best.score < 35) {
     return null;
   }
+
+  // Multi-company signal: if >2 brands detected and they point to different companies,
+  // lower confidence since this might be a trader, not a single-brand customer
+  const matchedCompanyCount = companies.filter((c) => {
+    const cb = collectCompanyBrands(c);
+    return detectedBrands.some((b) => cb.has(b));
+  }).length;
+  const multiCompanySignal = matchedCompanyCount > 1 && detectedBrands.length >= 2;
 
   return {
     company: best.company,
@@ -240,7 +271,8 @@ function scoreCompanyByNomenclature(companies, { senderDomain, detectedBrands = 
     method: best.reasons.some((reason) => reason.startsWith("article:"))
       ? "nomenclature_history"
       : "brand_history",
-    reasons: best.reasons
+    reasons: best.reasons,
+    multiCompanySignal
   };
 }
 

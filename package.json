@@ -24,8 +24,12 @@
     "db:migrate": "npm run migrate -w packages/db",
     "db:push": "npm run push -w packages/db",
     "db:studio": "npm run studio -w packages/db",
+    "kb:import:company-directory": "python scripts/import_company_directory.py && node scripts/import-company-directory.js",
+    "kb:convert:lid-brands": "python scripts/convert_lid_brands_to_nomenclature.py",
+    "kb:import:lid-brands": "python scripts/convert_lid_brands_to_nomenclature.py && node scripts/import-nomenclature.js data/nomenclature-lid-supplement.json",
     "kb:import:nomenclature": "node scripts/import-nomenclature.js",
     "kb:generate:routing-template": "node scripts/generate-routing-template.js",
+    "export:article-contexts": "node scripts/export-detected-article-contexts.js",
     "test": "node tests/email-analyzer.test.js && node tests/background-role.test.js && node tests/http-json.test.js && node tests/idempotency.test.js && node tests/integration-contract.test.js && node tests/integration-api.test.js && node tests/integration-openapi.test.js && node tests/projects-store.test.js && node tests/tender-runner.test.js && node tests/project3-reprocess.test.js && node tests/webhook-dispatcher.test.js && node tests/project-schedule.test.js && node tests/mailbox-config-parser.test.js && node tests/detection-kb.test.js && node tests/rate-limiter.test.js && node tests/ai-classifier.test.js && node tests/thread-resolution.test.js && node tests/crm-adapters.test.js",
     "test:api": "npm test -w apps/api",
     "test:web": "npm test -w apps/web"

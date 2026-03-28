@@ -8,13 +8,17 @@ const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "mail.ru", "bk.ru", "list.ru", 
 const BRAND_FALSE_POSITIVE_ALIASES = new Set(["top", "moro", "ydra", "hydra", "global"]);
 
 const DEFAULT_RULES = [
-  { scope: "body", classifier: "spam", matchType: "regex", pattern: "casino|crypto|легкий заработок|раскрут(ка|им)|seo[- ]?продвиж|unsubscr|viagra|скидк|распродаж|кэшбэк|отписа|подписк|рассылк|промокод|sale", weight: 6, notes: "Базовый spam filter" },
-  { scope: "subject", classifier: "spam", matchType: "regex", pattern: "скидк|распродаж|акци[яи]|кэшбэк|до\\s*-?\\d+%|промокод|sale", weight: 5, notes: "Маркетинговый spam subject" },
-  { scope: "body", classifier: "client", matchType: "regex", pattern: "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)", weight: 3, notes: "Клиентские сигналы" },
-  { scope: "body", classifier: "vendor", matchType: "regex", pattern: "предлагаем|каталог|дилер|поставля|прайс|услуг", weight: 3, notes: "Поставщик услуг" },
-  { scope: "subject", classifier: "client", matchType: "regex", pattern: "заявка|rfq|запрос|quotation|коммерческое", weight: 4, notes: "Клиентский subject" },
-  { scope: "attachment", classifier: "client", matchType: "regex", pattern: "реквиз|шильд|артик|sku|label", weight: 2, notes: "Полезные вложения" },
-  { scope: "domain", classifier: "spam", matchType: "contains", pattern: "unsubscribe", weight: 4, notes: "Доменные spam сигналы" }
+  { scope: "body", classifier: "spam", matchType: "regex", pattern: "casino|crypto|легкий заработок|раскрут(ка|им)|seo[- ]?продвиж|unsubscr|viagra|скидк|распродаж|кэшбэк|отписа|подписк|рассылк|промокод|sale|выиграли|лотере", weight: 6, notes: "Базовый spam filter" },
+  { scope: "subject", classifier: "spam", matchType: "regex", pattern: "скидк|распродаж|акци[яи]|кэшбэк|до\\s*-?\\d+%|промокод|sale|free|бесплатн", weight: 5, notes: "Маркетинговый spam subject" },
+  { scope: "body", classifier: "spam", matchType: "regex", pattern: "управлени[ея]\\s+подписк|unsubscribe|opt.out|отказаться\\s+от\\s+рассылки|email\\s+preference|email.marketing", weight: 4, notes: "Рассылочные сигналы в теле" },
+  { scope: "body", classifier: "client", matchType: "regex", pattern: "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность", weight: 3, notes: "Клиентские сигналы" },
+  { scope: "body", classifier: "client", matchType: "regex", pattern: "наличие\\s+на\\s+складе|сроки\\s+поставки|с\\s+доставкой|просьба\\s+выставить|реквизиты\\s+прилагаются|карточка\\s+предприятия", weight: 4, notes: "Сильные клиентские сигналы" },
+  { scope: "body", classifier: "vendor", matchType: "regex", pattern: "предлагаем\\s+(?:вам|услуг|сотрудничеств)|наша\\s+компания\\s+предлагает|каталог\\s+продукции|являемся\\s+(?:дилер|поставщик|производител)|прайс.?лист", weight: 4, notes: "Поставщик услуг (точные паттерны)" },
+  { scope: "body", classifier: "vendor", matchType: "regex", pattern: "предлагаем|каталог|дилер|поставля|прайс|услуг", weight: 2, notes: "Поставщик услуг (слабые сигналы)" },
+  { scope: "subject", classifier: "client", matchType: "regex", pattern: "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение", weight: 4, notes: "Клиентский subject" },
+  { scope: "attachment", classifier: "client", matchType: "regex", pattern: "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан", weight: 2, notes: "Полезные вложения" },
+  { scope: "domain", classifier: "spam", matchType: "contains", pattern: "unsubscribe", weight: 4, notes: "Доменные spam сигналы" },
+  { scope: "body", classifier: "spam", matchType: "regex", pattern: "(?:noreply|no-reply|mailer-daemon|postmaster)@.*(?:не\\s+отвечайте|do\\s+not\\s+reply)", weight: 5, notes: "Системные уведомления" }
 ];
 
 const DEFAULT_BRAND_ALIASES = [
@@ -183,6 +187,21 @@ class DetectionKnowledgeBase {
         is_active INTEGER NOT NULL DEFAULT 1
       );
 
+      CREATE TABLE IF NOT EXISTS company_directory (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        company_name TEXT NOT NULL,
+        inn TEXT DEFAULT '',
+        okved TEXT DEFAULT '',
+        okved_title TEXT DEFAULT '',
+        contact_name TEXT DEFAULT '',
+        contact_position TEXT DEFAULT '',
+        email TEXT DEFAULT '',
+        email_domain TEXT DEFAULT '',
+        greeting TEXT DEFAULT '',
+        source_file TEXT DEFAULT '',
+        is_active INTEGER NOT NULL DEFAULT 1
+      );
+
       CREATE TABLE IF NOT EXISTS api_clients (
         id TEXT PRIMARY KEY,
         name TEXT NOT NULL,
@@ -232,6 +251,14 @@ class DetectionKnowledgeBase {
     this.db.exec(`
       CREATE INDEX IF NOT EXISTS idx_message_corpus_project_created
         ON message_corpus(project_id, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_company_directory_email
+        ON company_directory(email);
+      CREATE INDEX IF NOT EXISTS idx_company_directory_domain
+        ON company_directory(email_domain);
+      CREATE INDEX IF NOT EXISTS idx_company_directory_inn
+        ON company_directory(inn);
+      CREATE UNIQUE INDEX IF NOT EXISTS idx_company_directory_email_unique
+        ON company_directory(email);
       CREATE INDEX IF NOT EXISTS idx_nomenclature_brand
         ON nomenclature_dictionary(brand);
       CREATE INDEX IF NOT EXISTS idx_nomenclature_source_rows
@@ -240,6 +267,10 @@ class DetectionKnowledgeBase {
         ON nomenclature_dictionary(avg_price);
       CREATE INDEX IF NOT EXISTS idx_api_client_presets_client
         ON api_client_presets(client_id, project_id, is_active, preset_key);
+      CREATE INDEX IF NOT EXISTS idx_message_corpus_sender
+        ON message_corpus(sender_email, created_at DESC);
+      CREATE INDEX IF NOT EXISTS idx_message_corpus_classification
+        ON message_corpus(classification, created_at DESC);
     `);
 
     this.ensureApiClientPresetProjectScopeColumn();
@@ -298,6 +329,7 @@ class DetectionKnowledgeBase {
     this.seedOwnBrands();
     this.seedBrandCatalog();
     this.seedNomenclatureCatalog();
+    this.seedCompanyDirectory();
     this.migrateLegacyRules();
   }
 
@@ -408,6 +440,33 @@ class DetectionKnowledgeBase {
         return;
       } catch (err) {
         console.error("[detection-kb] Failed to seed nomenclature catalog:", err.message);
+      }
+    }
+  }
+
+  seedCompanyDirectory() {
+    const count = this.db.prepare("SELECT COUNT(*) AS count FROM company_directory WHERE is_active = 1").get().count;
+    if (count > 0) return;
+
+    const candidates = [
+      path.join(this.dataDir, "company-directory.json"),
+      path.resolve(process.cwd(), "data", "company-directory.json")
+    ];
+
+    for (const catalogPath of candidates) {
+      if (!existsSync(catalogPath)) continue;
+      try {
+        const entries = JSON.parse(readFileSync(catalogPath, "utf8"));
+        if (!Array.isArray(entries) || entries.length === 0) continue;
+        const result = this.importCompanyDirectory(entries, {
+          sourceFile: path.relative(process.cwd(), catalogPath)
+        });
+        if (result.imported > 0) {
+          console.log(`[detection-kb] Company directory: +${result.imported} contacts from ${catalogPath}`);
+        }
+        return;
+      } catch (err) {
+        console.error("[detection-kb] Failed to seed company directory:", err.message);
       }
     }
   }
@@ -822,6 +881,7 @@ class DetectionKnowledgeBase {
       senderProfileCount: this.db.prepare("SELECT COUNT(*) AS count FROM sender_profiles WHERE is_active = 1").get().count,
       fieldPatternCount: this.db.prepare("SELECT COUNT(*) AS count FROM field_patterns WHERE is_active = 1").get().count,
       ownBrandCount: this.db.prepare("SELECT COUNT(*) AS count FROM own_brands WHERE is_active = 1").get().count,
+      companyDirectoryCount: this.db.prepare("SELECT COUNT(*) AS count FROM company_directory WHERE is_active = 1").get().count,
       corpusCount: this.db.prepare("SELECT COUNT(*) AS count FROM message_corpus").get().count,
       nomenclatureCount: this.db.prepare("SELECT COUNT(*) AS count FROM nomenclature_dictionary").get().count
     };
@@ -1205,6 +1265,138 @@ class DetectionKnowledgeBase {
     }], { sourceFile });
   }
 
+  importCompanyDirectory(entries, options = {}) {
+    const sourceFile = cleanup(options.sourceFile || "");
+    const statement = this.db.prepare(`
+      INSERT INTO company_directory (
+        company_name,
+        inn,
+        okved,
+        okved_title,
+        contact_name,
+        contact_position,
+        email,
+        email_domain,
+        greeting,
+        source_file,
+        is_active
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 1)
+      ON CONFLICT(email) DO UPDATE SET
+        company_name = excluded.company_name,
+        inn = excluded.inn,
+        okved = excluded.okved,
+        okved_title = excluded.okved_title,
+        contact_name = excluded.contact_name,
+        contact_position = excluded.contact_position,
+        email_domain = excluded.email_domain,
+        greeting = excluded.greeting,
+        source_file = excluded.source_file,
+        is_active = 1
+    `);
+
+    let scanned = 0;
+    let imported = 0;
+    for (const entry of entries || []) {
+      scanned += 1;
+      const email = cleanup(entry.email || entry.Email || entry["Эл. почта"] || "").toLowerCase();
+      const companyName = cleanup(entry.company_name || entry.name || entry["Наименование"] || "");
+      const inn = cleanup(entry.inn || entry["ИНН"] || "");
+      const okved = cleanup(entry.okved || entry["ОКВЭД"] || "");
+      const okvedTitle = cleanup(entry.okved_title || entry["ОКВЭД название"] || "");
+      const contactName = cleanup(entry.contact_name || entry.fio || entry["ФИО"] || "");
+      const contactPosition = cleanup(entry.contact_position || entry.post || entry["Должность"] || "");
+      const greeting = cleanup(entry.greeting || entry["Обращение"] || "");
+      const emailDomain = getDomain(email);
+
+      if (!email || !companyName) continue;
+
+      statement.run(
+        companyName,
+        inn,
+        okved,
+        okvedTitle,
+        contactName,
+        contactPosition,
+        email,
+        emailDomain,
+        greeting,
+        sourceFile
+      );
+      imported += 1;
+    }
+
+    return {
+      scanned,
+      imported,
+      total: this.db.prepare("SELECT COUNT(*) AS count FROM company_directory WHERE is_active = 1").get().count
+    };
+  }
+
+  lookupCompanyDirectory({ email = "", inn = "", domain = "", companyName = "" } = {}) {
+    const normalizedEmail = cleanup(email).toLowerCase();
+    const normalizedInn = cleanup(inn);
+    const normalizedDomain = cleanup(domain || getDomain(normalizedEmail)).toLowerCase();
+    const normalizedCompany = normalizeComparableCompany(companyName);
+
+    if (normalizedEmail) {
+      const byEmail = this.db.prepare(`
+        SELECT *
+        FROM company_directory
+        WHERE is_active = 1
+          AND email = ?
+        LIMIT 1
+      `).get(normalizedEmail);
+      if (byEmail) return byEmail;
+    }
+
+    if (normalizedInn) {
+      const byInn = this.db.prepare(`
+        SELECT *
+        FROM company_directory
+        WHERE is_active = 1
+          AND inn = ?
+        ORDER BY CASE WHEN email_domain = ? THEN 0 ELSE 1 END, id ASC
+        LIMIT 1
+      `).get(normalizedInn, normalizedDomain);
+      if (byInn) return byInn;
+    }
+
+    if (!normalizedDomain || FREE_EMAIL_DOMAINS.has(normalizedDomain)) {
+      if (!normalizedCompany) return null;
+    } else {
+      const byDomain = this.db.prepare(`
+        SELECT *
+        FROM company_directory
+        WHERE is_active = 1
+          AND email_domain = ?
+        ORDER BY id ASC
+        LIMIT 1
+      `).get(normalizedDomain);
+      if (byDomain) return byDomain;
+    }
+
+    if (!normalizedCompany) {
+      return null;
+    }
+
+    const companyRows = this.db.prepare(`
+      SELECT *
+      FROM company_directory
+      WHERE is_active = 1
+        AND company_name <> ''
+    `).all();
+
+    for (const row of companyRows) {
+      const candidate = normalizeComparableCompany(row.company_name);
+      if (!candidate) continue;
+      if (candidate === normalizedCompany || candidate.includes(normalizedCompany) || normalizedCompany.includes(candidate)) {
+        return row;
+      }
+    }
+
+    return null;
+  }
+
   classifyMessage({ subject = "", body = "", attachments = [], fromEmail = "", projectBrands = [] }) {
     const scopes = {
       subject: String(subject || "").toLowerCase(),
@@ -1361,7 +1553,7 @@ class DetectionKnowledgeBase {
 
     const now = new Date().toISOString();
     for (const item of messages) {
-      if (!item.messageKey || item.pipelineStatus === "ignored_spam" || item.error) {
+      if (!item.messageKey || item.pipelineStatus === "ignored_spam" || item.pipelineStatus === "ignored_duplicate" || item.error) {
         continue;
       }
 
@@ -1487,6 +1679,17 @@ function itemLooksExact(query, match) {
 
 function cleanup(value) {
   return String(value || "").replace(/\s+/g, " ").trim();
+}
+
+function normalizeComparableCompany(value) {
+  return String(value || "")
+    .toLowerCase()
+    .replace(/[«»"']/g, " ")
+    .replace(/(?:^|\s)(?:ооо|ао|оао|зао|пао|ип|фгуп|муп|гуп|нпо|нпп|нпк|тоо|кт)(?=\s|$)/g, " ")
+    .replace(/(?:^|\s)(?:юридический|фактический|почтовый|адрес|и)(?=\s|$)/g, " ")
+    .replace(/[^a-zа-яё0-9]+/gi, " ")
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function isUsefulArticleQuery(value) {

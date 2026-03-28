@@ -1,0 +1,35 @@
+.git
+.gitignore
+node_modules
+npm-debug.log
+.env
+coverage
+.claude
+Swagger UI.html
+Swagger UI_files
+data/attachments
+data/detection-kb.sqlite
+data/detection-kb.sqlite-shm
+data/detection-kb.sqlite-wal
+data/manager-auth.sqlite
+data/routing-template.json
+data/nomenclature-lid-supplement.json
+docs/Pochta_Platform_Report*.docx
+docs/*.txt
+docs/superpowers
+docs/generate_report.py
+docs/analyze_false_article_patterns.py
+inn_okved.xlsx
+lid_without_calc_brand.xlsx
+Рабочий док Бренды_26(new) (1).xlsx
+бренды.txt
+Номенклатура
+project 2
+project 3
+project 4
+project-4-klvrt-mail
+project-3-mailbox-file
+*.log
+*.sqlite-shm
+*.sqlite-wal
+seen_emails.json

@@ -20,3 +20,20 @@ apps/worker/dist/
 *.tsbuildinfo
 .turbo/
 .vercel/
+
+# Local research, raw source data, and generated artifacts
+.claude/
+Swagger UI.html
+Swagger UI_files/
+data/attachments/
+data/manager-auth.sqlite
+data/routing-template.json
+data/nomenclature-lid-supplement.json
+docs/Pochta_Platform_Report*.docx
+docs/superpowers/
+docs/generate_report.py
+inn_okved.xlsx
+lid_without_calc_brand.xlsx
+Рабочий док Бренды_26(new) (1).xlsx
+бренды.txt
+Номенклатура/

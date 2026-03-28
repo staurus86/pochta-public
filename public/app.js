@@ -10,6 +10,93 @@ function isFreeDomain(domain) { return FREE_DOMAINS.has((domain || '').toLowerCa
 const OWN_DOMAINS = new Set(['siderus.su','siderus.online','siderus.ru','klvrt.ru','ersab2b.ru','itec-rus.ru','paulvahle.ru','petersime-rus.ru','rstahl.ru','schimpfdrive.ru','schischekrus.ru','sera-rus.ru','serfilco-ru.ru','vega-automation.ru','waldner-ru.ru','kiesel-rus.ru','maximator-ru.ru','stromag-ru.ru','endress-hauser.pro']);
 function isOwnDomain(domain) { return OWN_DOMAINS.has((domain || '').toLowerCase()); }
 
+function normalizeDashboardArticle(value) {
+  return String(value || '')
+    .trim()
+    .replace(/\.(?:PDF|DOCX|DOC|XLSX|XLS|JPG|JPEG|PNG|GIF|BMP|WEBP|TIF|TIFF|TXT|CSV|XML|HTML|HTM|JSON|EML|ZIP|RAR|7Z)$/i, '')
+    .replace(/\s+/g, ' ')
+    .toUpperCase();
+}
+
+function isDashboardArticleNoise(article) {
+  const value = normalizeDashboardArticle(article);
+  if (!value) return true;
+  if (!/\d/.test(value)) return true;
+  if (/^EOF\s+\d+$/i.test(value)) return true;
+  if (/^65535$/.test(value)) return true;
+  if (/^\d{20}$/.test(value)) return true;
+  if (/^(?:IMG|IMAGE|PHOTO|SCAN|FILE|WRD)\d+$/i.test(value)) return true;
+  if (/^\d{10,15}$/.test(value)) return true;
+  if (/^(?:8|7)?-?800(?:-\d{1,4}){1,}$/.test(value)) return true;
+  if (/^2BM-[A-Z0-9-]+$/i.test(value)) return true;
+  if (/^(?:DN|PN|NPS|G|R|RC|RP)\s*\d+(?:[/.]\d+)?$/i.test(value)) return true;
+  if (value.includes('@')) return true;
+  if (/^UTF-?8$/i.test(value)) return true;
+  if (/^97-2003$/i.test(value)) return true;
+  if (/^1TABLE$/i.test(value)) return true;
+  if (/^(?:BG|LT|TX)\d{1,2}$/i.test(value)) return true;
+  if (/^THEME\/THEME\/THEME\d+(?:\.[A-Z0-9]+)?$/i.test(value)) return true;
+  if (/^DRAWINGML\/\d{4}\/MAIN$/i.test(value)) return true;
+  if (/^OPENXMLFORMATS(?:\/[A-Z0-9._-]+){1,}$/i.test(value)) return true;
+  if (/^SCHEMAS(?:\/[A-Z0-9._:-]+){1,}$/i.test(value)) return true;
+  if (/^RELATIONSHIPS(?:\/[A-Z0-9._:-]+){1,}$/i.test(value)) return true;
+  if (/^(?:XML|DOCX|XLSX|WORD|EXCEL)\/[A-Z0-9/_-]+$/i.test(value)) return true;
+  if (/(?:NS\.ADOBE\.COM|PURL\.ORG|WWW\.W3\.ORG\/1999\/02\/22-RDF|RDF-SYNTAX-NS)/i.test(value)) return true;
+  if (/^(?:R\/F\d+|R\/GS\d+|R\/IMAGE\d+|IMAGE\d+|IM\d+|GS\d+|CA\s+\d+|LC\s+\d+|LJ\s+\d+|LW\s+\d+|ML\s+\d+)$/i.test(value)) return true;
+  if (/^(?:TYPE\d+|PDF-\d(?:\.\d+)?|C\d+_\d+)$/i.test(value)) return true;
+  if (/^(?:FONT|LINE|LETTER|WORD|TEXT|MARGIN|PADDING|BORDER|BACKGROUND|COLOR|WIDTH|HEIGHT|TOP|LEFT|RIGHT|BOTTOM|DISPLAY|POSITION)(?:-[A-Z]+)+:\S+$/i.test(value)) return true;
+  if (/^WW8[A-Z0-9]+$/i.test(value)) return true;
+  if (/^WW-[A-Z0-9-]+$/i.test(value)) return true;
+  if (/^\d+ROMAN$/i.test(value)) return true;
+  if (/^V\d+$/i.test(value)) return true;
+  if (/^(?:IEC|ISO|EN|DIN)\d+(?:-\d+){1,}$/i.test(value)) return true;
+  if (/^(?:TYPE\/[A-Z0-9/_-]+|[A-Z]+\/[A-Z0-9/_-]+|\d+\/[A-Z][A-Z0-9/_-]*)$/i.test(value)) return true;
+  if (/^\d+\.\d+$/.test(value)) return true;
+  if (/^0+\d*$/.test(value)) return true;
+  if (/^\d{5,}:[A-Z]{8,}$/i.test(value)) return true;
+  if (/^D:\d{8,14}$/i.test(value)) return true;
+  if (/^FEFF[0-9A-F]{12,}$/i.test(value)) return true;
+  if (/^[0-9A-F]{24,}$/i.test(value)) return true;
+  return false;
+}
+
+function getAttachmentStemSet(message) {
+  const values = new Set();
+  const attachments = [
+    ...(message.attachments || []),
+    ...((message.attachmentFiles || []).map((item) => item?.filename || item?.name || '').filter(Boolean))
+  ];
+  attachments.forEach((name) => {
+    const stem = normalizeDashboardArticle(String(name || '').replace(/\.[^.]+$/, ''));
+    if (stem) values.add(stem);
+  });
+  return values;
+}
+
+function getDashboardArticles(message) {
+  const analysis = message.analysis || {};
+  const lead = analysis.lead || {};
+  const stems = getAttachmentStemSet(message);
+  const supported = new Set([
+    ...(lead.lineItems || []).map((item) => normalizeDashboardArticle(item?.article)),
+    ...(lead.productNames || []).map((item) => normalizeDashboardArticle(item?.article)),
+    ...(lead.nomenclatureMatches || []).map((item) => normalizeDashboardArticle(item?.article))
+  ].filter(Boolean));
+
+  const articles = [
+    ...(lead.articles || []),
+    ...(lead.lineItems || []).map((item) => item?.article)
+  ];
+
+  return [...new Set(articles.map((item) => normalizeDashboardArticle(item)).filter(Boolean))].filter((article) => {
+    if (isDashboardArticleNoise(article)) return false;
+    if (/^\d+(?:\.\d+)?$/.test(article) && !supported.has(article)) return false;
+    if (supported.has(article)) return true;
+    if (stems.has(article)) return false;
+    return true;
+  });
+}
+
 // Own company filter — never show in dashboard as customers
 const __OWN_COMPANY_RE = /сидерус|siderus|коловрат|kolovrat|klvrt|ersa\s*b2b|ersab2b/i;
 function __isOwnCompany(name) { return __OWN_COMPANY_RE.test(name); }
@@ -210,7 +297,10 @@ function setupForms() {
       btn.style.color = 'var(--green)';
       setTimeout(() => { if (bar) bar.style.display = 'none'; if (fill) fill.style.width = '0'; }, 1500);
       setTimeout(() => { btn.textContent = origText; btn.disabled = false; btn.style.color = ''; }, 5000);
-      refreshDashboard();
+      await refreshAllMailboxMessages();
+      await refreshProjects();
+      renderDashboard();
+      if (currentPage === 'inbox') renderInbox();
     } catch (err) {
       clearInterval(pulse);
       btn.style.opacity = 1;
@@ -480,7 +570,7 @@ async function refreshAllMailboxMessages() {
   }
 
   // Update badge with non-spam count
-  const nonSpam = allRunnerMessages.filter((m) => m.pipelineStatus !== 'ignored_spam' && m.pipelineStatus !== 'fetch_error');
+  const nonSpam = allRunnerMessages.filter((m) => !isIgnoredStatus(m.pipelineStatus));
   inboxBadge.textContent = nonSpam.length;
   updateInboxTabCounts();
   updateMailboxFilter();
@@ -502,8 +592,12 @@ function isSpam(m) {
   return m.pipelineStatus === 'ignored_spam';
 }
 
+function isIgnoredStatus(status) {
+  return status === 'ignored_spam' || status === 'fetch_error' || status === 'ignored_duplicate';
+}
+
 function isModeration(m) {
-  if (isSpam(m) || isRequest(m) || m.pipelineStatus === 'fetch_error') return false;
+  if (isSpam(m) || isRequest(m) || isIgnoredStatus(m.pipelineStatus)) return false;
   const label = m.analysis?.classification?.label || '';
   const status = m.pipelineStatus || '';
   return label === 'Клиент' || ['ready_for_crm', 'needs_clarification', 'review'].includes(status);
@@ -514,7 +608,7 @@ function filterInboxMessages(tab) {
   if (tab === 'requests') msgs = allRunnerMessages.filter(isRequest);
   else if (tab === 'moderation') msgs = allRunnerMessages.filter(isModeration);
   else if (tab === 'spam') msgs = allRunnerMessages.filter(isSpam);
-  else msgs = allRunnerMessages.filter((m) => m.pipelineStatus !== 'fetch_error');
+  else msgs = allRunnerMessages.filter((m) => !isIgnoredStatus(m.pipelineStatus));
 
   // Mailbox filter
   if (inboxMailboxFilter) {
@@ -821,7 +915,7 @@ function groupByThreads(messages) {
 }
 
 function updateInboxTabCounts() {
-  const all = allRunnerMessages.filter((m) => m.pipelineStatus !== 'fetch_error');
+  const all = allRunnerMessages.filter((m) => !isIgnoredStatus(m.pipelineStatus));
   $('#tab-count-all').textContent = all.length;
   $('#tab-count-requests').textContent = allRunnerMessages.filter(isRequest).length;
   $('#tab-count-moderation').textContent = allRunnerMessages.filter(isModeration).length;
@@ -1130,6 +1224,7 @@ function renderDashboard() {
   const allRuns = projects.flatMap((p) => p.recentRuns || []);
   const clientCount = allAnalyses.filter((a) => a.category === 'Клиент').length;
   const spamCount = allRunnerMessages.filter((m) => m.pipelineStatus === 'ignored_spam').length;
+  const duplicateCount = allRunnerMessages.filter((m) => m.pipelineStatus === 'ignored_duplicate').length;
   const readyCount = allRunnerMessages.filter((m) => m.pipelineStatus === 'ready_for_crm').length;
   const clarifyCount = allRunnerMessages.filter((m) => m.pipelineStatus === 'needs_clarification').length;
   const latestRun = allRuns.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))[0];
@@ -1139,6 +1234,7 @@ function renderDashboard() {
     { label: 'Разборов', value: allAnalyses.length, cls: '' },
     { label: 'Клиентских', value: clientCount, cls: 'green' },
     { label: 'Спам удалено', value: spamCount, cls: 'rose' },
+    { label: 'Дубли ответов', value: duplicateCount, cls: 'amber' },
     { label: 'Готово к CRM', value: readyCount, cls: 'green' },
     { label: 'Уточнение', value: clarifyCount, cls: 'amber' },
     { label: 'В inbox', value: runnerMessages.length, cls: 'accent' },
@@ -1195,7 +1291,7 @@ function renderDashboard() {
 
   // ═══ Funnel chart ═══
   const totalMsg = allRunnerMessages.length;
-  const nonSpamMsg = allRunnerMessages.filter((m) => m.pipelineStatus !== 'ignored_spam' && m.pipelineStatus !== 'fetch_error').length;
+  const nonSpamMsg = allRunnerMessages.filter((m) => !isIgnoredStatus(m.pipelineStatus)).length;
   const funnelData = [
     { label: 'Получено', value: totalMsg, color: 'var(--accent)' },
     { label: 'Не спам', value: nonSpamMsg, color: 'var(--text)' },
@@ -1240,7 +1336,7 @@ function renderDashboard() {
 
   // ═══ Top senders (real company domains only, no free mail / own domains) ═══
   const senderMap = new Map();
-  allRunnerMessages.filter((m) => m.pipelineStatus !== 'ignored_spam').forEach((m) => {
+  allRunnerMessages.filter((m) => !isIgnoredStatus(m.pipelineStatus)).forEach((m) => {
     const email = m.analysis?.sender?.email || m.from || 'unknown';
     const domain = (email.split('@')[1] || '').toLowerCase();
     if (!domain || isFreeDomain(domain) || isOwnDomain(domain)) return;
@@ -1275,7 +1371,7 @@ function renderDashboard() {
 
 function renderQualityAuditTable() {
   const rows = allRunnerMessages
-    .filter((m) => m.pipelineStatus !== 'ignored_spam' && m.pipelineStatus !== 'fetch_error')
+    .filter((m) => !isIgnoredStatus(m.pipelineStatus))
     .map((message) => {
       const summary = getRecognitionSummary(message.analysis || {});
       const diagnostics = getRecognitionDiagnostics(message.analysis || {});
@@ -1361,7 +1457,7 @@ function problemToFilter(problem) {
 }
 
 function renderProblemQueue() {
-  const nonSpamMessages = allRunnerMessages.filter((m) => m.pipelineStatus !== 'ignored_spam' && m.pipelineStatus !== 'fetch_error');
+  const nonSpamMessages = allRunnerMessages.filter((m) => !isIgnoredStatus(m.pipelineStatus));
   const problemDefs = [
     { key: 'missing_article', label: 'Нет артикула' },
     { key: 'missing_brand', label: 'Нет бренда' },
@@ -1421,7 +1517,7 @@ function renderSlaQueue() {
   const el = $('#sla-queue');
   if (!el) return;
 
-  const activeMessages = allRunnerMessages.filter((m) => m.pipelineStatus !== 'ignored_spam' && m.pipelineStatus !== 'fetch_error');
+  const activeMessages = allRunnerMessages.filter((m) => !isIgnoredStatus(m.pipelineStatus));
   const overdue = activeMessages.filter(isSlaOverdue);
   const highPriority = activeMessages.filter(isHighPriorityMessage);
   const unconfirmed = activeMessages.filter((m) => !m.recognitionConfirmed?.at);
@@ -1511,12 +1607,13 @@ function renderRequestAnalytics() {
     });
 
     // Articles
-    const arts = a.lead?.articles || [];
+    const arts = getDashboardArticles(m);
     const items = a.lead?.lineItems || [];
     arts.forEach((art) => articleCount.set(art, (articleCount.get(art) || 0) + 1));
     items.forEach((item) => {
-      if (item.article && !arts.includes(item.article)) {
-        articleCount.set(item.article, (articleCount.get(item.article) || 0) + 1);
+      const normalizedItemArticle = normalizeDashboardArticle(item.article);
+      if (normalizedItemArticle && !arts.includes(normalizedItemArticle) && !isDashboardArticleNoise(normalizedItemArticle)) {
+        articleCount.set(normalizedItemArticle, (articleCount.get(normalizedItemArticle) || 0) + 1);
       }
     });
 
@@ -1737,7 +1834,7 @@ function renderWeeklyTrends() {
     const w = weekMap.get(weekKey);
     w.total++;
     if (m.pipelineStatus === 'ready_for_crm' || m.pipelineStatus === 'needs_clarification') w.client++;
-    if (m.pipelineStatus === 'ignored_spam') w.spam++;
+    if (m.pipelineStatus === 'ignored_spam' || m.pipelineStatus === 'ignored_duplicate') w.spam++;
     (m.analysis?.detectedBrands || []).forEach((b) => w.brands.add(b));
   }
 
@@ -1797,7 +1894,7 @@ function renderProjectsTable() {
 // ═══ Sidebar stats ═══
 function renderSidebarStats() {
   const total = allRunnerMessages.length;
-  const spam = allRunnerMessages.filter((m) => m.pipelineStatus === 'ignored_spam').length;
+  const spam = allRunnerMessages.filter((m) => m.pipelineStatus === 'ignored_spam' || m.pipelineStatus === 'ignored_duplicate').length;
   const ready = allRunnerMessages.filter((m) => m.pipelineStatus === 'ready_for_crm').length;
   const clarify = allRunnerMessages.filter((m) => m.pipelineStatus === 'needs_clarification').length;
   const unread = allRunnerMessages.filter((m) => !readMessages.has(mid(m))).length;
@@ -2146,8 +2243,6 @@ function renderEmailView(msg, viewEl, detailEl) {
   const crmFields = [['Юрлицо найдено', crm.isExistingCompany ? 'Да' : 'Нет'], ['Компания CRM', crm.company?.legalName], ['МОП', crm.curatorMop], ['МОЗ', crm.curatorMoz], ['Уточнение', crm.needsClarification ? 'Требуется' : 'Нет']];
   const attachmentFiles = a.attachmentAnalysis?.files || [];
   const recognitionSummary = getRecognitionSummary(a);
-  const primaryArticle = (lead.articles || [])[0] || lead.lineItems?.find((item) => item.article)?.article || '';
-  const primaryProductName = getLeadProductNameList(lead)[0] || getLineItemName(lead.lineItems?.[0] || {}, lead) || '';
   const primaryPhone = sender.mobilePhone || sender.cityPhone || '';
 
   try {
@@ -2174,7 +2269,6 @@ function renderEmailView(msg, viewEl, detailEl) {
     <div class="detail-section">
       <div class="detail-section-title">Заявка</div>
       ${leadFields.filter(([,v]) => v).map(([l,v]) => detailField(l, v)).join('')}
-      ${lead.lineItems?.length ? renderLineItemsEditor(msgKey, lead) : ''}
     </div>
     <div class="detail-section">
       <div class="detail-section-title">Качество распознавания</div>
@@ -2229,22 +2323,25 @@ function renderEmailView(msg, viewEl, detailEl) {
         </div>
       </div>
       <div style="margin-bottom:8px;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-0);">
-        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Быстрая коррекция полей:</div>
+        <div style="font-size:11px;color:var(--text-muted);margin-bottom:8px;">Реквизиты и контактные поля:</div>
         <div style="display:grid;gap:6px;">
           <input id="feedback-company-${esc(msgKey)}" class="form-input" placeholder="Компания" value="${esc(sender.companyName || '')}" style="font-size:11px;padding:6px 8px;" />
           <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
             <input id="feedback-inn-${esc(msgKey)}" class="form-input" placeholder="ИНН" value="${esc(sender.inn || '')}" style="font-size:11px;padding:6px 8px;" />
             <input id="feedback-phone-${esc(msgKey)}" class="form-input" placeholder="Телефон" value="${esc(primaryPhone)}" style="font-size:11px;padding:6px 8px;" />
           </div>
-          <div style="display:grid;grid-template-columns:1fr 1fr;gap:6px;">
-            <input id="feedback-article-${esc(msgKey)}" class="form-input" placeholder="Артикул" value="${esc(primaryArticle)}" style="font-size:11px;padding:6px 8px;font-family:'JetBrains Mono',monospace;" />
-            <input id="feedback-name-${esc(msgKey)}" class="form-input" placeholder="Наименование" value="${esc(primaryProductName)}" style="font-size:11px;padding:6px 8px;" />
-          </div>
-      <div style="display:flex;gap:6px;">
-        <button class="btn btn-primary btn-sm" style="flex:1;" onclick="window.__saveFieldFeedback('${escAttr(msgKey)}')">Сохранить коррекцию</button>
-        <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="window.__clearFieldFeedback('${escAttr(msgKey)}')">Очистить форму</button>
+          <div style="display:flex;gap:6px;">
+            <button class="btn btn-primary btn-sm" style="flex:1;" onclick="window.__saveFieldFeedback('${escAttr(msgKey)}')">Сохранить реквизиты</button>
+            <button class="btn btn-ghost btn-sm" style="flex:1;" onclick="window.__clearFieldFeedback('${escAttr(msgKey)}')">Очистить форму</button>
           </div>
         </div>
+      </div>
+      <div style="margin-bottom:8px;padding:10px;border:1px solid var(--border);border-radius:var(--radius-sm);background:var(--surface-0);">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:8px;margin-bottom:6px;">
+          <div style="font-size:11px;color:var(--text-muted);">Позиции для дообучения</div>
+          <div style="font-size:10px;color:var(--text-tertiary);">Можно добавить несколько строк и сохранить одним действием</div>
+        </div>
+        ${renderLineItemsEditor(msgKey, lead)}
       </div>
       <div id="rule-form-${esc(msgKey)}" style="display:none;">
         <div style="display:flex;gap:6px;margin-bottom:6px;">
@@ -2390,7 +2487,7 @@ window.__feedbackBrand = async (msgKey, action) => {
 };
 
 window.__clearFieldFeedback = (msgKey) => {
-  ['company', 'inn', 'phone', 'article', 'name'].forEach((field) => {
+  ['company', 'inn', 'phone'].forEach((field) => {
     const input = $(`#feedback-${field}-${msgKey}`);
     if (input) input.value = '';
   });
@@ -2468,10 +2565,8 @@ window.__saveFieldFeedback = async (msgKey) => {
   const companyName = $(`#feedback-company-${msgKey}`)?.value?.trim() || '';
   const inn = $(`#feedback-inn-${msgKey}`)?.value?.trim() || '';
   const phone = $(`#feedback-phone-${msgKey}`)?.value?.trim() || '';
-  const article = $(`#feedback-article-${msgKey}`)?.value?.trim() || '';
-  const name = $(`#feedback-name-${msgKey}`)?.value?.trim() || '';
 
-  if (!companyName && !inn && !phone && !article && !name) {
+  if (!companyName && !inn && !phone) {
     showToast('Заполните хотя бы одно поле');
     return;
   }
@@ -2479,9 +2574,7 @@ window.__saveFieldFeedback = async (msgKey) => {
   const payload = {
     companyName,
     inn,
-    phone,
-    addArticles: article ? [article] : [],
-    productNames: article && name ? [{ article, name }] : []
+    phone
   };
 
   try {
@@ -2496,7 +2589,7 @@ window.__saveFieldFeedback = async (msgKey) => {
     }
     const data = await res.json();
     if (currentMsg && data.analysis) currentMsg.analysis = data.analysis;
-    showToast('Коррекция сохранена');
+    showToast('Реквизиты сохранены');
     renderDashboard();
     renderInbox();
   } catch (e) {
@@ -2764,8 +2857,8 @@ function classificationBadge(label) {
 }
 
 function statusBadge(status) {
-  const labels = { ready_for_crm: 'CRM-готово', needs_clarification: 'Уточнение', review: 'Проверка', ignored_spam: 'Спам', fetch_error: 'Ошибка', 'Монобрендовая': 'Монобренд', 'Мультибрендовая': 'Мультибренд' };
-  const cls = { ready_for_crm: 'badge-ready', needs_clarification: 'badge-review', review: 'badge-review', ignored_spam: 'badge-spam', fetch_error: 'badge-error' };
+  const labels = { ready_for_crm: 'CRM-готово', needs_clarification: 'Уточнение', review: 'Проверка', ignored_spam: 'Спам', ignored_duplicate: 'Дубль ответа', fetch_error: 'Ошибка', 'Монобрендовая': 'Монобренд', 'Мультибрендовая': 'Мультибренд' };
+  const cls = { ready_for_crm: 'badge-ready', needs_clarification: 'badge-review', review: 'badge-review', ignored_spam: 'badge-spam', ignored_duplicate: 'badge-unknown', fetch_error: 'badge-error' };
   return `<span class="badge ${cls[status] || 'badge-unknown'}">${esc(labels[status] || status || '')}</span>`;
 }
 
@@ -2883,7 +2976,7 @@ function renderLineItemsEditor(msgKey, lead = {}) {
         <div style="font-size:11px;color:var(--text-muted);">Редактирование позиций</div>
         <div style="display:flex;gap:6px;">
           <button class="btn btn-ghost btn-sm" onclick="window.__addLineItemRow('${escAttr(msgKey)}')">+ Строка</button>
-          <button class="btn btn-primary btn-sm" onclick="window.__saveLineItems('${escAttr(msgKey)}')">Сохранить позиции</button>
+          <button class="btn btn-primary btn-sm" onclick="window.__saveLineItems('${escAttr(msgKey)}')">Сохранить позиции и дообучить</button>
         </div>
       </div>
       <table class="data-table" style="font-size:11px;">

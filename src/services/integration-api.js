@@ -740,6 +740,11 @@ function parseBrandFilter(value) {
   return text || null;
 }
 
+function parseArticleFilter(value) {
+  const text = String(value || "").trim().toUpperCase();
+  return text || null;
+}
+
 function parseLabelFilter(value) {
   const text = String(value || "").trim().toLowerCase();
   const valid = ["client", "spam", "vendor", "unknown"];
@@ -804,6 +809,7 @@ function buildIntegrationMessageQueryContext(query = {}, options = {}) {
     cursor: parseCursor(resolved.query.cursor),
     brandFilter: parseBrandFilter(resolved.query.brand),
     labelFilter: parseLabelFilter(resolved.query.label),
+    articleFilter: parseArticleFilter(resolved.query.article),
     searchQuery: parseSearchQuery(resolved.query.q),
     hasAttachments: parseBooleanFilter(resolved.query.has_attachments),
     attachmentExtFilter: parseAttachmentExtFilter(resolved.query.attachment_ext),
@@ -851,6 +857,11 @@ function filterIntegrationMessages(project, context, options = {}) {
       if (!context.brandFilter) return true;
       const brands = (item.detectedBrands || item.analysis?.detectedBrands || []).map((b) => String(b).toLowerCase());
       return brands.some((b) => b.includes(context.brandFilter));
+    })
+    .filter((item) => {
+      if (!context.articleFilter) return true;
+      const articles = (item.analysis?.lead?.articles || []).map((a) => String(a).toUpperCase());
+      return articles.some((a) => a.includes(context.articleFilter));
     })
     .filter((item) => {
       if (!context.labelFilter) return true;
@@ -950,6 +961,7 @@ function buildIntegrationMessageMeta(context) {
     statuses: context.statuses,
     exported: context.exported,
     brand: context.brandFilter,
+    article: context.articleFilter,
     label: context.labelFilter,
     q: context.searchQuery ? context.searchQuery.join(" ") : null,
     has_attachments: context.hasAttachments,

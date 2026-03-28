@@ -160,6 +160,10 @@ const scheduler = new ProjectScheduler({
 const backgroundJobs = new Map();
 setInterval(cleanupBackgroundJobs, 10 * 60 * 1000).unref();
 
+let isReady = false;
+let isShuttingDown = false;
+let shutdownTimer = null;
+
 // ── SSE (Server-Sent Events) for real-time notifications ──
 const sseClients = new Set();
 
@@ -187,7 +191,12 @@ const server = createServer(async (req, res) => {
     const url = new URL(req.url, `http://${req.headers.host}`);
 
     if (req.method === "GET" && url.pathname === "/railway-health") {
-      sendJson(res, 200, { ok: true });
+      const statusCode = isReady && !isShuttingDown ? 200 : 503;
+      sendJson(res, statusCode, {
+        ok: isReady && !isShuttingDown,
+        ready: isReady,
+        shuttingDown: isShuttingDown
+      });
       return;
     }
 
@@ -216,6 +225,7 @@ const server = createServer(async (req, res) => {
 });
 
 server.listen(port, host, () => {
+  isReady = true;
   console.log(`Server listening on http://${host}:${port}`);
   console.log(`Legacy background role: ${backgroundRole}`);
 
@@ -228,12 +238,54 @@ server.listen(port, host, () => {
   }
 });
 
-process.on("SIGTERM", () => {
-    console.log("SIGTERM received, shutting down gracefully...");
-    scheduler.stop();
-    webhookDispatcher.stop();
-    server.close(() => process.exit(0));
-    setTimeout(() => process.exit(1), 5000);
+server.keepAliveTimeout = Number(process.env.SERVER_KEEP_ALIVE_TIMEOUT_MS || 60_000);
+server.headersTimeout = Number(process.env.SERVER_HEADERS_TIMEOUT_MS || 65_000);
+server.requestTimeout = Number(process.env.SERVER_REQUEST_TIMEOUT_MS || 120_000);
+
+function shutdown(signal, error = null) {
+  if (isShuttingDown) {
+    return;
+  }
+
+  isShuttingDown = true;
+  isReady = false;
+
+  if (error) {
+    console.error(`${signal} triggered by fatal error:`, error);
+  } else {
+    console.log(`${signal} received, shutting down gracefully...`);
+  }
+
+  scheduler.stop();
+  webhookDispatcher.stop();
+
+  server.close(() => {
+    if (shutdownTimer) {
+      clearTimeout(shutdownTimer);
+      shutdownTimer = null;
+    }
+    process.exit(error ? 1 : 0);
+  });
+
+  if (typeof server.closeIdleConnections === "function") {
+    server.closeIdleConnections();
+  }
+
+  shutdownTimer = setTimeout(() => {
+    if (typeof server.closeAllConnections === "function") {
+      server.closeAllConnections();
+    }
+    process.exit(error ? 1 : 0);
+  }, Number(process.env.SHUTDOWN_FORCE_TIMEOUT_MS || 10000));
+  shutdownTimer.unref?.();
+}
+
+process.on("SIGTERM", () => shutdown("SIGTERM"));
+process.on("SIGINT", () => shutdown("SIGINT"));
+process.on("uncaughtException", (error) => shutdown("uncaughtException", error));
+process.on("unhandledRejection", (reason) => {
+  const error = reason instanceof Error ? reason : new Error(String(reason));
+  shutdown("unhandledRejection", error);
 });
 
 async function parseRequestJson(req) {
@@ -482,7 +534,9 @@ async function handleApi(req, res, url) {
 
   if (req.method === "GET" && url.pathname === "/api/health") {
     return sendJson(res, 200, {
-      ok: true,
+      ok: !isShuttingDown,
+      ready: isReady,
+      shuttingDown: isShuttingDown,
       background: {
         role: backgroundRole,
         schedulerEnabled: shouldRunScheduler(backgroundRole),

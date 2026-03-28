@@ -144,6 +144,48 @@ runTest("learns nomenclature from manual feedback", () => {
   assert.equal(exact?.product_name, "Ручной датчик");
 });
 
+runTest("imports company directory and resolves sender by email and inn", () => {
+  const imported = detectionKb.importCompanyDirectory([
+    {
+      name: "ООО Тестовая Компания",
+      inn: "7707654321",
+      okved: "46.69",
+      okved_title: "Оптовая торговля машинами и оборудованием",
+      fio: "Петров Петр",
+      post: "Менеджер по закупкам",
+      email: "buyer@test-company.ru",
+      greeting: "Петр"
+    }
+  ], { sourceFile: "tests-company-directory" });
+
+  assert.ok(imported.imported >= 1);
+
+  const byEmail = detectionKb.lookupCompanyDirectory({ email: "buyer@test-company.ru" });
+  assert.equal(byEmail?.company_name, "ООО Тестовая Компания");
+  assert.equal(byEmail?.inn, "7707654321");
+
+  const byInn = detectionKb.lookupCompanyDirectory({ inn: "7707654321", domain: "test-company.ru" });
+  assert.equal(byInn?.email, "buyer@test-company.ru");
+});
+
+runTest("matches company directory by fuzzy company name when domain is free mail", () => {
+  detectionKb.importCompanyDirectory([
+    {
+      name: "ООО ГЕЛЛЕР РУС",
+      inn: "7731304374",
+      email: "sales@geller-rus.ru"
+    }
+  ], { sourceFile: "tests-company-directory-fuzzy" });
+
+  const byName = detectionKb.lookupCompanyDirectory({
+    email: "unknown@yandex.ru",
+    companyName: 'ООО "ГЕЛЛЕР РУС" Юридический и фактический'
+  });
+
+  assert.equal(byName?.company_name, "ООО ГЕЛЛЕР РУС");
+  assert.equal(byName?.inn, "7731304374");
+});
+
 runTest("invalidates cached sender profiles after add and deactivate", () => {
   const created = detectionKb.addSenderProfile({
     senderEmail: "cache-check@example.com",
