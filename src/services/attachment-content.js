@@ -36,7 +36,7 @@ const OFFICE_XML_ARTICLE_NOISE_PATTERNS = [
   /^97-2003$/i,
   /^1TABLE$/i,
   /^(?:BG|LT|TX)\d{1,2}$/i,
-  /^THEME(?:\/THEME){1,}(?:\d+)?$/i,
+  /^THEME(?:\/THEME){1,}(?:\/?\d+)?(?:\.XML(?:PK)?)?$/i,
   /^DRAWINGML\/\d{4}\/MAIN$/i,
   /^OPENXMLFORMATS(?:\/[A-Z0-9._-]+){1,}$/i,
   /^SCHEMAS(?:\/[A-Z0-9._:-]+){1,}$/i,
@@ -46,7 +46,7 @@ const OFFICE_XML_ARTICLE_NOISE_PATTERNS = [
 const OFFICE_XML_TEXT_NOISE_PATTERNS = [
   /\b(?:_rels|docprops|\[content_types\]\.xml|content[_-]?types|word\/|xl\/|ppt\/)\b/i,
   /\b(?:schemas\.openxmlformats\.org|openxmlformats\.org|drawingml\/\d{4}\/main)\b/i,
-  /\b(?:theme\/theme\/theme\d+\.xml|word\.document\.8)\b/i,
+  /\b(?:theme\/theme\/theme\d+\.xml(?:PK)?|word\.document\.\d)\b/i,
   /\bPK[\x03\x05\x07]/i
 ];
 const PDF_INTERNAL_TEXT_NOISE_PATTERNS = [
@@ -573,6 +573,9 @@ function detectAttachmentArticles(text) {
   return uniqueMatches(text.toUpperCase(), ARTICLE_PATTERN)
     .map((value) => normalizeAttachmentArticle(value))
     .filter(Boolean)
+    // Reject pure numeric codes under 5 digits from loose attachment detection
+    // (real short numeric articles like 615 are handled via line item extraction with context)
+    .filter((value) => !/^\d{1,4}$/.test(value))
     .slice(0, 30);
 }
 

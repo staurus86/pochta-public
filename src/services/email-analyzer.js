@@ -152,7 +152,7 @@ const OFFICE_XML_ARTICLE_NOISE_PATTERNS = [
   /^97-2003$/i,
   /^1TABLE$/i,
   /^(?:BG|LT|TX|DK)\d{1,2}$/i,
-  /^THEME(?:\/THEME){1,}(?:\d+)?$/i,
+  /^THEME(?:\/THEME){1,}(?:\/?\d+)?(?:\.XML(?:PK)?)?$/i,
   /^DRAWINGML\/\d{4}\/MAIN$/i,
   /^OPENXMLFORMATS(?:\/[A-Z0-9._-]+){1,}$/i,
   /^SCHEMAS(?:\/[A-Z0-9._:-]+){1,}$/i,
@@ -2652,8 +2652,9 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^image\d+\.\w+$/i.test(normalized)) return true;
   // Currency expressions: EUR 6, USD 100
   if (/^(?:EUR|USD|RUB|GBP|CHF)\s+\d/i.test(normalized)) return true;
-  // PDF version markers: PDF-1.7, PDF-1.3
+  // PDF/XML version markers: PDF-1.7, PDF-1.3, 1.0, 2.0
   if (/^PDF-\d+(?:\.\d+)?$/i.test(normalized)) return true;
+  if (/^\d\.\d$/.test(normalized)) return true;
   // PDF Unicode null-byte escape residue: 000A, 000C, 000S
   if (/^0{2,}[A-Z]$/i.test(normalized)) return true;
   // Page/section references: СТР.1, CTP.1, стр.2 (Cyrillic С→C, Т→T, Р→P after transliteration)
