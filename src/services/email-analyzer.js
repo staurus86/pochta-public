@@ -2652,9 +2652,24 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^image\d+\.\w+$/i.test(normalized)) return true;
   // Currency expressions: EUR 6, USD 100
   if (/^(?:EUR|USD|RUB|GBP|CHF)\s+\d/i.test(normalized)) return true;
-  // PDF/XML version markers: PDF-1.7, PDF-1.3, 1.0, 2.0
+  // PDF/XML version markers: PDF-1.7, PDF-1.3, 1.0, 2.0, 0.0, 3.0
   if (/^PDF-\d+(?:\.\d+)?$/i.test(normalized)) return true;
   if (/^\d\.\d$/.test(normalized)) return true;
+  // CSS style tokens: ms-text-size-adjust:100, webkit-text-size-adjust:100
+  if (/^(?:ms|webkit|moz|o)-[a-z-]+:\d/i.test(normalized)) return true;
+  // PDF metadata: GTS_PDFA1, GTS_PDFX
+  if (/^GTS_PDF/i.test(normalized)) return true;
+  // Office internal: 20Roman (Word style), drs/e2oDoc.xml
+  if (/^\d+ROMAN$/i.test(normalized)) return true;
+  if (/^drs\//i.test(normalized)) return true;
+  // PDF producer names
+  if (/^CAOLAN\d/i.test(normalized)) return true;
+  // Decimal numbers: 595.2, 841.9
+  if (/^\d{2,4}\.\d{1,2}$/.test(normalized)) return true;
+  // Bank account numbers (20 digits) and BIK (9 digits starting with 0)
+  if (/^[034]\d{7,19}$/.test(normalized) && /^(?:30|40|04|03)\d+$/.test(normalized)) return true;
+  // Hash-like strings (24+ uppercase alphanumeric without separators)
+  if (/^[A-Z0-9]{24,}$/.test(normalized) && !/[-/.]/.test(normalized)) return true;
   // PDF Unicode null-byte escape residue: 000A, 000C, 000S
   if (/^0{2,}[A-Z]$/i.test(normalized)) return true;
   // Page/section references: СТР.1, CTP.1, стр.2 (Cyrillic С→C, Т→T, Р→P after transliteration)
