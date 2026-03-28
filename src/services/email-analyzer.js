@@ -435,7 +435,11 @@ function sanitizeAttachmentText(text) {
     .replace(/\b0001-000\d\b/g, "")                              // PDF xref offsets: 0001-0000
     .replace(/\b(?:WRD000\d|WW8\w+)\b/gi, "")                   // Word internal: WRD0002, WW8Num1z0
     .replace(/\b\d{2}-(?:19|20)\d{2}\b/g, "")                   // Date: 01-2026
-    .replace(/\b0-\d{2,4}\b/g, "");                              // Range: 0-100
+    .replace(/\b0-\d{2,4}\b/g, "")                               // Range: 0-100
+    .replace(/\b(?:19|20)\d{2}\b/g, "")                          // Standalone years: 2025, 2026
+    .replace(/\b1000\b/g, "")                                    // PDF font metric DW 1000
+    .replace(/\b(?:CALIBRI|ARIAL|TIMES)\d*\b/gi, "")             // PDF font names
+    .replace(/\b(?:CAOLAN|ALLLEX|ALFABY)\w*\b/gi, "");           // PDF producer names
 }
 
 function normalizeAttachments(attachments) {
