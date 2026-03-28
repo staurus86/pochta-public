@@ -742,9 +742,11 @@ function normalizeAttachmentArticle(value) {
   if (/^\d+:[A-Z]{4,}/.test(normalized)) return "";
   // CSS vendor-prefixed tokens: MS-TEXT-SIZE-ADJUST:100, WEBKIT-*
   if (/^(?:MS|WEBKIT|MOZ|O)-[A-Z-]+:\d/i.test(normalized)) return "";
-  // PDF metadata: GTS_PDFA1, CAOLAN80, 20ROMAN, ALLLEX86, ALFABY2X
-  if (/^(?:GTS_PDF|CAOLAN\d|ADOBE\d|ALLLEX\d|ALFABY\d)/i.test(normalized)) return "";
+  // PDF font/metadata names: GTS_PDFA1, CAOLAN80, ALLLEX86, ALFABY2X, CALIBRI1, ARIAL1, CYR1
+  if (/^(?:GTS_PDF|CAOLAN|ADOBE\d|ALLLEX|ALFABY|CALIBRI\d|ARIAL\d|TIMES\d|CYR\d)/i.test(normalized)) return "";
   if (/^\d+ROMAN$/i.test(normalized)) return "";
+  // Date patterns: 01-2026, 03-2025
+  if (/^\d{2}-(?:19|20)\d{2}$/.test(normalized)) return "";
   // Simple fractions/thread sizes: 1/2, 1/4, 1/1, 10/2 (without prefix like G or M)
   if (/^\d{1,2}\/\d{1,2}$/.test(normalized)) return "";
   // Office document paths and filenames: DRS/E2ODOC.XML, drs/e2oDoc.xmlPK, e2oDoc.xml

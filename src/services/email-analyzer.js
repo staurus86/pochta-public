@@ -2662,8 +2662,10 @@ function isObviousArticleNoise(code, sourceLine = "") {
   // Office internal: 20Roman (Word style), drs/e2oDoc.xml
   if (/^\d+ROMAN$/i.test(normalized)) return true;
   if (/^drs\//i.test(normalized)) return true;
-  // PDF producer names
-  if (/^CAOLAN\d/i.test(normalized)) return true;
+  // PDF font/producer names: CAOLAN80, ALLLEX86, ALFABY2X, CALIBRI1, ARIAL1, CYR1
+  if (/^(?:CAOLAN|ALLLEX|ALFABY|CALIBRI\d|ARIAL\d|CYR\d)/i.test(normalized)) return true;
+  // Date patterns: 01-2026, 03-2025
+  if (/^\d{2}-(?:19|20)\d{2}$/.test(normalized)) return true;
   // Decimal numbers: 595.2, 841.9
   if (/^\d{2,4}\.\d{1,2}$/.test(normalized)) return true;
   // Bank account/BIK/corr.account: 30101810*, 40702810*, 04452*
