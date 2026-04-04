@@ -1025,6 +1025,7 @@ async function handleApi(req, res, url) {
     // Build queue: non-spam messages without llmExtraction
     const queue = (project.recentMessages || []).filter((msg) => {
       if (!msg.analysis) return false;
+      if (msg.pipelineStatus === "ignored_spam" || msg.pipelineStatus === "ignored_duplicate") return false;
       const label = msg.analysis.classification?.label || "";
       if (label === "СПАМ") return false;
       return !msg.analysis.llmExtraction?.processedAt;
