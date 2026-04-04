@@ -225,6 +225,10 @@ let isReady = false;
 let isShuttingDown = false;
 let shutdownTimer = null;
 
+// P3: Detection KB cache — invalidated on any mutation
+let kbCache = null;
+let kbCacheVersion = 0;
+
 // ── SSE (Server-Sent Events) for real-time notifications ──
 const sseClients = new Set();
 
@@ -501,12 +505,22 @@ function requireAuth(req, roles = []) {
 async function handleApi(req, res, url) {
   // ── SSE endpoint for real-time notifications ──
   if (req.method === "GET" && url.pathname === "/api/events") {
-    res.writeHead(200, {
+    // C2: Restrict CORS — only allow same host or explicitly configured origin
+    const reqOrigin = req.headers.origin;
+    const configuredOrigin = process.env.ALLOWED_ORIGIN;
+    const corsOrigin = (() => {
+      if (configuredOrigin) return reqOrigin === configuredOrigin ? configuredOrigin : null;
+      if (!reqOrigin) return null; // same-origin request, no CORS header needed
+      try { if (new URL(reqOrigin).host === req.headers.host) return reqOrigin; } catch {}
+      return null;
+    })();
+    const sseHeaders = {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
-      Connection: "keep-alive",
-      "Access-Control-Allow-Origin": "*"
-    });
+      Connection: "keep-alive"
+    };
+    if (corsOrigin) sseHeaders["Access-Control-Allow-Origin"] = corsOrigin;
+    res.writeHead(200, sseHeaders);
     res.write(`event: connected\ndata: ${JSON.stringify({ at: new Date().toISOString() })}\n\n`);
     sseClients.add(res);
     req.on("close", () => sseClients.delete(res));
@@ -572,6 +586,8 @@ async function handleApi(req, res, url) {
   if (req.method === "GET" && url.pathname === "/api/manager/inbox") {
     const user = requireAuth(req, ["manager", "admin"]);
     const projectId = url.searchParams.get("project_id") || null;
+    const limit = Math.min(Number(url.searchParams.get("limit")) || 100, 500);
+    const offset = Number(url.searchParams.get("offset")) || 0;
     const projects = await store.listProjects();
 
     // Get messages from specified project or all projects
@@ -614,7 +630,14 @@ async function handleApi(req, res, url) {
     // Sort by date descending
     allMessages.sort((a, b) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
 
-    return sendJson(res, 200, { messages: allMessages, total: allMessages.length, user: user.fullName });
+    const total = allMessages.length;
+    return sendJson(res, 200, {
+      messages: allMessages.slice(offset, offset + limit),
+      total,
+      offset,
+      limit,
+      user: user.fullName
+    });
   }
 
   const moderateMatch = url.pathname.match(/^\/api\/manager\/moderate\/([^/]+)$/);
@@ -701,17 +724,24 @@ async function handleApi(req, res, url) {
   }
 
   if (req.method === "GET" && url.pathname === "/api/detection-kb") {
-    return sendJson(res, 200, {
+    // P3: Serve from cache if unchanged since last mutation
+    if (kbCache && kbCache.version === kbCacheVersion) {
+      return sendJson(res, 200, kbCache.data);
+    }
+    const senderProfiles = detectionKb.getSenderProfiles();
+    const data = {
       stats: detectionKb.getStats(),
       nomenclatureStats: detectionKb.getNomenclatureStats(),
       rules: detectionKb.getRules(),
       brandAliases: detectionKb.getBrandAliases(),
-      senderProfiles: detectionKb.getSenderProfiles(),
-      autoLearnedSenderProfiles: detectionKb.getSenderProfiles().filter((item) => String(item.notes || "").includes("Auto-learn from feedback")),
+      senderProfiles,
+      autoLearnedSenderProfiles: senderProfiles.filter((item) => String(item.notes || "").includes("Auto-learn from feedback")),
       learnedNomenclature: detectionKb.getLearnedNomenclature(150),
       ownBrands: detectionKb.getOwnBrands(),
       corpus: detectionKb.getCorpus(25)
-    });
+    };
+    kbCache = { version: kbCacheVersion, data };
+    return sendJson(res, 200, data);
   }
 
   if (req.method === "POST" && url.pathname === "/api/detection-kb/rules") {
@@ -719,8 +749,14 @@ async function handleApi(req, res, url) {
     if (!payload.scope || !payload.classifier || !payload.matchType || !payload.pattern) {
       return sendJson(res, 400, { error: "Fields 'scope', 'classifier', 'matchType' and 'pattern' are required." });
     }
-
+    // C3: Validate regex before inserting into DB
+    if (payload.matchType === "regex") {
+      try { new RegExp(payload.pattern, "iu"); } catch (e) {
+        return sendJson(res, 400, { error: `Invalid regex pattern: ${e.message}` });
+      }
+    }
     const rule = detectionKb.addRule(payload);
+    kbCacheVersion++;
     return sendJson(res, 201, { rule });
   }
 
@@ -731,30 +767,35 @@ async function handleApi(req, res, url) {
     }
 
     const brandAlias = detectionKb.addBrandAlias(payload);
+    kbCacheVersion++;
     return sendJson(res, 201, { brandAlias });
   }
 
   const deleteRuleMatch = url.pathname.match(/^\/api\/detection-kb\/rules\/(\d+)$/);
   if (req.method === "DELETE" && deleteRuleMatch) {
     const result = detectionKb.deactivateRule(deleteRuleMatch[1]);
+    kbCacheVersion++;
     return sendJson(res, 200, result);
   }
 
   const deleteSenderMatch = url.pathname.match(/^\/api\/detection-kb\/sender-profiles\/(\d+)$/);
   if (req.method === "DELETE" && deleteSenderMatch) {
     const result = detectionKb.deactivateSenderProfile(deleteSenderMatch[1]);
+    kbCacheVersion++;
     return sendJson(res, 200, result);
   }
 
   const deleteBrandMatch = url.pathname.match(/^\/api\/detection-kb\/brand-aliases\/(\d+)$/);
   if (req.method === "DELETE" && deleteBrandMatch) {
     const result = detectionKb.deactivateBrandAlias(deleteBrandMatch[1]);
+    kbCacheVersion++;
     return sendJson(res, 200, result);
   }
 
   const deleteNomenclatureMatch = url.pathname.match(/^\/api\/detection-kb\/nomenclature\/(\d+)$/);
   if (req.method === "DELETE" && deleteNomenclatureMatch) {
     const result = detectionKb.deleteNomenclatureEntry(deleteNomenclatureMatch[1]);
+    kbCacheVersion++;
     return sendJson(res, 200, result);
   }
 
@@ -765,6 +806,7 @@ async function handleApi(req, res, url) {
     }
 
     const senderProfile = detectionKb.addSenderProfile(payload);
+    kbCacheVersion++;
     return sendJson(res, 201, { senderProfile });
   }
 
@@ -779,12 +821,14 @@ async function handleApi(req, res, url) {
     }
 
     const ownBrand = detectionKb.addOwnBrand(payload);
+    kbCacheVersion++;
     return sendJson(res, 201, { ownBrand });
   }
 
   const deleteOwnBrandMatch = url.pathname.match(/^\/api\/detection-kb\/own-brands\/(\d+)$/);
   if (req.method === "DELETE" && deleteOwnBrandMatch) {
     const result = detectionKb.deactivateOwnBrand(deleteOwnBrandMatch[1]);
+    kbCacheVersion++;
     return sendJson(res, 200, result);
   }
 
@@ -795,11 +839,13 @@ async function handleApi(req, res, url) {
     }
 
     const result = detectionKb.importBrandCatalog(payload.brands);
+    kbCacheVersion++;
     return sendJson(res, 200, result);
   }
 
   if (req.method === "DELETE" && url.pathname === "/api/detection-kb/brand-catalog") {
     const result = detectionKb.clearBrandAliases();
+    kbCacheVersion++;
     return sendJson(res, 200, result);
   }
 
@@ -909,6 +955,12 @@ async function handleApi(req, res, url) {
     const filename = decodeURIComponent(attachMatch[2]);
     const safeName = filename.replace(/[<>:"/\\|?*]/g, "_");
     const filePath = path.join(dataDir, "attachments", messageKey, safeName);
+    // C1: Prevent path traversal — verify resolved path stays inside attachments dir
+    const attachBase = path.resolve(path.join(dataDir, "attachments"));
+    const resolvedPath = path.resolve(filePath);
+    if (!resolvedPath.startsWith(attachBase + path.sep) && resolvedPath !== attachBase) {
+      return sendJson(res, 403, { error: "Access denied." });
+    }
     try {
       const contents = await readFile(filePath);
       const ext = path.extname(safeName).toLowerCase();
@@ -1110,13 +1162,15 @@ async function handleApi(req, res, url) {
       }
 
       telemetry.batches += 1;
-      // Persist after each batch to avoid data loss on timeout
-      await store.persist();
+      // P2: Persist every 5 batches (500 msgs) — reduces I/O without risking data loss
+      if (telemetry.batches % 5 === 0) await store.persist();
       if (i + BATCH_SIZE < messages.length) {
         telemetry.yields += 1;
         await yieldProcessingLoop();
       }
     }
+    // Always persist at the end
+    await store.persist();
 
     const durationMs = Date.now() - startTime;
 
