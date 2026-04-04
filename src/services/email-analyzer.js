@@ -6,6 +6,7 @@ import { analyzeStoredAttachments } from "./attachment-content.js";
 import { matchCompanyInCrm } from "./crm-matcher.js";
 import { detectionKb } from "./detection-kb.js";
 import { hybridClassify, isAiEnabled, getAiConfig } from "./ai-classifier.js";
+import { isLlmExtractEnabled, llmExtract, mergeLlmExtraction, buildRulesFoundSummary, getLlmExtractConfig } from "./llm-extractor.js";
 
 // Product types database for request type detection and entity extraction
 const __analyzerDir = path.dirname(fileURLToPath(import.meta.url));
@@ -394,32 +395,57 @@ export function analyzeEmail(project, payload) {
 }
 
 /**
- * Async version of analyzeEmail that uses AI classification for uncertain cases.
- * Falls back to pure rules-based when AI is disabled.
+ * Async version of analyzeEmail that uses AI classification and LLM extraction.
+ * Falls back to pure rules-based when AI/LLM is disabled.
  */
 export async function analyzeEmailAsync(project, payload) {
   const result = analyzeEmail(project, payload);
 
-  if (!isAiEnabled()) return result;
+  // --- Step 1: Hybrid AI classification (for uncertain cases) ---------------
+  if (isAiEnabled()) {
+    try {
+      const enhanced = await hybridClassify(result.classification, {
+        subject: payload.subject || "",
+        body: payload.body || "",
+        fromEmail: payload.fromEmail || "",
+        attachments: normalizeAttachments(payload.attachments)
+      });
 
-  try {
-    const enhanced = await hybridClassify(result.classification, {
-      subject: payload.subject || "",
-      body: payload.body || "",
-      fromEmail: payload.fromEmail || "",
-      attachments: normalizeAttachments(payload.attachments)
-    });
+      if (enhanced.detectedBrands?.length) {
+        const allBrands = [...new Set([...result.detectedBrands, ...detectionKb.filterOwnBrands(enhanced.detectedBrands)])];
+        result.detectedBrands = allBrands;
+      }
 
-    // Merge AI-detected brands with rule-detected brands
-    if (enhanced.detectedBrands?.length) {
-      const allBrands = [...new Set([...result.detectedBrands, ...detectionKb.filterOwnBrands(enhanced.detectedBrands)])];
-      result.detectedBrands = allBrands;
+      result.classification = enhanced;
+      result.aiConfig = getAiConfig();
+    } catch {
+      // AI failure — use rules result silently
     }
+  }
 
-    result.classification = enhanced;
-    result.aiConfig = getAiConfig();
-  } catch {
-    // AI failure — use rules result silently
+  // --- Step 2: LLM final-pass extraction ------------------------------------
+  // Skip: LLM disabled, spam emails, or already processed (idempotency)
+  const isSpam = result.classification?.label === "СПАМ";
+  const alreadyProcessed = Boolean(result.llmExtraction?.processedAt);
+
+  if (isLlmExtractEnabled() && !isSpam && !alreadyProcessed) {
+    try {
+      const rulesFound = buildRulesFoundSummary(result);
+      const attachmentText = result.attachmentAnalysis?.combinedText || "";
+
+      const llmData = await llmExtract({
+        subject: payload.subject || "",
+        body: payload.body || "",
+        fromEmail: payload.fromEmail || "",
+        attachmentText,
+        rulesFound
+      });
+
+      mergeLlmExtraction(result, llmData, payload.messageKey || payload.id || "");
+      result.llmConfig = getLlmExtractConfig();
+    } catch (err) {
+      console.warn("LLM extraction step failed:", err.message);
+    }
   }
 
   return result;

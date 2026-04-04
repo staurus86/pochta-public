@@ -5,6 +5,7 @@ import { fileURLToPath } from "node:url";
 import { ProjectsStore } from "./storage/projects-store.js";
 import { analyzeEmail, analyzeEmailAsync } from "./services/email-analyzer.js";
 import { isAiEnabled, getAiConfig } from "./services/ai-classifier.js";
+import { getLlmExtractConfig } from "./services/llm-extractor.js";
 import { getCrmConfig, syncProjectToCrm } from "./services/crm-sync.js";
 import { normalizeBackgroundRole, shouldRunScheduler, shouldRunWebhooks } from "./services/background-role.js";
 import { HttpError, parseJsonBody, resolveJsonBodyLimit } from "./services/http-json.js";
@@ -546,9 +547,37 @@ async function handleApi(req, res, url) {
         retainedJobs: backgroundJobs.size
       },
       ai: getAiConfig(),
+      llm: getLlmExtractConfig(),
       sse: { clients: sseClients.size },
       rateLimit: { max: RATE_LIMIT_MAX, windowSeconds: RATE_LIMIT_WINDOW_MS / 1000 }
     });
+  }
+
+  // --- LLM suggestions log --------------------------------------------------
+  if (req.method === "GET" && url.pathname === "/api/llm-suggestions") {
+    const { readFileSync: rfsSync, existsSync } = await import("node:fs");
+    const suggestionsPath = path.join(dataDir, "llm-suggestions.jsonl");
+    if (!existsSync(suggestionsPath)) {
+      return sendJson(res, 200, { entries: [], total: 0 });
+    }
+    const lines = rfsSync(suggestionsPath, "utf8").trim().split("\n").filter(Boolean);
+    const limit = Math.min(Number(url.searchParams.get("limit") || 100), 500);
+    const offset = Number(url.searchParams.get("offset") || 0);
+    const entries = lines
+      .map((line) => { try { return JSON.parse(line); } catch { return null; } })
+      .filter(Boolean)
+      .reverse(); // newest first
+    return sendJson(res, 200, {
+      total: entries.length,
+      entries: entries.slice(offset, offset + limit)
+    });
+  }
+
+  if (req.method === "DELETE" && url.pathname === "/api/llm-suggestions") {
+    const { writeFileSync, existsSync } = await import("node:fs");
+    const suggestionsPath = path.join(dataDir, "llm-suggestions.jsonl");
+    if (existsSync(suggestionsPath)) writeFileSync(suggestionsPath, "", "utf8");
+    return sendJson(res, 200, { ok: true, cleared: true });
   }
 
   if (req.method === "POST" && url.pathname === "/api/admin/background-jobs/cleanup") {
