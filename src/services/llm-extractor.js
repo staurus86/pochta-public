@@ -287,6 +287,20 @@ export function mergeLlmExtraction(result, llmData, messageKey = "") {
     }
     result.sender = sender;
 
+    // --- Reclassify "Не определено" using LLM request_type -------------------
+    if (result.classification?.label === "Не определено" && llmData.request_type) {
+        const rt = llmData.request_type;
+        if (["quotation", "order", "info_request", "complaint"].includes(rt)) {
+            result.classification.label = "Клиент";
+            result.classification.llmReclassified = true;
+            result.classification.llmRequestType = rt;
+        } else if (rt === "vendor_offer") {
+            result.classification.label = "Поставщик услуг";
+            result.classification.llmReclassified = true;
+            result.classification.llmRequestType = rt;
+        }
+    }
+
     // --- Attach LLM extraction metadata --------------------------------------
     const { model, logSuggestions } = cfg();
     result.llmExtraction = {

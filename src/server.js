@@ -161,6 +161,66 @@ const scheduler = new ProjectScheduler({
 const backgroundJobs = new Map();
 setInterval(cleanupBackgroundJobs, 10 * 60 * 1000).unref();
 
+// LLM backlog scheduler: every 2 hours, auto-process old messages without llmExtraction
+// Runs only when LLM is enabled and there's no active llm-reanalyze job
+const LLM_BACKLOG_INTERVAL_MS = 2 * 60 * 60 * 1000;
+const LLM_BACKLOG_BATCH = 30; // max messages per project per run
+const LLM_BACKLOG_DELAY_MS = 3500;
+setInterval(() => {
+  if (!isLlmExtractEnabled()) return;
+  store.listProjects().then(async (projects) => {
+    for (const project of projects) {
+      if (findRunningProjectJob(project.id, ["llm-reanalyze"])) continue;
+      const queue = (project.recentMessages || []).filter((msg) => {
+        if (!msg.analysis) return false;
+        if (msg.pipelineStatus === "ignored_spam" || msg.pipelineStatus === "ignored_duplicate") return false;
+        if (msg.analysis.classification?.label === "СПАМ") return false;
+        return !msg.analysis.llmExtraction?.processedAt;
+      }).slice(0, LLM_BACKLOG_BATCH);
+      if (queue.length === 0) continue;
+      console.log(`LLM backlog: processing ${queue.length} old messages for project ${project.id}`);
+      const { analyzeEmailAsync: _analyzeAsync } = await import("./services/email-analyzer.js");
+      let count = 0;
+      for (const msg of queue) {
+        const body = msg.body || msg.bodyPreview || msg.analysis?.lead?.freeText || "";
+        try {
+          const newAnalysis = await _analyzeAsync(project, {
+            messageKey: msg.messageKey || msg.id,
+            fromEmail: msg.from || msg.analysis?.sender?.email || "",
+            fromName: msg.analysis?.sender?.fullName || "",
+            subject: msg.subject || "",
+            body,
+            attachments: (msg.attachmentFiles || msg.attachments || []).map((a) => typeof a === "string" ? a : a.filename || a.name || ""),
+            attachmentFiles: (msg.attachmentFiles || []).map((a) => typeof a === "string" ? { filename: a } : a)
+          });
+          newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
+          msg.analysis = newAnalysis;
+          msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
+          const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
+          if (!wasManuallyChanged) {
+            const label = newAnalysis.classification?.label;
+            msg.pipelineStatus = label === "СПАМ"
+              ? "ignored_spam"
+              : label === "Клиент"
+                ? "ready_for_crm"
+                : newAnalysis.crm?.needsClarification
+                  ? "needs_clarification"
+                  : "review";
+          }
+          count++;
+        } catch (err) {
+          console.warn("LLM backlog error:", err.message);
+        }
+        await new Promise((r) => setTimeout(r, LLM_BACKLOG_DELAY_MS));
+      }
+      if (count > 0) {
+        await store.persist();
+        console.log(`LLM backlog: processed ${count}/${queue.length} for project ${project.id}`);
+      }
+    }
+  }).catch((err) => console.warn("LLM backlog scheduler error:", err.message));
+}, LLM_BACKLOG_INTERVAL_MS).unref();
+
 let isReady = false;
 let isShuttingDown = false;
 let shutdownTimer = null;
@@ -395,6 +455,19 @@ async function finalizeProjectRun(job, project, run) {
             });
             newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
             msg.analysis = newAnalysis;
+            msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
+            // Update pipelineStatus unless manually overridden
+            const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
+            if (!wasManuallyChanged) {
+              const label = newAnalysis.classification?.label;
+              msg.pipelineStatus = label === "СПАМ"
+                ? "ignored_spam"
+                : label === "Клиент"
+                  ? "ready_for_crm"
+                  : newAnalysis.crm?.needsClarification
+                    ? "needs_clarification"
+                    : "review";
+            }
             count++;
           } catch (err) {
             console.warn("Auto-LLM error:", err.message);
@@ -1110,6 +1183,18 @@ async function handleApi(req, res, url) {
           newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
           msg.analysis = newAnalysis;
           msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
+          // Update pipelineStatus unless manually overridden
+          const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
+          if (!wasManuallyChanged) {
+            const label = newAnalysis.classification?.label;
+            msg.pipelineStatus = label === "СПАМ"
+              ? "ignored_spam"
+              : label === "Клиент"
+                ? "ready_for_crm"
+                : newAnalysis.crm?.needsClarification
+                  ? "needs_clarification"
+                  : "review";
+          }
           job.progress.processed++;
           processedCount++;
         } catch {
@@ -1125,6 +1210,34 @@ async function handleApi(req, res, url) {
         await new Promise((r) => setTimeout(r, LLM_DELAY_MS));
       }
 
+      // Retroactive reclassification: messages that have stored llmExtraction.requestType
+      // but still show "Не определено" (e.g. processed before reclassification logic existed)
+      let retroclassified = 0;
+      for (const msg of project.recentMessages || []) {
+        if (!msg.analysis) continue;
+        if (msg.analysis.classification?.label !== "Не определено") continue;
+        const rt = msg.analysis.llmExtraction?.requestType;
+        if (!rt) continue;
+        const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
+        if (wasManuallyChanged) continue;
+        if (["quotation", "order", "info_request", "complaint"].includes(rt)) {
+          msg.analysis.classification.label = "Клиент";
+          msg.analysis.classification.llmReclassified = true;
+          msg.analysis.classification.llmRequestType = rt;
+          msg.pipelineStatus = msg.analysis.crm?.needsClarification ? "needs_clarification" : "ready_for_crm";
+          retroclassified++;
+        } else if (rt === "vendor_offer") {
+          msg.analysis.classification.label = "Поставщик услуг";
+          msg.analysis.classification.llmReclassified = true;
+          msg.analysis.classification.llmRequestType = rt;
+          retroclassified++;
+        }
+      }
+      if (retroclassified > 0) {
+        console.log(`LLM retroclassified ${retroclassified} "Не определено" messages for project ${project.id}`);
+      }
+
+      job.progress.retroclassified = retroclassified;
       job.progress.currentSubject = null;
       await store.persist();
       finishBackgroundJob(job, {
@@ -1133,6 +1246,7 @@ async function handleApi(req, res, url) {
           total: queue.length,
           processed: job.progress.processed,
           errors: job.progress.errors,
+          retroclassified,
           durationMs: Date.now() - Date.parse(job.startedAt)
         }
       });

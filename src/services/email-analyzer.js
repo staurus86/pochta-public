@@ -76,7 +76,10 @@ const AUTO_REPLY_SUBJECT_PATTERNS = [
   /\b(?:delivery|read)\s*(?:notification|receipt)\b/i,
   /\bуведомлени[ея]\s+о\s+(?:доставке|прочтении|получении)\b/i,
   /\b(?:на\s+отпуске|на\s+больничном|не\s+работаю|временно\s+не\s+доступ)/i,
-  /\b(?:vacation|holiday)\s*(?:auto|reply|notice)/i
+  /\b(?:vacation|holiday)\s*(?:auto|reply|notice)/i,
+  /^(?:уведомление|notification|alert)\s*(?:о|от|:)/i,
+  /^(?:ваш[аеи]?\s+)?(?:заказ|доставка|посылка|отправление)\s+(?:№|#|\d)/i,
+  /\b(?:delivery|shipping)\s+(?:notification|confirmation|update)\b/i
 ];
 
 // Auto-reply detection: body patterns (check only first ~500 chars)
@@ -90,7 +93,10 @@ const AUTO_REPLY_BODY_PATTERNS = [
   /(?:служба\s+)?(?:техническ(?:ой|ая)\s+)?поддержк[аи]\s+получил[аи]/i,
   /(?:noreply|no-reply|mailer-daemon|postmaster|system)@/i,
   /(?:ниже\s+)?(?:текст|содержание|копия)\s+(?:вашего|исходного)\s+(?:письма|обращения|заявки|сообщения)/i,
-  /(?:your\s+)?(?:original\s+)?(?:message|request|inquiry)\s+(?:is\s+)?(?:below|attached|included)/i
+  /(?:your\s+)?(?:original\s+)?(?:message|request|inquiry)\s+(?:is\s+)?(?:below|attached|included)/i,
+  /(?:письмо|сообщение)\s+(?:отправлено|создано|сформировано)\s+автоматически/i,
+  /это\s+автоматическое\s+(?:уведомление|сообщение|письмо)/i,
+  /message\s+was\s+(?:auto(?:matically)?[-\s])?generated/i
 ];
 
 // Patterns that mark the start of embedded/quoted original request in auto-replies
