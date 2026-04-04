@@ -58,6 +58,8 @@ const SERIES_MODEL_PATTERN = /\b([A-Z]{2,6})\s+(\d{1,3}(?:[-/.]\d{1,4})?(?:[-/][
 const NUMBERED_ITEM_PATTERN = /^\s*\d{1,3}[.)]\s+/;
 // Product line with quantity: "Description - N шт" or "Description - N.NN шт"
 const PRODUCT_QTY_PATTERN = /[—–-]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)?\.?\s*$/i;
+// Same but allows trailing closing words (Спасибо, Thanks, etc.)
+const PRODUCT_QTY_TRAILING_PATTERN = /[—–-]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\.?(?:\s+[А-Яа-яЁё!.]+)?$/i;
 const BRAND_CONTEXT_PATTERN = /\b(?:бренд|brand|производител[ья]|manufacturer|vendor|марка)\b/i;
 const REQUISITES_CONTEXT_PATTERN = /\b(?:реквизит|карточк[аи]|company details|legal details)\b/i;
 const EXTENDED_BRAND_WORD_RE = "A-Za-zÀ-ÿА-Яа-яЁё";
@@ -1903,6 +1905,25 @@ function extractLineItems(body) {
       continue;
     }
 
+    // ── Format: ARTICLE в количестве N шт / в количестве N шт ──
+    const inlineQtyMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})\s+в\s+количестве\s+(\d+)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|м|кг|л)?/i);
+    if (inlineQtyMatch) {
+      items.push({ article: normalizeArticleCode(inlineQtyMatch[1]), quantity: Number(inlineQtyMatch[2]), unit: inlineQtyMatch[3] || "шт", descriptionRu: line, sourceLine: line });
+      continue;
+    }
+
+    // ── Format: количество к поставке N / количество: N ──
+    const qtyKeywordMatch = line.match(/^[кК]оличеств\w*(?:\s+к\s+поставке)?\s*:?\s*(\d+)\s*(шт|штук[аи]?|единиц[аы]?|компл|м|кг)?/i);
+    if (qtyKeywordMatch && items.length > 0) {
+      // Assign quantity to the last found article without quantity
+      const last = [...items].reverse().find((i) => !i.quantity || i.quantity === 1);
+      if (last) {
+        last.quantity = Number(qtyKeywordMatch[1]);
+        if (qtyKeywordMatch[2]) last.unit = qtyKeywordMatch[2];
+      }
+      continue;
+    }
+
     // ── Format: ARTICLE (N штук/шт) ──
     const parenMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})\s*\((\d+)\s*(штук[аи]?|шт|единиц[аы]?|компл|к-т|пар[аы]?)?\)/i);
     if (parenMatch) {
@@ -1911,7 +1932,8 @@ function extractLineItems(body) {
     }
 
     // ── Format: ARTICLE — N шт / ARTICLE - N шт (article code THEN dash-qty) ──
-    const dashMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})\s*[—–-]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?\.?\s*$/i);
+    // Also handles trailing closing words: "STA.9461/12-08-11 — 5 шт Спасибо!"
+    const dashMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})\s*[—–-]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?\.?(?:\s+[А-Яа-яЁё!.]+)?\s*$/i);
     if (dashMatch && !VOLTAGE_PATTERN.test(dashMatch[1])) {
       items.push({ article: normalizeArticleCode(dashMatch[1]), quantity: Math.round(parseFloat(dashMatch[2].replace(",", "."))) || 1, unit: dashMatch[3] || "шт", descriptionRu: line, sourceLine: line });
       continue;
@@ -2643,6 +2665,10 @@ function isLikelyArticle(code, forbiddenDigits = new Set(), sourceLine = "") {
   }
 
   if (!letters) {
+    // R. STAHL article format: XXXX/XX-XXs (e.g. 9444/15-11, 8040/1260-R5A without letters part)
+    if (/^\d{4}\/\d{2,4}-\d{2,5}$/.test(normalized) && /\b(?:R\.?\s*STAHL|STA\.)\b/i.test(sourceLine)) {
+      return true;
+    }
     // Pure 3-4 digit numbers: only accept with brand context
     if (/^\d{3,4}$/.test(normalized) && !hasBrandAdjacentNumericContext) {
       return false;
@@ -3100,6 +3126,8 @@ function cleanupText(text) {
     .replace(/\u00A0/g, " ")   // non-breaking spaces
     .replace(/\u200B/g, "")    // zero-width spaces
     .replace(/\uFEFF/g, "")    // byte order mark
+    .replace(/\u226A/g, "«")   // ≪ → «
+    .replace(/\u226B/g, "»")   // ≫ → »
     .replace(/ {2,}/g, " ")    // collapse multiple spaces (preserve tabs for table parsing)
     .replace(/\n{3,}/g, "\n\n")
     .trim();
