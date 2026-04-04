@@ -104,10 +104,12 @@ ${JSON.stringify(rulesFound, null, 2)}
 4. detection_gaps — ТОЛЬКО пробелы в правилах для вещей что rules НЕ нашли. НЕ пиши gaps для: отсутствующих в письме ОГРН/КПП, полей которые уже есть в rulesFound, общих советов не связанных с конкретным письмом.
 5. brands — только реальные промышленные бренды (не типы оборудования: "ball valves", "автоматика").
 6. inn — только если в письме явно указан как ИНН; БИН/BIN казахских компаний не является ИНН.
-7. company_name — убирай лишние запятые, точки в конце названия.
-8. Если это автоответ/рассылка — request_type="other", is_urgent=false, из embedded оригинала извлекай данные.
+7. company_name — ТОЛЬКО компания КЛИЕНТА (отправителя запроса). НЕ бренд продукта, НЕ производитель оборудования. Если клиент запрашивает товар бренда X, company_name не может быть X, "X GmbH", "X Ltd" и т.д. Бери название из подписи, email-домена или текста письма.
+8. Если это автоответ/маркетинговая рассылка/спам — верни request_type="other", is_urgent=false, articles=[], brands=[], detection_gaps=[]. НЕ извлекай компанию/контакты из рекламных текстов.
 9. missing_for_processing — только то что нужно для обработки КЛИЕНТСКОЙ ЗАЯВКИ (не для vendor_offer/other).
-10. Пересланное письмо (Fwd/Forward): извлекай данные из ОРИГИНАЛА, не от пересылающего.`;
+10. Пересланное письмо (Fwd/Forward): извлекай данные из ОРИГИНАЛА, не от пересылающего.
+11. articles[].code — НЕ включай: номера счетов, ИНН/ОГРН, номера заказов/тикетов (TK-XXXXX, REQ-XXXX), трекинг-коды, номера банковских документов, случайные токены (4TUU4U, VY1TTJ и подобные). Артикул — это технический код детали/оборудования.
+12. Если в description позиции есть явный артикульный код (буквенно-цифровой, ≥4 символов, без пробелов) — используй его как code, а полное описание — как description.`;
 
 // ---------------------------------------------------------------------------
 // API call
@@ -131,7 +133,7 @@ export async function llmExtract({ subject, body, fromEmail, attachmentText = ""
         `Тема: ${subject}`,
         "",
         body.slice(0, 3500),
-        attachmentText ? `\n[Текст из вложений]:\n${attachmentText.slice(0, 800)}` : ""
+        attachmentText ? `\n[Текст из вложений]:\n${attachmentText.slice(0, 1500)}` : ""
     ].filter(Boolean).join("\n");
 
     const { apiKey, baseUrl, model, timeoutMs } = cfg();
@@ -148,7 +150,7 @@ export async function llmExtract({ subject, body, fromEmail, attachmentText = ""
             },
             body: JSON.stringify({
                 model,
-                max_tokens: 1200,
+                max_tokens: 1600,
                 temperature: 0,
                 messages: [
                     { role: "system", content: SYSTEM_PROMPT },

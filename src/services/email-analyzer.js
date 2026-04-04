@@ -938,9 +938,22 @@ function mergeAttachmentLeadData(lead, attachmentAnalysis = {}) {
     };
   }));
 
+  // Truncate oversized descriptions (garbage from unstructured PDFs)
+  for (const item of attachmentLineItems) {
+    if (item.descriptionRu && item.descriptionRu.length > 200) {
+      item.descriptionRu = item.descriptionRu.slice(0, 200);
+    }
+  }
+
   const mergedLineItems = [...(lead.lineItems || [])];
   for (const item of attachmentLineItems) {
     if (!item.article && !item.descriptionRu) continue;
+    // Skip if description is likely garbage (garbled chars, excessive spaces)
+    if (!item.article && item.descriptionRu) {
+      const desc = item.descriptionRu;
+      const spaceRatio = (desc.match(/\s/g) || []).length / desc.length;
+      if (spaceRatio > 0.4) continue; // more than 40% whitespace = garbled PDF
+    }
     const existing = mergedLineItems.find((current) =>
       normalizeArticleCode(current.article) === normalizeArticleCode(item.article) ||
       (!!item.descriptionRu && current.descriptionRu === item.descriptionRu)

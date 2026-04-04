@@ -976,6 +976,18 @@ async function handleApi(req, res, url) {
           newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
           msg.analysis = newAnalysis;
           msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
+          // Recalculate pipelineStatus unless manually overridden by user
+          const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
+          if (!wasManuallyChanged) {
+            const label = newAnalysis.classification?.label;
+            msg.pipelineStatus = label === "СПАМ"
+              ? "ignored_spam"
+              : label === "Клиент"
+                ? "ready_for_crm"
+                : newAnalysis.crm?.needsClarification
+                  ? "needs_clarification"
+                  : "review";
+          }
           recordProcessingTelemetrySample(telemetry, Date.now() - sampleStartedAt);
           updated++;
         } catch {
