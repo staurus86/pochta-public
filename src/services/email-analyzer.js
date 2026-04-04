@@ -27,7 +27,7 @@ try {
 }
 
 const URL_PATTERN = /https?:\/\/[^\s)]+/gi;
-const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}|\(\d{3,5}\)\s*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}/g;
+const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?|\(\d{3,5}\)\s*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?/g;
 const PHONE_LIKE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}/i;
 const PHONE_LABEL_PATTERN = /(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber)\s*[:#-]?\s*((?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2})/i;
 const CONTACT_CONTEXT_PATTERN = /\b(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber|email|e-mail|почта)\b/i;
@@ -1752,10 +1752,21 @@ function extractFullNameFromBody(body) {
   const fromKb = detectionKb.matchField("signature_hint", body);
   if (fromKb) return fromKb;
 
-  // Fallback: look for Cyrillic name patterns in common signature positions
-  // "С уважением, Фамилия Имя Отчество" or "С уважением,\nФамилия Имя"
+  // "С уважением, [ООО/АО/...] Фамилия Имя [Отчество]" — company before name
+  const signatureWithCompany = body.match(
+    /(?:С уважением|Благодарю|Спасибо)[,.\s]*\n?\s*(?:(?:ООО|АО|ОАО|ЗАО|ПАО|ГК|НПО|НПП|ИП)\s+[^\n,]{2,40}[,\n]\s*)?([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+)?)/i
+  );
+  if (signatureWithCompany) return signatureWithCompany[1].trim();
+
+  // "Менеджер/Специалист ФАМИЛИЯ Имя Отчество" (ALL-CAPS surname)
+  const managerNameMatch = body.match(
+    /\b(?:Менеджер|Специалист|Инженер|Директор|Руководитель)\s+([А-ЯЁ]{2,15}\s+[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+)?)/
+  );
+  if (managerNameMatch) return managerNameMatch[1].replace(/([А-ЯЁ]+)/g, (m) => m[0] + m.slice(1).toLowerCase()).trim();
+
+  // "С уважением, Имя [Фамилия]" (first name only or two words)
   const signatureNameMatch = body.match(
-    /(?:С уважением|Best regards|Regards|Спасибо)[,.\s]*\n?\s*([А-ЯЁ][а-яё]+\s+[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+)?)/i
+    /(?:С уважением|Best regards|Regards|Спасибо)[,.\s]*\n?\s*([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+){0,2})/i
   );
   if (signatureNameMatch) return signatureNameMatch[1].trim();
 

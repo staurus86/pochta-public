@@ -368,6 +368,47 @@ async function finalizeProjectRun(job, project, run) {
       }
     }).catch((err) => console.warn("CRM auto-sync error:", err.message));
   }
+
+  // Auto LLM extraction on new non-spam messages
+  if (isLlmExtractEnabled() && Array.isArray(run.newMessages) && run.newMessages.length > 0) {
+    const LLM_AUTO_DELAY_MS = 3500;
+    const queue = run.newMessages.filter((m) =>
+      m.pipelineStatus !== "ignored_spam" &&
+      m.pipelineStatus !== "ignored_duplicate" &&
+      !m.analysis?.llmExtraction?.processedAt
+    );
+    if (queue.length > 0) {
+      console.log(`Auto-LLM: queued ${queue.length} new messages for project ${project.id}`);
+      (async () => {
+        let count = 0;
+        for (const msg of queue) {
+          const body = msg.body || msg.bodyPreview || msg.analysis?.lead?.freeText || "";
+          try {
+            const newAnalysis = await analyzeEmailAsync(project, {
+              messageKey: msg.messageKey || msg.id,
+              fromEmail: msg.from || msg.analysis?.sender?.email || "",
+              fromName: msg.analysis?.sender?.fullName || "",
+              subject: msg.subject || "",
+              body,
+              attachments: (msg.attachmentFiles || msg.attachments || []).map((a) => typeof a === "string" ? a : a.filename || a.name || ""),
+              attachmentFiles: (msg.attachmentFiles || []).map((a) => typeof a === "string" ? { filename: a } : a)
+            });
+            newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
+            msg.analysis = newAnalysis;
+            count++;
+          } catch (err) {
+            console.warn("Auto-LLM error:", err.message);
+          }
+          if (count % 10 === 0) await store.persist();
+          await new Promise((r) => setTimeout(r, LLM_AUTO_DELAY_MS));
+        }
+        if (count > 0) {
+          await store.persist();
+          console.log(`Auto-LLM: processed ${count}/${queue.length} messages for project ${project.id}`);
+        }
+      })().catch((err) => console.warn("Auto-LLM background error:", err.message));
+    }
+  }
 }
 
 function extractAuthUser(req) {
