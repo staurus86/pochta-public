@@ -312,6 +312,98 @@ function setupForms() {
     }
   });
 
+  // ── LLM reanalyze ──
+  let llmJobId = null;
+  let llmPollInterval = null;
+
+  function stopLlmPoll() {
+    if (llmPollInterval) { clearInterval(llmPollInterval); llmPollInterval = null; }
+  }
+
+  function setLlmProgress(processed, total, subject) {
+    const wrap = $('#llm-progress-wrap');
+    const fill = $('#llm-progress-fill');
+    const text = $('#llm-progress-text');
+    if (!wrap) return;
+    wrap.style.display = 'flex';
+    const pct = total > 0 ? Math.round(processed / total * 100) : 0;
+    if (fill) fill.style.width = pct + '%';
+    if (text) text.textContent = `${processed} / ${total}${subject ? ' · ' + subject.slice(0, 30) : ''}`;
+  }
+
+  function hideLlmProgress() {
+    const wrap = $('#llm-progress-wrap');
+    if (wrap) wrap.style.display = 'none';
+    const fill = $('#llm-progress-fill');
+    if (fill) fill.style.width = '0%';
+    const btn = $('#reanalyze-llm-btn');
+    if (btn) { btn.disabled = false; btn.textContent = '✦ LLM-анализ'; }
+  }
+
+  $('#reanalyze-llm-btn')?.addEventListener('click', async () => {
+    const pid = selectedProjectId;
+    if (!pid) return alert('Выберите проект');
+    const btn = $('#reanalyze-llm-btn');
+
+    try {
+      const res = await fetch(`/api/projects/${pid}/reanalyze-llm`, { method: 'POST' });
+      const data = await res.json();
+      if (!res.ok) {
+        return alert(data.error || 'Ошибка запуска LLM-анализа');
+      }
+      if (data.total === 0) {
+        return alert('Все письма уже прошли LLM-анализ.');
+      }
+
+      llmJobId = data.jobId;
+      btn.disabled = true;
+      btn.textContent = '✦ LLM…';
+      setLlmProgress(0, data.total, null);
+
+      stopLlmPoll();
+      llmPollInterval = setInterval(async () => {
+        try {
+          const jr = await fetch(`/api/projects/${pid}/job/${llmJobId}`);
+          const jd = await jr.json();
+          const job = jd.job;
+          if (!job) return;
+
+          const p = job.progress;
+          if (p) setLlmProgress(p.processed, p.total, p.currentSubject);
+
+          if (job.status !== 'running') {
+            stopLlmPoll();
+            if (job.status === 'done') {
+              const r = job.run || {};
+              setLlmProgress(r.processed || p?.total || 0, r.total || p?.total || 0, null);
+              btn.textContent = `✦ Готово: ${r.processed}/${r.total}`;
+              setTimeout(() => {
+                hideLlmProgress();
+                refreshAllMailboxMessages?.();
+                renderDashboard?.();
+                if (currentPage === 'inbox') renderInbox?.();
+              }, 2000);
+            } else {
+              hideLlmProgress();
+              alert('LLM-анализ ' + (job.status === 'cancelled' ? 'отменён' : 'завершился с ошибкой: ' + (job.error || '')));
+            }
+          }
+        } catch { /* retry next tick */ }
+      }, 3000);
+
+    } catch (err) {
+      alert('Ошибка: ' + err.message);
+    }
+  });
+
+  $('#llm-cancel-btn')?.addEventListener('click', async () => {
+    const pid = selectedProjectId;
+    if (!pid || !llmJobId) return;
+    stopLlmPoll();
+    await fetch(`/api/projects/${pid}/reanalyze-llm`, { method: 'DELETE' }).catch(() => {});
+    hideLlmProgress();
+  });
+
   // ── Create project ──
   $('#project-form').addEventListener('submit', async (e) => {
     e.preventDefault();

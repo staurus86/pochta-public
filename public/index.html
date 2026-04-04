@@ -79,6 +79,14 @@
         <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
           <select id="project-select" class="form-select" style="width:220px;font-size:12px;padding:6px 10px;"></select>
           <button class="btn btn-ghost btn-sm" id="reanalyze-btn" title="Переанализировать все письма текущего проекта обновлённым анализатором">Переанализировать</button>
+          <button class="btn btn-ghost btn-sm" id="reanalyze-llm-btn" title="Прогнать через LLM все письма без LLM-анализа (не СПАМ)" style="border-color:var(--accent,#7c6af7);color:var(--accent,#7c6af7)">✦ LLM-анализ</button>
+          <div id="llm-progress-wrap" style="display:none;align-items:center;gap:8px;font-size:12px;color:var(--text-secondary)">
+            <div style="width:120px;height:6px;background:var(--bg-secondary);border-radius:3px;overflow:hidden">
+              <div id="llm-progress-fill" style="height:100%;width:0%;background:var(--accent,#7c6af7);transition:width 0.4s"></div>
+            </div>
+            <span id="llm-progress-text">0 / 0</span>
+            <button id="llm-cancel-btn" class="btn btn-ghost btn-sm" style="padding:2px 8px;font-size:11px">✕</button>
+          </div>
         </div>
       </header>
 

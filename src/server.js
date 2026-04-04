@@ -850,7 +850,7 @@ async function handleApi(req, res, url) {
       return sendJson(res, 404, { error: "Job not found." });
     }
 
-    return sendJson(res, 200, { job: { id: job.id, status: job.status, run: job.run || null, error: job.error || null, startedAt: job.startedAt } });
+    return sendJson(res, 200, { job: { id: job.id, status: job.status, run: job.run || null, error: job.error || null, startedAt: job.startedAt, progress: job.progress || null } });
   }
 
   const runMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/run$/);
@@ -1004,6 +1004,100 @@ async function handleApi(req, res, url) {
       durationMs,
       telemetry: finalizeProcessingTelemetry(telemetry, durationMs)
     });
+  }
+
+  // --- LLM reanalyze (background job, processes only not-yet-LLM-analyzed non-spam) ---
+  const reanalyzeLlmMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/reanalyze-llm$/);
+  if (req.method === "POST" && reanalyzeLlmMatch) {
+    const project = await store.getProject(reanalyzeLlmMatch[1]);
+    if (!project) return sendJson(res, 404, { error: "Project not found." });
+
+    if (!isLlmExtractEnabled()) {
+      return sendJson(res, 400, { error: "LLM extraction is disabled. Set LLM_EXTRACT_ENABLED=true and LLM_EXTRACT_API_KEY." });
+    }
+
+    const activeJob = findRunningProjectJob(project.id, ["llm-reanalyze"]);
+    if (activeJob) {
+      return sendJson(res, 409, { error: "LLM reanalysis already running.", jobId: activeJob.id });
+    }
+
+    const job = createTypedBackgroundJob(project.id, "llm-reanalyze");
+    // Build queue: non-spam messages without llmExtraction
+    const queue = (project.recentMessages || []).filter((msg) => {
+      if (!msg.analysis) return false;
+      const label = msg.analysis.classification?.label || "";
+      if (label === "СПАМ") return false;
+      return !msg.analysis.llmExtraction?.processedAt;
+    });
+
+    job.progress = { total: queue.length, processed: 0, skipped: 0, errors: 0, currentSubject: null };
+
+    // Run async in background
+    (async () => {
+      const { analyzeEmailAsync } = await import("./services/email-analyzer.js");
+      const LLM_DELAY_MS = 3500; // ~17 req/min — safe rate limit
+      let processedCount = 0;
+
+      for (const msg of queue) {
+        if (job.status !== "running") break; // cancelled
+
+        job.progress.currentSubject = msg.subject || "(без темы)";
+        const body = msg.body || msg.bodyPreview || msg.analysis?.lead?.freeText || "";
+        try {
+          const newAnalysis = await analyzeEmailAsync(project, {
+            messageKey: msg.messageKey || msg.id,
+            fromEmail: msg.from || msg.analysis?.sender?.email || "",
+            fromName: msg.analysis?.sender?.fullName || "",
+            subject: msg.subject || "",
+            body,
+            attachments: (msg.attachmentFiles || msg.attachments || []).map((a) => typeof a === "string" ? a : a.filename || a.name || ""),
+            attachmentFiles: (msg.attachmentFiles || []).map((a) => typeof a === "string" ? { filename: a } : a)
+          });
+          newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
+          msg.analysis = newAnalysis;
+          msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
+          job.progress.processed++;
+          processedCount++;
+        } catch {
+          job.progress.errors++;
+        }
+
+        // Persist every 10 messages
+        if (processedCount % 10 === 0) {
+          await store.persist();
+        }
+
+        // Rate limit pause
+        await new Promise((r) => setTimeout(r, LLM_DELAY_MS));
+      }
+
+      job.progress.currentSubject = null;
+      await store.persist();
+      finishBackgroundJob(job, {
+        status: "done",
+        run: {
+          total: queue.length,
+          processed: job.progress.processed,
+          errors: job.progress.errors,
+          durationMs: Date.now() - Date.parse(job.startedAt)
+        }
+      });
+    })().catch((err) => {
+      finishBackgroundJob(job, { status: "error", error: err.message });
+    });
+
+    return sendJson(res, 202, {
+      jobId: job.id,
+      total: queue.length,
+      message: `LLM-анализ запущен для ${queue.length} писем.`
+    });
+  }
+
+  if (req.method === "DELETE" && reanalyzeLlmMatch) {
+    const job = findRunningProjectJob(reanalyzeLlmMatch[1], ["llm-reanalyze"]);
+    if (!job) return sendJson(res, 404, { error: "No active LLM reanalysis job." });
+    finishBackgroundJob(job, { status: "cancelled", error: "Отменено пользователем" });
+    return sendJson(res, 200, { ok: true, jobId: job.id });
   }
 
   const messagesMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages$/);
