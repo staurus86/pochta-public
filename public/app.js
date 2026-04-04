@@ -140,6 +140,7 @@ let inboxSort = 'date-desc';
 let inboxMailboxFilter = '';
 let inboxAttachmentFilter = '';
 let inboxRecognitionFilter = '';
+let inboxLlmFilter = '';
 let inboxGroupByThread = false;
 let inboxPage = 0;
 const INBOX_PAGE_SIZE = 50;
@@ -581,6 +582,7 @@ function setupForms() {
   $('#inbox-mailbox-filter').addEventListener('change', (e) => { inboxMailboxFilter = e.target.value; inboxPage = 0; renderInbox(); });
   $('#inbox-attachment-filter')?.addEventListener('change', (e) => { inboxAttachmentFilter = e.target.value; inboxPage = 0; renderInbox(); });
   $('#inbox-recognition-filter')?.addEventListener('change', (e) => { inboxRecognitionFilter = e.target.value; inboxPage = 0; renderInbox(); });
+  $('#inbox-llm-filter')?.addEventListener('change', (e) => { inboxLlmFilter = e.target.value; inboxPage = 0; renderInbox(); });
   $('#inbox-auto-refresh').addEventListener('change', (e) => {
     const sec = Number(e.target.value);
     if (autoRefreshInterval) clearInterval(autoRefreshInterval);
@@ -721,6 +723,13 @@ function filterInboxMessages(tab) {
   // Recognition quality filter
   if (inboxRecognitionFilter) {
     msgs = msgs.filter((m) => matchesRecognitionFilter(m, inboxRecognitionFilter));
+  }
+
+  // LLM filter
+  if (inboxLlmFilter === 'llm_done') {
+    msgs = msgs.filter((m) => !!m.analysis?.llmExtraction?.processedAt);
+  } else if (inboxLlmFilter === 'llm_pending') {
+    msgs = msgs.filter((m) => !m.analysis?.llmExtraction?.processedAt);
   }
 
   // Search
