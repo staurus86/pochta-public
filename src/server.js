@@ -5,7 +5,7 @@ import { fileURLToPath } from "node:url";
 import { ProjectsStore } from "./storage/projects-store.js";
 import { analyzeEmail, analyzeEmailAsync } from "./services/email-analyzer.js";
 import { isAiEnabled, getAiConfig } from "./services/ai-classifier.js";
-import { getLlmExtractConfig } from "./services/llm-extractor.js";
+import { getLlmExtractConfig, isLlmExtractEnabled } from "./services/llm-extractor.js";
 import { getCrmConfig, syncProjectToCrm } from "./services/crm-sync.js";
 import { normalizeBackgroundRole, shouldRunScheduler, shouldRunWebhooks } from "./services/background-role.js";
 import { HttpError, parseJsonBody, resolveJsonBodyLimit } from "./services/http-json.js";
