@@ -1110,83 +1110,86 @@ async function handleApi(req, res, url) {
   const reanalyzeMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/reanalyze$/);
   if (req.method === "POST" && reanalyzeMatch) {
     const project = await store.getProject(reanalyzeMatch[1]);
-    if (!project) {
-      return sendJson(res, 404, { error: "Project not found." });
-    }
+    if (!project) return sendJson(res, 404, { error: "Project not found." });
+
+    const activeJob = findRunningProjectJob(project.id, ["reanalyze"]);
+    if (activeJob) return sendJson(res, 409, { error: "Reanalysis already running.", jobId: activeJob.id });
 
     const payload = await parseRequestJson(req).catch(() => ({}));
     const BATCH_SIZE = normalizeProcessingBatchSize(payload.batchSize, 100);
     const messages = project.recentMessages || [];
-    let updated = 0;
-    let skipped = 0;
-    let errors = 0;
-    const startTime = Date.now();
-    const telemetry = createProcessingTelemetry();
 
-    for (let i = 0; i < messages.length; i += BATCH_SIZE) {
-      const batch = messages.slice(i, i + BATCH_SIZE);
-      for (const msg of batch) {
-        if (!msg.analysis && !msg.body && !msg.bodyPreview) {
-          skipped++;
-          continue;
+    const job = createTypedBackgroundJob(project.id, "reanalyze");
+    job.progress = { total: messages.length, processed: 0, skipped: 0, errors: 0, currentSubject: null };
+
+    (async () => {
+      const startTime = Date.now();
+      const telemetry = createProcessingTelemetry();
+
+      for (let i = 0; i < messages.length; i += BATCH_SIZE) {
+        if (job.status !== "running") break;
+        const batch = messages.slice(i, i + BATCH_SIZE);
+        for (const msg of batch) {
+          if (job.status !== "running") break;
+          job.progress.currentSubject = msg.subject || "(без темы)";
+          if (!msg.analysis && !msg.body && !msg.bodyPreview) { job.progress.skipped++; continue; }
+          try {
+            const sampleStartedAt = Date.now();
+            const body = msg.body || msg.bodyPreview || msg.analysis?.lead?.freeText || "";
+            const newAnalysis = analyzeEmail(project, {
+              messageKey: msg.messageKey || msg.id,
+              fromEmail: msg.from || msg.analysis?.sender?.email || "",
+              fromName: msg.analysis?.sender?.fullName || "",
+              subject: msg.subject || "",
+              body,
+              attachments: (msg.attachmentFiles || msg.attachments || []).map((a) => typeof a === "string" ? a : a.filename || a.name || ""),
+              attachmentFiles: (msg.attachmentFiles || []).map((a) => typeof a === "string" ? { filename: a } : a)
+            });
+            newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
+            msg.analysis = newAnalysis;
+            msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
+            const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
+            if (!wasManuallyChanged) {
+              const label = newAnalysis.classification?.label;
+              msg.pipelineStatus = label === "СПАМ" ? "ignored_spam"
+                : label === "Клиент" ? "ready_for_crm"
+                : newAnalysis.crm?.needsClarification ? "needs_clarification"
+                : "review";
+            }
+            recordProcessingTelemetrySample(telemetry, Date.now() - sampleStartedAt);
+            job.progress.processed++;
+          } catch { job.progress.errors++; }
         }
-        try {
-          const sampleStartedAt = Date.now();
-          const body = msg.body || msg.bodyPreview || msg.analysis?.lead?.freeText || "";
-          const newAnalysis = analyzeEmail(project, {
-            messageKey: msg.messageKey || msg.id,
-            fromEmail: msg.from || msg.analysis?.sender?.email || "",
-            fromName: msg.analysis?.sender?.fullName || "",
-            subject: msg.subject || "",
-            body,
-            attachments: (msg.attachmentFiles || msg.attachments || []).map((a) => typeof a === "string" ? a : a.filename || a.name || ""),
-            attachmentFiles: (msg.attachmentFiles || []).map((a) => typeof a === "string" ? { filename: a } : a)
-          });
-          newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
-          msg.analysis = newAnalysis;
-          msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
-          // Recalculate pipelineStatus unless manually overridden by user
-          const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
-          if (!wasManuallyChanged) {
-            const label = newAnalysis.classification?.label;
-            msg.pipelineStatus = label === "СПАМ"
-              ? "ignored_spam"
-              : label === "Клиент"
-                ? "ready_for_crm"
-                : newAnalysis.crm?.needsClarification
-                  ? "needs_clarification"
-                  : "review";
-          }
-          recordProcessingTelemetrySample(telemetry, Date.now() - sampleStartedAt);
-          updated++;
-        } catch {
-          errors++;
-        }
+
+        telemetry.batches += 1;
+        if (telemetry.batches % 5 === 0) await store.persist();
+        if (i + BATCH_SIZE < messages.length) { telemetry.yields += 1; await yieldProcessingLoop(); }
       }
 
-      telemetry.batches += 1;
-      // P2: Persist every 5 batches (500 msgs) — reduces I/O without risking data loss
-      if (telemetry.batches % 5 === 0) await store.persist();
-      if (i + BATCH_SIZE < messages.length) {
-        telemetry.yields += 1;
-        await yieldProcessingLoop();
-      }
-    }
-    // Always persist at the end
-    await store.persist();
+      job.progress.currentSubject = null;
+      await store.persist();
+      const durationMs = Date.now() - startTime;
+      finishBackgroundJob(job, {
+        status: "done",
+        run: {
+          total: messages.length,
+          processed: job.progress.processed,
+          skipped: job.progress.skipped,
+          errors: job.progress.errors,
+          durationMs,
+          telemetry: finalizeProcessingTelemetry(telemetry, durationMs)
+        }
+      });
+    })().catch((err) => finishBackgroundJob(job, { status: "error", error: err.message }));
 
-    const durationMs = Date.now() - startTime;
+    return sendJson(res, 202, { jobId: job.id, total: messages.length, message: `Анализ запущен для ${messages.length} писем.` });
+  }
 
-    return sendJson(res, 200, {
-      message: `Переанализировано ${updated} из ${messages.length} писем.`,
-      updated,
-      skipped,
-      errors,
-      total: messages.length,
-      batchSize: BATCH_SIZE,
-      durationMs,
-      telemetry: finalizeProcessingTelemetry(telemetry, durationMs)
-    });
+  if (req.method === "DELETE" && reanalyzeMatch) {
+    const job = findRunningProjectJob(reanalyzeMatch[1], ["reanalyze"]);
+    if (!job) return sendJson(res, 404, { error: "No active reanalysis job." });
+    finishBackgroundJob(job, { status: "cancelled", error: "Отменено пользователем" });
+    return sendJson(res, 200, { ok: true, jobId: job.id });
   }
 
   // --- LLM reanalyze (background job, processes only not-yet-LLM-analyzed non-spam) ---

@@ -270,47 +270,92 @@ function setupForms() {
     refreshApiClients();
   });
 
+  // ── Reanalyze (background job with real progress) ──
+  let reanalyzeJobId = null;
+  let reanalyzePollInterval = null;
+
+  function stopReanalyzePoll() {
+    if (reanalyzePollInterval) { clearInterval(reanalyzePollInterval); reanalyzePollInterval = null; }
+  }
+
+  function setReanalyzeProgress(processed, total, subject) {
+    const wrap = $('#reanalyze-progress-wrap');
+    const fill = $('#reanalyze-progress-fill');
+    const text = $('#reanalyze-progress-text');
+    if (!wrap) return;
+    wrap.style.display = 'flex';
+    const pct = total > 0 ? Math.round(processed / total * 100) : 0;
+    if (fill) fill.style.width = pct + '%';
+    if (text) text.textContent = `${processed} / ${total}${subject ? ' · ' + subject.slice(0, 35) : ''}`;
+  }
+
+  function hideReanalyzeProgress() {
+    const wrap = $('#reanalyze-progress-wrap');
+    if (wrap) wrap.style.display = 'none';
+    const fill = $('#reanalyze-progress-fill');
+    if (fill) fill.style.width = '0%';
+    const btn = $('#reanalyze-btn');
+    if (btn) { btn.disabled = false; btn.textContent = 'Переанализировать'; btn.style.color = ''; }
+  }
+
   $('#reanalyze-btn').addEventListener('click', async () => {
     const pid = selectedProjectId;
     if (!pid) return alert('Выберите проект');
     if (!confirm('Переанализировать все письма проекта? Это обновит бренды, артикулы и телефоны.')) return;
     const btn = $('#reanalyze-btn');
-    btn.disabled = true;
-    const origText = btn.textContent;
-    let dots = 0;
-    const pulse = setInterval(() => {
-      dots = (dots + 1) % 4;
-      btn.textContent = 'Анализирую' + '.'.repeat(dots);
-      btn.style.opacity = 0.6 + 0.4 * Math.abs(Math.sin(Date.now() / 400));
-    }, 300);
-    // Show progress bar
-    const bar = $('#progress-bar');
-    const fill = bar?.querySelector('.progress-fill');
-    if (bar) { bar.style.display = 'block'; }
-    if (fill) { fill.style.width = '20%'; fill.style.transition = 'width 8s ease-out'; setTimeout(() => { fill.style.width = '90%'; }, 50); }
     try {
       const res = await fetch(`/api/projects/${pid}/reanalyze`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: '{}' });
       const data = await res.json();
-      clearInterval(pulse);
-      btn.style.opacity = 1;
-      if (fill) { fill.style.transition = 'width 0.3s'; fill.style.width = '100%'; }
-      btn.textContent = `Готово: ${data.updated}/${data.total} (${((data.durationMs || 0) / 1000).toFixed(1)}s)`;
-      btn.style.color = 'var(--green)';
-      setTimeout(() => { if (bar) bar.style.display = 'none'; if (fill) fill.style.width = '0'; }, 1500);
-      setTimeout(() => { btn.textContent = origText; btn.disabled = false; btn.style.color = ''; }, 5000);
-      await refreshAllMailboxMessages();
-      await refreshProjects();
-      renderDashboard();
-      if (currentPage === 'inbox') renderInbox();
+      if (!res.ok) return alert(data.error || 'Ошибка запуска');
+      if (data.total === 0) return alert('Нет писем для анализа.');
+
+      reanalyzeJobId = data.jobId;
+      btn.disabled = true;
+      btn.textContent = 'Анализ…';
+      setReanalyzeProgress(0, data.total, null);
+
+      stopReanalyzePoll();
+      reanalyzePollInterval = setInterval(async () => {
+        try {
+          const jr = await fetch(`/api/projects/${pid}/job/${reanalyzeJobId}`);
+          const jd = await jr.json();
+          const job = jd.job;
+          if (!job) return;
+          const p = job.progress;
+          if (p) setReanalyzeProgress(p.processed, p.total, p.currentSubject);
+          if (job.status !== 'running') {
+            stopReanalyzePoll();
+            if (job.status === 'done') {
+              const r = job.run || {};
+              setReanalyzeProgress(r.processed ?? p?.total ?? 0, r.total ?? p?.total ?? 0, null);
+              btn.textContent = `Готово: ${r.processed}/${r.total} (${((r.durationMs || 0) / 1000).toFixed(1)}s)`;
+              btn.style.color = 'var(--green)';
+              setTimeout(async () => {
+                hideReanalyzeProgress();
+                await refreshAllMailboxMessages();
+                await refreshProjects();
+                renderDashboard();
+                if (currentPage === 'inbox') renderInbox();
+              }, 2000);
+            } else {
+              hideReanalyzeProgress();
+              alert('Анализ ' + (job.status === 'cancelled' ? 'отменён' : ('завершился с ошибкой: ' + (job.error || ''))));
+            }
+          }
+        } catch { /* retry next tick */ }
+      }, 1500);
     } catch (err) {
-      clearInterval(pulse);
-      btn.style.opacity = 1;
-      if (bar) bar.style.display = 'none';
-      if (fill) fill.style.width = '0';
-      btn.textContent = 'Ошибка: ' + (err.message || 'timeout');
-      btn.style.color = 'var(--rose)';
-      setTimeout(() => { btn.textContent = origText; btn.disabled = false; btn.style.color = ''; }, 5000);
+      hideReanalyzeProgress();
+      alert('Ошибка: ' + err.message);
     }
+  });
+
+  $('#reanalyze-cancel-btn')?.addEventListener('click', async () => {
+    const pid = selectedProjectId;
+    if (!pid || !reanalyzeJobId) return;
+    stopReanalyzePoll();
+    await fetch(`/api/projects/${pid}/reanalyze`, { method: 'DELETE' }).catch(() => {});
+    hideReanalyzeProgress();
   });
 
   // ── LLM reanalyze ──
