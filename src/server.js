@@ -285,7 +285,10 @@ const server = createServer(async (req, res) => {
     const statusCode = error instanceof HttpError ? error.statusCode : 500;
     const message = statusCode >= 500 ? "Internal Server Error" : error.message;
     res.writeHead(statusCode, { "Content-Type": "application/json; charset=utf-8" });
-    res.end(JSON.stringify({ error: message, details: error.message }));
+    // S2: Only expose error details in development to avoid leaking internals
+    const body = { error: message };
+    if (process.env.NODE_ENV !== "production" && statusCode >= 500) body.details = error.message;
+    res.end(JSON.stringify(body));
   }
 });
 
@@ -1382,6 +1385,10 @@ async function handleApi(req, res, url) {
   // ── Feedback endpoint ──
   const messageFeedbackMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages\/([^/]+)\/feedback$/);
   if (req.method === "POST" && messageFeedbackMatch) {
+    // S3: Rate-limit feedback by IP to prevent KB spam
+    const fbClientId = (req.headers["x-forwarded-for"] || "").split(",")[0].trim() || req.socket?.remoteAddress || "unknown";
+    const fbRate = checkRateLimit(`feedback:${fbClientId}`);
+    if (!fbRate.allowed) return sendJson(res, 429, { error: "Rate limit exceeded.", retryAfter: fbRate.retryAfter });
     const project = await store.getProject(messageFeedbackMatch[1]);
     if (!project) {
       return sendJson(res, 404, { error: "Project not found." });

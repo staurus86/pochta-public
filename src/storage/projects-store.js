@@ -650,15 +650,19 @@ export class ProjectsStore {
       return null;
     }
 
-    const existingByKey = new Map((project.recentMessages || []).map((item) => [
-      item.messageKey || item.id,
-      {
-        integrationExport: item.integrationExport || null,
-        integrationExports: normalizeIntegrationExports(item)
-      }
-    ]));
+    const existingByKey = new Map((project.recentMessages || [])
+      .filter((item) => item.messageKey || item.id) // E1: skip null-key entries
+      .map((item) => [
+        item.messageKey || item.id,
+        {
+          integrationExport: item.integrationExport || null,
+          integrationExports: normalizeIntegrationExports(item)
+        }
+      ]));
 
-    project.recentMessages = (messages || []).slice(0, 5000).map((item) => {
+    project.recentMessages = (messages || [])
+      .filter((item) => item.messageKey || item.id) // E1: deduplicate — skip messages without key
+      .slice(0, 5000).map((item) => {
       const existing = existingByKey.get(item.messageKey || item.id);
       if (!existing) {
         return {
