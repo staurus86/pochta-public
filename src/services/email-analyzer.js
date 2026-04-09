@@ -778,7 +778,7 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
     ? inferCompanyFromDomain(fromEmail)
     : null;
   const companyName = sanitizeCompanyName(extractedCompanyName || inferredCompanyName || domainCompanyName);
-  const fullName = fromName || extractFullNameFromBody(body) || "Не определено";
+  const fullName = fromName || extractFullNameFromBody(body) || inferNameFromEmail(fromEmail) || "Не определено";
   const position = extractPosition(body) || null;
   const website = externalUrls[0] || inferWebsiteFromEmail(fromEmail);
   const { cityPhone, mobilePhone } = splitPhones(phones, body);
@@ -1815,11 +1815,58 @@ function extractFullNameFromBody(body) {
   );
   if (managerNameMatch) return managerNameMatch[1].replace(/([А-ЯЁ]+)/g, (m) => m[0] + m.slice(1).toLowerCase()).trim();
 
-  // "С уважением, Имя [Фамилия]" (first name only or two words)
+  // "С уважением, Имя [Фамилия]" (first name only or two words, Cyrillic)
   const signatureNameMatch = body.match(
     /(?:С уважением|Best regards|Regards|Спасибо)[,.\s]*\n?\s*([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+){0,2})/i
   );
   if (signatureNameMatch) return signatureNameMatch[1].trim();
+
+  // Latin name from English signature: "Best regards, John Smith" or "Regards,\nTony"
+  const latinSignatureMatch = body.match(
+    /(?:Best regards|Kind regards|Regards|Sincerely|Thanks|Thank you)[,.\s]*\n?\s*([A-Z][a-z]{1,20}(?:\s+[A-Z][a-z]{1,20}){0,2})(?:\s*\n|$)/i
+  );
+  if (latinSignatureMatch) {
+    const name = latinSignatureMatch[1].trim();
+    // Skip common words that aren't names
+    if (!/^(?:all|the|our|your|this|that|for|from|with|regards|sincerely|thanks)$/i.test(name)) {
+      return name;
+    }
+  }
+
+  // Structured signature block: standalone name line followed by position or phone
+  // Looks for: "First Last\n[Position|Phone|Email]" pattern at end of body
+  const lines = body.split(/\n/).map((l) => l.trim());
+  for (let i = lines.length - 1; i >= Math.max(0, lines.length - 8); i--) {
+    const line = lines[i];
+    // Candidate: 2-3 words, each Title-cased, 3-20 chars each, no digits/special chars
+    const cyrillic2words = /^([А-ЯЁ][а-яё]{1,19})(?:\s+([А-ЯЁ][а-яё]{1,19})){1,2}$/u.test(line);
+    const latin2words = /^([A-Z][a-z]{1,19})(?:\s+([A-Z][a-z]{1,19})){1,2}$/.test(line);
+    if (!cyrillic2words && !latin2words) continue;
+
+    // Verify next or previous line looks like context (position, phone, email, company)
+    const neighbor = lines[i + 1] || lines[i - 1] || "";
+    const hasContext = /(?:\+7|8[-\s(]|tel:|mob:|e-?mail:|@|менеджер|инженер|директор|специалист|manager|engineer|sales)/i.test(neighbor);
+    if (hasContext) return line;
+  }
+
+  return null;
+}
+
+// Infer name from email local part as last resort (e.g. tony.smith@... → "Tony Smith")
+function inferNameFromEmail(email) {
+  const local = email.split("@")[0];
+  if (!local) return null;
+
+  // Skip generic mailboxes
+  if (/^(?:info|support|office|sales|admin|noreply|no-reply|hello|contact|mail|post|zakaz|order|request)/i.test(local)) {
+    return null;
+  }
+
+  // "tony.smith" or "tony_smith" → "Tony Smith"
+  const parts = local.split(/[._-]/).filter((p) => p.length >= 2 && /^[a-zа-яё]+$/i.test(p));
+  if (parts.length >= 2 && parts.length <= 3) {
+    return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ");
+  }
 
   return null;
 }

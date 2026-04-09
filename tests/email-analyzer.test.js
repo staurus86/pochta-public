@@ -1730,3 +1730,43 @@ runTest("detects out-of-office auto-reply", () => {
   const articles = result.lead.articles || [];
   assert.ok(!articles.some((a) => /ATV320/i.test(a)), `Should not detect ATV320 from quoted text in OOO reply, got: ${articles}`);
 });
+
+runTest("extracts name from Latin Best regards signature", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "info@company.com",
+    subject: "Request for quote",
+    body: "Hello, please provide pricing for ABB ACS355.\n\nBest regards,\nJohn Smith"
+  });
+  assert.equal(result.sender.fullName, "John Smith");
+});
+
+runTest("extracts name from structured signature block with context", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "info@partner.ru",
+    subject: "Запрос",
+    body: `Добрый день, нужен счёт на Siemens S7-300.
+
+Иван Петров
+Менеджер по закупкам
++7 (495) 123-45-67`
+  });
+  assert.equal(result.sender.fullName, "Иван Петров");
+});
+
+runTest("infers name from email local part when no signature", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "anton.smirnov@factory.ru",
+    subject: "Запрос КП",
+    body: "Прошу выставить счёт на датчик PMC51."
+  });
+  assert.equal(result.sender.fullName, "Anton Smirnov");
+});
+
+runTest("does not infer name from generic info@ mailbox", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "info@factory.ru",
+    subject: "Запрос",
+    body: "Прошу КП на оборудование."
+  });
+  assert.equal(result.sender.fullName, "Не определено");
+});
