@@ -89,11 +89,21 @@ export class ManagerAuth {
     }
 
     ensureAdmin() {
-        const existing = this.db.prepare("SELECT id FROM users WHERE role = 'admin' LIMIT 1").get();
+        const existing = this.db.prepare("SELECT id FROM users WHERE login = 'admin' AND role = 'admin'").get();
+        const envPassword = process.env.ADMIN_PASSWORD;
         if (!existing) {
-            const password = process.env.ADMIN_PASSWORD || "admin";
+            const password = envPassword || "admin";
             this.createUser({ login: "admin", password, fullName: "Администратор", role: "admin" });
-            console.log("Default admin user created (login: admin, password: " + (process.env.ADMIN_PASSWORD ? "[from env]" : "admin") + ")");
+            console.log("Admin user created (password: " + (envPassword ? "[from ADMIN_PASSWORD env]" : "admin") + ")");
+        } else if (envPassword) {
+            // Always sync password from ADMIN_PASSWORD env on startup
+            const salt = this.db.prepare("SELECT salt FROM users WHERE id = ?").get(existing.id).salt;
+            const newHash = this._hashPassword(envPassword, salt);
+            const currentHash = this.db.prepare("SELECT password_hash FROM users WHERE id = ?").get(existing.id).password_hash;
+            if (newHash !== currentHash) {
+                this.updateUser(existing.id, { password: envPassword });
+                console.log("Admin password updated from ADMIN_PASSWORD env");
+            }
         }
     }
 
