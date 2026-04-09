@@ -137,6 +137,24 @@ const SIGNATURE_PATTERNS = [
   /^Получено с помощью /i
 ];
 
+// ── Transliteration table for DESC: synthetic article codes ──
+const TRANSLIT_MAP = {
+    а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"yo",ж:"zh",з:"z",и:"i",й:"y",
+    к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",
+    х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"
+};
+
+function transliterateToSlug(text) {
+    return "DESC:" + text
+        .toLowerCase()
+        .split("")
+        .map((c) => TRANSLIT_MAP[c] ?? (/[a-z0-9]/i.test(c) ? c : "-"))
+        .join("")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 40);
+}
+
 // Own company domains — emails FROM these are not customer companies
 const OWN_DOMAINS = new Set([
   "siderus.su", "siderus.online", "siderus.ru", "klvrt.ru",
