@@ -2852,7 +2852,8 @@ const SPEC_NOISE_PATTERNS = [
 
 // Pipe/thread size and engineering spec patterns — never valid articles
 // PN only matches short specs (PN1-PN999), not article codes like PN2271 (4+ digits)
-const ENGINEERING_SPEC_PATTERN = /^(?:G\s*\d+\/\d+|R\s*\d+\/\d+|Rc\s*\d+\/\d+|Rp\s*\d+\/\d+|DN\s*\d{1,4}|PN\s*\d{1,3}|NPS\s*\d+|ISO\s*[A-Z]?\d+|M\s*\d+(?:x\d+)?|NPT\s*\d*|BSP\s*\d*)$/i;
+// Also covers measurement ranges: 0-16 (pressure), 0-120 (temperature), 0-100, etc.
+const ENGINEERING_SPEC_PATTERN = /^(?:G\s*\d+\/\d+|R\s*\d+\/\d+|Rc\s*\d+\/\d+|Rp\s*\d+\/\d+|DN\s*\d{1,4}|PN\s*\d{1,3}|NPS\s*\d+|ISO\s*[A-Z]?\d+|M\s*\d+(?:x\d+)?|NPT\s*\d*|BSP\s*\d*|0-\d+)$/i;
 
 // Ticket/reference number patterns — never valid product articles
 const TICKET_NOISE_PATTERN = /^(?:TK|REQ|INC|SR|CASE|ORD|INV|REF|CHG|PRB|WO|CR|RQ|HD|SD)[-#]\d{3,}$/i;
