@@ -137,6 +137,24 @@ const SIGNATURE_PATTERNS = [
   /^Получено с помощью /i
 ];
 
+// ── Transliteration table for DESC: synthetic article codes ──
+const TRANSLIT_MAP = {
+    а:"a",б:"b",в:"v",г:"g",д:"d",е:"e",ё:"yo",ж:"zh",з:"z",и:"i",й:"y",
+    к:"k",л:"l",м:"m",н:"n",о:"o",п:"p",р:"r",с:"s",т:"t",у:"u",ф:"f",
+    х:"kh",ц:"ts",ч:"ch",ш:"sh",щ:"shch",ъ:"",ы:"y",ь:"",э:"e",ю:"yu",я:"ya"
+};
+
+function transliterateToSlug(text) {
+    return "DESC:" + text
+        .toLowerCase()
+        .split("")
+        .map((c) => TRANSLIT_MAP[c] ?? (/[a-z0-9]/i.test(c) ? c : "-"))
+        .join("")
+        .replace(/-+/g, "-")
+        .replace(/^-|-$/g, "")
+        .slice(0, 40);
+}
+
 // Own company domains — emails FROM these are not customer companies
 const OWN_DOMAINS = new Set([
   "siderus.su", "siderus.online", "siderus.ru", "klvrt.ru",
@@ -913,6 +931,16 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
               item.descriptionRu = pn.name;
           }
       }
+  }
+
+  // ── Merge free-text positions (no explicit article code) ──
+  const existingArticles = lineItems.map((i) => normalizeArticleCode(i.article)).filter(Boolean);
+  const freetextItems = extractFreeTextItems(body, detectedBrands, existingArticles);
+  for (const ftItem of freetextItems) {
+    // Only add if no structurally-detected item shares the same article
+    if (!lineItems.some((i) => i.article === ftItem.article)) {
+      lineItems.push(ftItem);
+    }
   }
 
   return {
@@ -2170,6 +2198,109 @@ function extractLineItems(body) {
   return items;
 }
 
+/**
+ * Extract free-text line items — positions described without explicit article codes.
+ * Returns items with synthetic DESC: codes.
+ *
+ * @param {string} body
+ * @param {string[]} detectedBrands
+ * @param {string[]} existingArticles
+ * @returns {Array}
+ */
+function extractFreeTextItems(body, detectedBrands = [], existingArticles = []) {
+  const MAX_ITEMS = 30;
+  const MIN_DESC_LENGTH = 5;
+
+  const lines = body.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const items = [];
+
+  const existingSet = new Set(existingArticles.map((a) => String(a).toLowerCase()));
+
+  const isNoiseLine = (line) => {
+    if (SIGNATURE_PATTERNS.some((p) => p.test(line))) return true;
+    if (INN_PATTERN.test(line) || KPP_PATTERN.test(line) || OGRN_PATTERN.test(line)) return true;
+    if (/\b[\w.+-]+@[\w.-]+\.\w{2,}\b/.test(line)) return true;
+    if (/\+?[78][\s(-]\d{3}[\s)-]\d{3}[-\s]?\d{2}[-\s]?\d{2}/.test(line)) return true;
+    if (/^https?:\/\//.test(line)) return true;
+    if (line.length < MIN_DESC_LENGTH) return true;
+    return false;
+  };
+
+  const addItem = (desc, qty, unit) => {
+    const cleanDesc = desc.trim().replace(/\s+/g, " ");
+    if (cleanDesc.length < MIN_DESC_LENGTH) return;
+    if (existingSet.has(cleanDesc.toLowerCase().slice(0, 20))) return;
+    const article = transliterateToSlug(cleanDesc);
+    if (items.some((i) => i.article === article)) return;
+    items.push({
+      article,
+      descriptionRu: cleanDesc,
+      quantity: Math.round(parseFloat(String(qty).replace(",", "."))) || 1,
+      unit: unit || "шт",
+      source: "freetext"
+    });
+  };
+
+  const REQUEST_RE = /^(?:нужен|нужна|нужно|нужны|прошу(?:\s+(?:счёт|кп|цену|предложение)\s+на)?|требуется|необходим[аое]?|запрос\s+на|интересует(?:е)?)\s+(.{5,80})$/i;
+
+  for (const line of lines) {
+    if (items.length >= MAX_ITEMS) break;
+    if (isNoiseLine(line)) continue;
+
+    // ── Trigger A: quantity signal ──
+    // Pattern A1: "description — N unit" (explicit dash separator)
+    const dashMatch = line.match(/^(.{5,80}?)\s*[-–—]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\s*$/i);
+    // Pattern A2: "description N unit" (space only, no dash)
+    const spaceMatch = line.match(/^(.{5,60}?)\s+(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\s*$/i);
+    const qtyMatch = dashMatch || spaceMatch;
+    if (qtyMatch) {
+      const desc = qtyMatch[1].trim();
+      const qty = qtyMatch[2];
+      const unit = qtyMatch[3];
+      // Skip if description looks like a bare article code (already handled by extractLineItems)
+      if (/^[A-Za-z0-9][-A-Za-z0-9/:_.]{2,}$/.test(desc)) continue;
+      // Skip if this line already contributed a structured article (avoid duplicate items)
+      const lineUpper = line.toUpperCase();
+      if (existingArticles.some((a) => lineUpper.includes(a.toUpperCase()))) continue;
+      addItem(desc, qty, unit);
+      continue;
+    }
+
+    // ── Trigger B: request keyword signal ──
+    const reqMatch = line.match(REQUEST_RE);
+    if (reqMatch) {
+      const desc = reqMatch[1].trim();
+      // Check if there's an embedded qty in the description
+      const embeddedQty = desc.match(/(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\b/i);
+      const cleanDesc = embeddedQty
+        ? desc.slice(0, embeddedQty.index).trim() || desc
+        : desc;
+      if (cleanDesc.length >= MIN_DESC_LENGTH) {
+        addItem(cleanDesc, embeddedQty ? embeddedQty[1] : 1, embeddedQty ? embeddedQty[2] : "шт");
+        continue;
+      }
+    }
+
+    // ── Trigger C: known brand on line, no article code found ──
+    if (detectedBrands.length > 0) {
+      const lowerLine = line.toLowerCase();
+      const brandOnLine = detectedBrands.find((b) => lowerLine.includes(b.toLowerCase()));
+      if (brandOnLine) {
+        // Only create freetext item if no real article was already detected for this line
+        const lineHasRealArticle = existingArticles.some((a) =>
+          a && !a.startsWith("DESC:") && lowerLine.includes(a.toLowerCase())
+        );
+        if (!lineHasRealArticle && line.length >= MIN_DESC_LENGTH && line.length <= 120) {
+          addItem(line, 1, "шт");
+          continue;
+        }
+      }
+    }
+  }
+
+  return items;
+}
+
 function parseArticleQtyBlocks(body) {
   const lines = body.split(/\r?\n/).map((line) => line.trim());
   const items = [];
@@ -2722,7 +2853,8 @@ const SPEC_NOISE_PATTERNS = [
 
 // Pipe/thread size and engineering spec patterns — never valid articles
 // PN only matches short specs (PN1-PN999), not article codes like PN2271 (4+ digits)
-const ENGINEERING_SPEC_PATTERN = /^(?:G\s*\d+\/\d+|R\s*\d+\/\d+|Rc\s*\d+\/\d+|Rp\s*\d+\/\d+|DN\s*\d{1,4}|PN\s*\d{1,3}|NPS\s*\d+|ISO\s*[A-Z]?\d+|M\s*\d+(?:x\d+)?|NPT\s*\d*|BSP\s*\d*)$/i;
+// Also covers measurement ranges: 0-16 (pressure), 0-120 (temperature), 0-100, etc.
+const ENGINEERING_SPEC_PATTERN = /^(?:G\s*\d+\/\d+|R\s*\d+\/\d+|Rc\s*\d+\/\d+|Rp\s*\d+\/\d+|DN\s*\d{1,4}|PN\s*\d{1,3}|NPS\s*\d+|ISO\s*[A-Z]?\d+|M\s*\d+(?:x\d+)?|NPT\s*\d*|BSP\s*\d*|0-\d+)$/i;
 
 // Ticket/reference number patterns — never valid product articles
 const TICKET_NOISE_PATTERN = /^(?:TK|REQ|INC|SR|CASE|ORD|INV|REF|CHG|PRB|WO|CR|RQ|HD|SD)[-#]\d{3,}$/i;
