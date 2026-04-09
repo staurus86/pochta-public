@@ -2263,6 +2263,22 @@ function extractFreeTextItems(body, detectedBrands = [], existingArticles = []) 
       addItem(desc, qty, unit);
       continue;
     }
+
+    // ── Trigger B: request keyword signal ──
+    const REQUEST_RE = /^(?:нужен|нужна|нужно|нужны|прошу(?:\s+(?:счёт|кп|цену|предложение)\s+на)?|требуется|необходим[аое]?|запрос\s+на|интересует(?:е)?)\s+(.{5,80})$/i;
+    const reqMatch = line.match(REQUEST_RE);
+    if (reqMatch) {
+      const desc = reqMatch[1].trim();
+      // Check if there's an embedded qty in the description
+      const embeddedQty = desc.match(/(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\b/i);
+      const cleanDesc = embeddedQty
+        ? desc.slice(0, desc.lastIndexOf(embeddedQty[0])).trim() || desc
+        : desc;
+      if (cleanDesc.length >= MIN_DESC_LENGTH) {
+        addItem(cleanDesc, embeddedQty ? embeddedQty[1] : 1, embeddedQty ? embeddedQty[2] : "шт");
+        continue;
+      }
+    }
   }
 
   return items;

@@ -92,3 +92,35 @@ test("triggerA: ИНН в строке → не позиция", () => {
   const ft = items.filter((i) => i.article?.startsWith("DESC:"));
   assert.equal(ft.length, 0);
 });
+
+// ── Trigger B: ключевые слова запроса ──
+
+test("triggerB: 'нужен X' создаёт позицию qty=1", () => {
+  const result = analyze("Запрос", "нужен шаровой кран DN50");
+  const items = result.lead.lineItems || [];
+  const ft = items.filter((i) => i.article?.startsWith("DESC:"));
+  assert.ok(ft.length >= 1, `Ожидалась freetext-позиция`);
+  assert.equal(ft[0].quantity, 1);
+  assert.ok(ft[0].descriptionRu?.toLowerCase().includes("шар") || ft[0].descriptionRu?.toLowerCase().includes("kran") || ft[0].descriptionRu?.toLowerCase().includes("нужен") === false);
+});
+
+test("triggerB: 'прошу счёт на X' создаёт позицию", () => {
+  const result = analyze("Запрос", "прошу счёт на редуктор давления");
+  const items = result.lead.lineItems || [];
+  const ft = items.filter((i) => i.article?.startsWith("DESC:"));
+  assert.ok(ft.length >= 1, "Ожидалась freetext-позиция");
+});
+
+test("triggerB: 'нужен' без описания НЕ создаёт позицию", () => {
+  const result = analyze("Запрос", "нужен");
+  const items = result.lead.lineItems || [];
+  const ft = items.filter((i) => i.article?.startsWith("DESC:"));
+  assert.equal(ft.length, 0);
+});
+
+test("triggerB: 'требуется X' создаёт позицию", () => {
+  const result = analyze("Заявка", "требуется преобразователь частоты 7.5кВт");
+  const items = result.lead.lineItems || [];
+  const ft = items.filter((i) => i.article?.startsWith("DESC:"));
+  assert.ok(ft.length >= 1);
+});
