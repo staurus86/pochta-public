@@ -124,3 +124,35 @@ test("triggerB: 'требуется X' создаёт позицию", () => {
   const ft = items.filter((i) => i.article?.startsWith("DESC:"));
   assert.ok(ft.length >= 1);
 });
+
+// ── Trigger C: известный бренд без артикула ──
+
+const projectWithBrands = {
+  mailbox: "info@siderus.ru",
+  brands: ["Vahle", "Vega", "KIESEL"],
+  managerPool: { defaultMop: "Test", defaultMoz: "Test", brandOwners: [] },
+  knownCompanies: []
+};
+
+test("triggerC: 'Барабаны Vahle' → позиция qty=1", () => {
+  const result = analyzeEmail(projectWithBrands, { fromEmail: "t@t.ru", fromName: "", subject: "Барабаны Vahle", body: "Барабаны Vahle\n\nС уважением", attachments: [] });
+  const items = result.lead.lineItems || [];
+  const ft = items.filter((i) => i.article?.startsWith("DESC:"));
+  assert.ok(ft.length >= 1, `Ожидалась freetext-позиция, но: ${JSON.stringify(items.map(i=>i.article))}`);
+  assert.equal(ft[0].quantity, 1);
+});
+
+test("triggerC: 'Торцевое уплотнение KIESEL' → позиция", () => {
+  const result = analyzeEmail(projectWithBrands, { fromEmail: "t@t.ru", fromName: "", subject: "Запрос", body: "Торцевое уплотнение на мешалку KIESEL\n\nПрошу цену", attachments: [] });
+  const items = result.lead.lineItems || [];
+  const ft = items.filter((i) => i.article?.startsWith("DESC:"));
+  assert.ok(ft.length >= 1, `Ожидалась freetext-позиция`);
+});
+
+test("triggerC: строка без бренда НЕ создаёт позицию через C", () => {
+  const result = analyzeEmail(projectWithBrands, { fromEmail: "t@t.ru", fromName: "", subject: "Запрос", body: "просто оборудование без бренда", attachments: [] });
+  const items = result.lead.lineItems || [];
+  // Trigger C не должен срабатывать — нет бренда в строке
+  const descFromBrand = items.filter((i) => i.article?.startsWith("DESC:") && i.source === "freetext");
+  assert.equal(descFromBrand.length, 0);
+});

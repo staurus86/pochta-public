@@ -2279,6 +2279,22 @@ function extractFreeTextItems(body, detectedBrands = [], existingArticles = []) 
         continue;
       }
     }
+
+    // ── Trigger C: known brand on line, no article code found ──
+    if (detectedBrands.length > 0) {
+      const lowerLine = line.toLowerCase();
+      const brandOnLine = detectedBrands.find((b) => lowerLine.includes(b.toLowerCase()));
+      if (brandOnLine) {
+        // Only create freetext item if no real article was already detected for this line
+        const lineHasRealArticle = existingArticles.some((a) =>
+          a && !a.startsWith("DESC:") && lowerLine.includes(a.toLowerCase())
+        );
+        if (!lineHasRealArticle && line.length >= MIN_DESC_LENGTH && line.length <= 120) {
+          addItem(line, 1, "шт");
+          continue;
+        }
+      }
+    }
   }
 
   return items;
