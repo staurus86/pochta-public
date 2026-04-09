@@ -933,6 +933,16 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
       }
   }
 
+  // ── Merge free-text positions (no explicit article code) ──
+  const existingArticles = lineItems.map((i) => normalizeArticleCode(i.article)).filter(Boolean);
+  const freetextItems = extractFreeTextItems(body, detectedBrands, existingArticles);
+  for (const ftItem of freetextItems) {
+    // Only add if no structurally-detected item shares the same article
+    if (!lineItems.some((i) => i.article === ftItem.article)) {
+      lineItems.push(ftItem);
+    }
+  }
+
   return {
     freeText,
     hasNameplatePhotos,
@@ -2183,6 +2193,76 @@ function extractLineItems(body) {
     // Skip if already found by line-level parser
     if (items.some((i) => i.article === normalizeArticleCode(ni.article))) continue;
     items.push(ni);
+  }
+
+  return items;
+}
+
+/**
+ * Extract free-text line items — positions described without explicit article codes.
+ * Returns items with synthetic DESC: codes.
+ *
+ * @param {string} body
+ * @param {string[]} detectedBrands
+ * @param {string[]} existingArticles
+ * @returns {Array}
+ */
+function extractFreeTextItems(body, detectedBrands = [], existingArticles = []) {
+  const MAX_ITEMS = 30;
+  const MIN_DESC_LENGTH = 5;
+
+  const lines = body.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const items = [];
+
+  const existingSet = new Set(existingArticles.map((a) => String(a).toLowerCase()));
+
+  const isNoiseLine = (line) => {
+    if (SIGNATURE_PATTERNS.some((p) => p.test(line))) return true;
+    if (INN_PATTERN.test(line) || KPP_PATTERN.test(line) || OGRN_PATTERN.test(line)) return true;
+    if (/\b[\w.+-]+@[\w.-]+\.\w{2,}\b/.test(line)) return true;
+    if (/\+?[78][\s(-]\d{3}[\s)-]\d{3}[-\s]?\d{2}[-\s]?\d{2}/.test(line)) return true;
+    if (/^https?:\/\//.test(line)) return true;
+    if (line.length < MIN_DESC_LENGTH) return true;
+    return false;
+  };
+
+  const addItem = (desc, qty, unit) => {
+    const cleanDesc = desc.trim().replace(/\s+/g, " ");
+    if (cleanDesc.length < MIN_DESC_LENGTH) return;
+    if (existingSet.has(cleanDesc.toLowerCase().slice(0, 20))) return;
+    const article = transliterateToSlug(cleanDesc);
+    if (items.some((i) => i.article === article)) return;
+    items.push({
+      article,
+      descriptionRu: cleanDesc,
+      quantity: Math.round(parseFloat(String(qty).replace(",", "."))) || 1,
+      unit: unit || "шт",
+      source: "freetext"
+    });
+  };
+
+  for (const line of lines) {
+    if (items.length >= MAX_ITEMS) break;
+    if (isNoiseLine(line)) continue;
+
+    // ── Trigger A: quantity signal ──
+    // Pattern A1: "description — N unit" (explicit dash separator)
+    const dashMatch = line.match(/^(.{5,80}?)\s*[-–—]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\s*$/i);
+    // Pattern A2: "description N unit" (space only, no dash)
+    const spaceMatch = line.match(/^(.{5,60}?)\s+(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\s*$/i);
+    const qtyMatch = dashMatch || spaceMatch;
+    if (qtyMatch) {
+      const desc = qtyMatch[1].trim();
+      const qty = qtyMatch[2];
+      const unit = qtyMatch[3];
+      // Skip if description looks like a bare article code (already handled by extractLineItems)
+      if (/^[A-Za-z0-9][-A-Za-z0-9/:_.]{2,}$/.test(desc)) continue;
+      // Skip if this line already contributed a structured article (avoid duplicate items)
+      const lineUpper = line.toUpperCase();
+      if (existingArticles.some((a) => lineUpper.includes(a.toUpperCase()))) continue;
+      addItem(desc, qty, unit);
+      continue;
+    }
   }
 
   return items;
