@@ -496,7 +496,8 @@ function applySenderProfileHints(sender, classification, fromEmail) {
   if (!sender.sources) sender.sources = {};
 
   const hintedCompany = String(profile.company_hint || "").trim();
-  if (hintedCompany && (!sender.companyName || inferCompanyNameFromEmail(fromEmail) === sender.companyName)) {
+  const companyFromDomainOrAbsent = !sender.companyName || sender.sources?.company === "email_domain";
+  if (hintedCompany && companyFromDomainOrAbsent) {
     sender.companyName = hintedCompany;
     sender.sources.company = "sender_profile";
   }
@@ -772,7 +773,11 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
   const externalUrls = urls.filter((u) => !OWN_DOMAINS.has(extractDomainFromUrl(u)));
   const extractedCompanyName = extractCompanyName(body, signature);
   const inferredCompanyName = inferCompanyNameFromEmail(fromEmail);
-  const companyName = sanitizeCompanyName(extractedCompanyName || inferredCompanyName);
+  // Domain fallback: last resort if nothing found in body/signature
+  const domainCompanyName = (!extractedCompanyName && !inferredCompanyName)
+    ? inferCompanyFromDomain(fromEmail)
+    : null;
+  const companyName = sanitizeCompanyName(extractedCompanyName || inferredCompanyName || domainCompanyName);
   const fullName = fromName || extractFullNameFromBody(body) || "Не определено";
   const position = extractPosition(body) || null;
   const website = externalUrls[0] || inferWebsiteFromEmail(fromEmail);
@@ -792,7 +797,7 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
     ogrn: requisites.ogrn,
     legalCardAttached,
     sources: {
-      company: extractedCompanyName ? "body" : inferredCompanyName ? "email_domain" : null,
+      company: extractedCompanyName ? "body" : (inferredCompanyName || domainCompanyName) ? "email_domain" : null,
       website: externalUrls[0] ? "body" : website ? "email_domain" : null,
       phone: cityPhone || mobilePhone ? "body" : null,
       inn: requisites.inn ? "body" : null,
@@ -1654,6 +1659,31 @@ function buildIntakeFlow(classification, crm, lead) {
 // Own company name patterns — not a customer
 const OWN_COMPANY_NAMES = /(?:сидерус|siderus|коловрат|kolovrat|klvrt|ersa\s*b2b|ersab2b)/i;
 
+// Company label patterns for explicit "Компания: X" mentions
+const COMPANY_LABEL_PATTERNS = [
+  /(?:компания|организация|предприятие|работодатель|employer|company)\s*[:\-–]\s*(.{3,60})/i,
+  /(?:от|from)\s+компани[иея]\s+(.{3,60})/i,
+];
+
+// Cities to skip in signature line parsing (false positive guard)
+const CITY_STOPLIST = new Set([
+  "москва", "санкт-петербург", "екатеринбург", "новосибирск", "казань",
+  "нижний новгород", "челябинск", "самара", "уфа", "ростов", "омск",
+  "красноярск", "воронеж", "пермь", "волгоград", "краснодар", "саратов",
+  "тюмень", "тольятти", "ижевск", "барнаул", "ульяновск", "иркутск",
+  "хабаровск", "ярославль", "владивосток", "махачкала", "томск", "оренбург",
+  "кемерово", "новокузнецк",
+]);
+
+// Position words to skip in signature line
+const POSITION_STOPWORDS = /^(?:менеджер|директор|инженер|специалист|руководитель|главный|ведущий|старший|генеральный|коммерческий|технический|региональный|sales|manager|engineer|director)/i;
+
+// Generic domain words that don't make useful company names
+const GENERIC_DOMAIN_WORDS = new Set([
+  "metal", "group", "trade", "service", "info", "mail", "opt", "shop",
+  "store", "online", "web", "net", "pro", "biz", "corp",
+]);
+
 // Legal entity forms used as direct fallback patterns
 const LEGAL_ENTITY_PATTERNS = [
   /(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП|НПО|НПП|НПК|ТОО|КТ)\s+["«]?[A-Za-zА-ЯЁ0-9][^,\n]{2,80}?(?=\s*(?:ИНН|КПП|ОГРН|тел\.?|телефон|моб\.?|mobile|phone|сайт|site|e-?mail|email|адрес|г\.|ул\.|$))/i,
@@ -1676,27 +1706,40 @@ const LEGAL_ENTITY_PATTERNS = [
 function extractCompanyName(body, signature = "") {
   const candidates = [];
 
+  // Step 1: KB match
   const fromKb = detectionKb.matchField("company_name", body);
   if (fromKb) {
     const cleaned = sanitizeCompanyName(fromKb);
     if (cleaned && !OWN_COMPANY_NAMES.test(cleaned)) {
-      candidates.push(cleaned);
+      candidates.push({ name: cleaned, score: 0 });
     }
   }
 
-  // Fallback: direct regex search for legal entity forms (body first, then signature)
+  // Step 2: Legal entity patterns (ООО/АО/GmbH etc.)
   for (const text of [body, signature].filter(Boolean)) {
     for (const pattern of LEGAL_ENTITY_PATTERNS) {
       const match = text.match(pattern);
       if (match) {
-        // match[0] is full match including prefix (ООО, АО etc.)
         const name = sanitizeCompanyName(match[0]).trim();
         if (OWN_COMPANY_NAMES.test(name)) continue;
         if (name.length >= 5) {
-          candidates.push(name);
+          candidates.push({ name, score: 0 });
         }
       }
     }
+  }
+
+  // Step 3: Label patterns ("Компания: X")
+  const fromLabel = extractCompanyFromLabels(body, signature);
+  if (fromLabel && !OWN_COMPANY_NAMES.test(fromLabel)) {
+    candidates.push({ name: fromLabel, score: 0 });
+  }
+
+  // Step 4: Signature line parsing
+  const fullName = extractFullNameFromBody(body || signature);
+  const fromSignature = extractCompanyFromSignatureLine(signature, fullName);
+  if (fromSignature && !OWN_COMPANY_NAMES.test(fromSignature)) {
+    candidates.push({ name: fromSignature, score: -5 });
   }
 
   if (candidates.length === 0) {
@@ -1704,7 +1747,7 @@ function extractCompanyName(body, signature = "") {
   }
 
   return candidates
-    .sort((left, right) => companyNameScore(right) - companyNameScore(left))[0] || null;
+    .sort((a, b) => (companyNameScore(b.name) + b.score) - (companyNameScore(a.name) + a.score))[0].name || null;
 }
 
 function companyNameScore(value) {
@@ -1800,6 +1843,94 @@ function normalizePhoneNumber(raw) {
   // Invalid: 0xx, 1xx, 6xx, 7xx
   if (/^[0167]/.test(code)) return null;
   return `+7 (${code}) ${d.slice(4, 7)}-${d.slice(7, 9)}-${d.slice(9, 11)}`;
+}
+
+// Step 3: Extract company from explicit label patterns ("Компания: X")
+function extractCompanyFromLabels(body, signature = "") {
+  for (const text of [body, signature].filter(Boolean)) {
+    for (const pattern of COMPANY_LABEL_PATTERNS) {
+      const match = text.match(pattern);
+      if (match) {
+        let value = match[1].trim();
+        // Strip trailing phone/INN/URL/punctuation
+        value = value
+          .replace(/\s+(?:ИНН|КПП|ОГРН|тел\.?|телефон|phone|\+\d)[\s\S]*$/i, "")
+          .replace(/["«»]/g, "")
+          .replace(/[,;:.]+$/, "")
+          .trim();
+        if (value.length >= 3 && value.length <= 60) {
+          return value;
+        }
+      }
+    }
+  }
+  return null;
+}
+
+// Step 4: Extract company from signature lines after ФИО
+function extractCompanyFromSignatureLine(signature, fullName) {
+  if (!signature) return null;
+
+  const lines = signature.split(/\n/).map((l) => l.trim()).filter(Boolean);
+  if (lines.length < 2) return null;
+
+  // Find ФИО line index
+  let nameLineIdx = -1;
+  if (fullName) {
+    const namePart = fullName.split(" ")[0]; // first word of name
+    nameLineIdx = lines.findIndex((l) => l.includes(namePart));
+  }
+  // If not found by name, look for greeting line as anchor
+  if (nameLineIdx === -1) {
+    nameLineIdx = lines.findIndex((l) =>
+      /(?:с уважением|best regards|regards|спасибо)/i.test(l)
+    );
+  }
+
+  const startIdx = nameLineIdx !== -1 ? nameLineIdx + 1 : 0;
+  const candidates = lines.slice(startIdx, startIdx + 3);
+
+  for (const line of candidates) {
+    // Stop at phone/email/URL
+    if (/(?:\+7|8[-\s(]?\d{3}|@|https?:\/\/|www\.)/i.test(line)) break;
+
+    const len = line.length;
+    if (len < 3 || len > 50) continue;
+    if (!/^[А-ЯЁA-Z]/u.test(line)) continue;
+    if (POSITION_STOPWORDS.test(line)) continue;
+    // Skip only-Latin long strings (likely not a company name in Russian context)
+    if (/^[A-Za-z\s+&.-]+$/.test(line) && len > 20) continue;
+
+    const lower = line.toLowerCase();
+    if (CITY_STOPLIST.has(lower)) continue;
+    // Skip if matches sender name
+    if (fullName && lower === fullName.toLowerCase()) continue;
+    // Skip if it looks like a brand from KB (would be false positive)
+    const brands = detectionKb.detectBrands ? detectionKb.detectBrands(line) : [];
+    if (brands && brands.length > 0) continue;
+
+    return line;
+  }
+  return null;
+}
+
+// Step 5: Infer company from email domain (last resort, score -15)
+function inferCompanyFromDomain(email) {
+  if (!email || isFreeDomain(email)) return null;
+
+  const domain = email.split("@")[1];
+  if (!domain) return null;
+  if (isOwnDomain(domain)) return null;
+
+  // Strip TLD and subdomains (take second-to-last segment)
+  const parts = domain.split(".");
+  const name = parts.length >= 2 ? parts[parts.length - 2] : parts[0];
+
+  if (!name || name.length < 5) return null;
+  if (GENERIC_DOMAIN_WORDS.has(name.toLowerCase())) return null;
+
+  // Title case
+  return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 }
 
 function sanitizeCompanyName(value) {
