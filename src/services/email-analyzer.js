@@ -2275,6 +2275,9 @@ function extractFreeTextItems(body, detectedBrands = [], existingArticles = []) 
       const cleanDesc = embeddedQty
         ? desc.slice(0, embeddedQty.index).trim() || desc
         : desc;
+      // Skip if description starts with a verb infinitive (e.g. "подготовить КП", "выслать счёт")
+      const firstWord = cleanDesc.split(/\s/)[0].toLowerCase();
+      if (firstWord.endsWith("ть") || firstWord.endsWith("тись") || firstWord.endsWith("тся") || firstWord.endsWith("чь")) continue;
       if (cleanDesc.length >= MIN_DESC_LENGTH) {
         addItem(cleanDesc, embeddedQty ? embeddedQty[1] : 1, embeddedQty ? embeddedQty[2] : "шт");
         continue;
