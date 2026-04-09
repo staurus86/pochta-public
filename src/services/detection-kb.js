@@ -6,6 +6,8 @@ import { DatabaseSync } from "node:sqlite";
 const DEFAULT_DATA_DIR = path.resolve(process.cwd(), process.env.DATA_DIR || "data");
 const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "mail.ru", "bk.ru", "list.ru", "inbox.ru", "yandex.ru", "ya.ru", "hotmail.com", "outlook.com", "icloud.com", "me.com", "live.com", "yahoo.com", "rambler.ru", "ro.ru", "autorambler.ru", "myrambler.ru", "lenta.ru", "aol.com", "protonmail.com", "proton.me", "zoho.com"]);
 const BRAND_FALSE_POSITIVE_ALIASES = new Set(["top", "moro", "ydra", "hydra", "global"]);
+// Aliases that must match as whole words only (prevent substring false positives like "puls" inside "vegapuls")
+const BRAND_WORD_BOUNDARY_ALIASES = new Set(["puls"]);
 
 const DEFAULT_RULES = [
   { scope: "body", classifier: "spam", matchType: "regex", pattern: "casino|crypto|легкий заработок|раскрут(ка|им)|seo[- ]?продвиж|unsubscr|viagra|скидк|распродаж|кэшбэк|отписа|подписк|рассылк|промокод|sale|выиграли|лотере", weight: 6, notes: "Базовый spam filter" },
@@ -731,6 +733,21 @@ class DetectionKnowledgeBase {
       "(?<![А-ЯЁа-яё])(ИП\\s+[А-ЯЁ][а-яё]+(?:\\s+[А-ЯЁ][а-яё]+){1,2})",
       "(ИП\\s+[А-ЯЁ][а-яё]+(?:\\s+[А-ЯЁ][а-яё]+){1,2})"
     );
+
+    // Deactivate short standalone aliases that cause false positives:
+    // "indu" matches inside "industrial", "amandus" matches as person name,
+    // "industrial" (Industrial Scientific) is too generic
+    for (const [brand, alias] of [
+      ["Indu-Sol", "indu"],
+      ["Amandus Kahl", "amandus"],
+      ["Industrial Scientific", "industrial"]
+    ]) {
+      this.db.prepare(`
+        UPDATE brand_aliases SET is_active = 0
+        WHERE canonical_brand = ? AND LOWER(alias) = ?
+      `).run(brand, alias);
+    }
+    this.invalidateCache("brandAliases");
   }
 
   getRules() {
@@ -1470,8 +1487,8 @@ class DetectionKnowledgeBase {
         if (BRAND_FALSE_POSITIVE_ALIASES.has(alias)) {
           return false;
         }
-        // Short aliases (< 4 chars like "ilt", "smc", "abb") require word boundary
-        if (alias.length < 4) {
+        // Short aliases (< 4 chars) or word-boundary-required aliases need strict word boundary
+        if (alias.length < 4 || BRAND_WORD_BOUNDARY_ALIASES.has(alias)) {
           return new RegExp(`\\b${escapeRegex(alias)}\\b`, "i").test(lowered);
         }
         return padded.includes(alias);
@@ -1483,7 +1500,7 @@ class DetectionKnowledgeBase {
       if (BRAND_FALSE_POSITIVE_ALIASES.has(b)) {
         return false;
       }
-      if (b.length < 4) {
+      if (b.length < 4 || BRAND_WORD_BOUNDARY_ALIASES.has(b)) {
         return new RegExp(`\\b${escapeRegex(b)}\\b`, "i").test(lowered);
       }
       return padded.includes(b);

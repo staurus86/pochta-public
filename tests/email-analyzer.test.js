@@ -1294,6 +1294,38 @@ runTest("does not detect noisy short alias TOP as brand", () => {
   assert.ok(!result.detectedBrands.includes("TOP"));
 });
 
+runTest("does not detect PULS brand from Vegapuls compound product name", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос_Уровнемер радарный Vegapuls 31",
+    body: "Прошу выставить КП на уровнемер VEGAPULS 31 — 1 шт."
+  });
+
+  assert.ok(!result.detectedBrands.some((b) => b.toUpperCase() === "PULS"), `PULS should not be detected from Vegapuls, got: ${result.detectedBrands}`);
+});
+
+runTest("does not detect Indu-Sol brand from word industrial (alias fix)", () => {
+  // The brand alias "Indu" was causing false positives — "indu" inside "industrial"
+  // This test verifies the alias-based detection is fixed (nomenclature FTS may still match other brands)
+  const result = analyzeEmail(project, {
+    fromEmail: "tony@company.com",
+    subject: "industrial valves from tony",
+    body: "We supply industrial valves and process equipment. Please send your price list."
+  });
+
+  assert.ok(!result.detectedBrands.some((b) => b === "Indu-Sol"), `Indu-Sol should not be detected from 'industrial', got: ${result.detectedBrands}`);
+});
+
+runTest("detects PULS brand when mentioned standalone", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос блоков питания PULS",
+    body: "Нужен блок питания PULS 24V 20A, арт. QS20.241 — 3 шт."
+  });
+
+  assert.ok(result.detectedBrands.some((b) => b.toUpperCase() === "PULS"), `PULS should be detected when standalone, got: ${result.detectedBrands}`);
+});
+
 runTest("parses vertical article-unit-quantity blocks without taking qty from article tail", () => {
   const result = analyzeEmail(project, {
     fromEmail: "buyer@it-mo.ru",
