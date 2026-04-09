@@ -1,0 +1,51 @@
+(node:115932) ExperimentalWarning: SQLite is an experimental feature and might change at any time
+(Use `node --trace-warnings ...` to show where the warning was created)
+
+═══ DETECTION AUDIT REPORT ═══
+
+Total emails: 42
+Passed: 37 (88.1%)
+Failed: 5
+
+Breakdown:
+  Articles missed: 4
+  Articles extra:  0
+  Brands missed:   0
+  Qty/items wrong: 3
+  Company wrong:   0
+  Spam missed:     0
+
+═══ ISSUES (5) ═══
+
+[NL-001] Запрос КП
+  ❌ MISS article: AQQE
+  ❌ LINE ITEMS: expected 3, got 2 (articles: 2)
+  → articles: [CR 10-3, CR 15-2]
+  → brands: [GRUNDFOS]
+  → lineItems: 2, label: Клиент
+
+[NL-005] Запчасти
+  ❌ LINE ITEMS: expected 3, got 2 (articles: 4)
+  → articles: [MDEMA1M100-32, 100F-8, M100F-8, NHRY 090]
+  → brands: [DEMA, LENZE, Motor Power]
+  → lineItems: 2, label: Клиент
+
+[IP-002] Заказ
+  ❌ MISS article: HC35
+  ❌ LINE ITEMS: expected 2, got 0 (articles: 1)
+  → articles: [1006/1D]
+  → brands: [MAHLE]
+  → lineItems: 0, label: Клиент
+
+[SC-004] Заявка
+  ❌ MISS article: ВО-06-300-4
+  → articles: [BO-06-300-4]
+  → brands: [GEFRAN]
+  → lineItems: 0, label: Клиент
+
+[FF-003] Вопрос
+  ❌ MISS article: E40
+  → articles: []
+  → brands: [NORD Getriebe, OMEGA / OMEGA Engineering, Omega, REXNORD, Liebherr]
+  → lineItems: 0, label: Клиент
+
