@@ -2,6 +2,85 @@
 //  Pochta Platform — Premium Dashboard SPA
 // ═══════════════════════════════════════════════════════
 
+// ── Auth ──────────────────────────────────────────────
+const AUTH_TOKEN_KEY = 'pochta_token';
+let _authToken = localStorage.getItem(AUTH_TOKEN_KEY);
+
+function getAuthToken() { return _authToken; }
+
+function setAuthToken(token) {
+  _authToken = token;
+  if (token) localStorage.setItem(AUTH_TOKEN_KEY, token);
+  else localStorage.removeItem(AUTH_TOKEN_KEY);
+}
+
+function showLoginOverlay() {
+  const overlay = document.getElementById('login-overlay');
+  if (overlay) { overlay.style.display = 'flex'; }
+  const mainApp = document.querySelector('.app');
+  if (mainApp) mainApp.style.visibility = 'hidden';
+}
+
+function hideLoginOverlay() {
+  const overlay = document.getElementById('login-overlay');
+  if (overlay) { overlay.style.display = 'none'; }
+  const mainApp = document.querySelector('.app');
+  if (mainApp) mainApp.style.visibility = '';
+}
+
+// Intercept all fetch calls to /api/* — inject Bearer token and handle 401
+const _origFetch = window.fetch.bind(window);
+window.fetch = async function(input, init = {}) {
+  const url = typeof input === 'string' ? input : input instanceof Request ? input.url : String(input);
+  if (url.startsWith('/api/') || url.includes('/api/')) {
+    const token = getAuthToken();
+    if (token) {
+      init = { ...init, headers: { Authorization: `Bearer ${token}`, ...(init.headers || {}) } };
+    }
+  }
+  const response = await _origFetch(input, init);
+  if (response.status === 401) {
+    const cloned = response.clone();
+    try {
+      const body = await cloned.json();
+      if (body.error === 'Authentication required') {
+        setAuthToken(null);
+        showLoginOverlay();
+        return response;
+      }
+    } catch { /* ignore parse error */ }
+  }
+  return response;
+};
+
+async function doLogin(login, password) {
+  const res = await _origFetch('/api/auth/login', {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ login, password }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body.error || 'Неверный логин или пароль');
+  }
+  const data = await res.json();
+  setAuthToken(data.token);
+  return data;
+}
+
+async function initAuth() {
+  const token = getAuthToken();
+  if (!token) { showLoginOverlay(); return; }
+  // Validate stored token
+  const res = await _origFetch('/api/auth/me', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) { setAuthToken(null); showLoginOverlay(); return; }
+  hideLoginOverlay();
+}
+
+// ── End Auth ───────────────────────────────────────────
+
 const $ = (sel) => document.querySelector(sel);
 const $$ = (sel) => [...document.querySelectorAll(sel)];
 
@@ -148,7 +227,41 @@ let autoRefreshInterval = null;
 let autoRefreshSec = 0;
 let readMessages = new Set(JSON.parse(localStorage.getItem('pochta_read') || '[]'));
 
-await init();
+// ── Login form wiring ──
+document.getElementById('login-form')?.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  const loginInput = document.getElementById('login-input');
+  const passwordInput = document.getElementById('password-input');
+  const errorEl = document.getElementById('login-error');
+  const btn = document.getElementById('login-btn');
+  errorEl.style.display = 'none';
+  btn.disabled = true;
+  btn.textContent = 'Вход...';
+  try {
+    await doLogin(loginInput.value.trim(), passwordInput.value);
+    hideLoginOverlay();
+    await init();
+  } catch (err) {
+    errorEl.textContent = err.message;
+    errorEl.style.display = 'block';
+    passwordInput.value = '';
+    passwordInput.focus();
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Войти';
+  }
+});
+
+// ── Logout wiring ──
+document.getElementById('logout-btn')?.addEventListener('click', () => {
+  setAuthToken(null);
+  showLoginOverlay();
+  document.getElementById('login-input')?.focus();
+});
+
+// ── Startup: verify token, then launch app ──
+await initAuth();
+if (getAuthToken()) await init();
 
 async function init() {
   setupNavigation();

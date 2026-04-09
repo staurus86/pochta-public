@@ -535,7 +535,7 @@ async function handleApi(req, res, url) {
     return;
   }
 
-  // ── Auth endpoints ──
+  // ── Auth endpoints (public — no token required) ──
   if (req.method === "POST" && url.pathname === "/api/auth/login") {
     const payload = await parseRequestJson(req);
     if (!payload.login || !payload.password) {
@@ -546,8 +546,11 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, result);
   }
 
+  // ── Global auth gate — all /api/* routes below require a valid token ──
+  requireAuth(req);
+
   if (req.method === "GET" && url.pathname === "/api/auth/me") {
-    const user = requireAuth(req);
+    const user = extractAuthUser(req);
     return sendJson(res, 200, { user });
   }
 
