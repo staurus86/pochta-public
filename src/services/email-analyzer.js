@@ -229,7 +229,9 @@ const ARTICLE_NEGATIVE_PATTERNS = [
   // PDF internal references: R/F2, CA 1, Type/Font, FONTFILE2, KIDS, ASCENT
   /^(?:R\/[A-Z]+\d+|CA\s+\d+|FONTFILE\d*|Type\/Font)$/i,
   // URL-like paths (ns.adobe.com/*, purl.org/*, www.w3.org/*)
-  /^(?:ns|www|purl)\.[a-z]+\.[a-z]+/i
+  /^(?:ns|www|purl)\.[a-z]+\.[a-z]+/i,
+  // Diadoc/EDO document numbers: BM-9701077015-770101001
+  /^BM-\d{7,}(?:-\d{7,})+$/i
 ];
 const ARTICLE_CONTEXT_POSITIVE_PATTERNS = [
   /\b(?:part number|manufacturer part number|mpn|p\/n|pn|арт\.?|артикул|каталожн(?:ый|ого) номер|модель|model)\b/i,

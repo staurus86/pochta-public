@@ -108,6 +108,8 @@ function isDashboardArticleNoise(article) {
   if (/^\d{10,15}$/.test(value)) return true;
   if (/^(?:8|7)?-?800(?:-\d{1,4}){1,}$/.test(value)) return true;
   if (/^2BM-[A-Z0-9-]+$/i.test(value)) return true;
+  // Diadoc/EDO document numbers: BM-9701077015-770101001
+  if (/^BM-\d{7,}(?:-\d{7,})+$/i.test(value)) return true;
   if (/^(?:DN|PN|NPS|G|R|RC|RP)\s*\d+(?:[/.]\d+)?$/i.test(value)) return true;
   if (value.includes('@')) return true;
   if (/^UTF-?8$/i.test(value)) return true;
@@ -1045,11 +1047,11 @@ function renderRecognitionDiagnostics(analysis = {}) {
   return `
     <div style="display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px;">
       <div class="kpi-card" style="padding:10px;">
-        <div class="kpi-label">Покрытие</div>
+        <div class="kpi-label">Покрытие полей</div>
         <div class="kpi-value" style="color:${riskColor};">${diagnostics.completenessScore || 0}%</div>
       </div>
-      <div class="kpi-card" style="padding:10px;">
-        <div class="kpi-label">Уверенность</div>
+      <div class="kpi-card" style="padding:10px;" title="Уверенность классификатора в типе письма (КЛИЕНТ/СПАМ/ПОСТАВЩИК)">
+        <div class="kpi-label">Класс. уверенность</div>
         <div class="kpi-value accent">${Math.round((diagnostics.overallConfidence || 0) * 100)}%</div>
       </div>
       <div class="kpi-card" style="padding:10px;">
@@ -1995,7 +1997,7 @@ function renderAccuracyMetrics() {
 
   el.innerHTML = `
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:12px;margin-bottom:12px;">
-      <div class="kpi-card"><div class="kpi-label">Точность</div><div class="kpi-value" style="color:${accuracyColor}">${accuracy}%</div></div>
+      <div class="kpi-card"><div class="kpi-label">Точность класс-ра</div><div class="kpi-value" style="color:${accuracyColor}">${accuracy}%</div><div style="font-size:10px;color:var(--text-muted);">% не скорректированных</div></div>
       <div class="kpi-card"><div class="kpi-label">Всего писем</div><div class="kpi-value">${total}</div></div>
       <div class="kpi-card"><div class="kpi-label">Скорректировано</div><div class="kpi-value rose">${corrected}</div></div>
       <div class="kpi-card"><div class="kpi-label">Feedback писем</div><div class="kpi-value accent">${feedbackCount}</div></div>
@@ -2923,7 +2925,7 @@ function showAnalysisResult(data) {
   const rules = cls.signals?.matchedRules || [];
 
   container.innerHTML = `
-    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">${classificationBadge(cls.label)}${cls.confidence != null ? `<div class="confidence-bar" style="width:120px">${renderConfBar(cls.confidence)}</div>` : ''}${statusBadge(data.intakeFlow?.requestType || '')}</div>
+    <div style="display:flex;gap:12px;flex-wrap:wrap;margin-bottom:16px;">${classificationBadge(cls.label)}${cls.confidence != null ? `<div style="display:flex;flex-direction:column;gap:2px;"><div class="confidence-bar" style="width:120px">${renderConfBar(cls.confidence)}</div><span style="font-size:10px;color:var(--text-muted);">классификация</span></div>` : ''}${statusBadge(data.intakeFlow?.requestType || '')}</div>
     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
       <div><div class="detail-section-title" style="margin-bottom:8px;">Отправитель</div>${[['Email', sender.email],['ФИО', sender.fullName],['Должность', sender.position],['Компания', sender.companyName],['Сайт', sender.website],['Гор.', sender.cityPhone],['Моб.', sender.mobilePhone],['ИНН', sender.inn]].filter(([,v]) => v).map(([l,v]) => detailField(l, v)).join('')}</div>
       <div><div class="detail-section-title" style="margin-bottom:8px;">CRM</div>${[['Юрлицо', crm.isExistingCompany ? crm.company?.legalName || 'Найдено' : 'Не найдено'],['МОП', crm.curatorMop],['МОЗ', crm.curatorMoz],['Уточнение', crm.needsClarification ? 'Да' : 'Нет']].filter(([,v]) => v).map(([l,v]) => detailField(l, v)).join('')}${crm.actions?.length ? crm.actions.map((a) => `<div style="font-size:11px;color:var(--text-secondary);padding:2px 0;">→ ${esc(a)}</div>`).join('') : ''}</div>
