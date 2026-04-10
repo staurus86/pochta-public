@@ -943,6 +943,29 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     }
   }
 
+  // ── Bridge: articles detected in text but not yet in lineItems ──
+  // Ensures every article from finalArticles has a corresponding lineItem entry
+  const bridgedArticleSet = new Set(lineItems.map((i) => normalizeArticleCode(i.article)).filter(Boolean));
+  const bodyDerivedArticleSet = new Set(
+      [...subjectArticles, ...prefixedArticles, ...standaloneArticles, ...numericArticles,
+       ...strongContextArticles, ...trailingMixedArticles, ...productContextArticles, ...brandAdjacentCodes]
+      .map(normalizeArticleCode).filter(Boolean)
+  );
+  for (const article of finalArticles) {
+      const normArt = normalizeArticleCode(article);
+      if (bridgedArticleSet.has(normArt)) continue;
+      const pn = productNames.find((p) => normalizeArticleCode(p.article) === normArt);
+      lineItems.push({
+          article,
+          quantity: null,
+          unit: "шт",
+          descriptionRu: pn?.name || null,
+          source: bodyDerivedArticleSet.has(normArt) ? "body" : "attachment",
+          explicitArticle: false
+      });
+      bridgedArticleSet.add(normArt);
+  }
+
   return {
     freeText,
     hasNameplatePhotos,
@@ -3089,6 +3112,16 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^(?:CAOLAN|ALLLEX|ALFABY|CALIBRI\d|ARIAL\d|CYR\d)/i.test(normalized)) return true;
   // Date patterns: 01-2026, 03-2025
   if (/^\d{2}-(?:19|20)\d{2}$/.test(normalized)) return true;
+  // Full dates: dd.mm.yyyy or dd/mm/yyyy (from company card attachments)
+  if (/^\d{1,2}[./]\d{1,2}[./]\d{4}$/.test(normalized)) return true;
+  // UUID and UUID fragments: hex chars + dashes, 3+ segments, must contain at least one A-F letter
+  // Pure-digit codes like 1114-160-318 are excluded (no hex letters)
+  if (/^[0-9A-F-]+$/i.test(normalized) && /[A-Fa-f]/.test(normalized) && !/[G-Zg-z]/.test(normalized)) {
+    const uuidSegs = normalized.split("-");
+    if (uuidSegs.length >= 3 && uuidSegs.every((s) => s.length >= 3 && s.length <= 12)) return true;
+  }
+  // Russian PFR (pension fund) registration codes: 2BM-9701077015-770101001, BM-9701077015
+  if (/^[02]?[A-ZА-Я]{1,2}-\d{10}(?:-\d{9})?$/i.test(normalized)) return true;
   // URL slugs: fdmrn8c0b-bilge-level-switch-float, n8-30x32l-nbr-connecting-type
   // Slugs have 4+ segments with at least 2 long lowercase word segments (4+ chars each)
   if (normalized.split("-").length >= 4 && normalized.length > 20) {
@@ -3146,7 +3179,7 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (STANDARD_OR_NORM_PATTERN.test(normalized)) return true;
   if (CLASSIFIER_DOTTED_CODE_PATTERN.test(normalized)) return true;
   if (/^\d{1,6}$/.test(normalized) && !hasStrongArticleContext && !hasBrandAdjacentNumericContext) return true;
-  if (/^\d+\.\d{2,5}$/.test(normalized)) return true;
+  if (/^\d+\.\d{2,}$/.test(normalized)) return true;
   if (/^EOF\s+\d+$/i.test(normalized)) return true;
   if (/^65535$/.test(normalized)) return true;
   if (/^\d{20}$/.test(normalized)) return true;
@@ -3165,6 +3198,8 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^\d+:[A-Z]{4,}/i.test(normalized)) return true;
   // IEC standard versions misidentified as articles
   if (/^IEC\d/i.test(normalized)) return true;
+  // Digit-only codes (with separators) in phone/contact/requisites context
+  if (/^[\d\-.\s()]+$/.test(normalized) && hasArticleNoiseContext(line)) return true;
   return false;
 }
 
