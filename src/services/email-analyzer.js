@@ -335,7 +335,9 @@ export function analyzeEmail(project, payload) {
   // If this is a forwarded email, extract original sender from body
   const fwdInfo = extractForwardedSender(body);
   if (fwdInfo) {
-    if (fwdInfo.email && !fromEmail.includes(fwdInfo.email.split("@")[1]) && !isOwnDomain(fwdInfo.email.split("@")[1])) {
+    // Don't override if original sender already has a KB profile (e.g. tektorg.ru spam domain)
+    const originalHasProfile = !!detectionKb.matchSenderProfile(fromEmail);
+    if (fwdInfo.email && !fromEmail.includes(fwdInfo.email.split("@")[1]) && !isOwnDomain(fwdInfo.email.split("@")[1]) && !originalHasProfile) {
       fromEmail = fwdInfo.email;
       if (fwdInfo.name) fromName = fwdInfo.name;
     }
