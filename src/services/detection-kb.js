@@ -16,6 +16,7 @@ const DEFAULT_RULES = [
   { scope: "body", classifier: "client", matchType: "regex", pattern: "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность", weight: 3, notes: "Клиентские сигналы" },
   { scope: "body", classifier: "client", matchType: "regex", pattern: "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ", weight: 3, notes: "Клиентские сигналы (расширенные формы)" },
   { scope: "body", classifier: "client", matchType: "regex", pattern: "наличие\\s+на\\s+складе|сроки\\s+поставки|с\\s+доставкой|просьба\\s+выставить|реквизиты\\s+прилагаются|карточка\\s+предприятия", weight: 4, notes: "Сильные клиентские сигналы" },
+  { scope: "body", classifier: "client", matchType: "regex", pattern: "(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП)\\s+[\"«]", weight: 3, notes: "Легальная форма организации в теле — признак B2B клиента" },
   { scope: "body", classifier: "vendor", matchType: "regex", pattern: "предлагаем\\s+(?:вам|услуг|сотрудничеств)|предложить вам|предложить продукцию|хотел бы предложить|наша\\s+компания\\s+предлагает|каталог\\s+продукции|являемся\\s+(?:дилер|поставщик|производител)|прайс.?лист", weight: 4, notes: "Поставщик услуг (точные паттерны)" },
   { scope: "body", classifier: "vendor", matchType: "regex", pattern: "предлагаем|каталог|дилер|поставля|прайс|услуг", weight: 2, notes: "Поставщик услуг (слабые сигналы)" },
   { scope: "subject", classifier: "client", matchType: "regex", pattern: "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение", weight: 4, notes: "Клиентский subject" },
@@ -67,11 +68,21 @@ const DEFAULT_BRAND_ALIASES = [
 ];
 
 const DEFAULT_SENDER_PROFILES = [
-  { senderEmail: "noreply-oplata@cdek.ru",              senderDomain: "",                        classification: "spam", companyHint: "", notes: "СДЭК — платёжные уведомления" },
-  { senderEmail: "",                                    senderDomain: "mail.instagram.com",       classification: "spam", companyHint: "", notes: "Instagram — сервисные нотификации" },
-  { senderEmail: "portal-identity@globus.ru",           senderDomain: "",                        classification: "spam", companyHint: "", notes: "Глобус — уведомления поставщику" },
-  { senderEmail: "info@obed.ru",                        senderDomain: "",                        classification: "spam", companyHint: "", notes: "Обед.ру — сервисные уведомления" },
-  { senderEmail: "145@siderus.ru",                      senderDomain: "",                        classification: "spam", companyHint: "", notes: "Siderus внутренний ящик — не клиент" }
+  { senderEmail: "noreply-oplata@cdek.ru",              senderDomain: "",                        classification: "spam",   companyHint: "", notes: "СДЭК — платёжные уведомления" },
+  { senderEmail: "",                                    senderDomain: "mail.instagram.com",       classification: "spam",   companyHint: "", notes: "Instagram — сервисные нотификации" },
+  { senderEmail: "portal-identity@globus.ru",           senderDomain: "",                        classification: "spam",   companyHint: "", notes: "Глобус — уведомления поставщику" },
+  { senderEmail: "info@obed.ru",                        senderDomain: "",                        classification: "spam",   companyHint: "", notes: "Обед.ру — сервисные уведомления" },
+  { senderEmail: "145@siderus.ru",                      senderDomain: "",                        classification: "spam",   companyHint: "", notes: "Siderus внутренний ящик — не клиент" },
+  // SPAM — service notifications / promo / offers
+  { senderEmail: "",                                    senderDomain: "obed.ru",                  classification: "spam",   companyHint: "", notes: "Обед.ру — домен целиком (balance/service notifications)" },
+  { senderEmail: "",                                    senderDomain: "elecrow.com",              classification: "spam",   companyHint: "", notes: "Elecrow — рекламные рассылки" },
+  { senderEmail: "",                                    senderDomain: "tektorg.ru",               classification: "spam",   companyHint: "", notes: "ТЭК-Торг — предложения банковских гарантий" },
+  { senderEmail: "",                                    senderDomain: "1c-uc.ru",                 classification: "spam",   companyHint: "", notes: "УЦ1/1С — рассылки об учебных курсах" },
+  // VENDOR — logistics / supply-from-China offers
+  { senderEmail: "",                                    senderDomain: "cdek.ru",                  classification: "vendor", companyHint: "СДЭК", notes: "СДЭК — документы и предложения по логистике" },
+  { senderEmail: "",                                    senderDomain: "slacnc.com",               classification: "vendor", companyHint: "", notes: "SLACNC — китайский производитель калибров" },
+  { senderEmail: "",                                    senderDomain: "eayglobal.com",             classification: "vendor", companyHint: "EAY Global", notes: "EAY Global — предложения поставки из Китая" },
+  { senderEmail: "",                                    senderDomain: "globalpost.ru",             classification: "vendor", companyHint: "ГлобалПост", notes: "ГлобалПост — предложения логистики" },
 ];
 
 const DEFAULT_FIELD_PATTERNS = [

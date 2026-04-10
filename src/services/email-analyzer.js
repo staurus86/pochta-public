@@ -378,6 +378,18 @@ export function analyzeEmail(project, payload) {
     ];
   }
 
+  // Override: non-resume website form submission → always client (visitor contacted us)
+  // Website form is set up for client inquiries; spam/vendor false positives overridden here
+  if (robotFormData && !robotFormData.isResume && classification.label === "СПАМ") {
+    classification.label = "Клиент";
+    classification.confidence = Math.max(classification.confidence || 0, 0.75);
+    classification.signals = classification.signals || {};
+    classification.signals.matchedRules = [
+      ...(classification.signals.matchedRules || []),
+      { id: "robot_form_client", classifier: "client", scope: "robot_form", pattern: "website_form_non_resume", weight: 6 }
+    ];
+  }
+
   // Filter own brands (Siderus, Коловрат, etc.) from classification results
   classification.detectedBrands = detectionKb.filterOwnBrands(classification.detectedBrands);
 
