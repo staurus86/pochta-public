@@ -999,7 +999,7 @@ function mergeAttachmentLeadData(lead, attachmentAnalysis = {}) {
   const attachmentLineItems = files.flatMap((file) => (file.lineItems || []).map((item) => {
     const article = item.article ? normalizeArticleCode(item.article) : null;
     return {
-      article: article && !isObviousArticleNoise(article, "") ? article : null,
+      article: article && !isObviousArticleNoise(article, item.descriptionRu || "") ? article : null,
       quantity: item.quantity ?? null,
       unit: item.unit || "шт",
       descriptionRu: item.descriptionRu || null,
