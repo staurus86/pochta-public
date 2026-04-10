@@ -1841,6 +1841,13 @@ const GENERIC_DOMAIN_WORDS = new Set([
   "store", "online", "web", "net", "pro", "biz", "corp",
 ]);
 
+// PDF/font tokens that appear as fake company names when attachment content bleeds into extraction
+const PDF_COMPANY_NOISE_TOKENS = new Set([
+  "flatedecode", "roboto", "helvetica", "calibri", "arial", "times", "courier",
+  "verdana", "trebuchet", "tahoma", "garamond", "georgia", "palatino",
+  "pages", "dust", "opentype", "truetype", "cidfonttype2", "fontdescriptor",
+]);
+
 // Legal entity forms used as direct fallback patterns
 const LEGAL_ENTITY_PATTERNS = [
   /(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП|НПО|НПП|НПК|ТОО|КТ)\s+["«]?[A-Za-zА-ЯЁ0-9][^,\n]{2,80}?(?=\s*(?:ИНН|КПП|ОГРН|тел\.?|телефон|моб\.?|mobile|phone|сайт|site|e-?mail|email|адрес|г\.|ул\.|$))/i,
@@ -2056,6 +2063,8 @@ function extractCompanyFromLabels(body, signature = "") {
       const match = text.match(pattern);
       if (match) {
         let value = match[1].trim();
+        // Skip if the matched value is just an INN field (form submitted without company name)
+        if (/^ИНН\s*[:\s]/i.test(value)) continue;
         // Strip trailing phone/INN/URL/punctuation
         value = value
           .replace(/\s+(?:ИНН|КПП|ОГРН|тел\.?|телефон|phone|\+\d)[\s\S]*$/i, "")
@@ -2154,6 +2163,27 @@ function sanitizeCompanyName(value) {
     .trim();
 
   if (!text) return null;
+
+  // Reject "ИНН: XXXX" — INN number, not a company name (robot form field bleeding)
+  if (/^ИНН\s*[:\s]\s*\d/i.test(text)) return null;
+  if (/^ИНН$/i.test(text.trim())) return null;
+
+  // Reject phone number masquerading as company
+  if (/^(?:тел\.?|телефон|моб\.?|\+7[\s(]|\+7$|8\s*[\s(]\d{3})/i.test(text)) return null;
+
+  // Reject street address fragments
+  if (/(?:^|\s)(?:ул\.|улица|пр-т|проспект|бульвар|шоссе|набережная|переулок)\s+[А-ЯЁA-Z]/i.test(text)) return null;
+
+  // Reject job positions used as company name
+  if (POSITION_STOPWORDS.test(text)) return null;
+
+  // Reject PDF/font noise tokens (e.g. "FlateDecode co", "Roboto Co" from attachment bleed)
+  const lowerBase = text.toLowerCase().replace(/\s+(?:co\.?|ltd\.?|inc\.?|llc|gmbh|ag)\s*$/i, "").trim();
+  if (PDF_COMPANY_NOISE_TOKENS.has(lowerBase)) return null;
+
+  // Reject bare legal-form without any name ("ООО", "АО", "ИП")
+  if (/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)$/i.test(text)) return null;
+
   if (/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)\s*(?:тел|телефон|phone|mobile|email|e-mail|сайт)$/i.test(text)) {
     return null;
   }
