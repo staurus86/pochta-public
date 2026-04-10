@@ -954,6 +954,9 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   for (const article of finalArticles) {
       const normArt = normalizeArticleCode(article);
       if (bridgedArticleSet.has(normArt)) continue;
+      // Only bridge alphanumeric codes — pure-digit codes need original context to validate
+      // (phone numbers, OKPO codes, etc. are always digit-only and sneak through via explicitArticle)
+      if (!/[A-Za-zА-ЯЁа-яё]/.test(article)) continue;
       const pn = productNames.find((p) => normalizeArticleCode(p.article) === normArt);
       lineItems.push({
           article,
