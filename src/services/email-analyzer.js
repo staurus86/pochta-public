@@ -434,6 +434,18 @@ export function analyzeEmail(project, payload) {
   hydrateRecognitionSummary(lead, sender);
   hydrateRecognitionDiagnostics(lead, sender, attachmentAnalysis, classification);
   hydrateRecognitionDecision(lead, sender, attachmentAnalysis, classification);
+
+  // Post-correction: if classification couldn't decide but lead has articles → likely a client
+  if (classification.label === "Не определено" && lead.articles?.length > 0) {
+    classification.label = "Клиент";
+    classification.confidence = Math.max(classification.confidence || 0, 0.6);
+    classification.signals = classification.signals || {};
+    classification.signals.matchedRules = [
+      ...(classification.signals.matchedRules || []),
+      { id: "articles_post_correction", classifier: "client", scope: "lead", pattern: "articles_detected", weight: 3 }
+    ];
+  }
+
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands, lead });
 
   const suggestedReply = buildSuggestedReply(classification.label, sender, lead, crm);
@@ -3262,6 +3274,19 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^IEC\d/i.test(normalized)) return true;
   // Digit-only codes (with separators) in phone/contact/requisites context
   if (/^[\d\-.\s()]+$/.test(normalized) && hasArticleNoiseContext(line)) return true;
+  // PDF CreationDate/ModDate tokens: D:20231202154827Z
+  if (/^D:\d{8,}/i.test(normalized)) return true;
+  // Software version strings: PXC-Ver:10.3.0.386, Build:1234
+  if (/(?:Ver|Version|Build|Release):\d/i.test(normalized)) return true;
+  // Field label prefixes: CODE:4-017-1816, TYPE: L110-F2G
+  if (/^(?:CODE|TYPE|REF|PART):/i.test(normalized)) return true;
+  // Email field values extracted as articles: Email:user123, e-mail:snab4
+  if (/^e-?mail:\w+/i.test(normalized)) return true;
+  // Full URLs that slipped through: HTTPS://M4D.NALOG.GOV.RU
+  if (/^https?:\/\//i.test(normalized)) return true;
+  // Short PDF internal reference keys: Sohv3:X, vmf:i0, IgN:F5, 4U:K
+  // Pattern: 1-8 alphanumeric chars, colon, 1-4 alphanumeric chars (no separators on right side)
+  if (/^[A-Za-z0-9]{1,8}:[A-Za-z0-9]{1,4}$/.test(normalized)) return true;
   return false;
 }
 
