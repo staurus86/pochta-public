@@ -65,6 +65,14 @@ const DEFAULT_BRAND_ALIASES = [
   { canonicalBrand: "Balluff", alias: "balluff" }
 ];
 
+const DEFAULT_SENDER_PROFILES = [
+  { senderEmail: "noreply-oplata@cdek.ru",              senderDomain: "",                        classification: "spam", companyHint: "", notes: "СДЭК — платёжные уведомления" },
+  { senderEmail: "",                                    senderDomain: "mail.instagram.com",       classification: "spam", companyHint: "", notes: "Instagram — сервисные нотификации" },
+  { senderEmail: "portal-identity@globus.ru",           senderDomain: "",                        classification: "spam", companyHint: "", notes: "Глобус — уведомления поставщику" },
+  { senderEmail: "info@obed.ru",                        senderDomain: "",                        classification: "spam", companyHint: "", notes: "Обед.ру — сервисные уведомления" },
+  { senderEmail: "145@siderus.ru",                      senderDomain: "",                        classification: "spam", companyHint: "", notes: "Siderus внутренний ящик — не клиент" }
+];
+
 const DEFAULT_FIELD_PATTERNS = [
   // Company names with quotes: ООО «Ромашка», АО "Техно"
   { fieldName: "company_name", pattern: "(ООО\\s+[\"«][^\"»]+[\"»])", priority: 100 },
@@ -393,6 +401,21 @@ class DetectionKnowledgeBase {
     `);
     for (const field of DEFAULT_FIELD_PATTERNS) {
       insertField.run(field.fieldName, field.pattern, field.priority, field.fieldName, field.pattern);
+    }
+
+    const insertSenderProfile = this.db.prepare(`
+      INSERT INTO sender_profiles (sender_email, sender_domain, classification, company_hint, brand_hint, notes)
+      SELECT ?, ?, ?, ?, ?, ?
+      WHERE NOT EXISTS (
+        SELECT 1 FROM sender_profiles
+        WHERE (sender_email = ? AND sender_email != '') OR (sender_domain = ? AND sender_domain != '')
+      )
+    `);
+    for (const p of DEFAULT_SENDER_PROFILES) {
+      insertSenderProfile.run(
+        p.senderEmail, p.senderDomain, p.classification, p.companyHint || "", "", p.notes,
+        p.senderEmail, p.senderDomain
+      );
     }
   }
 
