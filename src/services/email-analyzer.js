@@ -1977,7 +1977,8 @@ function extractDomainFromUrl(url) {
 
 function extractFullNameFromBody(body) {
   const fromKb = detectionKb.matchField("signature_hint", body);
-  if (fromKb) return fromKb;
+  // Take only the first line — KB pattern can match across newlines and grab position line
+  if (fromKb) return fromKb.split(/\n/)[0].trim();
 
   // "С уважением, [ООО/АО/...] Фамилия Имя [Отчество]" — company before name
   const signatureWithCompany = body.match(
@@ -2014,15 +2015,21 @@ function extractFullNameFromBody(body) {
   const lines = body.split(/\n/).map((l) => l.trim());
   for (let i = lines.length - 1; i >= Math.max(0, lines.length - 8); i--) {
     const line = lines[i];
-    // Candidate: 2-3 words, each Title-cased, 3-20 chars each, no digits/special chars
+    // Candidate: 2-3 words, each Title-cased, no digits/special chars
     const cyrillic2words = /^([А-ЯЁ][а-яё]{1,19})(?:\s+([А-ЯЁ][а-яё]{1,19})){1,2}$/u.test(line);
     const latin2words = /^([A-Z][a-z]{1,19})(?:\s+([A-Z][a-z]{1,19})){1,2}$/.test(line);
-    if (!cyrillic2words && !latin2words) continue;
+    // "Фамилия И.В." or "Фамилия И. В." — surname + initials (very common in RU business email)
+    const surnameInitials = /^([А-ЯЁ][а-яё]{2,20})\s+([А-ЯЁ]\.\s*[А-ЯЁ]\.?)$/.test(line);
+
+    if (!cyrillic2words && !latin2words && !surnameInitials) continue;
 
     // Verify next or previous line looks like context (position, phone, email, company)
     const neighbor = lines[i + 1] || lines[i - 1] || "";
     const hasContext = /(?:\+7|8[-\s(]|tel:|mob:|e-?mail:|@|менеджер|инженер|директор|специалист|manager|engineer|sales)/i.test(neighbor);
-    if (hasContext) return line;
+    if (hasContext) {
+      // Normalise "Иванов И. В." → "Иванов И.В."
+      return line.replace(/([А-ЯЁ])\.\s+([А-ЯЁ])/, "$1.$2");
+    }
   }
 
   return null;
