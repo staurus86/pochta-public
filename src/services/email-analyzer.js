@@ -318,12 +318,6 @@ export function analyzeEmail(project, payload) {
     }
   }
   const attachments = normalizeAttachments(payload.attachments);
-  const attachmentAnalysis = analyzeStoredAttachments(
-    payload.messageKey || payload.id || "",
-    payload.attachmentFiles || [],
-    payload.attachmentProcessingOptions || {}
-  );
-  const attachmentContent = sanitizeAttachmentText(attachmentAnalysis.combinedText || "");
 
   // Detect auto-replies before any entity extraction
   const autoReplyDetection = detectAutoReply(subject, primaryBody || body, fromEmail);
@@ -337,17 +331,11 @@ export function analyzeEmail(project, payload) {
     }
   }
 
-  const normalizedText = [subject, body, attachments.join(" "), attachmentContent].join("\n");
-
-  // For auto-replies: use only the auto-reply preamble (not the embedded original request)
-  // Subject is also suppressed because it echoes the original request's subject (Re: ...)
+  // Quick classification WITHOUT attachment content (attachment reading happens below for non-spam only)
+  // For auto-replies: suppress subject and body (only use preamble)
   const bodyForClassification = autoReplyDetection.isAutoReply
     ? autoReplyDetection.preamble || ""
-    : [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n");
-  const bodyForExtraction = autoReplyDetection.isAutoReply
-    ? autoReplyDetection.preamble || ""
-    : [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n");
-  const subjectForExtraction = autoReplyDetection.isAutoReply ? "" : subject;
+    : primaryBody || body;
 
   const classification = classifyMessage({
     subject,
@@ -371,6 +359,61 @@ export function analyzeEmail(project, payload) {
 
   // Filter own brands (Siderus, Коловрат, etc.) from classification results
   classification.detectedBrands = detectionKb.filterOwnBrands(classification.detectedBrands);
+
+  // SPAM EARLY EXIT — skip attachment file reading and lead extraction
+  // Still run extractSender so auto-reply senders (clients with OOO) are identified correctly
+  if (classification.label === "СПАМ") {
+    const spamAttachmentCount = (payload.attachmentFiles || []).length;
+    const spamSender = extractSender(fromName, fromEmail, bodyForSender, attachments, signature);
+    applySenderProfileHints(spamSender, classification, fromEmail);
+    applyCompanyDirectoryHints(spamSender, fromEmail);
+    return {
+      analysisId: randomUUID(),
+      createdAt: new Date().toISOString(),
+      mailbox: project.mailbox,
+      classification,
+      sender: spamSender,
+      lead: {},
+      crm: null,
+      detectedBrands: classification.detectedBrands,
+      intakeFlow: buildIntakeFlow("СПАМ", {}, {}),
+      suggestedReply: null,
+      rawInput: { subject, attachments },
+      attachmentAnalysis: { meta: { processedCount: 0, skippedCount: spamAttachmentCount }, combinedText: "" },
+      extractionMeta: {
+        signatureDetected: Boolean(signature),
+        quotedTextDetected: Boolean(quotedContent),
+        autoReplyDetected: autoReplyDetection.isAutoReply,
+        autoReplyType: autoReplyDetection.isAutoReply ? autoReplyDetection.type : undefined,
+        attachmentsProcessed: 0,
+        attachmentsSkipped: spamAttachmentCount,
+        spamEarlyExit: true
+      }
+    };
+  }
+
+  // NON-SPAM: read attachment files and run full entity extraction
+  const attachmentAnalysis = analyzeStoredAttachments(
+    payload.messageKey || payload.id || "",
+    payload.attachmentFiles || [],
+    payload.attachmentProcessingOptions || {}
+  );
+  const attachmentContent = sanitizeAttachmentText(attachmentAnalysis.combinedText || "");
+
+  // Merge brands detected in attachment content into classification
+  if (attachmentContent) {
+    const attachmentBrands = detectionKb.filterOwnBrands(
+      detectionKb.detectBrands(attachmentContent, project.brands || [])
+    );
+    if (attachmentBrands.length) {
+      classification.detectedBrands = uniqueBrands([...(classification.detectedBrands || []), ...attachmentBrands]);
+    }
+  }
+
+  // For subject/body extraction: use primary body + attachment content
+  const bodyForExtraction = [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n");
+  const subjectForExtraction = subject;
+
   const sender = extractSender(fromName, fromEmail, [bodyForSender, attachmentContent].filter(Boolean).join("\n\n"), attachments, signature);
   applySenderProfileHints(sender, classification, fromEmail);
   applyCompanyDirectoryHints(sender, fromEmail);
@@ -725,8 +768,10 @@ function detectAutoReply(subject, body, fromEmail) {
   // noreply@ sender + any body pattern relaxes threshold
   if (!result.isAutoReply && isNoReplySender) {
     // noreply senders with very short body or ticket-like body → auto-reply
+    // Exception: form submission emails from noreply senders contain structured fields (Name:, phone:, comment:)
     const bodyHead = body.slice(0, 600);
-    if (body.length < 200 || /(?:номер|ticket|#|№)\s*\d+/i.test(bodyHead)) {
+    const isFormSubmission = /(?:name|имя|фио|phone|телефон|комментарий|comment)\s*:/i.test(bodyHead);
+    if (!isFormSubmission && (body.length < 200 || /(?:номер|ticket|#|№)\s*\d+/i.test(bodyHead))) {
       result.isAutoReply = true;
       result.type = "noreply_sender";
       result.matchSource = "from";
