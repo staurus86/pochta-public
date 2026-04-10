@@ -117,6 +117,16 @@ const QUOTE_PATTERNS = [
   /^-{2,}\s*Исходное сообщение\s*-{2,}$/i,
   /^\d{1,2}[./]\d{1,2}[./]\d{2,4}.*(?:wrote|написал|пишет)/i,
   /^(?:From|Sent|To|Cc|От|Отправлено|Кому|Тема):\s/i,
+  // Outlook inline quote block: "From: X Sent: Y To: Z" on same line
+  /^From:\s+.+\s+Sent:\s+/i,
+  // Outlook underscore separator (8+ underscores)
+  /^_{8,}\s*$/,
+  // Outlook/Exchange "Sent from Outlook" footer
+  /^Sent from (?:Outlook|Mail|my iPhone|my iPad)/i,
+  // Exchange/Lotus "-----Original Message-----" variations
+  /^[_\-]{5,}\s*(?:Original|Forwarded|Reply)\s*(?:Message|Mail)?\s*[_\-]{0,}$/i,
+  // Russian "От: X Дата: Y" Outlook format
+  /^От:\s+.+\s*(?:\r?\n|\s{2,})Дата:/i,
   ...AUTO_REPLY_EMBED_PATTERNS
 ];
 const SIGNATURE_PATTERNS = [
@@ -325,7 +335,7 @@ export function analyzeEmail(project, payload) {
   // If this is a forwarded email, extract original sender from body
   const fwdInfo = extractForwardedSender(body);
   if (fwdInfo) {
-    if (fwdInfo.email && !fromEmail.includes(fwdInfo.email.split("@")[1])) {
+    if (fwdInfo.email && !fromEmail.includes(fwdInfo.email.split("@")[1]) && !isOwnDomain(fwdInfo.email.split("@")[1])) {
       fromEmail = fwdInfo.email;
       if (fwdInfo.name) fromName = fwdInfo.name;
     }
@@ -343,9 +353,12 @@ export function analyzeEmail(project, payload) {
   // Quick classification WITHOUT attachment content (attachment reading happens below for non-spam only)
   // For auto-replies: suppress subject and body (only use preamble)
   // For robot form emails: use only the form section to avoid false brands from HTML template
+  const effectivePrimaryBody = (primaryBody && primaryBody.trim().length >= 50)
+    ? primaryBody
+    : body.slice(0, 500);
   const bodyForClassification = autoReplyDetection.isAutoReply
     ? autoReplyDetection.preamble || ""
-    : robotFormData?.formSection || primaryBody || body;
+    : robotFormData?.formSection || effectivePrimaryBody;
 
   const classification = classifyMessage({
     subject,
@@ -1858,6 +1871,9 @@ const PDF_COMPANY_NOISE_TOKENS = new Set([
   "flatedecode", "roboto", "helvetica", "calibri", "arial", "times", "courier",
   "verdana", "trebuchet", "tahoma", "garamond", "georgia", "palatino",
   "pages", "dust", "opentype", "truetype", "cidfonttype2", "fontdescriptor",
+  // Extended noise from audit: technical terms, generic descriptors
+  "diaphragm", "metering", "pump", "specialist", "repack", "united process",
+  "any", "some", "snipermail", "portable", "keygen",
 ]);
 
 // Legal entity forms used as direct fallback patterns
@@ -2199,6 +2215,17 @@ function sanitizeCompanyName(value) {
   // Reject PDF/font noise tokens (e.g. "FlateDecode co", "Roboto Co" from attachment bleed)
   const lowerBase = text.toLowerCase().replace(/\s+(?:co\.?|ltd\.?|inc\.?|llc|gmbh|ag)\s*$/i, "").trim();
   if (PDF_COMPANY_NOISE_TOKENS.has(lowerBase)) return null;
+
+  // Reject generic English words + "co" (e.g. "United Process Co", "Any co", "Dust co")
+  const GENERIC_CO_WORDS = new Set(["any", "some", "united", "process", "special", "group", "general", "global", "master", "service", "system", "solution", "tech", "trade", "new", "old", "big", "small", "good", "best", "first", "next"]);
+  if (/\s+co\.?\s*$/i.test(text) && GENERIC_CO_WORDS.has(lowerBase)) return null;
+
+  // Reject software-version/repack noise (e.g. "SPecialiST RePack AppVersion Co", "RePack by someone")
+  if (/\b(?:repack|appversion|portable|keygen|crack|patch|activator|installer)\b/i.test(text)) return null;
+
+  // Reject known free/spam email service names masquerading as company
+  const SPAM_SERVICE_NAMES = new Set(["snipermail", "mailchimp", "unisender", "sendpulse", "getresponse", "sendinblue", "mailerlite"]);
+  if (SPAM_SERVICE_NAMES.has(lowerBase)) return null;
 
   // Reject bare legal-form without any name ("ООО", "АО", "ИП")
   if (/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)$/i.test(text)) return null;
