@@ -3138,6 +3138,14 @@ function isObviousArticleNoise(code, sourceLine = "") {
     line && new RegExp(`\\b[${EXTENDED_BRAND_WORD_RE}][${EXTENDED_BRAND_WORD_RE}üöäÜÖÄ-]{2,20}\\s+${escapeRegExp(normalized)}\\b`, "i").test(line)
   );
   if (!normalized) return true;
+  // DESC: synthetic slug articles (freetext positions without real article code)
+  if (/^DESC:/i.test(normalized)) return true;
+  // mailto: links mistaken for articles
+  if (/^mailto:/i.test(normalized)) return true;
+  // XML/RDF/EXIF/photo namespace-qualified names: ns3:PMZNumber, crs:Exposure2012, xmp.did:...
+  if (/^(?:ns\d+|crs|xmp|rdf|dc|pdf|sha|md5|tiff|exif|photoshop|illustrator|stRef|stEvt|stMfs|aux|gpano|lr|mwg|aux|iptc|plus|drone|acdsee)[:/]/i.test(normalized)) return true;
+  // PDF font style tokens: 20Italic, 14Bold, 12Regular, 8Normal
+  if (/^\d{1,2}(?:Bold|Italic|Roman|Normal|Light|Regular|Condensed|Medium|Black|Narrow)$/i.test(normalized)) return true;
   if (/^(?:https?|www|cid)$/i.test(normalized) || normalized.includes("@")) return true;
   if (/^cid:/i.test(normalized) || /^image\d+$/i.test(normalized)) return true;
   // Common expressions with numbers that are never product articles
