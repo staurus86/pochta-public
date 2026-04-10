@@ -331,11 +331,21 @@ export function analyzeEmail(project, payload) {
     }
   }
 
+  // Robot website form (robot@siderus.ru) — extract real visitor data from form fields
+  let robotFormData = null;
+  if (fromEmail === "robot@siderus.ru") {
+    robotFormData = parseRobotFormBody(subject, body);
+    // Override sender identity with real visitor data from form
+    if (robotFormData.email) fromEmail = robotFormData.email;
+    if (robotFormData.name) fromName = robotFormData.name;
+  }
+
   // Quick classification WITHOUT attachment content (attachment reading happens below for non-spam only)
   // For auto-replies: suppress subject and body (only use preamble)
+  // For robot form emails: use only the form section to avoid false brands from HTML template
   const bodyForClassification = autoReplyDetection.isAutoReply
     ? autoReplyDetection.preamble || ""
-    : primaryBody || body;
+    : robotFormData?.formSection || primaryBody || body;
 
   const classification = classifyMessage({
     subject,
@@ -354,6 +364,17 @@ export function analyzeEmail(project, payload) {
     classification.signals.matchedRules = [
       ...(classification.signals.matchedRules || []),
       { id: "auto_reply", classifier: "spam", scope: autoReplyDetection.matchSource, pattern: autoReplyDetection.matchedPattern, weight: 10 }
+    ];
+  }
+
+  // Override: resume submission from website → always spam
+  if (robotFormData?.isResume && classification.label !== "СПАМ") {
+    classification.label = "СПАМ";
+    classification.confidence = Math.max(classification.confidence || 0, 0.95);
+    classification.signals = classification.signals || {};
+    classification.signals.matchedRules = [
+      ...(classification.signals.matchedRules || []),
+      { id: "robot_resume", classifier: "spam", scope: "subject", pattern: "резюме_с_сайта", weight: 10 }
     ];
   }
 
@@ -411,10 +432,35 @@ export function analyzeEmail(project, payload) {
   }
 
   // For subject/body extraction: use primary body + attachment content
-  const bodyForExtraction = [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n");
-  const subjectForExtraction = subject;
+  // For robot form emails: restrict to form section to avoid URL-slug noise
+  const bodyForExtraction = robotFormData
+    ? [robotFormData.formSection, attachmentContent].filter(Boolean).join("\n\n")
+    : [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n");
+  const subjectForExtraction = robotFormData?.product
+    ? `${subject} ${robotFormData.product}`
+    : subject;
 
-  const sender = extractSender(fromName, fromEmail, [bodyForSender, attachmentContent].filter(Boolean).join("\n\n"), attachments, signature);
+  // For robot form emails: use form section as sender body (avoids HTML template noise)
+  const senderBody = robotFormData
+    ? robotFormData.formSection
+    : [bodyForSender, attachmentContent].filter(Boolean).join("\n\n");
+  const sender = extractSender(fromName, fromEmail, senderBody, attachments, signature);
+  // Inject phone from form if extractSender missed it (form phone is authoritative)
+  if (robotFormData?.phone && !sender.mobilePhone && !sender.cityPhone) {
+    const { mobilePhone, cityPhone } = splitPhones([robotFormData.phone], robotFormData.phone);
+    sender.mobilePhone = mobilePhone || sender.mobilePhone;
+    sender.cityPhone = cityPhone || sender.cityPhone;
+    if (mobilePhone || cityPhone) sender.sources.phone = "robot_form";
+  }
+  // Inject company/INN from form fields if present
+  if (robotFormData?.company && !sender.companyName) {
+    sender.companyName = sanitizeCompanyName(robotFormData.company);
+    sender.sources.company = "robot_form";
+  }
+  if (robotFormData?.inn && !sender.inn) {
+    sender.inn = robotFormData.inn;
+    sender.sources.inn = "robot_form";
+  }
   applySenderProfileHints(sender, classification, fromEmail);
   applyCompanyDirectoryHints(sender, fromEmail);
   mergeAttachmentRequisites(sender, attachmentAnalysis);
@@ -3449,6 +3495,53 @@ function getContextLine(text, index = 0, length = 0) {
   const nextNewline = source.indexOf("\n", Math.max(0, index + length));
   const end = nextNewline === -1 ? source.length : nextNewline;
   return source.slice(start, end).trim();
+}
+
+function parseRobotFormBody(subject, body) {
+  // Detect form section boundary (Bitrix standard and widget formats)
+  const formHeaderIdx = body.search(/Заполнена\s+(?:форма|web-форма)|Имя\s+посетителя:|Новый\s+(?:заказ|лид)|Заказ\s+звонка/i);
+  const formEndIdx = body.search(/(?:Запрос|Заявка|Вопрос)\s+отправлен[а]?:/i);
+  const sectionStart = formHeaderIdx !== -1 ? formHeaderIdx : 0;
+  const formSection = (formEndIdx > sectionStart)
+    ? body.slice(sectionStart, formEndIdx)
+    : body.slice(sectionStart, sectionStart + 1500);
+
+  // Visitor name: "Имя посетителя: X" or widget "Ваше имя\n***\nX"
+  const nameMatch =
+    formSection.match(/Имя\s+посетителя:\s*(.+?)[\r\n]/i) ||
+    body.match(/Ваше\s+имя\s*[\r\n]\*+[\r\n](.+?)[\r\n]/i);
+  const name = nameMatch?.[1]?.trim() || null;
+
+  // Real sender email embedded in form body (not robot@siderus.ru)
+  const emailInlineMatch = formSection.match(/^E?-?mail:\s*([\w.!#$%&'*+/=?^`{|}~-]+@[\w.-]+\.[a-z]{2,})/im);
+  const emailMailtoMatch = formSection.match(/mailto:([\w.!#$%&'*+/=?^`{|}~-]+@[\w.-]+\.[a-z]{2,})/i);
+  const emailWidgetMatch = body.match(/E-?mail\s*[\r\n]\*+[\r\n]\s*([\w.!#$%&'*+/=?^`{|}~-]+@[\w.-]+\.[a-z]{2,})/i);
+  const email = (emailInlineMatch?.[1] || emailMailtoMatch?.[1] || emailWidgetMatch?.[1] || null)
+    ?.toLowerCase().replace(/:$/, "") || null;
+
+  // Phone: "Телефон: +7..." or "WhatsApp: +7..." or widget "Телефон\n***\n+7..."
+  const phoneInlineMatch = formSection.match(/(?:Телефон|WhatsApp):\s*([+\d][\d\s\-()]{5,})/i);
+  const phoneWidgetMatch = body.match(/(?:Телефон|WhatsApp)\s*[\r\n]\*+[\r\n]\s*([+\d][\d\s\-()]{5,})/i);
+  const phone = (phoneInlineMatch?.[1] || phoneWidgetMatch?.[1])?.trim() || null;
+
+  // Product / item name
+  const productMatch = formSection.match(/(?:Название\s+товара|Продукт|Товар):\s*(.+?)[\r\n]/i);
+  const product = productMatch?.[1]?.trim() || null;
+
+  // Message / question text (stop before next form field or URL)
+  const msgMatch = formSection.match(/(?:Сообщение|Вопрос):\s*([\s\S]+?)(?:\n[ \t]*\n|\nСтраница\s+отправки|\nID\s+товара|$)/i);
+  const message = msgMatch?.[1]?.trim().slice(0, 500) || null;
+
+  // Company and INN (sometimes present in advanced forms)
+  const companyMatch = formSection.match(/Название\s+организации:\s*(.+?)[\r\n]/i);
+  const company = companyMatch?.[1]?.trim() || null;
+  const innMatch = formSection.match(/ИНН:\s*(\d{10,12})/i);
+  const inn = innMatch?.[1] || null;
+
+  // Resume form → should be classified as spam
+  const isResume = /резюме|вакансия/i.test(subject + " " + formSection);
+
+  return { name, email, phone, product, message, company, inn, formSection, isResume };
 }
 
 function extractForwardedSender(body) {
