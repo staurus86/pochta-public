@@ -2226,7 +2226,8 @@ function sanitizeCompanyName(value) {
   if (/\b(?:repack|appversion|portable|keygen|crack|patch|activator|installer)\b/i.test(text)) return null;
 
   // Reject known free/spam email service names masquerading as company
-  const SPAM_SERVICE_NAMES = new Set(["snipermail", "mailchimp", "unisender", "sendpulse", "getresponse", "sendinblue", "mailerlite"]);
+  // Only mass-mailing platforms, NOT generic email services used by real clients (e.g. snipermail.ru)
+  const SPAM_SERVICE_NAMES = new Set(["mailchimp", "unisender", "sendpulse", "getresponse", "sendinblue", "mailerlite"]);
   if (SPAM_SERVICE_NAMES.has(lowerBase)) return null;
 
   // Reject bare legal-form without any name ("ООО", "АО", "ИП")
