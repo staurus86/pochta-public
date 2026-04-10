@@ -10,7 +10,7 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set(["top", "moro", "ydra", "hydra", "g
 const BRAND_WORD_BOUNDARY_ALIASES = new Set(["puls"]);
 
 const DEFAULT_RULES = [
-  { scope: "body", classifier: "spam", matchType: "regex", pattern: "casino|crypto|легкий заработок|раскрут(ка|им)|seo[- ]?продвиж|unsubscr|viagra|скидк|распродаж|кэшбэк|отписа|подписк|рассылк|промокод|sale|выиграли|лотере", weight: 6, notes: "Базовый spam filter" },
+  { scope: "body", classifier: "spam", matchType: "regex", pattern: "casino|crypto|легкий заработок|раскрут(ка|им)|seo[- ]?продвиж|unsubscr|viagra|кэшбэк|отписа|подписк|рассылк|промокод|выиграли|лотере", weight: 6, notes: "Базовый spam filter" },
   { scope: "subject", classifier: "spam", matchType: "regex", pattern: "скидк|распродаж|акци[яи]|кэшбэк|до\\s*-?\\d+%|промокод|sale|free|бесплатн", weight: 5, notes: "Маркетинговый spam subject" },
   { scope: "body", classifier: "spam", matchType: "regex", pattern: "управлени[ея]\\s+подписк|unsubscribe|opt.out|отказаться\\s+от\\s+рассылки|email\\s+preference|email.marketing", weight: 4, notes: "Рассылочные сигналы в теле" },
   { scope: "body", classifier: "client", matchType: "regex", pattern: "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность", weight: 3, notes: "Клиентские сигналы" },
@@ -82,6 +82,9 @@ const DEFAULT_SENDER_PROFILES = [
   { senderEmail: "",                                    senderDomain: "cdek.ru",                  classification: "vendor", companyHint: "СДЭК", notes: "СДЭК — документы и предложения по логистике" },
   { senderEmail: "",                                    senderDomain: "slacnc.com",               classification: "vendor", companyHint: "", notes: "SLACNC — китайский производитель калибров" },
   { senderEmail: "",                                    senderDomain: "eayglobal.com",             classification: "vendor", companyHint: "EAY Global", notes: "EAY Global — предложения поставки из Китая" },
+  { senderEmail: "",                                    senderDomain: "eayglobal.cn",              classification: "vendor", companyHint: "EAY Global", notes: "EAY Global — предложения поставки из Китая (.cn домен)" },
+  { senderEmail: "uc@1c.ru",                            senderDomain: "",                          classification: "spam",   companyHint: "", notes: "УЦ1/1С учебный центр — рассылки курсов" },
+  { senderEmail: "teen@1c.ru",                          senderDomain: "",                          classification: "spam",   companyHint: "", notes: "1С — рассылки для подростков/молодёжи" },
   { senderEmail: "",                                    senderDomain: "globalpost.ru",             classification: "vendor", companyHint: "ГлобалПост", notes: "ГлобалПост — предложения логистики" },
 ];
 
@@ -773,6 +776,22 @@ class DetectionKnowledgeBase {
       "(?<![А-ЯЁа-яё])(ИП\\s+[А-ЯЁ][а-яё]+(?:\\s+[А-ЯЁ][а-яё]+){1,2})",
       "(ИП\\s+[А-ЯЁ][а-яё]+(?:\\s+[А-ЯЁ][а-яё]+){1,2})"
     );
+
+    // Remove скидк|распродаж from body spam rules — these are legitimate B2B words
+    // (a client asking "возможна ли скидка" should not be classified as spam)
+    const oldBodySpamRules = this.db.prepare(
+      "SELECT id, pattern FROM detection_rules WHERE scope = 'body' AND classifier = 'spam' AND pattern LIKE '%скидк%'"
+    ).all();
+    const updateSpamRule = this.db.prepare("UPDATE detection_rules SET pattern = ? WHERE id = ?");
+    for (const rule of oldBodySpamRules) {
+      const newPattern = rule.pattern
+        .replace(/\|?скидк\|?/g, "|")
+        .replace(/\|?распродаж\|?/g, "|")
+        .replace(/\|\|+/g, "|")
+        .replace(/^\||\|$/g, "");
+      if (newPattern !== rule.pattern) updateSpamRule.run(newPattern, rule.id);
+    }
+    this.invalidateCache("rules");
 
     // Deactivate short standalone aliases that cause false positives:
     // "indu" matches inside "industrial", "amandus" matches as person name,

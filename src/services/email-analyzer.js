@@ -330,7 +330,9 @@ export function analyzeEmail(project, payload) {
   const attachments = normalizeAttachments(payload.attachments);
 
   // Detect auto-replies before any entity extraction
-  const autoReplyDetection = detectAutoReply(subject, primaryBody || body, fromEmail);
+  // Use primaryBody only — falling back to full body includes quoted history which can
+  // trigger false auto-reply detection (quoted Siderus reply found in client response body)
+  const autoReplyDetection = detectAutoReply(subject, primaryBody || "", fromEmail);
 
   // If this is a forwarded email, extract original sender from body
   const fwdInfo = extractForwardedSender(body);
@@ -822,7 +824,7 @@ function detectAutoReply(subject, body, fromEmail) {
   const result = { isAutoReply: false, type: null, preamble: "", matchSource: null, matchedPattern: null };
 
   // Check noreply-style sender addresses
-  const noReplyDomain = /^(?:noreply|no-reply|no_reply|mailer-daemon|postmaster|system|notification|info|support-noreply|helpdesk)@/i;
+  const noReplyDomain = /^(?:noreply|no-reply|no_reply|mailer-daemon|postmaster|system|notification|support-noreply|helpdesk)@/i;
   const isNoReplySender = noReplyDomain.test(fromEmail);
 
   // Check subject patterns
@@ -2194,6 +2196,8 @@ function sanitizeCompanyName(value) {
     .replace(/[;,:\-–—]\s*(?:тел\.?|телефон|phone|mobile|моб\.?|сайт|site|e-?mail|email)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
     .replace(/\s+(?:г\.|город|ул\.|улица|пр-?т|проспект|д\.|дом)\s+[\s\S]*$/i, "")
     .replace(/\s+(?:юридический\s+и\s+фактический|юридический|фактический|почтовый)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
+    // Strip trailing bank details (БИК, р/с, к/с, корр. счёт)
+    .replace(/\s+(?:БИК|бик|к\/с|р\/с|Р\/с|К\/с|корр?\.?\s*счёт|расч\.?\s*счёт|к[/\\]с|р[/\\]с)[\s\S]*$/i, "")
     .replace(/\s{2,}/g, " ")
     .replace(/\s+["«»]+$/g, "")
     .replace(/[)\]]+$/g, "")
