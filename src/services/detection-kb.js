@@ -1489,13 +1489,16 @@ class DetectionKnowledgeBase {
 
     const senderSignal = this.matchSenderProfile(fromEmail);
     if (senderSignal) {
-      scores[senderSignal.classification] = (scores[senderSignal.classification] || 0) + 6;
+      // Sender profile is a strong signal — use weight 20 to override body/subject rules
+      // (e.g. tektorg.ru tender invitations contain "запрос"/"цена" which look like client queries)
+      const senderWeight = 20;
+      scores[senderSignal.classification] = (scores[senderSignal.classification] || 0) + senderWeight;
       matchedRules.push({
         id: `sender:${senderSignal.id}`,
         classifier: senderSignal.classification,
         scope: senderSignal.sender_email ? "sender_email" : "sender_domain",
         pattern: senderSignal.sender_email || senderSignal.sender_domain,
-        weight: 6
+        weight: senderWeight
       });
     }
 
@@ -1568,7 +1571,9 @@ class DetectionKnowledgeBase {
     const domain = getDomain(fromEmail);
     return this.getSenderProfiles().find((profile) => {
       const byEmail = profile.sender_email && profile.sender_email.toLowerCase() === String(fromEmail || "").toLowerCase();
-      const byDomain = profile.sender_domain && profile.sender_domain.toLowerCase() === domain;
+      const profileDomain = (profile.sender_domain || "").toLowerCase();
+      // Exact domain match OR subdomain match (mail.tektorg.ru matches tektorg.ru)
+      const byDomain = profileDomain && (domain === profileDomain || domain.endsWith("." + profileDomain));
       return byEmail || byDomain;
     }) || null;
   }
