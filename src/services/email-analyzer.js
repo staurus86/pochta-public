@@ -61,7 +61,7 @@ const PRODUCT_QTY_PATTERN = /[—–-]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи
 // Same but allows trailing closing words (Спасибо, Thanks, etc.)
 const PRODUCT_QTY_TRAILING_PATTERN = /[—–-]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\.?(?:\s+[А-Яа-яЁё!.]+)?$/i;
 const BRAND_CONTEXT_PATTERN = /\b(?:бренд|brand|производител[ья]|manufacturer|vendor|марка)\b/i;
-const REQUISITES_CONTEXT_PATTERN = /\b(?:реквизит|карточк[аи]|company details|legal details)\b/i;
+const REQUISITES_CONTEXT_PATTERN = /(?:реквизит|карточк[аи]|company details|legal details|ОКПО|ОКТМО|ОКОГУ|ОКАТО|ОКОПФ|ОКФС|ОКВЭД|ИНН|КПП|ОГРН|УНП|УНН)/i;
 const EXTENDED_BRAND_WORD_RE = "A-Za-zÀ-ÿА-Яа-яЁё";
 
 // Auto-reply detection: subject patterns
@@ -3125,8 +3125,12 @@ function isObviousArticleNoise(code, sourceLine = "") {
   }
   // Russian PFR (pension fund) registration codes: 2BM-9701077015-770101001, BM-9701077015
   if (/^[02]?[A-ZА-Я]{1,2}-\d{10}(?:-\d{9})?$/i.test(normalized)) return true;
-  // OKPO/OKTMO/UNP codes (8-9 pure digits) appearing in company card requisites context
-  if (/^\d{8,9}$/.test(normalized) && REQUISITES_CONTEXT_PATTERN.test(line)) return true;
+  // OKPO/OKTMO/INN/KPP/UNP codes (7-12 pure digits) in company registration context
+  if (/^\d{7,12}$/.test(normalized) && REQUISITES_CONTEXT_PATTERN.test(line)) return true;
+  // Phone numbers in contact/signature context (Тел:, моб., факс, доб., Сот. etc.)
+  // Pattern uses suffix chars to avoid matching mid-word (e.g. "тель" in "нагреватель")
+  if (/^[\d\s\-().]{5,}$/.test(normalized) && normalized.replace(/\D/g, "").length >= 6
+    && /(?:тел[.:\s/,]|тел$|телефон|моб[.:\s/,]|моб$|мобильн|факс|сот[.:\s/,]|сот$|доб[.:\s/,]|доб$|раб[.:\s/,]|раб$|\bmob\.?|\btel\.?|\bphone)/i.test(line)) return true;
   // URL slugs: fdmrn8c0b-bilge-level-switch-float, n8-30x32l-nbr-connecting-type
   // Slugs have 4+ segments with at least 2 long lowercase word segments (4+ chars each)
   if (normalized.split("-").length >= 4 && normalized.length > 20) {
