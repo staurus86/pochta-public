@@ -1550,9 +1550,12 @@ function buildIntakeFlow(classification, crm, lead) {
   const isVendor = classification === "Поставщик услуг";
   const isSpam = classification === "СПАМ";
   const diagnostics = lead.recognitionDiagnostics || {};
-  const highSeverityConflicts = (diagnostics.conflicts || []).filter((c) => c.severity === "high");
-  const highRisk = diagnostics.riskLevel === "high";
-  const requiresReview = highSeverityConflicts.length > 0 || (highRisk && isClient && !(lead.articles || []).length);
+  const allConflicts = diagnostics.conflicts || [];
+  // Only high-severity conflicts block ready_for_crm; medium conflicts are informational
+  const blockingConflicts = allConflicts.filter((c) => c.severity === "high");
+  // Require review for high-severity conflicts or critically empty letters (≤1 field out of 6)
+  const requiresReview = blockingConflicts.length > 0
+    || (isClient && (diagnostics.completenessScore ?? 100) < 20);
 
   return {
     parseToFields: !isSpam,
@@ -1565,7 +1568,7 @@ function buildIntakeFlow(classification, crm, lead) {
     // New fields
     requiresReview,
     reviewReason: requiresReview
-      ? highSeverityConflicts.length > 0 ? "high_severity_conflicts" : "high_risk_no_articles"
+      ? blockingConflicts.length > 0 ? "detection_conflicts" : "low_completeness"
       : null,
     isVendorInquiry: isVendor,
     skipCrmSync: isSpam || isVendor
