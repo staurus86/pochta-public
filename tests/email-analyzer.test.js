@@ -888,6 +888,42 @@ runTest("extracts requisites from legacy doc attachment without OCR", () => {
   );
 });
 
+runTest("rejects email address, disclaimer text, and department names as company", () => {
+  const withEmail = analyzeEmail(project, {
+    fromEmail: "ivan@company.ru",
+    subject: "Запрос",
+    body: `
+      ООО Ромашка sales@romashka.ru
+      Нужен артикул ABB S201-C16 x 1 шт.
+    `
+  });
+  assert.ok(withEmail.sender.companyName !== "ООО Ромашка sales@romashka.ru", "email in company should be rejected");
+
+  const withDisclaimer = analyzeEmail(project, {
+    fromEmail: "ivan@company.ru",
+    subject: "Запрос",
+    body: `
+      Нужен артикул ABB S201-C16 x 1 шт.
+
+      Mail may contain co
+    `
+  });
+  assert.ok(withDisclaimer.sender.companyName !== "Mail may contain co", "disclaimer phrase should not become company");
+
+  const withDepartment = analyzeEmail(project, {
+    fromEmail: "ivan@firma.ru",
+    subject: "Запрос",
+    body: `
+      С уважением,
+      Иванов Иван
+      Отдел закупок
+      +7 (495) 111-22-33
+      Нужен артикул ABB S201-C16 x 1 шт.
+    `
+  });
+  assert.ok(withDepartment.sender.companyName !== "Отдел закупок", "department name should not become company");
+});
+
 runTest("cleans company names from trailing contact labels and nested quotes", () => {
   const malformedCompany = analyzeEmail(project, {
     fromEmail: "pkf-monarh@yandex.ru",

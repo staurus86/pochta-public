@@ -2246,6 +2246,15 @@ function sanitizeCompanyName(value) {
   // Reject phone number masquerading as company
   if (/^(?:тел\.?|телефон|моб\.?|\+7[\s(]|\+7$|8\s*[\s(]\d{3})/i.test(text)) return null;
 
+  // Reject company name that contains an email address
+  if (/@[\w.-]+\.[a-z]{2,}/i.test(text)) return null;
+
+  // Reject English disclaimer/legal text fragments ("Mail may contain co", "Trade secret and of co")
+  if (/\b(?:may contain|trade secret|confidential|unsubscribe|disclaimer|privileged|this email|this message|do not distribut|intended for|if you receive|could you quote|are strictly|present message)\b/i.test(text)) return null;
+
+  // Reject department/division names (not company names)
+  if (/^(?:Отдел|Управление|Подразделение|Департамент|Служба|Бюро)\b/u.test(text)) return null;
+
   // Reject street address fragments
   if (/(?:^|\s)(?:ул\.|улица|пр-т|проспект|бульвар|шоссе|набережная|переулок)\s+[А-ЯЁA-Z]/i.test(text)) return null;
 
