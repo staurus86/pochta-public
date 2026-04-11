@@ -924,7 +924,7 @@ function matchesRecognitionFilter(message, filterValue) {
   if (filterValue === 'missing_company') return !summary.company;
   if (filterValue === 'missing_inn') return !summary.inn;
   if (filterValue === 'attachments_unparsed') return hasAttachments && !summary.parsedAttachment;
-  if (filterValue === 'weak_detection') return diagnostics.riskLevel === 'high' || (diagnostics.completenessScore || 0) < 70 || (diagnostics.overallConfidence || 0) < 0.72;
+  if (filterValue === 'weak_detection') return (diagnostics.completenessScore || 0) < 70 || (diagnostics.overallConfidence || 0) < 0.72;
   if (filterValue === 'has_conflicts') return (diagnostics.conflicts || []).length > 0;
   if (filterValue === 'unconfirmed') return !message.recognitionConfirmed?.at;
   if (filterValue === 'high_priority') return isHighPriorityMessage(message);
@@ -2013,7 +2013,9 @@ function renderFieldCoverage() {
   const el = $('#field-coverage');
   if (!el) return;
 
-  const total = allRunnerMessages.length;
+  // Exclude spam/duplicates — field coverage only makes sense for real incoming messages
+  const nonSpamMessages = allRunnerMessages.filter((m) => !isIgnoredStatus(m.pipelineStatus));
+  const total = nonSpamMessages.length;
   if (total === 0) {
     el.innerHTML = '<div style="color:var(--text-muted);font-size:12px;padding:8px;">Нет данных</div>';
     return;
@@ -2035,7 +2037,7 @@ function renderFieldCoverage() {
   ];
 
   const stats = fields.map((field) => {
-    const found = allRunnerMessages.filter((msg) => field.ok(msg.analysis || {}, msg)).length;
+    const found = nonSpamMessages.filter((msg) => field.ok(msg.analysis || {}, msg)).length;
     const missing = total - found;
     const pct = Math.round(found / total * 100);
     return { ...field, found, missing, pct };
@@ -2043,9 +2045,9 @@ function renderFieldCoverage() {
 
   const strongest = [...stats].sort((a, b) => b.pct - a.pct)[0];
   const weakest = [...stats].sort((a, b) => a.pct - b.pct)[0];
-  const weakDetectionCount = allRunnerMessages.filter((msg) => matchesRecognitionFilter(msg, 'weak_detection')).length;
-  const conflictCount = allRunnerMessages.filter((msg) => matchesRecognitionFilter(msg, 'has_conflicts')).length;
-  const keyFieldGaps = allRunnerMessages.filter((msg) => {
+  const weakDetectionCount = nonSpamMessages.filter((msg) => matchesRecognitionFilter(msg, 'weak_detection')).length;
+  const conflictCount = nonSpamMessages.filter((msg) => matchesRecognitionFilter(msg, 'has_conflicts')).length;
+  const keyFieldGaps = nonSpamMessages.filter((msg) => {
     const a = msg.analysis || {};
     const hasArticle = (a.lead?.articles || []).length > 0;
     const hasName = getLeadProductNameList(a.lead || {}).length > 0;
@@ -2057,9 +2059,9 @@ function renderFieldCoverage() {
     <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(120px,1fr));gap:12px;margin-bottom:12px;">
       <div class="kpi-card"><div class="kpi-label">Лучшее покрытие</div><div class="kpi-value green">${strongest?.pct || 0}%</div><div style="font-size:11px;color:var(--text-muted);">${esc(strongest?.label || '—')}</div></div>
       <div class="kpi-card"><div class="kpi-label">Слабое место</div><div class="kpi-value rose">${weakest?.pct || 0}%</div><div style="font-size:11px;color:var(--text-muted);">${esc(weakest?.label || '—')}</div></div>
-      <div class="kpi-card"><div class="kpi-label">Слабый детект</div><div class="kpi-value amber">${weakDetectionCount}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Слабый детект</div><div class="kpi-value amber">${weakDetectionCount}</div><div style="font-size:10px;color:var(--text-muted);">из ${total} не-спам</div></div>
       <div class="kpi-card"><div class="kpi-label">Конфликты</div><div class="kpi-value rose">${conflictCount}</div></div>
-      <div class="kpi-card"><div class="kpi-label">Писем с влож.</div><div class="kpi-value accent">${allRunnerMessages.filter((msg) => (msg.attachments || []).length > 0).length}</div></div>
+      <div class="kpi-card"><div class="kpi-label">Писем с влож.</div><div class="kpi-value accent">${nonSpamMessages.filter((msg) => (msg.attachments || []).length > 0).length}</div></div>
       <div class="kpi-card"><div class="kpi-label">Без ключ. полей</div><div class="kpi-value amber">${keyFieldGaps}</div></div>
     </div>
     <div style="display:grid;gap:8px;">
