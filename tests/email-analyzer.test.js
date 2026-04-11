@@ -1908,3 +1908,59 @@ runTest("does not infer name from generic info@ mailbox", () => {
   });
   assert.equal(result.sender.fullName, "Не определено");
 });
+
+runTest("uses quoted sender signature for company and phone and keeps full numbered articles", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "artur@oilgis.ru",
+    subject: "Re: Запрос",
+    body: `Клапана:
+1) WK06Y-01-C-N-0
+2) WK06J-01-C-N-0
+
+Электрические катушки для управления гидравлическими распределителями (solenoid coils):
+1) Coil 230DG-32-1329
+
+Насос:
+1) Bieri AKP20-0,012-300-V
+2) Bieri AKP30-0,012-300-V
+
+----------------
+
+Кому: info@siderus.ru (info@siderus.ru);
+
+Тема: Запрос;
+
+09.04.2026, 09:20, "artur@oilgis.ru" <artur@oilgis.ru>:
+
+Добрый день
+Интересует поставка следующего оборудования:
+1. Насос гидравлический Bieri AKP20 и AKP30 (2 шт любого, приоритет на АКР20)
+2. Электрогидравлический клапан Hydac WK06Y и WK06J. (по 10шт каждого)
+интересует возможность поставки, цена сроки
+
+--
+Алик Шарифгалиев М.
+ООО ОйлГИС
+8 903 351 9285
+
+Наше предприятие работает в ЭДО Диадок ( со СБИС не работаем )
+Идентификатор 2BM-0278106553-2012052808163395382630000000000
+Ожидаем приглашения на обмен`
+  });
+
+  assert.equal(result.sender.companyName, "ООО ОйлГИС");
+  assert.equal(result.sender.mobilePhone, "+7 (903) 351-92-85");
+  assert.ok(result.lead.articles.includes("WK06Y-01-C-N-0"));
+  assert.ok(result.lead.articles.includes("WK06J-01-C-N-0"));
+  assert.ok(result.lead.articles.includes("230DG-32-1329"));
+  assert.ok(result.lead.articles.includes("AKP20-0,012-300-V"));
+  assert.ok(result.lead.articles.includes("AKP30-0,012-300-V"));
+  assert.ok(!result.lead.articles.includes("AKP20-0"));
+  assert.ok(!result.lead.articles.includes("AKP30-0"));
+  assert.ok(!result.lead.articles.includes("012-300-V"));
+  assert.ok(!result.lead.lineItems.some((item) => item.article === "WK06Y-01-C-N"));
+  assert.ok(!result.lead.lineItems.some((item) => item.article === "WK06J-01-C-N"));
+  assert.ok(!result.lead.lineItems.some((item) => item.article === "DG-32"));
+  assert.ok(!result.lead.lineItems.some((item) => item.article === "230DG-32"));
+  assert.ok(!/solenoid co/i.test(result.sender.companyName || ""));
+});

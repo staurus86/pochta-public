@@ -28,7 +28,7 @@ try {
 
 const URL_PATTERN = /https?:\/\/[^\s)]+/gi;
 // Supports 3-digit area codes (mobile 9xx, regions 3xx/4xx/8xx) and 4-digit city codes (3952, 3812, etc.)
-const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?|\(\d{3,5}\)\s*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?/g;
+const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}(?:[\s).-]*\d{2,4}){2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?|\(\d{3,5}\)\s*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?/g;
 const PHONE_LIKE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}/i;
 const PHONE_LABEL_PATTERN = /(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber)\s*[:#-]?\s*((?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}|\d{3,4}[\s(.-]*\d{2,3}[\s).-]*\d{2}[\s.-]*\d{2}(?!\d))/i;
 const CONTACT_CONTEXT_PATTERN = /\b(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber|email|e-mail|почта)\b/i;
@@ -497,6 +497,13 @@ export function analyzeEmail(project, payload) {
     ? activeFormData.formSection
     : [bodyForSender, attachmentContent].filter(Boolean).join("\n\n");
   const sender = extractSender(fromName, fromEmail, senderBody, attachments, signature);
+  const quotedSender = extractQuotedSenderFallback({
+    quotedContent,
+    fromName,
+    fromEmail,
+    attachments
+  });
+  mergeQuotedSenderFallback(sender, quotedSender);
   // Inject phone from form if extractSender missed it (form phone is authoritative)
   const formPhone = robotFormData?.phone || tildaFormData?.phone;
   if (formPhone && !sender.mobilePhone && !sender.cityPhone) {
@@ -1955,7 +1962,7 @@ const PDF_COMPANY_NOISE_TOKENS = new Set([
 
 // Legal entity forms used as direct fallback patterns
 const LEGAL_ENTITY_PATTERNS = [
-  /(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП|НПО|НПП|НПК|ТОО|КТ)\s+["«]?[A-Za-zА-ЯЁ0-9][^,\n]{2,80}?(?=\s*(?:ИНН|КПП|ОГРН|тел\.?|телефон|моб\.?|mobile|phone|сайт|site|e-?mail|email|адрес|г\.|ул\.|$))/i,
+  /(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП|НПО|НПП|НПК|ТОО|КТ)\s+["«]?[A-Za-zА-ЯЁ0-9][^,\n]{2,80}?(?=\s*(?:ИНН|КПП|ОГРН|тел\.?|телефон|моб\.?|mobile|phone|сайт|site|e-?mail|email|адрес|г\.|ул\.|(?:\+?7|8)[\s(.-]*\d{3}|$))/i,
   // With quotes: ООО «Ромашка», АО "Техно"
   /(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП|НПО|НПП|НПК|ТОО|КТ)\s+["«]([^"»]+)["»]/,
   // ИП Фамилия Имя Отчество
@@ -1989,7 +1996,9 @@ function extractCompanyName(body, signature = "") {
     for (const pattern of LEGAL_ENTITY_PATTERNS) {
       const match = text.match(pattern);
       if (match) {
-        const name = sanitizeCompanyName(match[0]).trim();
+        const sanitized = sanitizeCompanyName(match[0]);
+        if (!sanitized) continue;
+        const name = sanitized.trim();
         if (OWN_COMPANY_NAMES.test(name)) continue;
         if (name.length >= 5) {
           candidates.push({ name, score: 0 });
@@ -2245,6 +2254,53 @@ function extractCompanyFromSignatureLine(signature, fullName) {
   return null;
 }
 
+function hasLegalEntityMarker(value) {
+  return /(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП|ГК|НПО|НПП|GmbH|AG|Ltd\.?|LLC|Inc\.?|SE|S\.A\.|B\.V\.)/i.test(String(value || ""));
+}
+
+function extractQuotedSenderFallback({ quotedContent = "", fromName = "", fromEmail = "", attachments = [] } = {}) {
+  const quoted = String(quotedContent || "").trim();
+  if (!quoted || !fromEmail) return null;
+  if (!quoted.toLowerCase().includes(fromEmail.toLowerCase())) return null;
+
+  const { body: quotedPrimaryBody, signature: quotedSignature } = extractSignature(quoted);
+  const quotedBody = [quotedPrimaryBody, quotedSignature].filter(Boolean).join("\n\n") || quoted;
+  const sender = extractSender(fromName, fromEmail, quotedBody, attachments, quotedSignature);
+  if (!sender) return null;
+  return sender;
+}
+
+function mergeQuotedSenderFallback(sender, quotedSender) {
+  if (!sender || !quotedSender) return;
+
+  if ((!sender.mobilePhone && !sender.cityPhone) && (quotedSender.mobilePhone || quotedSender.cityPhone)) {
+    sender.mobilePhone = quotedSender.mobilePhone || sender.mobilePhone;
+    sender.cityPhone = quotedSender.cityPhone || sender.cityPhone;
+    sender.sources.phone = quotedSender.sources?.phone || "quoted_body";
+  }
+
+  if (!sender.inn && quotedSender.inn) {
+    sender.inn = quotedSender.inn;
+    sender.sources.inn = quotedSender.sources?.inn || "quoted_body";
+  }
+
+  const senderCompany = String(sender.companyName || "");
+  const quotedCompany = String(quotedSender.companyName || "");
+  const shouldReplaceCompany = (
+    (!senderCompany && quotedCompany)
+    || (!hasLegalEntityMarker(senderCompany) && hasLegalEntityMarker(quotedCompany))
+    || (/^[A-Za-z][A-Za-z\s.-]*\s+co\.?$/i.test(senderCompany) && hasLegalEntityMarker(quotedCompany))
+  );
+  if (shouldReplaceCompany) {
+    sender.companyName = quotedCompany;
+    sender.sources.company = quotedSender.sources?.company || "quoted_body";
+  }
+
+  if ((!sender.fullName || sender.fullName === "Не определено") && quotedSender.fullName && quotedSender.fullName !== "Не определено") {
+    sender.fullName = quotedSender.fullName;
+  }
+}
+
 // Step 5: Infer company from email domain (last resort, score -15)
 function inferCompanyFromDomain(email) {
   if (!email || isFreeDomain(email)) return null;
@@ -2272,9 +2328,11 @@ function sanitizeCompanyName(value) {
     .replace(/\s+(?:тел\.?|телефон|phone|mobile|моб\.?|сайт|site|e-?mail|email)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
     .replace(/\s+(?:www\.[^\s]+|https?:\/\/[^\s]+)\s*$/i, "")
     .replace(/\s+\+\d[\d()\s.-]*$/i, "")
+    .replace(/\s+(?:\+?7|8)(?:[\s(.-]*\d){10,}[\s\S]*$/i, "")
     .replace(/[;,:\-–—]\s*(?:тел\.?|телефон|phone|mobile|моб\.?|сайт|site|e-?mail|email)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
     .replace(/\s+(?:г\.|город|ул\.|улица|пр-?т|проспект|д\.|дом)\s+[\s\S]*$/i, "")
     .replace(/\s+(?:юридический\s+и\s+фактический|юридический|фактический|почтовый)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
+    .replace(/\s+Наше\s+предприятие[\s\S]*$/i, "")
     // Strip trailing bank details (БИК, р/с, к/с, корр. счёт)
     .replace(/\s+(?:БИК|бик|к\/с|р\/с|Р\/с|К\/с|корр?\.?\s*счёт|расч\.?\s*счёт|к[/\\]с|р[/\\]с)[\s\S]*$/i, "")
     .replace(/\s{2,}/g, " ")
@@ -2318,7 +2376,7 @@ function sanitizeCompanyName(value) {
   if (PDF_COMPANY_NOISE_TOKENS.has(lowerBase)) return null;
 
   // Reject generic English words + "co" (e.g. "United Process Co", "Any co", "Dust co")
-  const GENERIC_CO_WORDS = new Set(["any", "some", "united", "process", "special", "group", "general", "global", "master", "service", "system", "solution", "tech", "trade", "new", "old", "big", "small", "good", "best", "first", "next"]);
+  const GENERIC_CO_WORDS = new Set(["any", "some", "united", "process", "special", "group", "general", "global", "master", "service", "system", "solution", "tech", "trade", "new", "old", "big", "small", "good", "best", "first", "next", "solenoid", "coil", "coils", "hydraulic", "electric"]);
   if (/\s+co\.?\s*$/i.test(text) && GENERIC_CO_WORDS.has(lowerBase)) return null;
 
   // Reject software-version/repack noise (e.g. "SPecialiST RePack AppVersion Co", "RePack by someone")
@@ -2331,6 +2389,7 @@ function sanitizeCompanyName(value) {
 
   // Reject bare legal-form without any name ("ООО", "АО", "ИП")
   if (/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)$/i.test(text)) return null;
+  if (/^(?:наше|ваше)\s+предприятие$/i.test(text)) return null;
 
   if (/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)\s*(?:тел|телефон|phone|mobile|email|e-mail|сайт)$/i.test(text)) {
     return null;
@@ -2388,6 +2447,27 @@ function extractLineItems(body) {
     // Strip "Позиция N:" or "Поз. N:" prefix
     const line = rawLine.replace(/^(?:Позиция|Поз\.?)\s*\d{1,3}\s*[:.\s]+/i, "").trim();
     if (!line) continue;
+
+    // ── Exact numbered article lines: "1) WK06Y-01-C-N-0" ──
+    const numberedExactArticleMatch = line.match(/^\d{1,3}[.)]\s*([A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8})$/i);
+    if (numberedExactArticleMatch) {
+      items.push({ article: normalizeArticleCode(numberedExactArticleMatch[1]), quantity: 1, unit: "шт", descriptionRu: line, explicitArticle: true, sourceLine: line });
+      continue;
+    }
+
+    // ── Numbered branded line: "1) Bieri AKP20-0,012-300-V" ──
+    const numberedBrandArticleMatch = line.match(/^\d{1,3}[.)]\s*[A-Za-zÀ-ÿА-Яа-яЁё][A-Za-zÀ-ÿА-Яа-яЁё&.+-]{1,30}\s+([A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8})$/i);
+    if (numberedBrandArticleMatch) {
+      items.push({ article: normalizeArticleCode(numberedBrandArticleMatch[1]), quantity: 1, unit: "шт", descriptionRu: line, explicitArticle: true, sourceLine: line });
+      continue;
+    }
+
+    // ── Numbered descriptive line with stable code: "1) Coil 230DG-32-1329" ──
+    const numberedDescriptorArticleMatch = line.match(/^\d{1,3}[.)]\s*(?:Coil|Катушка|Клапан|Насос)\s+([A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8})$/i);
+    if (numberedDescriptorArticleMatch) {
+      items.push({ article: normalizeArticleCode(numberedDescriptorArticleMatch[1]), quantity: 1, unit: "шт", descriptionRu: line, explicitArticle: true, sourceLine: line });
+      continue;
+    }
 
     // ── Format: "Description ARTICLE - N шт" (product line with trailing qty) ──
     const productQtyMatch = line.match(PRODUCT_QTY_PATTERN);
@@ -2502,7 +2582,29 @@ function extractLineItems(body) {
     items.push(ni);
   }
 
-  return items;
+  return pruneShadowLineItems(items);
+}
+
+function pruneShadowLineItems(items) {
+  return items.filter((item, _, allItems) => {
+    const article = normalizeArticleCode(item.article);
+    if (!article) return false;
+
+    return !allItems.some((other) => {
+      if (other === item) return false;
+      const otherArticle = normalizeArticleCode(other.article);
+      if (!otherArticle || otherArticle === article) return false;
+      if (!otherArticle.includes(article) || otherArticle.length < article.length + 2) return false;
+
+      const itemDescription = cleanup(item.descriptionRu || item.sourceLine || "");
+      const otherDescription = cleanup(other.descriptionRu || other.sourceLine || "");
+
+      if (itemDescription && otherDescription && itemDescription === otherDescription) return true;
+      if (itemDescription && itemDescription.includes(otherArticle)) return true;
+      if (otherDescription && otherDescription.includes(article) && /[-/,.:]/.test(otherArticle)) return true;
+      return false;
+    });
+  });
 }
 
 /**
