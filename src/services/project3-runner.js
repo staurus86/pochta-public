@@ -116,7 +116,7 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
       siteUrl: item.siteUrl,
       subject: item.subject,
       from: item.from,
-      bodyPreview: String(item.body || item.error || "").slice(0, 4000),
+      bodyPreview: toPlainTextPreview(item.body || item.error || ""),
       attachments: item.attachments || [],
       attachmentFiles,
       error: item.error || null,
@@ -167,6 +167,46 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
     newMessages: newEmails,
     recentMessages: mergedMessages
   };
+}
+
+function toPlainTextPreview(value) {
+  const text = String(value || "");
+  if (!/<[a-zA-Z!/][^>]*>/.test(text)) {
+    return cleanupPreviewText(text).slice(0, 4000);
+  }
+
+  const stripped = text
+    .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, " ")
+    .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ")
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<\/(?:p|div|tr|li|h[1-6]|table|section|article|blockquote)>/gi, "\n")
+    .replace(/<[^>]+>/g, " ");
+
+  return cleanupPreviewText(decodeHtmlEntities(stripped)).slice(0, 4000);
+}
+
+function decodeHtmlEntities(text) {
+  return String(text || "")
+    .replace(/&nbsp;/gi, " ")
+    .replace(/&amp;/gi, "&")
+    .replace(/&lt;/gi, "<")
+    .replace(/&gt;/gi, ">")
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
+}
+
+function cleanupPreviewText(text) {
+  return String(text || "")
+    .replace(/\u00A0/g, " ")
+    .replace(/\u200B/g, "")
+    .replace(/\uFEFF/g, "")
+    .replace(/[ \t]+\n/g, "\n")
+    .replace(/\n[ \t]+/g, "\n")
+    .replace(/[ \t]{2,}/g, " ")
+    .replace(/\n{3,}/g, "\n\n")
+    .trim();
 }
 
 export async function reprocessMailboxMessages(project, options = {}) {

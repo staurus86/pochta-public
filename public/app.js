@@ -285,6 +285,40 @@ function isDashboardTopArticleNoise(article) {
   return false;
 }
 
+function decodeHtmlEntities(text) {
+  return String(text || '')
+    .replace(/&nbsp;/gi, ' ')
+    .replace(/&amp;/gi, '&')
+    .replace(/&lt;/gi, '<')
+    .replace(/&gt;/gi, '>')
+    .replace(/&quot;/gi, '"')
+    .replace(/&#39;/gi, "'")
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(Number(code)))
+    .replace(/&#x([0-9a-f]+);/gi, (_, code) => String.fromCharCode(parseInt(code, 16)));
+}
+
+function sanitizeEmailBodyText(text) {
+  const raw = String(text || '');
+  const withoutHtml = /<[a-zA-Z!/][^>]*>/.test(raw)
+    ? raw
+      .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, ' ')
+      .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, ' ')
+      .replace(/<br\s*\/?>/gi, '\n')
+      .replace(/<\/(?:p|div|tr|li|h[1-6]|table|section|article|blockquote)>/gi, '\n')
+      .replace(/<[^>]+>/g, ' ')
+    : raw;
+
+  return decodeHtmlEntities(withoutHtml)
+    .replace(/\u00A0/g, ' ')
+    .replace(/\u200B/g, '')
+    .replace(/\uFEFF/g, '')
+    .replace(/[ \t]+\n/g, '\n')
+    .replace(/\n[ \t]+/g, '\n')
+    .replace(/[ \t]{2,}/g, ' ')
+    .replace(/\n{3,}/g, '\n\n')
+    .trim();
+}
+
 function getAttachmentStemSet(message) {
   const values = new Set();
   const attachments = [
@@ -2602,7 +2636,7 @@ function renderEmailView(msg, viewEl, detailEl) {
   const rules = cls.signals?.matchedRules || [];
   const msgKey = mid(msg);
   const recognitionDecision = lead.recognitionDecision || {};
-  const bodyText = msg.bodyPreview || lead.freeText || 'Нет текста';
+  const bodyText = sanitizeEmailBodyText(msg.bodyPreview || lead.freeText || '') || 'Нет текста';
 
   viewEl.innerHTML = `
     <div class="email-view-header">
