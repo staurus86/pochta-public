@@ -5,7 +5,7 @@ import { DatabaseSync } from "node:sqlite";
 
 const DEFAULT_DATA_DIR = path.resolve(process.cwd(), process.env.DATA_DIR || "data");
 const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "mail.ru", "bk.ru", "list.ru", "inbox.ru", "yandex.ru", "ya.ru", "hotmail.com", "outlook.com", "icloud.com", "me.com", "live.com", "yahoo.com", "rambler.ru", "ro.ru", "autorambler.ru", "myrambler.ru", "lenta.ru", "aol.com", "protonmail.com", "proton.me", "zoho.com"]);
-const BRAND_FALSE_POSITIVE_ALIASES = new Set(["top", "moro", "ydra", "hydra", "global"]);
+const BRAND_FALSE_POSITIVE_ALIASES = new Set(["top", "moro", "ydra", "hydra", "global", "control", "process", "electronic", "data"]);
 // Aliases that must match as whole words only (prevent substring false positives like "puls" inside "vegapuls")
 const BRAND_WORD_BOUNDARY_ALIASES = new Set(["puls"]);
 

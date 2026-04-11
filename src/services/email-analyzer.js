@@ -183,7 +183,7 @@ const BRAND_NOISE = new Set([
 ]);
 
 const BRAND_FALSE_POSITIVE_ALIASES = new Set([
-  "top", "moro", "ydra", "hydra", "global"
+  "top", "moro", "ydra", "hydra", "global", "control", "process", "electronic", "data"
 ]);
 const OFFICE_XML_ARTICLE_NOISE_PATTERNS = [
   /^UTF-?8$/i,
@@ -302,6 +302,7 @@ export function analyzeEmail(project, payload) {
   const subject = String(payload.subject || "");
   const rawBody = String(payload.body || "");
   const body = stripHtml(rawBody);
+  const rawTabularFallbackItems = extractTabularReplyItemsFromBody(body);
   let { newContent, quotedContent } = separateQuotedText(body);
   // If the new content is empty/trivial but there's a forwarded message body,
   // treat the forwarded content as the primary body (manager forwarding a client request)
@@ -365,6 +366,13 @@ export function analyzeEmail(project, payload) {
     if (tildaFormData.name) fromName = tildaFormData.name;
   }
 
+  let quotedRobotFormData = null;
+  if (!robotFormData && !tildaFormData && looksLikeQuotedRobotForm(quotedContent)) {
+    quotedRobotFormData = parseRobotFormBody(subject, cleanupQuotedFormText(quotedContent));
+    if (quotedRobotFormData.email) fromEmail = quotedRobotFormData.email;
+    if (quotedRobotFormData.name) fromName = quotedRobotFormData.name;
+  }
+
   // Quick classification WITHOUT attachment content (attachment reading happens below for non-spam only)
   // For auto-replies: suppress subject and body (only use preamble)
   // For robot form emails: use only the form section to avoid false brands from HTML template
@@ -373,7 +381,7 @@ export function analyzeEmail(project, payload) {
     : body.slice(0, 500);
   const bodyForClassification = autoReplyDetection.isAutoReply
     ? autoReplyDetection.preamble || ""
-    : robotFormData?.formSection || tildaFormData?.formSection || effectivePrimaryBody;
+    : robotFormData?.formSection || tildaFormData?.formSection || quotedRobotFormData?.formSection || effectivePrimaryBody;
 
   const classification = classifyMessage({
     subject,
@@ -429,6 +437,16 @@ export function analyzeEmail(project, payload) {
     ];
   }
 
+  if (quotedRobotFormData && classification.label !== "Клиент") {
+    classification.label = "Клиент";
+    classification.confidence = Math.max(classification.confidence || 0, 0.82);
+    classification.signals = classification.signals || {};
+    classification.signals.matchedRules = [
+      ...(classification.signals.matchedRules || []),
+      { id: "quoted_robot_form_client", classifier: "client", scope: "quoted_robot_form", pattern: "quoted_website_form_inquiry", weight: 8 }
+    ];
+  }
+
   // Filter own brands (Siderus, Коловрат, etc.) from classification results
   classification.detectedBrands = detectionKb.filterOwnBrands(classification.detectedBrands);
 
@@ -471,11 +489,12 @@ export function analyzeEmail(project, payload) {
     payload.attachmentProcessingOptions || {}
   );
   const attachmentContent = sanitizeAttachmentText(attachmentAnalysis.combinedText || "");
+  const brandRelevantAttachmentText = buildBrandRelevantAttachmentText(attachmentAnalysis);
 
   // Merge brands detected in attachment content into classification
-  if (attachmentContent) {
+  if (brandRelevantAttachmentText) {
     const attachmentBrands = detectionKb.filterOwnBrands(
-      detectionKb.detectBrands(attachmentContent, project.brands || [])
+      detectionKb.detectBrands(brandRelevantAttachmentText, project.brands || [])
     );
     if (attachmentBrands.length) {
       classification.detectedBrands = uniqueBrands([...(classification.detectedBrands || []), ...attachmentBrands]);
@@ -484,10 +503,11 @@ export function analyzeEmail(project, payload) {
 
   // For subject/body extraction: use primary body + attachment content
   // For robot/tilda form emails: restrict to form section to avoid URL-slug noise
-  const activeFormData = robotFormData || tildaFormData;
+  const activeFormData = robotFormData || tildaFormData || quotedRobotFormData;
+  const quotedExtractionSupplement = buildQuotedExtractionSupplement(primaryBody, quotedContent, subject);
   const bodyForExtraction = activeFormData
     ? [activeFormData.formSection, attachmentContent].filter(Boolean).join("\n\n")
-    : [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n");
+    : [primaryBody || body, quotedExtractionSupplement, attachmentContent].filter(Boolean).join("\n\n");
   const subjectForExtraction = activeFormData?.product
     ? `${subject} ${activeFormData.product}`
     : subject;
@@ -495,7 +515,7 @@ export function analyzeEmail(project, payload) {
   // For form emails: use form section as sender body (avoids HTML template noise)
   const senderBody = activeFormData
     ? activeFormData.formSection
-    : [bodyForSender, attachmentContent].filter(Boolean).join("\n\n");
+    : bodyForSender;
   const sender = extractSender(fromName, fromEmail, senderBody, attachments, signature);
   const quotedSender = extractQuotedSenderFallback({
     quotedContent,
@@ -505,7 +525,7 @@ export function analyzeEmail(project, payload) {
   });
   mergeQuotedSenderFallback(sender, quotedSender);
   // Inject phone from form if extractSender missed it (form phone is authoritative)
-  const formPhone = robotFormData?.phone || tildaFormData?.phone;
+  const formPhone = robotFormData?.phone || tildaFormData?.phone || quotedRobotFormData?.phone;
   if (formPhone && !sender.mobilePhone && !sender.cityPhone) {
     const { mobilePhone, cityPhone } = splitPhones([formPhone], formPhone);
     sender.mobilePhone = mobilePhone || sender.mobilePhone;
@@ -513,12 +533,12 @@ export function analyzeEmail(project, payload) {
     if (mobilePhone || cityPhone) sender.sources.phone = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
   }
   // Inject company/INN from form fields if present
-  const formCompany = robotFormData?.company || tildaFormData?.company;
+  const formCompany = robotFormData?.company || tildaFormData?.company || quotedRobotFormData?.company;
   if (formCompany && !sender.companyName) {
     sender.companyName = sanitizeCompanyName(formCompany);
     sender.sources.company = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
   }
-  const formInn = robotFormData?.inn || tildaFormData?.inn;
+  const formInn = robotFormData?.inn || tildaFormData?.inn || quotedRobotFormData?.inn;
   if (formInn && !sender.inn) {
     sender.inn = formInn;
     sender.sources.inn = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
@@ -527,10 +547,102 @@ export function analyzeEmail(project, payload) {
   applyCompanyDirectoryHints(sender, fromEmail);
   mergeAttachmentRequisites(sender, attachmentAnalysis);
   applyCompanyDirectoryHints(sender, fromEmail);
-  const lead = mergeAttachmentLeadData(
+  let lead = mergeAttachmentLeadData(
     extractLead(subjectForExtraction, bodyForExtraction, attachments, project.brands || [], classification.detectedBrands),
     attachmentAnalysis
   );
+  const getConcreteItemScore = (candidateLead) => {
+    const articleCount = (candidateLead.articles || []).filter((item) => item && !/^DESC:/i.test(String(item))).length;
+    const lineItemCount = (candidateLead.lineItems || []).filter((item) => item?.article && !/^DESC:/i.test(String(item.article))).length;
+    return articleCount * 10 + lineItemCount;
+  };
+  if (!(lead.articles || []).length && quotedContent) {
+    const quotedBodyFallback = [primaryBody || body, cleanupQuotedFormText(quotedContent), attachmentContent].filter(Boolean).join("\n\n");
+    const fallbackLead = mergeAttachmentLeadData(
+      extractLead(subjectForExtraction, quotedBodyFallback, attachments, project.brands || [], classification.detectedBrands),
+      attachmentAnalysis
+    );
+    if (getConcreteItemScore(fallbackLead) > getConcreteItemScore(lead)) {
+      lead = fallbackLead;
+    }
+  }
+  if (!(lead.articles || []).length && body && body !== bodyForExtraction) {
+    const rawBodyFallback = [body, attachmentContent].filter(Boolean).join("\n\n");
+    const fallbackLead = mergeAttachmentLeadData(
+      extractLead(subjectForExtraction, rawBodyFallback, attachments, project.brands || [], classification.detectedBrands),
+      attachmentAnalysis
+    );
+    if (getConcreteItemScore(fallbackLead) > getConcreteItemScore(lead)) {
+      lead = fallbackLead;
+    }
+  }
+  if (!(lead.articles || []).length) {
+    const tabularFallbackItems = rawTabularFallbackItems;
+    if (tabularFallbackItems.length) {
+      const existingArticleSet = new Set((lead.lineItems || []).map((item) => normalizeArticleCode(item.article)).filter(Boolean));
+      lead.lineItems = [...(lead.lineItems || [])];
+      lead.productNames = [...(lead.productNames || [])];
+      lead.articles = [...(lead.articles || [])];
+      for (const item of tabularFallbackItems) {
+        const normalizedArticle = normalizeArticleCode(item.article);
+        if (!existingArticleSet.has(normalizedArticle)) {
+          lead.lineItems.push(item);
+          existingArticleSet.add(normalizedArticle);
+        }
+        if (!lead.articles.includes(normalizedArticle)) {
+          lead.articles.push(normalizedArticle);
+        }
+        if (!lead.productNames.some((entry) => normalizeArticleCode(entry.article) === normalizedArticle)) {
+          lead.productNames.push({
+            article: normalizedArticle,
+            name: sanitizeProductNameCandidate(String(item.descriptionRu || "").replace(new RegExp(`\\s+${escapeRegExp(normalizedArticle)}$`, "i"), "")) || null,
+            category: null
+          });
+        }
+      }
+      lead.totalPositions = Math.max(lead.totalPositions || 0, lead.lineItems.length, lead.articles.length);
+      if (lead.articles.length && /^Не определено/.test(String(lead.requestType || ""))) {
+        lead.requestType = "Не определено (есть артикулы)";
+      }
+    }
+  }
+  if (!(lead.articles || []).length) {
+    const directTabularPattern = /(?:^|[\n\r]|\s{2,})(?:№\s+Наименование\s+Кол-?во\s+Ед\.?изм\.?\s*)?(\d{1,3})\s+(.+?)\s+(\d{5,9})\s+(?:(?:[A-Za-zА-ЯЁа-яё]{1,5}\s+){0,3})?\d{1,4}[xх×*]\d{1,4}(?:[xх×*]\d{1,4})?(?:\s*[A-Za-zА-Яа-яЁё"]{0,4})?\s+(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?(?=$|[\n\r]|\s{2,})/gi;
+    const directMatches = [...String(body || "").matchAll(directTabularPattern)];
+    if (directMatches.length) {
+      lead.lineItems = [...(lead.lineItems || [])];
+      lead.productNames = [...(lead.productNames || [])];
+      lead.articles = [...(lead.articles || [])];
+      const existingArticleSet = new Set(lead.articles.map((item) => normalizeArticleCode(item)).filter(Boolean));
+      for (const match of directMatches) {
+        const article = normalizeArticleCode(match[3]);
+        const productName = sanitizeProductNameCandidate(match[2]) || null;
+        if (!article || existingArticleSet.has(article)) continue;
+        existingArticleSet.add(article);
+        lead.articles.push(article);
+        lead.lineItems.push({
+          article,
+          quantity: Math.round(parseFloat(String(match[4]).replace(",", "."))) || 1,
+          unit: match[5] || "шт",
+          descriptionRu: productName ? `${productName} ${article}` : article,
+          explicitArticle: true,
+          sourceLine: cleanup(match[0])
+        });
+        lead.productNames.push({ article, name: productName, category: null });
+      }
+      lead.totalPositions = Math.max(lead.totalPositions || 0, lead.lineItems.length, lead.articles.length);
+      if (lead.articles.length && /^Не определено/.test(String(lead.requestType || ""))) {
+        lead.requestType = "Не определено (есть артикулы)";
+      }
+    }
+  }
+  if ((lead.articles || []).some((item) => item && !/^DESC:/i.test(String(item)))) {
+    lead.lineItems = (lead.lineItems || []).filter((item) => {
+      if (!item?.article || !/^DESC:/i.test(String(item.article))) return true;
+      return !/^(?:минимальная цена|цена|стоимость|наличие|срок поставки)$/i.test(cleanup(item.descriptionRu || ""));
+    });
+    lead.totalPositions = Math.max(lead.lineItems.length, (lead.articles || []).length);
+  }
   enrichLeadFromKnowledgeBase(lead, classification, project, [subjectForExtraction, bodyForExtraction, attachmentContent].filter(Boolean).join("\n\n"));
   if (!lead.detectedBrands?.length && classification.detectedBrands?.length) {
     lead.detectedBrands = [...classification.detectedBrands];
@@ -659,6 +771,73 @@ function sanitizeAttachmentText(text) {
     .replace(/\b(?:CAOLAN|ALLLEX|ALFABY)\w*\b/gi, "");           // PDF producer names
 }
 
+function extractTabularReplyItemsFromBody(text) {
+  const source = String(text || "");
+  const pattern = /(?:^|[\n\r]|\s{2,})(?:№\s+Наименование\s+Кол-?во\s+Ед\.?изм\.?\s*)?(\d{1,3})\s+(.+?)\s+((?:\d{5,9})|(?:[A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8}))\s+(?:(?:[A-Za-zА-ЯЁа-яё]{1,5}\s+){0,3})?\d{1,4}[xх×*]\d{1,4}(?:[xх×*]\d{1,4})?(?:\s*[A-Za-zА-Яа-яЁё"]{0,4})?\s+(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?(?=$|[\n\r]|\s{2,})/gi;
+  const items = [];
+  for (const match of source.matchAll(pattern)) {
+    const article = normalizeArticleCode(match[3]);
+    const description = cleanup(match[2]);
+    const sourceLine = cleanup(match[0]);
+    if (!article || isObviousArticleNoise(article, sourceLine)) continue;
+    if (items.some((item) => normalizeArticleCode(item.article) === article)) continue;
+    items.push({
+      article,
+      quantity: Math.round(parseFloat(String(match[4]).replace(",", "."))) || 1,
+      unit: match[5] || "шт",
+      descriptionRu: description ? `${description} ${article}`.trim() : article,
+      explicitArticle: true,
+      sourceLine
+    });
+  }
+  return items;
+}
+
+function buildBrandRelevantAttachmentText(attachmentAnalysis = {}) {
+  const files = attachmentAnalysis.files || [];
+  return files
+    .filter((file) => file.status === "processed")
+    .filter((file) => !["requisites", "invoice"].includes(file.category))
+    .map((file) => sanitizeAttachmentText(file.preview || ""))
+    .filter(Boolean)
+    .join("\n\n")
+    .trim();
+}
+
+function cleanupQuotedFormText(text) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^\s*>\s?/, ""))
+    .join("\n")
+    .trim();
+}
+
+function looksLikeQuotedRobotForm(text) {
+  const value = cleanupQuotedFormText(text);
+  if (!value) return false;
+  return /(?:robot@siderus\.ru|Вопрос через обратную связь с сайта SIDERUS|Имя посетителя:|Новый вопрос на сайте SIDERUS)/i.test(value);
+}
+
+function buildQuotedExtractionSupplement(primaryBody, quotedContent, subject = "") {
+  const currentBody = String(primaryBody || "").trim();
+  const quoted = cleanupQuotedFormText(quotedContent);
+  if (!quoted) return "";
+
+  const isShortCurrentReply = currentBody.length > 0 && currentBody.length <= 220;
+  const hasInlineRequestSignals = /(?:артикул|наименование|кол-?во|ед\.?изм|цена|срок|поставка|запрос|кп|quotation|rfq|имя посетителя|вопрос:|телефон:)/i.test(quoted);
+  const isReplyThread = /^(?:re|fw|fwd)\s*:/i.test(String(subject || "").trim());
+
+  if (!((isShortCurrentReply && hasInlineRequestSignals) || looksLikeQuotedRobotForm(quoted) || (isReplyThread && hasInlineRequestSignals))) {
+    return "";
+  }
+
+  return quoted
+    .replace(/^(?:To|Кому|Subject|Тема|Date|Дата|Sent|Отправлено)\s*:.*$/gim, "")
+    .replace(/^(?:\d{2}\.\d{2}\.\d{4}|\d{1,2}\s+[а-яa-z]+)\S*.*<[^>]+>:\s*$/gim, "")
+    .trim()
+    .slice(0, 3000);
+}
+
 function normalizeAttachments(attachments) {
   if (Array.isArray(attachments)) {
     return attachments.map((item) => String(item).trim()).filter(Boolean);
@@ -750,6 +929,13 @@ function mergeAttachmentRequisites(sender, attachmentAnalysis) {
 
 function enrichLeadFromKnowledgeBase(lead, classification, project, searchText = "") {
   if (!lead.sources) lead.sources = {};
+  const hasConcreteArticles = (lead.articles || []).some((item) => item && !/^DESC:/i.test(String(item)));
+  if (!hasConcreteArticles) {
+    return;
+  }
+  if ((lead.detectedBrands || []).length > 0 || (classification.detectedBrands || []).length > 0) {
+    return;
+  }
   const brandCandidates = new Map();
   const queries = [
     ...(lead.productNames || []).map((item) => item?.name),
@@ -955,7 +1141,10 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
   const phones = body.match(PHONE_PATTERN) || [];
   const requisites = extractRequisites(body);
   // Filter out own URLs from detected links
-  const externalUrls = urls.filter((u) => !OWN_DOMAINS.has(extractDomainFromUrl(u)));
+  const externalUrls = urls.filter((u) => {
+    const domain = extractDomainFromUrl(u);
+    return domain && !OWN_DOMAINS.has(domain) && !isTrackingHost(domain);
+  });
   const extractedCompanyName = extractCompanyName(body, signature);
   const inferredCompanyName = inferCompanyNameFromEmail(fromEmail);
   // Domain fallback: last resort if nothing found in body/signature
@@ -1045,6 +1234,7 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const brandScanBody = body.length > 6000 ? body.slice(0, 6000) : body;
   const rawBrands = unique(kbBrands.concat(detectBrands([subject, brandScanBody, attachmentsText].join("\n"), brands)));
   let detectedBrands = detectionKb.filterOwnBrands(rawBrands);
+  const explicitTextBrands = [...detectedBrands];
 
   const attachmentHints = parseAttachmentHints(attachments);
 
@@ -1079,7 +1269,7 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
 
   detectedBrands = detectionKb.filterOwnBrands(unique([
     ...detectedBrands,
-    ...nomenclatureMatches.map((item) => item.brand).filter(Boolean)
+    ...(explicitTextBrands.length === 0 ? nomenclatureMatches.map((item) => item.brand).filter(Boolean) : [])
   ]));
 
   const productNames = extractProductNames(
@@ -1949,6 +2139,7 @@ const GENERIC_DOMAIN_WORDS = new Set([
   "metal", "group", "trade", "service", "info", "mail", "opt", "shop",
   "store", "online", "web", "net", "pro", "biz", "corp",
 ]);
+const TRACKING_HOST_PATTERNS = [/^trk\.mail\.ru$/i, /^l\.mail\.ru$/i, /^click\./i, /^track\./i];
 
 // PDF/font tokens that appear as fake company names when attachment content bleeds into extraction
 const PDF_COMPANY_NOISE_TOKENS = new Set([
@@ -2067,6 +2258,11 @@ function isFreeDomain(email) {
 
 function isOwnDomain(domain) {
   return OWN_DOMAINS.has(domain);
+}
+
+function isTrackingHost(domain) {
+  const host = String(domain || "").toLowerCase().replace(/^www\./, "");
+  return TRACKING_HOST_PATTERNS.some((pattern) => pattern.test(host));
 }
 
 function extractDomainFromUrl(url) {
@@ -2378,6 +2574,8 @@ function sanitizeCompanyName(value) {
   // Reject generic English words + "co" (e.g. "United Process Co", "Any co", "Dust co")
   const GENERIC_CO_WORDS = new Set(["any", "some", "united", "process", "special", "group", "general", "global", "master", "service", "system", "solution", "tech", "trade", "new", "old", "big", "small", "good", "best", "first", "next", "solenoid", "coil", "coils", "hydraulic", "electric"]);
   if (/\s+co\.?\s*$/i.test(text) && GENERIC_CO_WORDS.has(lowerBase)) return null;
+  if (/^[A-Z]{1,3}\s+co\.?$/i.test(text)) return null;
+  if (/^(?:hd|isa|cmod)\s+co\.?$/i.test(text)) return null;
 
   // Reject software-version/repack noise (e.g. "SPecialiST RePack AppVersion Co", "RePack by someone")
   if (/\b(?:repack|appversion|portable|keygen|crack|patch|activator|installer)\b/i.test(text)) return null;
@@ -2433,11 +2631,27 @@ function splitPhones(phones, body = "") {
 function extractLineItems(body) {
   const lines = body.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const items = [];
+  const tabularRowPattern = /(?:^|[\n\r]|\s{2,})(?:№\s+Наименование\s+Кол-?во\s+Ед\.?изм\.?\s*)?(\d{1,3})\s+(.+?)\s+((?:\d{5,9})|(?:[A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8}))\s+(?:(?:[A-Za-zА-ЯЁа-яё]{1,5}\s+){0,3})?\d{1,4}[xх×*]\d{1,4}(?:[xх×*]\d{1,4})?(?:\s*[A-Za-zА-Яа-яЁё"]{0,4})?\s+(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?(?=$|[\n\r]|\s{2,})/gi;
 
   for (const block of parseArticleQtyBlocks(body)) {
     if (!items.some((item) => normalizeArticleCode(item.article) === normalizeArticleCode(block.article))) {
       items.push(block);
     }
+  }
+
+  for (const match of body.matchAll(tabularRowPattern)) {
+    const article = normalizeArticleCode(match[3]);
+    const sourceLine = cleanup(match[0]);
+    if (!article || isObviousArticleNoise(article, sourceLine)) continue;
+    if (items.some((item) => normalizeArticleCode(item.article) === article)) continue;
+    items.push({
+      article,
+      quantity: Math.round(parseFloat(String(match[4]).replace(",", "."))) || 1,
+      unit: match[5] || "шт",
+      descriptionRu: `${cleanup(match[2])} ${article}`.trim(),
+      explicitArticle: true,
+      sourceLine
+    });
   }
 
   for (const rawLine of lines) {
@@ -2447,6 +2661,21 @@ function extractLineItems(body) {
     // Strip "Позиция N:" or "Поз. N:" prefix
     const line = rawLine.replace(/^(?:Позиция|Поз\.?)\s*\d{1,3}\s*[:.\s]+/i, "").trim();
     if (!line) continue;
+
+    // ── Tabular quoted row: "1 Уплотнение масляное 122571 NBR G 60х75х8 10" ──
+    const tableRowSource = line.replace(/^№\s+Наименование\s+Кол-?во\s+Ед\.?изм\.?\s*/i, "").trim();
+    const tableRowMatch = tableRowSource.match(/^\d{1,3}\s+(.+?)\s+((?:\d{5,9})|(?:[A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8}))\s+(?:(?:[A-Za-zА-ЯЁа-яё]{1,5}\s+){0,3})?\d{1,4}[xх×*]\d{1,4}(?:[xх×*]\d{1,4})?(?:\s*[A-Za-zА-Яа-яЁё"]{0,4})?\s+(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?$/i);
+    if (tableRowMatch && !isObviousArticleNoise(tableRowMatch[2], tableRowSource)) {
+      items.push({
+        article: normalizeArticleCode(tableRowMatch[2]),
+        quantity: Math.round(parseFloat(tableRowMatch[3].replace(",", "."))) || 1,
+        unit: tableRowMatch[4] || "шт",
+        descriptionRu: `${tableRowMatch[1]} ${tableRowMatch[2]}`.trim(),
+        explicitArticle: true,
+        sourceLine: tableRowSource
+      });
+      continue;
+    }
 
     // ── Exact numbered article lines: "1) WK06Y-01-C-N-0" ──
     const numberedExactArticleMatch = line.match(/^\d{1,3}[.)]\s*([A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8})$/i);
@@ -2850,6 +3079,7 @@ function extractAllArticlesFromDescription(text) {
 
   const productContextPattern = /(?:^|[\s-])(?:[A-Za-zÀ-ÿА-Яа-яЁё][A-Za-zÀ-ÿА-Яа-яЁё&.-]{1,30}(?:\s+(?:und|and|&)\s+[A-Za-zÀ-ÿА-Яа-яЁё][A-Za-zÀ-ÿА-Яа-яЁё&.-]{1,30})?)\s+([A-Za-zА-Яа-яЁё]?\d[A-Za-zА-Яа-яЁё0-9/-]{2,20}|\d{4,9}|[A-Za-zА-Яа-яЁё]{1,4}[A-Za-zА-Яа-яЁё0-9]{1,8}(?:[-/.][A-Za-zА-Яа-яЁё0-9]{1,12}){1,6})/gi;
   for (const m of text.matchAll(productContextPattern)) add(m[1]);
+  for (const m of text.matchAll(/\b(\d{5,9})\b(?=\s+(?:NBR|FKM|EPDM|PTFE|VITON|FPM|VMQ|HNBR|SIL)\b|\s+\d{1,4}[xх×*]\d{1,4}(?:[xх×*]\d{1,4})?\b)/gi)) add(m[1]);
 
   for (const m of text.matchAll(EXTENDED_CODE_PATTERN)) add(m[1]);
   for (const m of text.matchAll(DIGIT_LEAD_SEGMENTED_CODE_PATTERN)) add(m[1]);
@@ -3585,7 +3815,9 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^AISI\s+\d{3}[A-Z]?$/.test(normalized)) return true;
   // Dimension/size expressions: 4x14mm, 20mm, 10x10, 3/4" — engineering sizes, not articles
   if (/^\d+[xхх×*]\d+(?:[.,]\d+)?(?:mm|cm|m|")?$/i.test(normalized)) return true;
+  if (/^\d+[xхх×*]\d+(?:[xхх×*]\d+){1,3}(?:[.,]\d+)?(?:mm|cm|m|")?$/i.test(normalized)) return true;
   if (/^\d+(?:[.,]\d+)?\s*(?:mm|cm|мм|см)$/i.test(normalized)) return true;
+  if (/^\d{2,5}(?:-\d{2,5}){2,}(?:-[a-z]{1,4})?$/i.test(normalized) && /(?:ysclid|rab-temp|processed|orders|bitrix|form_result|isa-hd)/i.test(line)) return true;
   // Image/file attachment names used as articles: IMG-5248, DSC-1234, SCAN-001
   if (GENERIC_IMAGE_ATTACHMENT_PATTERN.test(normalized)) return true;
   // Prefixed catalog/INN codes misidentified as articles: 2A3952010011, 3A3952010260
@@ -3860,9 +4092,15 @@ function parseRobotFormBody(subject, body) {
   const formHeaderIdx = body.search(/Заполнена\s+(?:форма|web-форма)|Имя\s+посетителя:|Новый\s+(?:заказ|лид)|Заказ\s+звонка/i);
   const formEndIdx = body.search(/(?:Запрос|Заявка|Вопрос)\s+отправлен[а]?:/i);
   const sectionStart = formHeaderIdx !== -1 ? formHeaderIdx : 0;
-  const formSection = (formEndIdx > sectionStart)
+  let formSection = (formEndIdx > sectionStart)
     ? body.slice(sectionStart, formEndIdx)
     : body.slice(sectionStart, sectionStart + 1500);
+  formSection = formSection
+    .replace(/^Страница\s+отправки:\s*.*$/gim, "")
+    .replace(/^Просмотр\s+результата\s+на\s+сайте:\s*.*$/gim, "")
+    .replace(/^https?:\/\/[^\s]+$/gim, "")
+    .replace(/^\s*\*\s*(?:From|Sent|To|Cc|Subject)\*:\s*.*$/gim, "")
+    .trim();
 
   // Visitor name: "Имя посетителя: X" or widget "Ваше имя\n***\nX"
   const nameMatch =

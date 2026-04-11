@@ -1964,3 +1964,74 @@ runTest("uses quoted sender signature for company and phone and keeps full numbe
   assert.ok(!result.lead.lineItems.some((item) => item.article === "230DG-32"));
   assert.ok(!/solenoid co/i.test(result.sender.companyName || ""));
 });
+
+runTest("extracts article from quoted tabular reply row without false brand enrichment", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "m14@interprom24.ru",
+    fromName: "Роман Нестеров",
+    subject: "Re: запрос 1174943",
+    body: `Добрый день!
+
+Подскажите, когда ожидать ответ по запросу?
+
+----------------
+To: info@siderus.ru (info@siderus.ru);
+Subject: запрос 1174943;
+09.04.2026, 11:03, "Роман Нестеров" <m14@interprom24.ru>:
+Добрый день!
+Подскажите, пожалуйста, по наличию и стоимости
+нужна минимальная цена
+
+№ Наименование Кол-во Ед.изм.
+1 Уплотнение масляное 122571 NBR G 60х75х8 10`
+  });
+
+  assert.ok(result.lead.articles.includes("122571"));
+  assert.ok(result.lead.lineItems.some((item) => item.article === "122571" && item.quantity === 10));
+  assert.ok(result.lead.productNames.some((item) => item.article === "122571" && /Уплотнение масляное/i.test(item.name || "")));
+  assert.ok(!(result.classification.detectedBrands || []).includes("Kromschroeder"));
+  assert.ok(!(result.lead.detectedBrands || []).includes("Kromschroeder"));
+  assert.ok(!result.lead.lineItems.some((item) => /^DESC:/i.test(item.article || "") && /минимальная цена/i.test(item.descriptionRu || "")));
+});
+
+runTest("extracts quoted robot form request without tracking site or generic control brand noise", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "gurevaa18@mail.ru",
+    fromName: "Алиса Гурьева",
+    subject: "Re: FW: Вопрос через обратную связь с сайта SIDERUS",
+    body: `--
+Алиса Гурьева
+Отправлено из Почты Mail ( https://trk.mail.ru/c/zzm979 )
+
+>
+> Четверг, 9 апреля 2026, 17:30 +03:00 от SIDERUS :
+>
+> Добрый день!
+>
+> Для обработки запроса, нужны реквизиты компании.
+>
+> *From:* robot@siderus.ru
+> *Sent:* Thursday, April 9, 2026 11:38 AM
+> *To:* info@siderus.ru
+> *Subject:* Вопрос через обратную связь с сайта SIDERUS
+>
+> Новый вопрос на сайте SIDERUS (8391)
+> Имя посетителя: Алиса
+> Телефон:+7 917 908-14-54
+> Email: gurevaa18@mail.ru
+> Вопрос:Добрый день. Прошу указать цену и срок поставки. Спасибо!
+> Модуль управления MV2067512015 IGEL - 2шт
+> Тип: CMOD (ISA-HD Control Module) MVSTMB-GN271210
+>
+> Страница отправки: https://siderus.ru/orders/processed/mv2067512015-silovoy-modul-plavnogo-puska-igel-electric-isa-hd-400-10000-230-230-i-rab-temp-5-55os-s/?ysclid=mnr7xi98od792868556`
+  });
+
+  assert.equal(result.classification.label, "Клиент");
+  assert.equal(result.sender.mobilePhone, "+7 (917) 908-14-54");
+  assert.equal(result.sender.website, null);
+  assert.ok(result.lead.articles.includes("MV2067512015"));
+  assert.ok(result.lead.articles.includes("MVSTMB-GN271210"));
+  assert.ok(!result.lead.articles.includes("400-10000-230-230-i-rab-temp-5-55os-s"));
+  assert.ok((result.lead.detectedBrands || []).includes("IGEL Electric"));
+  assert.ok(!(result.lead.detectedBrands || []).includes("Control Techniques"));
+});
