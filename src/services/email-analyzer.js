@@ -1092,7 +1092,11 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   }
 
   // ── Merge free-text positions (no explicit article code) ──
-  const existingArticles = lineItems.map((i) => normalizeArticleCode(i.article)).filter(Boolean);
+  // Pass allArticles so extractFreeTextItems can skip lines that already have a real article code
+  const existingArticles = unique([
+    ...lineItems.map((i) => normalizeArticleCode(i.article)),
+    ...allArticles
+  ].filter(Boolean));
   const freetextItems = extractFreeTextItems(body, detectedBrands, existingArticles);
   for (const ftItem of freetextItems) {
     // Only add if no structurally-detected item shares the same article
@@ -2471,7 +2475,10 @@ function extractFreeTextItems(body, detectedBrands = [], existingArticles = []) 
   const lines = body.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
   const items = [];
 
-  const existingSet = new Set(existingArticles.map((a) => String(a).toLowerCase()));
+  // Non-DESC codes ≥4 chars for containment checks
+  const existingSet = new Set(
+    existingArticles.filter((a) => a && !a.startsWith("DESC:") && a.length >= 4).map((a) => a.toLowerCase())
+  );
 
   const isNoiseLine = (line) => {
     if (SIGNATURE_PATTERNS.some((p) => p.test(line))) return true;
@@ -2479,6 +2486,9 @@ function extractFreeTextItems(body, detectedBrands = [], existingArticles = []) 
     if (/\b[\w.+-]+@[\w.-]+\.\w{2,}\b/.test(line)) return true;
     if (/\+?[78][\s(-]\d{3}[\s)-]\d{3}[-\s]?\d{2}[-\s]?\d{2}/.test(line)) return true;
     if (/^https?:\/\//.test(line)) return true;
+    if (/^\s*(?:web|сайт|url|www)\s*[:#]\s*\S+/i.test(line)) return true;
+    // PDF/Office internal metadata keywords
+    if (/\b(?:CreationDate|StructTreeRoot|DescendantFonts|ImageMask|ViewerPreferences|PickTrayByPDFSize|FontDescriptor|CIDFont|MediaBox|ToUnicode|CropBox|XObject|XrefStm)\b/i.test(line)) return true;
     if (line.length < MIN_DESC_LENGTH) return true;
     return false;
   };
@@ -2486,7 +2496,9 @@ function extractFreeTextItems(body, detectedBrands = [], existingArticles = []) 
   const addItem = (desc, qty, unit) => {
     const cleanDesc = desc.trim().replace(/\s+/g, " ");
     if (cleanDesc.length < MIN_DESC_LENGTH) return;
-    if (existingSet.has(cleanDesc.toLowerCase().slice(0, 20))) return;
+    const lowerClean = cleanDesc.toLowerCase();
+    // Skip if description already contains an extracted article code (prevents DESC: duplicates)
+    if (existingSet.size > 0 && [...existingSet].some((a) => lowerClean.includes(a))) return;
     const article = transliterateToSlug(cleanDesc);
     if (items.some((i) => i.article === article)) return;
     items.push({

@@ -726,6 +726,37 @@ e-mail: lutsenko@snipermail.ru
 
 // ═══ Product name detection tests ═══
 
+runTest("does not create DESC: item when article code is already extracted from request phrase", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос",
+    body: "Нужен датчик давления PR200-24-4-2-0 в количестве 2 шт."
+  });
+  const articles = result.lead.articles || [];
+  const descItems = articles.filter((a) => a && a.startsWith("DESC:"));
+  const realItems = articles.filter((a) => a && !a.startsWith("DESC:"));
+  assert.ok(realItems.length > 0, "should extract real article code");
+  assert.ok(descItems.length === 0, `should not create DESC: when article is present, got: ${descItems.join(", ")}`);
+});
+
+runTest("does not create DESC: from PDF metadata lines", () => {
+  const result = analyzeEmail(project, {
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос ПЛК",
+    attachments: ["spec.pdf"],
+    body: `Нужен ПЛК.
+StructTreeRoot 23 0 R
+DescendantFonts encoding identity-h
+ImageMask true
+ViewerPreferences PickTrayByPDFSize true`
+  });
+  const descItems = (result.lead.articles || []).filter((a) => a && a.startsWith("DESC:"));
+  const pdfDesc = descItems.filter((a) =>
+    /structtree|descendant|imagemask|viewerpref/i.test(a)
+  );
+  assert.ok(pdfDesc.length === 0, `PDF metadata should not become DESC: articles, got: ${pdfDesc.join(", ")}`);
+});
+
 runTest("extractLead detects product names from context", () => {
   const result = analyzeEmail(project, {
     fromEmail: "buyer@company.ru",
