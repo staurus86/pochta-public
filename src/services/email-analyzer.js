@@ -723,8 +723,10 @@ function mergeAttachmentRequisites(sender, attachmentAnalysis) {
   const allOgrn = [...new Set(files.flatMap((file) => file.detectedOgrn || []))];
 
   if (!sender.sources) sender.sources = {};
-  if (!sender.inn && allInn.length === 1) {
-    sender.inn = allInn[0];
+  if (!sender.inn && allInn.length >= 1) {
+    // Prefer INN from a file that also has КПП (more authoritative requisite document)
+    const innWithKpp = files.find((file) => (file.detectedInn || []).length > 0 && (file.detectedKpp || []).length > 0);
+    sender.inn = innWithKpp ? innWithKpp.detectedInn[0] : allInn[0];
     sender.sources.inn = "attachment";
   }
   if (!sender.kpp && allKpp.length === 1) {
@@ -1438,7 +1440,7 @@ function buildFieldDiagnostic(field, lead, sender) {
     const hasSenderProfile = brandSources.includes("sender_profile");
     return {
       found,
-      confidence: !found ? 0 : hasNomenclature ? 0.9 : hasSenderProfile ? 0.85 : brands.length === 1 ? 0.78 : 0.62,
+      confidence: !found ? 0 : hasNomenclature ? 0.9 : hasSenderProfile ? 0.85 : brands.length === 1 ? 0.78 : brands.length <= 4 ? 0.76 : 0.62,
       source: hasNomenclature ? "nomenclature" : brandSources[0] || null
     };
   }
@@ -1515,6 +1517,16 @@ function collectArticleQuantityConflicts(lead) {
   return conflicts;
 }
 
+function normalizeItemName(name) {
+  return name.toLowerCase().replace(/\s+/g, " ").replace(/[.,;:!?]+$/, "").trim();
+}
+
+function isSameItemName(a, b) {
+  const na = normalizeItemName(a);
+  const nb = normalizeItemName(b);
+  return na === nb || na.includes(nb) || nb.includes(na);
+}
+
 function collectArticleNameConflicts(lead) {
   const nameByArticle = new Map();
   for (const item of lead.lineItems || []) {
@@ -1534,14 +1546,20 @@ function collectArticleNameConflicts(lead) {
 
   const conflicts = [];
   for (const [article, variants] of nameByArticle.entries()) {
-    const names = [...new Set(variants.map((item) => item.name))];
-    if (names.length > 1) {
+    // Deduplicate by normalized name (case-insensitive, substring-tolerant)
+    const distinctNames = [];
+    for (const { name } of variants) {
+      if (!distinctNames.some((existing) => isSameItemName(existing, name))) {
+        distinctNames.push(name);
+      }
+    }
+    if (distinctNames.length > 1) {
       conflicts.push({
         code: "article_name_conflict",
         field: "name",
         severity: "medium",
         article,
-        values: names.slice(0, 4),
+        values: distinctNames.slice(0, 4),
         sources: unique(variants.map((item) => item.source).filter(Boolean))
       });
     }
@@ -1554,13 +1572,19 @@ function collectAttachmentRequisiteConflicts(files) {
   const inns = [...new Set(files.flatMap((file) => file.detectedInn || []).filter(Boolean))];
   const conflicts = [];
   if (inns.length > 1) {
-    conflicts.push({
-      code: "multiple_inn_candidates",
-      field: "inn",
-      severity: "medium",
-      values: inns,
-      sources: files.filter((file) => (file.detectedInn || []).length > 0).map((file) => file.filename)
-    });
+    // Check if one candidate is clearly authoritative (co-located with КПП in same file)
+    const innWithKpp = files.find((file) => (file.detectedInn || []).length > 0 && (file.detectedKpp || []).length > 0);
+    const primaryInn = innWithKpp ? innWithKpp.detectedInn[0] : null;
+    // Only flag conflict if no clear winner — ambiguous multi-INN with no КПП anchor
+    if (!primaryInn) {
+      conflicts.push({
+        code: "multiple_inn_candidates",
+        field: "inn",
+        severity: "medium",
+        values: inns,
+        sources: files.filter((file) => (file.detectedInn || []).length > 0).map((file) => file.filename)
+      });
+    }
   }
   return conflicts;
 }
@@ -1585,15 +1609,16 @@ function collectSemanticConflicts(lead, sender) {
     }
   }
 
-  // Outlier quantity: >1000 units of single item is suspicious
+  // Outlier quantity: >10000 units is suspicious (skip year-like values 1900-2100 — often parsed from date context)
   for (const item of lead.lineItems || []) {
-    if (item.quantity > 1000) {
+    const qty = item.quantity;
+    if (qty > 10000 && !(qty >= 1900 && qty <= 2100)) {
       conflicts.push({
         code: "outlier_quantity",
         field: "quantity",
         severity: "medium",
         article: item.article,
-        quantity: item.quantity
+        quantity: qty
       });
     }
   }
@@ -1632,7 +1657,10 @@ function collectRecognitionIssues({ lead, sender, files, fields, conflicts, clas
     }
   }
 
-  if (hasAttachments && !files.some((file) => file.status === "processed")) {
+  // Only flag attachment_parse_gap for documents that could contain order data (not images/signatures)
+  const IMAGE_EXT = /\.(jpe?g|png|gif|bmp|webp|ico|tiff?|svg)$/i;
+  const documentFiles = files.filter((file) => !IMAGE_EXT.test(file.filename || ""));
+  if (documentFiles.length > 0 && !documentFiles.some((file) => file.status === "processed")) {
     issues.push({
       code: "attachment_parse_gap",
       field: "attachment",
