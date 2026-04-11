@@ -567,6 +567,26 @@ runTest("does not detect SIDERUS or Support as articles", () => {
   assert.ok(!analysis.detectedBrands.includes("Siderus"));
 });
 
+runTest("caps detected brands at 15 even when attachment is a full catalog", () => {
+  // Simulate huge attachment with many brand names
+  const brandNames = ["Siemens", "ABB", "Schneider", "Phoenix Contact", "Weidmuller",
+    "Pepperl+Fuchs", "Turck", "Sick", "Banner", "Balluff",
+    "IFM", "Omron", "Keyence", "Leuze", "Pilz",
+    "Wago", "Murr", "Beckhoff", "Festo", "Bosch Rexroth", "Parker"];
+  const analysis = analyzeEmail(project, {
+    fromName: "Buyer",
+    fromEmail: "buyer@company.ru",
+    subject: "Запрос",
+    attachments: brandNames.map((b) => `${b} catalog.pdf`),
+    body: `Нужен артикул ABB S201-C16 x 1 шт.`
+  });
+
+  assert.ok(
+    (analysis.detectedBrands || []).length <= 15,
+    `Brand count should be ≤15, got ${(analysis.detectedBrands || []).length}`
+  );
+});
+
 runTest("smoke: brand catalog detects known brands from catalog", () => {
   const analysis = analyzeEmail(project, {
     fromName: "Buyer",

@@ -557,7 +557,7 @@ export function analyzeEmail(project, payload) {
     sender,
     lead,
     crm,
-    detectedBrands: uniqueBrands(detectionKb.filterOwnBrands(lead.detectedBrands)),
+    detectedBrands: uniqueBrands(detectionKb.filterOwnBrands(lead.detectedBrands)).slice(0, 15),
     intakeFlow: buildIntakeFlow(classification.label, crm, lead),
     suggestedReply,
     rawInput: {
@@ -1030,7 +1030,9 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     const context = [item.sourceLine, item.descriptionRu, item.source].filter(Boolean).join(" ");
     return !isObviousArticleNoise(item.article, context || body) && (item.explicitArticle || isLikelyArticle(item.article, forbiddenDigits, context || body));
   }).map((item) => ({ ...item, source: item.source || "body" }));
-  const rawBrands = unique(kbBrands.concat(detectBrands([subject, body, attachmentsText].join("\n"), brands)));
+  // Limit brand scan text to avoid attachment-bomb hallucinations (large catalogs / PDFs)
+  const brandScanBody = body.length > 6000 ? body.slice(0, 6000) : body;
+  const rawBrands = unique(kbBrands.concat(detectBrands([subject, brandScanBody, attachmentsText].join("\n"), brands)));
   let detectedBrands = detectionKb.filterOwnBrands(rawBrands);
 
   const attachmentHints = parseAttachmentHints(attachments);
