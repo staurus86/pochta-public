@@ -1282,10 +1282,13 @@ function collectSemanticConflicts(lead, sender) {
     }
   }
 
-  // Outlier quantity: >10000 units is suspicious (skip year-like values 1900-2100)
+  // Outlier quantity: >10000 units is suspicious
   for (const item of lead.lineItems || []) {
     const qty = item.quantity;
-    if (qty > 10000 && !(qty >= 1900 && qty <= 2100)) {
+    const isYearLike = qty >= 1900 && qty <= 2100;
+    const isInnLike = qty >= 1_000_000_000 && qty <= 9_999_999_999; // 10-digit Russian INN parsed as quantity
+    const isDataNoise = qty >= 1_000_000_000_000; // trillion+: PDF/hex garbage
+    if (qty > 10000 && !isYearLike && !isInnLike && !isDataNoise) {
       conflicts.push({
         code: "outlier_quantity",
         field: "quantity",
