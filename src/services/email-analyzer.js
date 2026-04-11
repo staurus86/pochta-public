@@ -354,6 +354,15 @@ export function analyzeEmail(project, payload) {
     if (robotFormData.name) fromName = robotFormData.name;
   }
 
+  // Tilda / third-party webform notifications (noreply@tilda.ws, etc.)
+  // These are real client inquiries forwarded by the site's form service
+  let tildaFormData = null;
+  if (!robotFormData && isTildaWebFormSender(fromEmail)) {
+    tildaFormData = parseTildaFormBody(body);
+    if (tildaFormData.email) fromEmail = tildaFormData.email;
+    if (tildaFormData.name) fromName = tildaFormData.name;
+  }
+
   // Quick classification WITHOUT attachment content (attachment reading happens below for non-spam only)
   // For auto-replies: suppress subject and body (only use preamble)
   // For robot form emails: use only the form section to avoid false brands from HTML template
@@ -362,7 +371,7 @@ export function analyzeEmail(project, payload) {
     : body.slice(0, 500);
   const bodyForClassification = autoReplyDetection.isAutoReply
     ? autoReplyDetection.preamble || ""
-    : robotFormData?.formSection || effectivePrimaryBody;
+    : robotFormData?.formSection || tildaFormData?.formSection || effectivePrimaryBody;
 
   const classification = classifyMessage({
     subject,
@@ -404,6 +413,17 @@ export function analyzeEmail(project, payload) {
     classification.signals.matchedRules = [
       ...(classification.signals.matchedRules || []),
       { id: "robot_form_client", classifier: "client", scope: "robot_form", pattern: "website_form_non_resume", weight: 6 }
+    ];
+  }
+
+  // Override: Tilda/webform notification — real client inquiry, force Клиент
+  if (tildaFormData && classification.label === "СПАМ") {
+    classification.label = "Клиент";
+    classification.confidence = Math.max(classification.confidence || 0, 0.82);
+    classification.signals = classification.signals || {};
+    classification.signals.matchedRules = [
+      ...(classification.signals.matchedRules || []),
+      { id: "tilda_form_client", classifier: "client", scope: "tilda_form", pattern: "tilda_webform_inquiry", weight: 8 }
     ];
   }
 
@@ -461,34 +481,38 @@ export function analyzeEmail(project, payload) {
   }
 
   // For subject/body extraction: use primary body + attachment content
-  // For robot form emails: restrict to form section to avoid URL-slug noise
-  const bodyForExtraction = robotFormData
-    ? [robotFormData.formSection, attachmentContent].filter(Boolean).join("\n\n")
+  // For robot/tilda form emails: restrict to form section to avoid URL-slug noise
+  const activeFormData = robotFormData || tildaFormData;
+  const bodyForExtraction = activeFormData
+    ? [activeFormData.formSection, attachmentContent].filter(Boolean).join("\n\n")
     : [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n");
-  const subjectForExtraction = robotFormData?.product
-    ? `${subject} ${robotFormData.product}`
+  const subjectForExtraction = activeFormData?.product
+    ? `${subject} ${activeFormData.product}`
     : subject;
 
-  // For robot form emails: use form section as sender body (avoids HTML template noise)
-  const senderBody = robotFormData
-    ? robotFormData.formSection
+  // For form emails: use form section as sender body (avoids HTML template noise)
+  const senderBody = activeFormData
+    ? activeFormData.formSection
     : [bodyForSender, attachmentContent].filter(Boolean).join("\n\n");
   const sender = extractSender(fromName, fromEmail, senderBody, attachments, signature);
   // Inject phone from form if extractSender missed it (form phone is authoritative)
-  if (robotFormData?.phone && !sender.mobilePhone && !sender.cityPhone) {
-    const { mobilePhone, cityPhone } = splitPhones([robotFormData.phone], robotFormData.phone);
+  const formPhone = robotFormData?.phone || tildaFormData?.phone;
+  if (formPhone && !sender.mobilePhone && !sender.cityPhone) {
+    const { mobilePhone, cityPhone } = splitPhones([formPhone], formPhone);
     sender.mobilePhone = mobilePhone || sender.mobilePhone;
     sender.cityPhone = cityPhone || sender.cityPhone;
-    if (mobilePhone || cityPhone) sender.sources.phone = "robot_form";
+    if (mobilePhone || cityPhone) sender.sources.phone = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
   }
   // Inject company/INN from form fields if present
-  if (robotFormData?.company && !sender.companyName) {
-    sender.companyName = sanitizeCompanyName(robotFormData.company);
-    sender.sources.company = "robot_form";
+  const formCompany = robotFormData?.company || tildaFormData?.company;
+  if (formCompany && !sender.companyName) {
+    sender.companyName = sanitizeCompanyName(formCompany);
+    sender.sources.company = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
   }
-  if (robotFormData?.inn && !sender.inn) {
-    sender.inn = robotFormData.inn;
-    sender.sources.inn = "robot_form";
+  const formInn = robotFormData?.inn || tildaFormData?.inn;
+  if (formInn && !sender.inn) {
+    sender.inn = formInn;
+    sender.sources.inn = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
   }
   applySenderProfileHints(sender, classification, fromEmail);
   applyCompanyDirectoryHints(sender, fromEmail);
@@ -1637,7 +1661,14 @@ function collectRecognitionIssues({ lead, sender, files, fields, conflicts, clas
     });
   }
 
-  return issues.sort(compareRecognitionIssues);
+  // Deduplicate by code — prevent same tag from appearing multiple times
+  const seen = new Set();
+  const deduped = issues.filter((item) => {
+    if (seen.has(item.code)) return false;
+    seen.add(item.code);
+    return true;
+  });
+  return deduped.sort(compareRecognitionIssues);
 }
 
 function compareRecognitionIssues(a, b) {
@@ -1820,9 +1851,12 @@ function buildIntakeFlow(classification, crm, lead) {
   const isVendor = classification === "Поставщик услуг";
   const isSpam = classification === "СПАМ";
   const diagnostics = lead.recognitionDiagnostics || {};
-  const highSeverityConflicts = (diagnostics.conflicts || []).filter((c) => c.severity === "high");
+  const allConflicts = diagnostics.conflicts || [];
   const highRisk = diagnostics.riskLevel === "high";
-  const requiresReview = highSeverityConflicts.length > 0 || (highRisk && isClient && !(lead.articles || []).length);
+  // Require review if any conflicts present OR critically low completeness
+  const requiresReview = allConflicts.length > 0
+    || (highRisk && isClient && !(lead.articles || []).length)
+    || (isClient && (diagnostics.completenessScore ?? 100) < 40);
 
   return {
     parseToFields: !isSpam,
@@ -1835,7 +1869,7 @@ function buildIntakeFlow(classification, crm, lead) {
     // New fields
     requiresReview,
     reviewReason: requiresReview
-      ? highSeverityConflicts.length > 0 ? "high_severity_conflicts" : "high_risk_no_articles"
+      ? allConflicts.length > 0 ? "detection_conflicts" : "high_risk_or_low_completeness"
       : null,
     isVendorInquiry: isVendor,
     skipCrmSync: isSpam || isVendor
@@ -3578,6 +3612,65 @@ function getContextLine(text, index = 0, length = 0) {
   const nextNewline = source.indexOf("\n", Math.max(0, index + length));
   const end = nextNewline === -1 ? source.length : nextNewline;
   return source.slice(start, end).trim();
+}
+
+// Known webform notification senders (noreply-only form services)
+const TILDA_FORM_DOMAINS = new Set(["tilda.ws", "tilda.cc"]);
+
+function isTildaWebFormSender(email) {
+  const domain = email.split("@")[1]?.toLowerCase() || "";
+  return TILDA_FORM_DOMAINS.has(domain);
+}
+
+function parseTildaFormBody(body) {
+  // Strip HTML tags to get plain text for parsing
+  const plain = body
+    .replace(/<br\s*\/?>/gi, "\n")
+    .replace(/<[^>]+>/g, "")
+    .replace(/&nbsp;/g, " ")
+    .replace(/&lt;/g, "<")
+    .replace(/&gt;/g, ">")
+    .replace(/&amp;/g, "&")
+    .trim();
+
+  // Extract form section between "Request details:" and "Additional information:"
+  const detailsIdx = plain.search(/Request\s+details:/i);
+  const additionalIdx = plain.search(/Additional\s+information:/i);
+  const sectionStart = detailsIdx !== -1 ? detailsIdx : 0;
+  const formSection = additionalIdx > sectionStart
+    ? plain.slice(sectionStart, additionalIdx)
+    : plain.slice(sectionStart, sectionStart + 2000);
+
+  // Parse key: value pairs (name, phone, email, comment, v1..vN)
+  const kvRe = /^([a-zA-Zа-яёА-ЯЁ0-9_\s]+?)\s*:\s*(.+)$/gm;
+  const fields = {};
+  let m;
+  while ((m = kvRe.exec(formSection)) !== null) {
+    const key = m[1].trim().toLowerCase();
+    const val = m[2].trim();
+    if (val && val !== "yes" && val !== "no") fields[key] = val;
+  }
+
+  // Name: "name", "Name", "ФИО", "имя"
+  const name = fields["name"] || fields["фио"] || fields["имя"] || null;
+
+  // Phone
+  const phoneVal = fields["phone"] || fields["телефон"] || fields["тел"] || null;
+
+  // Email
+  const emailVal = fields["email"] || fields["e-mail"] || null;
+
+  // Product/message: "comment", "message", "сообщение", "запрос", "v1" (first text field)
+  const product = fields["comment"] || fields["message"] || fields["сообщение"]
+    || fields["запрос"] || fields["товар"] || fields["продукт"]
+    || fields["v1"] || null;
+
+  // Company/INN
+  const company = fields["company"] || fields["компания"] || fields["организация"] || null;
+  const innMatch = formSection.match(/ИНН\s*[:\-]?\s*(\d{10,12})/i);
+  const inn = innMatch?.[1] || null;
+
+  return { name, phone: phoneVal, email: emailVal, product, company, inn, formSection };
 }
 
 function parseRobotFormBody(subject, body) {

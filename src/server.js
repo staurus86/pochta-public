@@ -199,10 +199,11 @@ setInterval(() => {
           const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
           if (!wasManuallyChanged) {
             const label = newAnalysis.classification?.label;
+            const requiresReview = newAnalysis.intakeFlow?.requiresReview;
             msg.pipelineStatus = label === "СПАМ"
               ? "ignored_spam"
               : label === "Клиент"
-                ? "ready_for_crm"
+                ? (requiresReview ? "review" : "ready_for_crm")
                 : newAnalysis.crm?.needsClarification
                   ? "needs_clarification"
                   : "review";
@@ -1154,8 +1155,9 @@ async function handleApi(req, res, url) {
             const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
             if (!wasManuallyChanged) {
               const label = newAnalysis.classification?.label;
+              const requiresReview = newAnalysis.intakeFlow?.requiresReview;
               msg.pipelineStatus = label === "СПАМ" ? "ignored_spam"
-                : label === "Клиент" ? "ready_for_crm"
+                : label === "Клиент" ? (requiresReview ? "review" : "ready_for_crm")
                 : newAnalysis.crm?.needsClarification ? "needs_clarification"
                 : "review";
             }
