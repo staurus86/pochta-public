@@ -27,9 +27,10 @@ try {
 }
 
 const URL_PATTERN = /https?:\/\/[^\s)]+/gi;
-const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?|\(\d{3,5}\)\s*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?/g;
-const PHONE_LIKE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}/i;
-const PHONE_LABEL_PATTERN = /(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber)\s*[:#-]?\s*((?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}|\d{3}[\s(.-]*\d{3}[\s).-]*\d{2}[\s.-]*\d{2}(?!\d))/i;
+// Supports 3-digit area codes (mobile 9xx, regions 3xx/4xx/8xx) and 4-digit city codes (3952, 3812, etc.)
+const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?|\(\d{3,5}\)\s*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?/g;
+const PHONE_LIKE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}/i;
+const PHONE_LABEL_PATTERN = /(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber)\s*[:#-]?\s*((?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}|\d{3,4}[\s(.-]*\d{2,3}[\s).-]*\d{2}[\s.-]*\d{2}(?!\d))/i;
 const CONTACT_CONTEXT_PATTERN = /\b(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber|email|e-mail|почта)\b/i;
 const IDENTIFIER_CONTEXT_PATTERN = /\b(?:инн|inn|кпп|kpp|огрн|ogrn|request\s*id|order\s*id|ticket\s*id|номер\s*заявки|идентификатор)\b/i;
 const INN_PATTERN = /(?:ИНН|inn)(?:\/КПП)?\s*[:#-]?\s*(\d{10,12})/i;
@@ -230,9 +231,10 @@ const PDF_INTERNAL_TEXT_NOISE_PATTERNS = [
 ];
 // CSS tokens: font-size:17px, padding:16px, max-width:480px, line-height:165, mso-line-height-alt:24
 const CSS_STYLE_TOKEN_PATTERN = /^(?:FONT|LINE|LETTER|WORD|TEXT|MARGIN|PADDING|BORDER|BACKGROUND|COLOR|WIDTH|HEIGHT|TOP|LEFT|RIGHT|BOTTOM|DISPLAY|POSITION|MIN|MAX|MSO)(?:-[A-Z]+)*:\S+$/i;
+// Word internal style list codes: WW8Num1z0, WRD0000-WRD0003 (higher WRD#### can be real product codes)
 const WORD_INTERNAL_TOKEN_PATTERN = /^(?:WW8[A-Z0-9]+|WRD000[0-3])$/i;
 const WORD_STYLE_TOKEN_PATTERN = /^(?:WW-[A-Za-z0-9-]+|\d+ROMAN(?:\/[A-Z]+)?|V\d+)$/i;
-const STANDARD_TOKEN_PATTERN = /^(?:IEC|ISO|EN|DIN)\d+(?:[.-]\d+){1,}$/i;
+const STANDARD_TOKEN_PATTERN = /^(?:IEC|ISO|EN|DIN|AISI|ASTM|ASME|API|AWS|SAE)\d+(?:[.-]\d+)*$/i;
 const ARTICLE_POSITIVE_PATTERNS = [
   /^(?=.*[A-ZА-Я])(?=.*\d)[A-ZА-Я0-9]{2,10}(?:[-/][A-ZА-Я0-9.+]{1,12}){1,6}$/i,
   /^(?=.*[A-ZА-Я])(?=.*\d)[A-ZА-Я0-9]{2,10}(?:[./-][A-ZА-Я0-9]{1,12}){2,6}$/i,
@@ -294,7 +296,7 @@ const SEMANTIC_QUERY_STOPWORDS = new Set([
 ]);
 
 const GENERIC_IMAGE_ATTACHMENT_PATTERN =
-  /^(?:img|image|photo|scan|scanner|whatsapp(?:\s+image)?|dsc|pict|screenshot|screen-shot|file)[-_ ]*\d[\w-]*$/i;
+  /^(?:img|image|photo|scan|scanner|whatsapp(?:\s+image)?|dsc|dscn|pict|screenshot|screen-shot|file|pic)[-_ -]*\d[\w-]*$/i;
 
 export function analyzeEmail(project, payload) {
   const subject = String(payload.subject || "");
@@ -2163,6 +2165,9 @@ function normalizePhoneNumber(raw) {
   // 5xx - some regions, 8xx - toll-free (800,8xx), 9xx - mobile
   // Invalid: 0xx, 1xx, 6xx, 7xx
   if (/^[0167]/.test(code)) return null;
+  // Format with 4-digit area codes (e.g. 3952, 3812): subscriber number is 6 digits split 2-2-2
+  // Detect: if area code is 3-digit but matches 4-digit city code prefix pattern
+  // Standard 11-digit: +7(AAA)BBB-BB-BB (always valid for 3-digit codes)
   return `+7 (${code}) ${d.slice(4, 7)}-${d.slice(7, 9)}-${d.slice(9, 11)}`;
 }
 
@@ -2231,6 +2236,9 @@ function extractCompanyFromSignatureLine(signature, fullName) {
     // Skip if it looks like a brand from KB (would be false positive)
     const brands = detectionKb.detectBrands ? detectionKb.detectBrands(line) : [];
     if (brands && brands.length > 0) continue;
+    // Reject if line looks like a personal name (2-3 Cyrillic Title-Case words, no legal form)
+    if (/^[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+){1,2}$/.test(line)
+      && !/(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП|ГК|НПО|НПП)/i.test(line)) continue;
 
     return line;
   }
@@ -2276,9 +2284,16 @@ function sanitizeCompanyName(value) {
 
   if (!text) return null;
 
+  // Strip trailing "от 23." / "от 05 апреля" — date suffix bled from surrounding text
+  text = text.replace(/\s+от\s+\d[\d.]*\s*(?:г\.?|года?)?$/i, "").trim();
+  if (!text) return null;
+
   // Reject "ИНН: XXXX" — INN number, not a company name (robot form field bleeding)
   if (/^ИНН\s*[:\s]\s*\d/i.test(text)) return null;
   if (/^ИНН$/i.test(text.trim())) return null;
+
+  // Reject known Russian bank names appearing in payment footer/signature (not client company)
+  if (/\b(?:Альфа-?Банк|Сбербанк|Сбер|ВТБ|Тинькофф|Т-?Банк|Точка|ОткрытиеБанк|Открытие|Газпромбанк|Райффайзен|Росбанк|Промсвязьбанк|ПСБ|РНКБ|Совкомбанк|Банк Точка|Банк\s+Уралсиб|Уралсиб)\b/i.test(text) && /\b(?:Банк|АО|ООО)\b/i.test(text)) return null;
 
   // Reject phone number masquerading as company
   if (/^(?:тел\.?|телефон|моб\.?|\+7[\s(]|\+7$|8\s*[\s(]\d{3})/i.test(text)) return null;
@@ -2287,7 +2302,7 @@ function sanitizeCompanyName(value) {
   if (/@[\w.-]+\.[a-z]{2,}/i.test(text)) return null;
 
   // Reject English disclaimer/legal text fragments ("Mail may contain co", "Trade secret and of co")
-  if (/\b(?:may contain|trade secret|confidential|unsubscribe|disclaimer|privileged|this email|this message|do not distribut|intended for|if you receive|could you quote|are strictly|present message)\b/i.test(text)) return null;
+  if (/\b(?:may contain|trade secret|confidential|unsubscribe|disclaimer|privileged|this email|this message|do not distribut|intended for|designated recipient|if you receive|could you quote|are strictly|present message|proprietary information)\b/i.test(text)) return null;
 
   // Reject department/division names (not company names)
   if (/^(?:Отдел|Управление|Подразделение|Департамент|Служба|Бюро)\b/u.test(text)) return null;
@@ -3462,6 +3477,17 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (CSS_STYLE_TOKEN_PATTERN.test(normalized)) return true;
   if (WORD_INTERNAL_TOKEN_PATTERN.test(normalized)) return true;
   if (WORD_STYLE_TOKEN_PATTERN.test(normalized)) return true;
+  // Russian steel grades: 08Х18Н10Т, 12Х18Н9, 20Х13, 40ХН и т.п. (digit(s) + Cyrillic letters + digits/letters)
+  if (/^\d{1,2}[А-ЯЁ]{1,4}\d{1,3}[А-ЯЁТ]?$/.test(normalized)) return true;
+  // Material standards: AISI 304, AISI 316L — STANDARD_TOKEN_PATTERN now covers AISI without space, handle "AISI NNN" with space
+  if (/^AISI\s+\d{3}[A-Z]?$/.test(normalized)) return true;
+  // Dimension/size expressions: 4x14mm, 20mm, 10x10, 3/4" — engineering sizes, not articles
+  if (/^\d+[xхх×*]\d+(?:[.,]\d+)?(?:mm|cm|m|")?$/i.test(normalized)) return true;
+  if (/^\d+(?:[.,]\d+)?\s*(?:mm|cm|мм|см)$/i.test(normalized)) return true;
+  // Image/file attachment names used as articles: IMG-5248, DSC-1234, SCAN-001
+  if (GENERIC_IMAGE_ATTACHMENT_PATTERN.test(normalized)) return true;
+  // Prefixed catalog/INN codes misidentified as articles: 2A3952010011, 3A3952010260
+  if (/^[1-9][A-Z]\d{9,11}$/i.test(normalized)) return true;
   if (compactLine && /^[A-ZА-Я]?\d+(?:[.-]\d+)+$/i.test(compactNormalized)) {
     const standardTokens = compactLine.match(/(?:IEC|ISO|ГОСТ|DIN|EN|ASTM|TU|ТУ)[A-ZА-Я]?\d+(?:[.-]\d+)+/gi) || [];
     if (standardTokens.some((token) => token.toUpperCase().endsWith(compactNormalized.toUpperCase()))) return true;
