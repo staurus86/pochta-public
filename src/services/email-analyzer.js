@@ -29,10 +29,10 @@ try {
 const URL_PATTERN = /https?:\/\/[^\s)]+/gi;
 const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?|\(\d{3,5}\)\s*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?/g;
 const PHONE_LIKE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}/i;
-const PHONE_LABEL_PATTERN = /(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber)\s*[:#-]?\s*((?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2})/i;
+const PHONE_LABEL_PATTERN = /(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber)\s*[:#-]?\s*((?:\+7|8)[\s(.-]*\d{3}[\s).-]*\d{3}[\s.-]*\d{2}[\s.-]*\d{2}|\d{3}[\s(.-]*\d{3}[\s).-]*\d{2}[\s.-]*\d{2}(?!\d))/i;
 const CONTACT_CONTEXT_PATTERN = /\b(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber|email|e-mail|почта)\b/i;
 const IDENTIFIER_CONTEXT_PATTERN = /\b(?:инн|inn|кпп|kpp|огрн|ogrn|request\s*id|order\s*id|ticket\s*id|номер\s*заявки|идентификатор)\b/i;
-const INN_PATTERN = /(?:ИНН|inn)\s*[:#-]?\s*(\d{10,12})/i;
+const INN_PATTERN = /(?:ИНН|inn)(?:\/КПП)?\s*[:#-]?\s*(\d{10,12})/i;
 const KPP_PATTERN = /(?:КПП|kpp)\s*[:#-]?\s*(\d{9})/i;
 const OGRN_PATTERN = /(?:ОГРН|ogrn)\s*[:#-]?\s*(\d{13,15})/i;
 const ARTICLE_PATTERN = /(?:арт(?:икул(?:а|у|ом|е|ы|ов|ам|ами|ах)?)?|sku)\s*[:#-]?\s*([A-Za-zА-Яа-яЁё0-9][A-Za-zА-Яа-яЁё0-9\-/_]{2,})/gi;
@@ -2212,7 +2212,7 @@ function inferCompanyFromDomain(email) {
   const parts = domain.split(".");
   const name = parts.length >= 2 ? parts[parts.length - 2] : parts[0];
 
-  if (!name || name.length < 5) return null;
+  if (!name || name.length < 3) return null;
   if (GENERIC_DOMAIN_WORDS.has(name.toLowerCase())) return null;
 
   // Title case
@@ -3776,9 +3776,11 @@ function addNumericFragments(bucket, value, options = {}) {
 }
 
 function extractRequisites(text) {
+  // Handle combined ИНН/КПП: X/Y format first (КПП after slash)
+  const innKppMatch = text.match(/(?:ИНН|inn)\/КПП\s*[:#-]?\s*(\d{10,12})\/(\d{9})/i);
   return {
-    inn: text.match(INN_PATTERN)?.[1] || null,
-    kpp: text.match(KPP_PATTERN)?.[1] || null,
+    inn: innKppMatch?.[1] || text.match(INN_PATTERN)?.[1] || null,
+    kpp: innKppMatch?.[2] || text.match(KPP_PATTERN)?.[1] || null,
     ogrn: text.match(OGRN_PATTERN)?.[1] || null
   };
 }

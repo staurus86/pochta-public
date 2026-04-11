@@ -310,6 +310,57 @@ runTest("extracts requisites and labeled phones without leaking them into articl
   assert.ok(!analysis.lead.articles.includes("770101001"));
 });
 
+// --- P1-03: INN/КПП combined format ---
+
+runTest("extracts INN and KPP from combined ИНН/КПП: X/Y format", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Менеджер",
+    fromEmail: "sales@factory.ru",
+    subject: "Запрос",
+    attachments: "",
+    body: `
+      Добрый день.
+      ООО "Завод"
+      ИНН/КПП: 7701234567/770101001
+      Нужен артикул A9N18346 x 1 шт.
+    `
+  });
+
+  assert.equal(analysis.sender.inn, "7701234567");
+  assert.equal(analysis.sender.kpp, "770101001");
+});
+
+// --- P1-04: Phone без +7/8 после лейбла ---
+
+runTest("extracts phone without +7 prefix when labeled", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Иванов Иван",
+    fromEmail: "ivan@company.ru",
+    subject: "Запрос",
+    attachments: "",
+    body: `
+      Добрый день, нужен артикул ABB S201-C16 х 2 шт.
+      Тел: 495-123-45-67
+    `
+  });
+
+  assert.ok(analysis.sender.cityPhone || analysis.sender.mobilePhone, "phone should be extracted");
+});
+
+// --- P1-08: Company from short corporate domain ---
+
+runTest("extracts company from short corporate domain (3 chars)", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Петров Иван",
+    fromEmail: "ivan@mmk.ru",
+    subject: "Запрос",
+    attachments: "",
+    body: `Добрый день, нужен артикул ABB S201-C16 х 1 шт.`
+  });
+
+  assert.ok(analysis.sender.companyName, "company should be inferred from short domain");
+});
+
 // --- Own brand blacklist tests ---
 
 runTest("does not detect Siderus as brand from forwarded email signature", () => {
