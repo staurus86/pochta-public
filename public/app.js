@@ -89,6 +89,136 @@ function isFreeDomain(domain) { return FREE_DOMAINS.has((domain || '').toLowerCa
 const OWN_DOMAINS = new Set(['siderus.su','siderus.online','siderus.ru','klvrt.ru','ersab2b.ru','itec-rus.ru','paulvahle.ru','petersime-rus.ru','rstahl.ru','schimpfdrive.ru','schischekrus.ru','sera-rus.ru','serfilco-ru.ru','vega-automation.ru','waldner-ru.ru','kiesel-rus.ru','maximator-ru.ru','stromag-ru.ru','endress-hauser.pro']);
 function isOwnDomain(domain) { return OWN_DOMAINS.has((domain || '').toLowerCase()); }
 
+function extractEmailAddress(value) {
+  const text = String(value || '').trim();
+  const match = text.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+  return (match?.[0] || text).toLowerCase();
+}
+
+function normalizeDomain(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/^[<("'[\s]+/, '')
+    .replace(/[>\]"'),;:\s]+$/g, '')
+    .replace(/\.+$/, '')
+    .replace(/^\.+/, '');
+}
+
+function getMessageSenderEmail(message) {
+  return extractEmailAddress(message?.analysis?.sender?.email || message?.from || '');
+}
+
+function getMessageSenderDomain(message) {
+  const email = getMessageSenderEmail(message);
+  return normalizeDomain(email.split('@')[1] || '');
+}
+
+function normalizeMailboxKey(value) {
+  return String(value || '')
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, ' ')
+    .replace(/[>"'\]]+$/g, '');
+}
+
+function getMailboxDisplayName(value) {
+  const mailbox = String(value || '').trim();
+  if (!mailbox) return 'unknown';
+  if (mailbox.includes('@')) {
+    const [, domainPart = mailbox] = mailbox.split('@');
+    return normalizeDomain(domainPart) || mailbox;
+  }
+  return mailbox;
+}
+
+function getMessageClassification(message) {
+  const label = String(message?.analysis?.classification?.label || '').trim();
+  if (label) return label;
+  if (message?.pipelineStatus === 'ignored_spam') return 'СПАМ';
+  if (['ready_for_crm', 'needs_clarification', 'review'].includes(message?.pipelineStatus || '')) return 'Клиент';
+  return 'Не определено';
+}
+
+function getMessageCompany(message) {
+  const crmName = message?.analysis?.crm?.company?.legalName;
+  const senderName = message?.analysis?.sender?.companyName;
+  const value = String(crmName || senderName || '').trim();
+  if (!value || __isOwnCompany(value) || __isDomainLike(value)) return 'Не определено';
+  return value;
+}
+
+function getRecentDashboardMessages(limit = 8) {
+  const seen = new Set();
+  return [...allRunnerMessages]
+    .filter((message) => !isIgnoredStatus(message.pipelineStatus))
+    .filter((message) => message?.analysis)
+    .filter((message) => {
+      const key = mid(message);
+      if (!key || seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    })
+    .sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))
+    .slice(0, limit);
+}
+
+function normalizeDashboardBrand(value) {
+  return String(value || '')
+    .trim()
+    .replace(/["'`]+/g, '')
+    .replace(/\s+/g, ' ')
+    .replace(/\s*\/\s*/g, ' / ')
+    .replace(/\s*-\s*/g, '-');
+}
+
+function getDashboardBrandKey(value) {
+  return normalizeDashboardBrand(value)
+    .toUpperCase()
+    .replace(/[.\s/_-]+/g, '');
+}
+
+function isDashboardBrandNoise(value) {
+  const brand = normalizeDashboardBrand(value);
+  const upper = brand.toUpperCase();
+  if (!brand) return true;
+  if (brand.length < 2) return true;
+  if (__isOwnCompany(brand)) return true;
+  if (/^(?:РОССИЯ|RUSSIA|ITEM|N\/A|NA|NONE|UNKNOWN|БРЕНД|BRAND|МУЛЬТИБРЕНДОВАЯ|МОНОБРЕНДОВАЯ)$/i.test(upper)) return true;
+  if (/^[0-9.\-]+$/.test(brand)) return true;
+  if (/@|\.(?:RU|COM|NET|ORG|SU|ONLINE|PRO)\b/i.test(brand)) return true;
+  return false;
+}
+
+function chooseDashboardBrandDisplay(currentValue, nextValue) {
+  if (!currentValue) return normalizeDashboardBrand(nextValue);
+  const current = normalizeDashboardBrand(currentValue);
+  const next = normalizeDashboardBrand(nextValue);
+  if (!next) return current;
+  if (current === current.toUpperCase() && next !== next.toUpperCase()) return current;
+  if (next === next.toUpperCase() && current !== current.toUpperCase()) return next;
+  return next.length > current.length ? next : current;
+}
+
+function collectDashboardBrands(messages) {
+  const counts = new Map();
+  const labels = new Map();
+  messages.forEach((message) => {
+    const brands = [
+      ...(message?.analysis?.detectedBrands || []),
+      ...(message?.analysis?.lead?.detectedBrands || [])
+    ];
+    brands.forEach((brand) => {
+      const normalized = normalizeDashboardBrand(brand);
+      const key = getDashboardBrandKey(normalized);
+      if (!key || isDashboardBrandNoise(normalized)) return;
+      counts.set(key, (counts.get(key) || 0) + 1);
+      labels.set(key, chooseDashboardBrandDisplay(labels.get(key), normalized));
+    });
+  });
+  return [...counts.entries()].map(([key, count]) => [labels.get(key) || key, count]);
+}
+
 function normalizeDashboardArticle(value) {
   return String(value || '')
     .trim()
@@ -139,6 +269,19 @@ function isDashboardArticleNoise(article) {
   if (/^D:\d{8,14}$/i.test(value)) return true;
   if (/^FEFF[0-9A-F]{12,}$/i.test(value)) return true;
   if (/^[0-9A-F]{24,}$/i.test(value)) return true;
+  return false;
+}
+
+function isDashboardTopArticleNoise(article) {
+  const value = normalizeDashboardArticle(article);
+  if (isDashboardArticleNoise(value)) return true;
+  if (!value) return true;
+  if (/^(?:19|20)\d{2}$/.test(value)) return true;
+  if (/^\d{1,4}$/.test(value)) return true;
+  if (/^\d{4}-\d{2}-\d{2}$/.test(value)) return true;
+  if (/^(?:0000|0001)(?:-\d+)+$/.test(value)) return true;
+  if (/^TOP[А-ЯA-Z0-9-]+$/i.test(value)) return true;
+  if (/^[A-ZА-Я]{1,4}-\d{1,2}$/.test(value)) return true;
   return false;
 }
 
@@ -1482,24 +1625,25 @@ function renderProjectSelect() {
 }
 
 function renderDashboard() {
-  const allAnalyses = projects.flatMap((p) => p.recentAnalyses || []);
+  const analyzedMessages = allRunnerMessages.filter((m) => m.analysis);
   const allRuns = projects.flatMap((p) => p.recentRuns || []);
-  const clientCount = allAnalyses.filter((a) => a.category === 'Клиент').length;
+  const clientCount = allRunnerMessages.filter((m) => !isIgnoredStatus(m.pipelineStatus) && getMessageClassification(m) === 'Клиент').length;
   const spamCount = allRunnerMessages.filter((m) => m.pipelineStatus === 'ignored_spam').length;
   const duplicateCount = allRunnerMessages.filter((m) => m.pipelineStatus === 'ignored_duplicate').length;
   const readyCount = allRunnerMessages.filter((m) => m.pipelineStatus === 'ready_for_crm').length;
   const clarifyCount = allRunnerMessages.filter((m) => m.pipelineStatus === 'needs_clarification').length;
-  const latestRun = allRuns.sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))[0];
+  const latestRun = [...allRuns].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0))[0];
+  const recentMessages = getRecentDashboardMessages(8);
 
   const kpis = [
     { label: 'Проектов', value: projects.length, cls: 'accent' },
-    { label: 'Разборов', value: allAnalyses.length, cls: '' },
+    { label: 'Разборов', value: analyzedMessages.length, cls: '' },
     { label: 'Клиентских', value: clientCount, cls: 'green' },
     { label: 'Спам удалено', value: spamCount, cls: 'rose' },
     { label: 'Дубли ответов', value: duplicateCount, cls: 'amber' },
     { label: 'Готово к CRM', value: readyCount, cls: 'green' },
     { label: 'Уточнение', value: clarifyCount, cls: 'amber' },
-    { label: 'В inbox', value: runnerMessages.length, cls: 'accent' },
+    { label: 'В inbox', value: allRunnerMessages.length, cls: 'accent' },
     { label: 'Посл. запуск', value: latestRun ? formatDuration(latestRun.durationMs) : '—', cls: '', sub: latestRun ? fmtDate(latestRun.createdAt) : '' }
   ];
 
@@ -1514,27 +1658,40 @@ function renderDashboard() {
   // Heatmap
   const inboxAccounts = new Map();
   allRunnerMessages.forEach((m) => {
-    const mb = m.mailbox || 'unknown';
-    if (!inboxAccounts.has(mb)) inboxAccounts.set(mb, { name: mb, count: 0 });
-    inboxAccounts.get(mb).count++;
+    const mailboxKey = normalizeMailboxKey(m.mailbox) || 'unknown';
+    if (!inboxAccounts.has(mailboxKey)) {
+      inboxAccounts.set(mailboxKey, { name: getMailboxDisplayName(m.mailbox || mailboxKey), count: 0 });
+    }
+    inboxAccounts.get(mailboxKey).count++;
   });
   if (inboxAccounts.size === 0) {
-    projects.forEach((p) => inboxAccounts.set(p.mailbox, { name: p.name, count: p.recentAnalyses?.length || 0 }));
+    projects.forEach((p) => {
+      const mailboxKey = normalizeMailboxKey(p.mailbox) || p.id;
+      const existing = inboxAccounts.get(mailboxKey);
+      const fallbackCount = analyzedMessages.filter((m) => normalizeMailboxKey(m.mailbox) === mailboxKey).length;
+      if (existing) {
+        existing.count += fallbackCount;
+      } else {
+        inboxAccounts.set(mailboxKey, {
+          name: getMailboxDisplayName(p.mailbox || p.name || mailboxKey),
+          count: fallbackCount
+        });
+      }
+    });
   }
   const maxCount = Math.max(1, ...Array.from(inboxAccounts.values()).map((a) => a.count));
   $('#inbox-count-label').textContent = `${inboxAccounts.size} ящиков`;
   $('#inbox-heatmap').innerHTML = Array.from(inboxAccounts.entries()).map(([mb, data]) => {
     const ratio = data.count / maxCount;
     const cls = ratio > 0.5 ? 'hot' : ratio > 0.15 ? 'warm' : 'cold';
-    const shortName = mb.includes('@') ? mb.split('@')[1].split('.')[0] : mb;
-    return `<div class="heatmap-cell ${cls}"><div class="cell-name" title="${esc(mb)}">${esc(shortName)}</div><div class="cell-value">${data.count}</div></div>`;
+    return `<div class="heatmap-cell ${cls}"><div class="cell-name" title="${esc(mb)}">${esc(data.name)}</div><div class="cell-value">${data.count}</div></div>`;
   }).join('');
 
   // Recent analyses
-  $('#recent-analyses-body').innerHTML = allAnalyses.slice(0, 8).map((a) => `
-    <tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${esc(a.senderEmail)}</td>
-    <td>${classificationBadge(a.category)}</td><td>${esc(a.company || '—')}</td>
-    <td style="font-size:11px;color:var(--text-muted)">${fmtDate(a.createdAt)}</td></tr>
+  $('#recent-analyses-body').innerHTML = recentMessages.map((message) => `
+    <tr><td style="font-family:'JetBrains Mono',monospace;font-size:11px;">${esc(getMessageSenderEmail(message) || '—')}</td>
+    <td>${classificationBadge(getMessageClassification(message))}</td><td>${esc(getMessageCompany(message))}</td>
+    <td style="font-size:11px;color:var(--text-muted)">${fmtDate(message.createdAt)}</td></tr>
   `).join('') || '<tr><td colspan="4" style="text-align:center;color:var(--text-muted);padding:24px;">Нет данных</td></tr>';
 
   // Recent runs
@@ -1599,8 +1756,7 @@ function renderDashboard() {
   // ═══ Top senders (real company domains only, no free mail / own domains) ═══
   const senderMap = new Map();
   allRunnerMessages.filter((m) => !isIgnoredStatus(m.pipelineStatus)).forEach((m) => {
-    const email = m.analysis?.sender?.email || m.from || 'unknown';
-    const domain = (email.split('@')[1] || '').toLowerCase();
+    const domain = getMessageSenderDomain(m);
     if (!domain || isFreeDomain(domain) || isOwnDomain(domain)) return;
     senderMap.set(domain, (senderMap.get(domain) || 0) + 1);
   });
@@ -1610,11 +1766,7 @@ function renderDashboard() {
   ).join('')}</tbody></table>` : '<div style="padding:20px;color:var(--text-muted);font-size:12px;text-align:center;">Нет данных</div>';
 
   // ═══ Brand stats ═══
-  const brandMap = new Map();
-  allRunnerMessages.forEach((m) => {
-    (m.analysis?.detectedBrands || []).forEach((b) => brandMap.set(b, (brandMap.get(b) || 0) + 1));
-  });
-  const topBrands = [...brandMap.entries()].sort((a, b) => b[1] - a[1]).slice(0, 12);
+  const topBrands = collectDashboardBrands(allRunnerMessages).sort((a, b) => b[1] - a[1]).slice(0, 12);
   $('#brand-stats').innerHTML = topBrands.length ? topBrands.map(([brand, count]) =>
     `<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:8px 14px;display:flex;gap:8px;align-items:center;">
       <span style="font-weight:600;font-size:12px;">${esc(brand)}</span>
@@ -1864,17 +2016,17 @@ function renderRequestAnalytics() {
     if (!a) return;
 
     // Brands
-    (a.detectedBrands || a.lead?.detectedBrands || []).forEach((b) => {
-      brandCount.set(b, (brandCount.get(b) || 0) + 1);
+    collectDashboardBrands([m]).forEach(([brand, count]) => {
+      brandCount.set(brand, (brandCount.get(brand) || 0) + count);
     });
 
     // Articles
     const arts = getDashboardArticles(m);
     const items = a.lead?.lineItems || [];
-    arts.forEach((art) => articleCount.set(art, (articleCount.get(art) || 0) + 1));
+    arts.filter((art) => !isDashboardTopArticleNoise(art)).forEach((art) => articleCount.set(art, (articleCount.get(art) || 0) + 1));
     items.forEach((item) => {
       const normalizedItemArticle = normalizeDashboardArticle(item.article);
-      if (normalizedItemArticle && !arts.includes(normalizedItemArticle) && !isDashboardArticleNoise(normalizedItemArticle)) {
+      if (normalizedItemArticle && !arts.includes(normalizedItemArticle) && !isDashboardTopArticleNoise(normalizedItemArticle)) {
         articleCount.set(normalizedItemArticle, (articleCount.get(normalizedItemArticle) || 0) + 1);
       }
     });
