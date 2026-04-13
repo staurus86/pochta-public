@@ -573,7 +573,8 @@ export function analyzeEmail(project, payload) {
     const lineItemCount = (candidateLead.lineItems || []).filter((item) => item?.article && !/^DESC:/i.test(String(item.article))).length;
     return articleCount * 10 + lineItemCount;
   };
-  if (!(lead.articles || []).length && quotedContent) {
+  const isEmailReplyChainQuoted = /(?:От|From)\s*:\s*\S+@/i.test(quotedContent);
+  if (!(lead.articles || []).length && quotedContent && (!isEmailReplyChainQuoted || looksLikeQuotedRobotForm(quotedContent))) {
     const quotedBodyFallback = [primaryBody || body, cleanupQuotedFormText(quotedContent), attachmentContent].filter(Boolean).join("\n\n");
     const fallbackLead = mergeAttachmentLeadData(
       extractLead(subjectForExtraction, quotedBodyFallback, attachments, project.brands || [], classification.detectedBrands),
@@ -583,7 +584,7 @@ export function analyzeEmail(project, payload) {
       lead = fallbackLead;
     }
   }
-  if (!(lead.articles || []).length && body && body !== bodyForExtraction) {
+  if (!(lead.articles || []).length && body && body !== bodyForExtraction && !isEmailReplyChainQuoted) {
     const rawBodyFallback = [body, attachmentContent].filter(Boolean).join("\n\n");
     const fallbackLead = mergeAttachmentLeadData(
       extractLead(subjectForExtraction, rawBodyFallback, attachments, project.brands || [], classification.detectedBrands),
@@ -851,8 +852,13 @@ function buildQuotedExtractionSupplement(primaryBody, quotedContent, subject = "
   const isShortCurrentReply = currentBody.length > 0 && currentBody.length <= 220;
   const hasInlineRequestSignals = /(?:артикул|наименование|кол-?во|ед\.?изм|цена|срок|поставка|запрос|кп|quotation|rfq|имя посетителя|вопрос:|телефон:)/i.test(quoted);
   const isReplyThread = /^(?:re|fw|fwd)\s*:/i.test(String(subject || "").trim());
+  // Skip if it's a real reply chain (has email headers От:/From: with address) — unless it's a robot form
+  const isEmailReplyChain = /(?:От|From)\s*:\s*\S+@/i.test(quoted);
 
   if (!((isShortCurrentReply && hasInlineRequestSignals) || looksLikeQuotedRobotForm(quoted) || (isReplyThread && hasInlineRequestSignals))) {
+    return "";
+  }
+  if (isEmailReplyChain && !looksLikeQuotedRobotForm(quoted)) {
     return "";
   }
 
@@ -909,7 +915,7 @@ function applyCompanyDirectoryHints(sender, fromEmail) {
   if (!directoryEntry) return;
   if (!sender.sources) sender.sources = {};
 
-  if (!sender.companyName || inferCompanyNameFromEmail(fromEmail) === sender.companyName) {
+  if (!sender.companyName || sender.sources?.company === "email_domain") {
     if (directoryEntry.company_name) {
       sender.companyName = directoryEntry.company_name;
       sender.sources.company = "company_directory";
@@ -950,14 +956,19 @@ function mergeAttachmentRequisites(sender, attachmentAnalysis) {
     sender.ogrn = allOgrn[0];
     sender.sources.ogrn = "attachment";
   }
+  // Extract company name from requisite attachments (those with INN/KPP are authoritative)
+  const requisiteFile = files.find((file) => (file.detectedInn || []).length > 0 && file.preview);
+  if (requisiteFile) {
+    const attachCompany = extractCompanyName(requisiteFile.preview, "");
+    if (attachCompany && sender.sources?.company !== "inn_match") {
+      sender.companyName = attachCompany;
+      sender.sources.company = "attachment";
+    }
+  }
 }
 
 function enrichLeadFromKnowledgeBase(lead, classification, project, searchText = "") {
   if (!lead.sources) lead.sources = {};
-  const hasConcreteArticles = (lead.articles || []).some((item) => item && !/^DESC:/i.test(String(item)));
-  if (!hasConcreteArticles) {
-    return;
-  }
   if ((lead.detectedBrands || []).length > 0 || (classification.detectedBrands || []).length > 0) {
     return;
   }

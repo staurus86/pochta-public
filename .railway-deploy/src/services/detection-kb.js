@@ -1473,7 +1473,14 @@ class DetectionKnowledgeBase {
     for (const row of companyRows) {
       const candidate = normalizeComparableCompany(row.company_name);
       if (!candidate) continue;
-      if (candidate === normalizedCompany || candidate.includes(normalizedCompany) || normalizedCompany.includes(candidate)) {
+      if (candidate === normalizedCompany) {
+        return row;
+      }
+      // Fuzzy substring match: require both strings ≥6 chars and shorter must cover ≥65% of longer
+      const minLen = Math.min(candidate.length, normalizedCompany.length);
+      const maxLen = Math.max(candidate.length, normalizedCompany.length);
+      if (minLen >= 6 && minLen / maxLen >= 0.65 &&
+          (candidate.includes(normalizedCompany) || normalizedCompany.includes(candidate))) {
         return row;
       }
     }
