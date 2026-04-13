@@ -33,7 +33,7 @@ const PHONE_LIKE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[
 const PHONE_LABEL_PATTERN = /(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber)\s*[:#-]?\s*((?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}|\d{3,4}[\s(.-]*\d{2,3}[\s).-]*\d{2}[\s.-]*\d{2}(?!\d))/i;
 const CONTACT_CONTEXT_PATTERN = /\b(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber|email|e-mail|почта)\b/i;
 const IDENTIFIER_CONTEXT_PATTERN = /\b(?:инн|inn|кпп|kpp|огрн|ogrn|request\s*id|order\s*id|ticket\s*id|номер\s*заявки|идентификатор)\b/i;
-const INN_PATTERN = /(?:ИНН|inn)(?:\/КПП)?\s*[:#-]?\s*(\d{10,12})/i;
+const INN_PATTERN = /(?:ИНН|inn|УНП)(?:\/КПП)?\s*[:#-]?\s*(\d{9,12})/i;
 const KPP_PATTERN = /(?:КПП|kpp)\s*[:#-]?\s*(\d{9})/i;
 const OGRN_PATTERN = /(?:ОГРН|ogrn)\s*[:#-]?\s*(\d{13,15})/i;
 const ARTICLE_PATTERN = /(?:арт(?:икул(?:а|у|ом|е|ы|ов|ам|ами|ах)?)?|sku)\s*[:#-]?\s*([A-Za-zА-Яа-яЁё0-9][A-Za-zА-Яа-яЁё0-9\-/_]{2,})/gi;
@@ -174,6 +174,21 @@ const OWN_DOMAINS = new Set([
   "serfilco-ru.ru", "vega-automation.ru", "waldner-ru.ru", "kiesel-rus.ru",
   "maximator-ru.ru", "stromag-ru.ru", "endress-hauser.pro"
 ]);
+
+// Own company INNs — never treat as client INN
+const OWN_INNS = new Set(['9701077015']);
+function isOwnInn(inn) { return OWN_INNS.has(String(inn || '')); }
+
+// ЭДО-context: INN from EDO operator lines should be skipped as client candidates
+const EDO_CONTEXT_PATTERN = /(?:диадок|diadoc|сбис|sbis|контур|kontur|оператор\s+эдо|эдо\s+оператор|электронный\s+документооборот|подключен\s+к)\s{0,20}/i;
+
+function classifyInn(inn) {
+  const s = String(inn || '');
+  if (s.length === 9)  return 'BY';      // Беларусь УНП
+  if (s.length === 10) return 'RU_ORG';  // РФ юрлицо
+  if (s.length === 12) return 'RU_IP';   // РФ ИП
+  return 'UNKNOWN';
+}
 
 // Brand names that should not be detected as articles or company names
 const BRAND_NOISE = new Set([
@@ -492,7 +507,9 @@ export function analyzeEmail(project, payload) {
   const brandRelevantAttachmentText = buildBrandRelevantAttachmentText(attachmentAnalysis);
 
   // Merge brands detected in attachment content into classification
-  if (brandRelevantAttachmentText) {
+  // Improvement 6: skip attachment brands for vendor emails (they contain supplier catalogs)
+  const skipAttachmentBrands = classification?.label === 'Поставщик услуг';
+  if (!skipAttachmentBrands && brandRelevantAttachmentText) {
     const attachmentBrands = detectionKb.filterOwnBrands(
       detectionKb.detectBrands(brandRelevantAttachmentText, project.brands || [])
     );
@@ -667,6 +684,14 @@ export function analyzeEmail(project, payload) {
   }
 
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands, lead });
+
+  // Improvement 2: classify INN type (RU_ORG / RU_IP / BY / UNKNOWN)
+  if (crm && sender.inn) crm.innType = classifyInn(sender.inn);
+  // Improvement 5: deduplication key using INN+KPP for branches
+  if (crm && sender.inn) {
+    crm.deduplicationKey = sender.kpp ? `${sender.inn}/${sender.kpp}` : sender.inn;
+    crm.isFilialByKpp = Boolean(sender.inn && sender.kpp);
+  }
 
   const suggestedReply = buildSuggestedReply(classification.label, sender, lead, crm);
 
@@ -906,7 +931,7 @@ function applyCompanyDirectoryHints(sender, fromEmail) {
 
 function mergeAttachmentRequisites(sender, attachmentAnalysis) {
   const files = attachmentAnalysis?.files || [];
-  const allInn = [...new Set(files.flatMap((file) => file.detectedInn || []))];
+  const allInn = [...new Set(files.flatMap((file) => file.detectedInn || []))].filter((inn) => !isOwnInn(inn));
   const allKpp = [...new Set(files.flatMap((file) => file.detectedKpp || []))];
   const allOgrn = [...new Set(files.flatMap((file) => file.detectedOgrn || []))];
 
@@ -2353,7 +2378,8 @@ function inferNameFromEmail(email) {
 }
 
 function extractPosition(body) {
-  const position = detectionKb.matchField("position", body);
+  // Improvement 4: use matchFieldBest to prefer longest match among similar-priority candidates
+  const position = detectionKb.matchFieldBest("position", body);
   return position ? cleanup(position) : null;
 }
 
@@ -4081,8 +4107,8 @@ function parseTildaFormBody(body) {
 
   // Company/INN
   const company = fields["company"] || fields["компания"] || fields["организация"] || null;
-  const innMatch = formSection.match(/ИНН\s*[:\-]?\s*(\d{10,12})/i);
-  const inn = innMatch?.[1] || null;
+  const innMatch = formSection.match(/ИНН\s*[:\-]?\s*(\d{9,12})/i);
+  const inn = (!innMatch?.[1] || isOwnInn(innMatch[1])) ? null : innMatch[1];
 
   return { name, phone: phoneVal, email: emailVal, product, company, inn, formSection };
 }
@@ -4102,42 +4128,53 @@ function parseRobotFormBody(subject, body) {
     .replace(/^\s*\*\s*(?:From|Sent|To|Cc|Subject)\*:\s*.*$/gim, "")
     .trim();
 
-  // Visitor name: "Имя посетителя: X" or widget "Ваше имя\n***\nX"
+  // Visitor name: "Имя посетителя: X" or alternative field names or widget
   const nameMatch =
-    formSection.match(/Имя\s+посетителя:\s*(.+?)[\r\n]/i) ||
-    body.match(/Ваше\s+имя\s*[\r\n]\*+[\r\n](.+?)[\r\n]/i);
+    formSection.match(/(?:Имя\s+посетителя|ФИО|Контактное\s+лицо):\s*(.+?)[\r\n]/i) ||
+    body.match(/Ваше\s+имя\s*[\r\n]\*+[\r\n](.+?)[\r\n]/i) ||
+    formSection.match(/^Имя:\s*(.+?)[\r\n]/im);
   const name = nameMatch?.[1]?.trim() || null;
 
   // Real sender email embedded in form body (not robot@siderus.ru)
-  const emailInlineMatch = formSection.match(/^E?-?mail:\s*([\w.!#$%&'*+/=?^`{|}~-]+@[\w.-]+\.[a-z]{2,})/im);
+  const emailInlineMatch = formSection.match(/^(?:E?-?mail|Почта|Электронная\s+почта):\s*([\w.!#$%&'*+/=?^`{|}~-]+@[\w.-]+\.[a-z]{2,})/im);
   const emailMailtoMatch = formSection.match(/mailto:([\w.!#$%&'*+/=?^`{|}~-]+@[\w.-]+\.[a-z]{2,})/i);
   const emailWidgetMatch = body.match(/E-?mail\s*[\r\n]\*+[\r\n]\s*([\w.!#$%&'*+/=?^`{|}~-]+@[\w.-]+\.[a-z]{2,})/i);
   const email = (emailInlineMatch?.[1] || emailMailtoMatch?.[1] || emailWidgetMatch?.[1] || null)
     ?.toLowerCase().replace(/:$/, "") || null;
 
-  // Phone: "Телефон: +7..." or "WhatsApp: +7..." or widget "Телефон\n***\n+7..."
-  const phoneInlineMatch = formSection.match(/(?:Телефон|WhatsApp):\s*([+\d][\d\s\-()]{5,})/i);
+  // Phone: "Телефон/Тел/WhatsApp/Мобильный: +7..." or widget
+  const phoneInlineMatch = formSection.match(/(?:Телефон|Тел|WhatsApp|Мобильный):\s*([+\d][\d\s\-()/.]{5,})/i);
   const phoneWidgetMatch = body.match(/(?:Телефон|WhatsApp)\s*[\r\n]\*+[\r\n]\s*([+\d][\d\s\-()]{5,})/i);
   const phone = (phoneInlineMatch?.[1] || phoneWidgetMatch?.[1])?.trim() || null;
 
   // Product / item name
-  const productMatch = formSection.match(/(?:Название\s+товара|Продукт|Товар):\s*(.+?)[\r\n]/i);
+  const productMatch = formSection.match(/(?:Название\s+товара|Продукт|Товар|Запрос|Артикул|Наименование):\s*(.+?)[\r\n]/i);
   const product = productMatch?.[1]?.trim() || null;
 
   // Message / question text (stop before next form field or URL)
-  const msgMatch = formSection.match(/(?:Сообщение|Вопрос):\s*([\s\S]+?)(?:\n[ \t]*\n|\nСтраница\s+отправки|\nID\s+товара|$)/i);
+  const msgMatch = formSection.match(/(?:Сообщение|Вопрос|Комментарий|Текст\s+заявки):\s*([\s\S]+?)(?:\n[ \t]*\n|\nСтраница\s+отправки|\nID\s+товара|$)/i);
   const message = msgMatch?.[1]?.trim().slice(0, 500) || null;
 
-  // Company and INN (sometimes present in advanced forms)
-  const companyMatch = formSection.match(/Название\s+организации:\s*(.+?)[\r\n]/i);
+  // Company and INN (standard + extended field names)
+  const companyMatch = formSection.match(/(?:Название\s+организации|Компания|Организация|Предприятие):\s*(.+?)[\r\n]/i);
   const company = companyMatch?.[1]?.trim() || null;
-  const innMatch = formSection.match(/ИНН:\s*(\d{10,12})/i);
-  const inn = innMatch?.[1] || null;
+  const innMatch = formSection.match(/ИНН:\s*(\d{9,12})/i);
+  const inn = (!innMatch?.[1] || isOwnInn(innMatch[1])) ? null : innMatch[1];
+
+  // Quantity (Количество: 5 шт)
+  const qtyMatch = formSection.match(/(?:Количество|Кол-во):\s*(\d[\d\s,.]*)\s*([а-яёa-z]+)?/i);
+  const quantity = qtyMatch ? { value: qtyMatch[1].trim(), unit: qtyMatch[2]?.trim() || null } : null;
+
+  // КП form: "Запрошено КП на товары:" or "Список товаров:" → parse as lineItems hint
+  const kpFormMatch = /(?:запрошено\s+кп|список\s+товаров|перечень\s+позиций)\s*[:\n]/i.test(formSection);
+
+  // Form with file attachment: robot@ sender + attachment → keep webFormSource
+  const hasAttachmentForm = /robot@/i.test(body);
 
   // Resume form → should be classified as spam
   const isResume = /резюме|вакансия/i.test(subject + " " + formSection);
 
-  return { name, email, phone, product, message, company, inn, formSection, isResume };
+  return { name, email, phone, product, message, company, inn, quantity, kpForm: kpFormMatch, hasAttachmentForm, formSection, isResume };
 }
 
 function extractForwardedSender(body) {
@@ -4197,9 +4234,31 @@ function addNumericFragments(bucket, value, options = {}) {
 
 function extractRequisites(text) {
   // Handle combined ИНН/КПП: X/Y format first (КПП after slash)
-  const innKppMatch = text.match(/(?:ИНН|inn)\/КПП\s*[:#-]?\s*(\d{10,12})\/(\d{9})/i);
+  const innKppMatch = text.match(/(?:ИНН|inn)\/КПП\s*[:#-]?\s*(\d{9,12})\/(\d{9})/i);
+
+  // Helper: filter INN candidates by own-inn and EDO context
+  function filterInn(inn, matchInput) {
+    if (!inn) return null;
+    if (isOwnInn(inn)) return null;
+    // Check if this INN appears on a line with EDO context (and no explicit client/org marker)
+    if (matchInput) {
+      const lines = String(matchInput).split(/\n/);
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.includes(inn)) {
+          const prevLine = i > 0 ? lines[i - 1] : '';
+          const hasEdoCtx = EDO_CONTEXT_PATTERN.test(line) || EDO_CONTEXT_PATTERN.test(prevLine);
+          const hasClientMarker = /ИНН\s+(?:организации|клиента)\s*[:#-]/i.test(line);
+          if (hasEdoCtx && !hasClientMarker) return null;
+        }
+      }
+    }
+    return inn;
+  }
+
+  const rawInn = innKppMatch?.[1] || text.match(INN_PATTERN)?.[1] || null;
   return {
-    inn: innKppMatch?.[1] || text.match(INN_PATTERN)?.[1] || null,
+    inn: filterInn(rawInn, text),
     kpp: innKppMatch?.[2] || text.match(KPP_PATTERN)?.[1] || null,
     ogrn: text.match(OGRN_PATTERN)?.[1] || null
   };

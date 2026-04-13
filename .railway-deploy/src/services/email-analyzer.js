@@ -28,12 +28,12 @@ try {
 
 const URL_PATTERN = /https?:\/\/[^\s)]+/gi;
 // Supports 3-digit area codes (mobile 9xx, regions 3xx/4xx/8xx) and 4-digit city codes (3952, 3812, etc.)
-const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?|\(\d{3,5}\)\s*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?/g;
+const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}(?:[\s).-]*\d{2,4}){2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?|\(\d{3,5}\)\s*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?/g;
 const PHONE_LIKE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}/i;
 const PHONE_LABEL_PATTERN = /(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber)\s*[:#-]?\s*((?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}|\d{3,4}[\s(.-]*\d{2,3}[\s).-]*\d{2}[\s.-]*\d{2}(?!\d))/i;
 const CONTACT_CONTEXT_PATTERN = /\b(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber|email|e-mail|почта)\b/i;
 const IDENTIFIER_CONTEXT_PATTERN = /\b(?:инн|inn|кпп|kpp|огрн|ogrn|request\s*id|order\s*id|ticket\s*id|номер\s*заявки|идентификатор)\b/i;
-const INN_PATTERN = /(?:ИНН|inn)(?:\/КПП)?\s*[:#-]?\s*(\d{10,12})/i;
+const INN_PATTERN = /(?:ИНН|inn|УНП)(?:\/КПП)?\s*[:#-]?\s*(\d{9,12})/i;
 const KPP_PATTERN = /(?:КПП|kpp)\s*[:#-]?\s*(\d{9})/i;
 const OGRN_PATTERN = /(?:ОГРН|ogrn)\s*[:#-]?\s*(\d{13,15})/i;
 const ARTICLE_PATTERN = /(?:арт(?:икул(?:а|у|ом|е|ы|ов|ам|ами|ах)?)?|sku)\s*[:#-]?\s*([A-Za-zА-Яа-яЁё0-9][A-Za-zА-Яа-яЁё0-9\-/_]{2,})/gi;
@@ -175,6 +175,21 @@ const OWN_DOMAINS = new Set([
   "maximator-ru.ru", "stromag-ru.ru", "endress-hauser.pro"
 ]);
 
+// Own company INNs — never treat as client INN
+const OWN_INNS = new Set(['9701077015']);
+function isOwnInn(inn) { return OWN_INNS.has(String(inn || '')); }
+
+// ЭДО-context: INN from EDO operator lines should be skipped as client candidates
+const EDO_CONTEXT_PATTERN = /(?:диадок|diadoc|сбис|sbis|контур|kontur|оператор\s+эдо|эдо\s+оператор|электронный\s+документооборот|подключен\s+к)\s{0,20}/i;
+
+function classifyInn(inn) {
+  const s = String(inn || '');
+  if (s.length === 9)  return 'BY';      // Беларусь УНП
+  if (s.length === 10) return 'RU_ORG';  // РФ юрлицо
+  if (s.length === 12) return 'RU_IP';   // РФ ИП
+  return 'UNKNOWN';
+}
+
 // Brand names that should not be detected as articles or company names
 const BRAND_NOISE = new Set([
   "SIDERUS", "KOLOVRAT", "KLVRT", "ERSA", "ITEC", "SCHISCHEK", "SERA", "SERFILCO", "VEGA",
@@ -183,7 +198,7 @@ const BRAND_NOISE = new Set([
 ]);
 
 const BRAND_FALSE_POSITIVE_ALIASES = new Set([
-  "top", "moro", "ydra", "hydra", "global"
+  "top", "moro", "ydra", "hydra", "global", "control", "process", "electronic", "data"
 ]);
 const OFFICE_XML_ARTICLE_NOISE_PATTERNS = [
   /^UTF-?8$/i,
@@ -302,6 +317,7 @@ export function analyzeEmail(project, payload) {
   const subject = String(payload.subject || "");
   const rawBody = String(payload.body || "");
   const body = stripHtml(rawBody);
+  const rawTabularFallbackItems = extractTabularReplyItemsFromBody(body);
   let { newContent, quotedContent } = separateQuotedText(body);
   // If the new content is empty/trivial but there's a forwarded message body,
   // treat the forwarded content as the primary body (manager forwarding a client request)
@@ -365,6 +381,13 @@ export function analyzeEmail(project, payload) {
     if (tildaFormData.name) fromName = tildaFormData.name;
   }
 
+  let quotedRobotFormData = null;
+  if (!robotFormData && !tildaFormData && looksLikeQuotedRobotForm(quotedContent)) {
+    quotedRobotFormData = parseRobotFormBody(subject, cleanupQuotedFormText(quotedContent));
+    if (quotedRobotFormData.email) fromEmail = quotedRobotFormData.email;
+    if (quotedRobotFormData.name) fromName = quotedRobotFormData.name;
+  }
+
   // Quick classification WITHOUT attachment content (attachment reading happens below for non-spam only)
   // For auto-replies: suppress subject and body (only use preamble)
   // For robot form emails: use only the form section to avoid false brands from HTML template
@@ -373,7 +396,7 @@ export function analyzeEmail(project, payload) {
     : body.slice(0, 500);
   const bodyForClassification = autoReplyDetection.isAutoReply
     ? autoReplyDetection.preamble || ""
-    : robotFormData?.formSection || tildaFormData?.formSection || effectivePrimaryBody;
+    : robotFormData?.formSection || tildaFormData?.formSection || quotedRobotFormData?.formSection || effectivePrimaryBody;
 
   const classification = classifyMessage({
     subject,
@@ -429,6 +452,16 @@ export function analyzeEmail(project, payload) {
     ];
   }
 
+  if (quotedRobotFormData && classification.label !== "Клиент") {
+    classification.label = "Клиент";
+    classification.confidence = Math.max(classification.confidence || 0, 0.82);
+    classification.signals = classification.signals || {};
+    classification.signals.matchedRules = [
+      ...(classification.signals.matchedRules || []),
+      { id: "quoted_robot_form_client", classifier: "client", scope: "quoted_robot_form", pattern: "quoted_website_form_inquiry", weight: 8 }
+    ];
+  }
+
   // Filter own brands (Siderus, Коловрат, etc.) from classification results
   classification.detectedBrands = detectionKb.filterOwnBrands(classification.detectedBrands);
 
@@ -471,11 +504,14 @@ export function analyzeEmail(project, payload) {
     payload.attachmentProcessingOptions || {}
   );
   const attachmentContent = sanitizeAttachmentText(attachmentAnalysis.combinedText || "");
+  const brandRelevantAttachmentText = buildBrandRelevantAttachmentText(attachmentAnalysis);
 
   // Merge brands detected in attachment content into classification
-  if (attachmentContent) {
+  // Improvement 6: skip attachment brands for vendor emails (they contain supplier catalogs)
+  const skipAttachmentBrands = classification?.label === 'Поставщик услуг';
+  if (!skipAttachmentBrands && brandRelevantAttachmentText) {
     const attachmentBrands = detectionKb.filterOwnBrands(
-      detectionKb.detectBrands(attachmentContent, project.brands || [])
+      detectionKb.detectBrands(brandRelevantAttachmentText, project.brands || [])
     );
     if (attachmentBrands.length) {
       classification.detectedBrands = uniqueBrands([...(classification.detectedBrands || []), ...attachmentBrands]);
@@ -484,10 +520,11 @@ export function analyzeEmail(project, payload) {
 
   // For subject/body extraction: use primary body + attachment content
   // For robot/tilda form emails: restrict to form section to avoid URL-slug noise
-  const activeFormData = robotFormData || tildaFormData;
+  const activeFormData = robotFormData || tildaFormData || quotedRobotFormData;
+  const quotedExtractionSupplement = buildQuotedExtractionSupplement(primaryBody, quotedContent, subject);
   const bodyForExtraction = activeFormData
     ? [activeFormData.formSection, attachmentContent].filter(Boolean).join("\n\n")
-    : [primaryBody || body, attachmentContent].filter(Boolean).join("\n\n");
+    : [primaryBody || body, quotedExtractionSupplement, attachmentContent].filter(Boolean).join("\n\n");
   const subjectForExtraction = activeFormData?.product
     ? `${subject} ${activeFormData.product}`
     : subject;
@@ -495,10 +532,17 @@ export function analyzeEmail(project, payload) {
   // For form emails: use form section as sender body (avoids HTML template noise)
   const senderBody = activeFormData
     ? activeFormData.formSection
-    : [bodyForSender, attachmentContent].filter(Boolean).join("\n\n");
+    : bodyForSender;
   const sender = extractSender(fromName, fromEmail, senderBody, attachments, signature);
+  const quotedSender = extractQuotedSenderFallback({
+    quotedContent,
+    fromName,
+    fromEmail,
+    attachments
+  });
+  mergeQuotedSenderFallback(sender, quotedSender);
   // Inject phone from form if extractSender missed it (form phone is authoritative)
-  const formPhone = robotFormData?.phone || tildaFormData?.phone;
+  const formPhone = robotFormData?.phone || tildaFormData?.phone || quotedRobotFormData?.phone;
   if (formPhone && !sender.mobilePhone && !sender.cityPhone) {
     const { mobilePhone, cityPhone } = splitPhones([formPhone], formPhone);
     sender.mobilePhone = mobilePhone || sender.mobilePhone;
@@ -506,12 +550,12 @@ export function analyzeEmail(project, payload) {
     if (mobilePhone || cityPhone) sender.sources.phone = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
   }
   // Inject company/INN from form fields if present
-  const formCompany = robotFormData?.company || tildaFormData?.company;
+  const formCompany = robotFormData?.company || tildaFormData?.company || quotedRobotFormData?.company;
   if (formCompany && !sender.companyName) {
     sender.companyName = sanitizeCompanyName(formCompany);
     sender.sources.company = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
   }
-  const formInn = robotFormData?.inn || tildaFormData?.inn;
+  const formInn = robotFormData?.inn || tildaFormData?.inn || quotedRobotFormData?.inn;
   if (formInn && !sender.inn) {
     sender.inn = formInn;
     sender.sources.inn = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
@@ -520,10 +564,102 @@ export function analyzeEmail(project, payload) {
   applyCompanyDirectoryHints(sender, fromEmail);
   mergeAttachmentRequisites(sender, attachmentAnalysis);
   applyCompanyDirectoryHints(sender, fromEmail);
-  const lead = mergeAttachmentLeadData(
+  let lead = mergeAttachmentLeadData(
     extractLead(subjectForExtraction, bodyForExtraction, attachments, project.brands || [], classification.detectedBrands),
     attachmentAnalysis
   );
+  const getConcreteItemScore = (candidateLead) => {
+    const articleCount = (candidateLead.articles || []).filter((item) => item && !/^DESC:/i.test(String(item))).length;
+    const lineItemCount = (candidateLead.lineItems || []).filter((item) => item?.article && !/^DESC:/i.test(String(item.article))).length;
+    return articleCount * 10 + lineItemCount;
+  };
+  if (!(lead.articles || []).length && quotedContent) {
+    const quotedBodyFallback = [primaryBody || body, cleanupQuotedFormText(quotedContent), attachmentContent].filter(Boolean).join("\n\n");
+    const fallbackLead = mergeAttachmentLeadData(
+      extractLead(subjectForExtraction, quotedBodyFallback, attachments, project.brands || [], classification.detectedBrands),
+      attachmentAnalysis
+    );
+    if (getConcreteItemScore(fallbackLead) > getConcreteItemScore(lead)) {
+      lead = fallbackLead;
+    }
+  }
+  if (!(lead.articles || []).length && body && body !== bodyForExtraction) {
+    const rawBodyFallback = [body, attachmentContent].filter(Boolean).join("\n\n");
+    const fallbackLead = mergeAttachmentLeadData(
+      extractLead(subjectForExtraction, rawBodyFallback, attachments, project.brands || [], classification.detectedBrands),
+      attachmentAnalysis
+    );
+    if (getConcreteItemScore(fallbackLead) > getConcreteItemScore(lead)) {
+      lead = fallbackLead;
+    }
+  }
+  if (!(lead.articles || []).length) {
+    const tabularFallbackItems = rawTabularFallbackItems;
+    if (tabularFallbackItems.length) {
+      const existingArticleSet = new Set((lead.lineItems || []).map((item) => normalizeArticleCode(item.article)).filter(Boolean));
+      lead.lineItems = [...(lead.lineItems || [])];
+      lead.productNames = [...(lead.productNames || [])];
+      lead.articles = [...(lead.articles || [])];
+      for (const item of tabularFallbackItems) {
+        const normalizedArticle = normalizeArticleCode(item.article);
+        if (!existingArticleSet.has(normalizedArticle)) {
+          lead.lineItems.push(item);
+          existingArticleSet.add(normalizedArticle);
+        }
+        if (!lead.articles.includes(normalizedArticle)) {
+          lead.articles.push(normalizedArticle);
+        }
+        if (!lead.productNames.some((entry) => normalizeArticleCode(entry.article) === normalizedArticle)) {
+          lead.productNames.push({
+            article: normalizedArticle,
+            name: sanitizeProductNameCandidate(String(item.descriptionRu || "").replace(new RegExp(`\\s+${escapeRegExp(normalizedArticle)}$`, "i"), "")) || null,
+            category: null
+          });
+        }
+      }
+      lead.totalPositions = Math.max(lead.totalPositions || 0, lead.lineItems.length, lead.articles.length);
+      if (lead.articles.length && /^Не определено/.test(String(lead.requestType || ""))) {
+        lead.requestType = "Не определено (есть артикулы)";
+      }
+    }
+  }
+  if (!(lead.articles || []).length) {
+    const directTabularPattern = /(?:^|[\n\r]|\s{2,})(?:№\s+Наименование\s+Кол-?во\s+Ед\.?изм\.?\s*)?(\d{1,3})\s+(.+?)\s+(\d{5,9})\s+(?:(?:[A-Za-zА-ЯЁа-яё]{1,5}\s+){0,3})?\d{1,4}[xх×*]\d{1,4}(?:[xх×*]\d{1,4})?(?:\s*[A-Za-zА-Яа-яЁё"]{0,4})?\s+(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?(?=$|[\n\r]|\s{2,})/gi;
+    const directMatches = [...String(body || "").matchAll(directTabularPattern)];
+    if (directMatches.length) {
+      lead.lineItems = [...(lead.lineItems || [])];
+      lead.productNames = [...(lead.productNames || [])];
+      lead.articles = [...(lead.articles || [])];
+      const existingArticleSet = new Set(lead.articles.map((item) => normalizeArticleCode(item)).filter(Boolean));
+      for (const match of directMatches) {
+        const article = normalizeArticleCode(match[3]);
+        const productName = sanitizeProductNameCandidate(match[2]) || null;
+        if (!article || existingArticleSet.has(article)) continue;
+        existingArticleSet.add(article);
+        lead.articles.push(article);
+        lead.lineItems.push({
+          article,
+          quantity: Math.round(parseFloat(String(match[4]).replace(",", "."))) || 1,
+          unit: match[5] || "шт",
+          descriptionRu: productName ? `${productName} ${article}` : article,
+          explicitArticle: true,
+          sourceLine: cleanup(match[0])
+        });
+        lead.productNames.push({ article, name: productName, category: null });
+      }
+      lead.totalPositions = Math.max(lead.totalPositions || 0, lead.lineItems.length, lead.articles.length);
+      if (lead.articles.length && /^Не определено/.test(String(lead.requestType || ""))) {
+        lead.requestType = "Не определено (есть артикулы)";
+      }
+    }
+  }
+  if ((lead.articles || []).some((item) => item && !/^DESC:/i.test(String(item)))) {
+    lead.lineItems = (lead.lineItems || []).filter((item) => {
+      if (!item?.article || !/^DESC:/i.test(String(item.article))) return true;
+      return !/^(?:минимальная цена|цена|стоимость|наличие|срок поставки)$/i.test(cleanup(item.descriptionRu || ""));
+    });
+    lead.totalPositions = Math.max(lead.lineItems.length, (lead.articles || []).length);
+  }
   enrichLeadFromKnowledgeBase(lead, classification, project, [subjectForExtraction, bodyForExtraction, attachmentContent].filter(Boolean).join("\n\n"));
   if (!lead.detectedBrands?.length && classification.detectedBrands?.length) {
     lead.detectedBrands = [...classification.detectedBrands];
@@ -548,6 +684,14 @@ export function analyzeEmail(project, payload) {
   }
 
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands, lead });
+
+  // Improvement 2: classify INN type (RU_ORG / RU_IP / BY / UNKNOWN)
+  if (crm && sender.inn) crm.innType = classifyInn(sender.inn);
+  // Improvement 5: deduplication key using INN+KPP for branches
+  if (crm && sender.inn) {
+    crm.deduplicationKey = sender.kpp ? `${sender.inn}/${sender.kpp}` : sender.inn;
+    crm.isFilialByKpp = Boolean(sender.inn && sender.kpp);
+  }
 
   const suggestedReply = buildSuggestedReply(classification.label, sender, lead, crm);
 
@@ -652,6 +796,73 @@ function sanitizeAttachmentText(text) {
     .replace(/\b(?:CAOLAN|ALLLEX|ALFABY)\w*\b/gi, "");           // PDF producer names
 }
 
+function extractTabularReplyItemsFromBody(text) {
+  const source = String(text || "");
+  const pattern = /(?:^|[\n\r]|\s{2,})(?:№\s+Наименование\s+Кол-?во\s+Ед\.?изм\.?\s*)?(\d{1,3})\s+(.+?)\s+((?:\d{5,9})|(?:[A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8}))\s+(?:(?:[A-Za-zА-ЯЁа-яё]{1,5}\s+){0,3})?\d{1,4}[xх×*]\d{1,4}(?:[xх×*]\d{1,4})?(?:\s*[A-Za-zА-Яа-яЁё"]{0,4})?\s+(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?(?=$|[\n\r]|\s{2,})/gi;
+  const items = [];
+  for (const match of source.matchAll(pattern)) {
+    const article = normalizeArticleCode(match[3]);
+    const description = cleanup(match[2]);
+    const sourceLine = cleanup(match[0]);
+    if (!article || isObviousArticleNoise(article, sourceLine)) continue;
+    if (items.some((item) => normalizeArticleCode(item.article) === article)) continue;
+    items.push({
+      article,
+      quantity: Math.round(parseFloat(String(match[4]).replace(",", "."))) || 1,
+      unit: match[5] || "шт",
+      descriptionRu: description ? `${description} ${article}`.trim() : article,
+      explicitArticle: true,
+      sourceLine
+    });
+  }
+  return items;
+}
+
+function buildBrandRelevantAttachmentText(attachmentAnalysis = {}) {
+  const files = attachmentAnalysis.files || [];
+  return files
+    .filter((file) => file.status === "processed")
+    .filter((file) => !["requisites", "invoice"].includes(file.category))
+    .map((file) => sanitizeAttachmentText(file.preview || ""))
+    .filter(Boolean)
+    .join("\n\n")
+    .trim();
+}
+
+function cleanupQuotedFormText(text) {
+  return String(text || "")
+    .split(/\r?\n/)
+    .map((line) => line.replace(/^\s*>\s?/, ""))
+    .join("\n")
+    .trim();
+}
+
+function looksLikeQuotedRobotForm(text) {
+  const value = cleanupQuotedFormText(text);
+  if (!value) return false;
+  return /(?:robot@siderus\.ru|Вопрос через обратную связь с сайта SIDERUS|Имя посетителя:|Новый вопрос на сайте SIDERUS)/i.test(value);
+}
+
+function buildQuotedExtractionSupplement(primaryBody, quotedContent, subject = "") {
+  const currentBody = String(primaryBody || "").trim();
+  const quoted = cleanupQuotedFormText(quotedContent);
+  if (!quoted) return "";
+
+  const isShortCurrentReply = currentBody.length > 0 && currentBody.length <= 220;
+  const hasInlineRequestSignals = /(?:артикул|наименование|кол-?во|ед\.?изм|цена|срок|поставка|запрос|кп|quotation|rfq|имя посетителя|вопрос:|телефон:)/i.test(quoted);
+  const isReplyThread = /^(?:re|fw|fwd)\s*:/i.test(String(subject || "").trim());
+
+  if (!((isShortCurrentReply && hasInlineRequestSignals) || looksLikeQuotedRobotForm(quoted) || (isReplyThread && hasInlineRequestSignals))) {
+    return "";
+  }
+
+  return quoted
+    .replace(/^(?:To|Кому|Subject|Тема|Date|Дата|Sent|Отправлено)\s*:.*$/gim, "")
+    .replace(/^(?:\d{2}\.\d{2}\.\d{4}|\d{1,2}\s+[а-яa-z]+)\S*.*<[^>]+>:\s*$/gim, "")
+    .trim()
+    .slice(0, 3000);
+}
+
 function normalizeAttachments(attachments) {
   if (Array.isArray(attachments)) {
     return attachments.map((item) => String(item).trim()).filter(Boolean);
@@ -720,7 +931,7 @@ function applyCompanyDirectoryHints(sender, fromEmail) {
 
 function mergeAttachmentRequisites(sender, attachmentAnalysis) {
   const files = attachmentAnalysis?.files || [];
-  const allInn = [...new Set(files.flatMap((file) => file.detectedInn || []))];
+  const allInn = [...new Set(files.flatMap((file) => file.detectedInn || []))].filter((inn) => !isOwnInn(inn));
   const allKpp = [...new Set(files.flatMap((file) => file.detectedKpp || []))];
   const allOgrn = [...new Set(files.flatMap((file) => file.detectedOgrn || []))];
 
@@ -743,6 +954,13 @@ function mergeAttachmentRequisites(sender, attachmentAnalysis) {
 
 function enrichLeadFromKnowledgeBase(lead, classification, project, searchText = "") {
   if (!lead.sources) lead.sources = {};
+  const hasConcreteArticles = (lead.articles || []).some((item) => item && !/^DESC:/i.test(String(item)));
+  if (!hasConcreteArticles) {
+    return;
+  }
+  if ((lead.detectedBrands || []).length > 0 || (classification.detectedBrands || []).length > 0) {
+    return;
+  }
   const brandCandidates = new Map();
   const queries = [
     ...(lead.productNames || []).map((item) => item?.name),
@@ -948,7 +1166,10 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
   const phones = body.match(PHONE_PATTERN) || [];
   const requisites = extractRequisites(body);
   // Filter out own URLs from detected links
-  const externalUrls = urls.filter((u) => !OWN_DOMAINS.has(extractDomainFromUrl(u)));
+  const externalUrls = urls.filter((u) => {
+    const domain = extractDomainFromUrl(u);
+    return domain && !OWN_DOMAINS.has(domain) && !isTrackingHost(domain);
+  });
   const extractedCompanyName = extractCompanyName(body, signature);
   const inferredCompanyName = inferCompanyNameFromEmail(fromEmail);
   // Domain fallback: last resort if nothing found in body/signature
@@ -1038,6 +1259,7 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const brandScanBody = body.length > 6000 ? body.slice(0, 6000) : body;
   const rawBrands = unique(kbBrands.concat(detectBrands([subject, brandScanBody, attachmentsText].join("\n"), brands)));
   let detectedBrands = detectionKb.filterOwnBrands(rawBrands);
+  const explicitTextBrands = [...detectedBrands];
 
   const attachmentHints = parseAttachmentHints(attachments);
 
@@ -1072,7 +1294,7 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
 
   detectedBrands = detectionKb.filterOwnBrands(unique([
     ...detectedBrands,
-    ...nomenclatureMatches.map((item) => item.brand).filter(Boolean)
+    ...(explicitTextBrands.length === 0 ? nomenclatureMatches.map((item) => item.brand).filter(Boolean) : [])
   ]));
 
   const productNames = extractProductNames(
@@ -1942,6 +2164,7 @@ const GENERIC_DOMAIN_WORDS = new Set([
   "metal", "group", "trade", "service", "info", "mail", "opt", "shop",
   "store", "online", "web", "net", "pro", "biz", "corp",
 ]);
+const TRACKING_HOST_PATTERNS = [/^trk\.mail\.ru$/i, /^l\.mail\.ru$/i, /^click\./i, /^track\./i];
 
 // PDF/font tokens that appear as fake company names when attachment content bleeds into extraction
 const PDF_COMPANY_NOISE_TOKENS = new Set([
@@ -1955,7 +2178,7 @@ const PDF_COMPANY_NOISE_TOKENS = new Set([
 
 // Legal entity forms used as direct fallback patterns
 const LEGAL_ENTITY_PATTERNS = [
-  /(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП|НПО|НПП|НПК|ТОО|КТ)\s+["«]?[A-Za-zА-ЯЁ0-9][^,\n]{2,80}?(?=\s*(?:ИНН|КПП|ОГРН|тел\.?|телефон|моб\.?|mobile|phone|сайт|site|e-?mail|email|адрес|г\.|ул\.|$))/i,
+  /(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП|НПО|НПП|НПК|ТОО|КТ)\s+["«]?[A-Za-zА-ЯЁ0-9][^,\n]{2,80}?(?=\s*(?:ИНН|КПП|ОГРН|тел\.?|телефон|моб\.?|mobile|phone|сайт|site|e-?mail|email|адрес|г\.|ул\.|(?:\+?7|8)[\s(.-]*\d{3}|$))/i,
   // With quotes: ООО «Ромашка», АО "Техно"
   /(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП|НПО|НПП|НПК|ТОО|КТ)\s+["«]([^"»]+)["»]/,
   // ИП Фамилия Имя Отчество
@@ -1989,7 +2212,9 @@ function extractCompanyName(body, signature = "") {
     for (const pattern of LEGAL_ENTITY_PATTERNS) {
       const match = text.match(pattern);
       if (match) {
-        const name = sanitizeCompanyName(match[0]).trim();
+        const sanitized = sanitizeCompanyName(match[0]);
+        if (!sanitized) continue;
+        const name = sanitized.trim();
         if (OWN_COMPANY_NAMES.test(name)) continue;
         if (name.length >= 5) {
           candidates.push({ name, score: 0 });
@@ -2058,6 +2283,11 @@ function isFreeDomain(email) {
 
 function isOwnDomain(domain) {
   return OWN_DOMAINS.has(domain);
+}
+
+function isTrackingHost(domain) {
+  const host = String(domain || "").toLowerCase().replace(/^www\./, "");
+  return TRACKING_HOST_PATTERNS.some((pattern) => pattern.test(host));
 }
 
 function extractDomainFromUrl(url) {
@@ -2148,7 +2378,8 @@ function inferNameFromEmail(email) {
 }
 
 function extractPosition(body) {
-  const position = detectionKb.matchField("position", body);
+  // Improvement 4: use matchFieldBest to prefer longest match among similar-priority candidates
+  const position = detectionKb.matchFieldBest("position", body);
   return position ? cleanup(position) : null;
 }
 
@@ -2245,6 +2476,53 @@ function extractCompanyFromSignatureLine(signature, fullName) {
   return null;
 }
 
+function hasLegalEntityMarker(value) {
+  return /(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП|ГК|НПО|НПП|GmbH|AG|Ltd\.?|LLC|Inc\.?|SE|S\.A\.|B\.V\.)/i.test(String(value || ""));
+}
+
+function extractQuotedSenderFallback({ quotedContent = "", fromName = "", fromEmail = "", attachments = [] } = {}) {
+  const quoted = String(quotedContent || "").trim();
+  if (!quoted || !fromEmail) return null;
+  if (!quoted.toLowerCase().includes(fromEmail.toLowerCase())) return null;
+
+  const { body: quotedPrimaryBody, signature: quotedSignature } = extractSignature(quoted);
+  const quotedBody = [quotedPrimaryBody, quotedSignature].filter(Boolean).join("\n\n") || quoted;
+  const sender = extractSender(fromName, fromEmail, quotedBody, attachments, quotedSignature);
+  if (!sender) return null;
+  return sender;
+}
+
+function mergeQuotedSenderFallback(sender, quotedSender) {
+  if (!sender || !quotedSender) return;
+
+  if ((!sender.mobilePhone && !sender.cityPhone) && (quotedSender.mobilePhone || quotedSender.cityPhone)) {
+    sender.mobilePhone = quotedSender.mobilePhone || sender.mobilePhone;
+    sender.cityPhone = quotedSender.cityPhone || sender.cityPhone;
+    sender.sources.phone = quotedSender.sources?.phone || "quoted_body";
+  }
+
+  if (!sender.inn && quotedSender.inn) {
+    sender.inn = quotedSender.inn;
+    sender.sources.inn = quotedSender.sources?.inn || "quoted_body";
+  }
+
+  const senderCompany = String(sender.companyName || "");
+  const quotedCompany = String(quotedSender.companyName || "");
+  const shouldReplaceCompany = (
+    (!senderCompany && quotedCompany)
+    || (!hasLegalEntityMarker(senderCompany) && hasLegalEntityMarker(quotedCompany))
+    || (/^[A-Za-z][A-Za-z\s.-]*\s+co\.?$/i.test(senderCompany) && hasLegalEntityMarker(quotedCompany))
+  );
+  if (shouldReplaceCompany) {
+    sender.companyName = quotedCompany;
+    sender.sources.company = quotedSender.sources?.company || "quoted_body";
+  }
+
+  if ((!sender.fullName || sender.fullName === "Не определено") && quotedSender.fullName && quotedSender.fullName !== "Не определено") {
+    sender.fullName = quotedSender.fullName;
+  }
+}
+
 // Step 5: Infer company from email domain (last resort, score -15)
 function inferCompanyFromDomain(email) {
   if (!email || isFreeDomain(email)) return null;
@@ -2272,9 +2550,11 @@ function sanitizeCompanyName(value) {
     .replace(/\s+(?:тел\.?|телефон|phone|mobile|моб\.?|сайт|site|e-?mail|email)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
     .replace(/\s+(?:www\.[^\s]+|https?:\/\/[^\s]+)\s*$/i, "")
     .replace(/\s+\+\d[\d()\s.-]*$/i, "")
+    .replace(/\s+(?:\+?7|8)(?:[\s(.-]*\d){10,}[\s\S]*$/i, "")
     .replace(/[;,:\-–—]\s*(?:тел\.?|телефон|phone|mobile|моб\.?|сайт|site|e-?mail|email)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
     .replace(/\s+(?:г\.|город|ул\.|улица|пр-?т|проспект|д\.|дом)\s+[\s\S]*$/i, "")
     .replace(/\s+(?:юридический\s+и\s+фактический|юридический|фактический|почтовый)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
+    .replace(/\s+Наше\s+предприятие[\s\S]*$/i, "")
     // Strip trailing bank details (БИК, р/с, к/с, корр. счёт)
     .replace(/\s+(?:БИК|бик|к\/с|р\/с|Р\/с|К\/с|корр?\.?\s*счёт|расч\.?\s*счёт|к[/\\]с|р[/\\]с)[\s\S]*$/i, "")
     .replace(/\s{2,}/g, " ")
@@ -2318,8 +2598,10 @@ function sanitizeCompanyName(value) {
   if (PDF_COMPANY_NOISE_TOKENS.has(lowerBase)) return null;
 
   // Reject generic English words + "co" (e.g. "United Process Co", "Any co", "Dust co")
-  const GENERIC_CO_WORDS = new Set(["any", "some", "united", "process", "special", "group", "general", "global", "master", "service", "system", "solution", "tech", "trade", "new", "old", "big", "small", "good", "best", "first", "next"]);
+  const GENERIC_CO_WORDS = new Set(["any", "some", "united", "process", "special", "group", "general", "global", "master", "service", "system", "solution", "tech", "trade", "new", "old", "big", "small", "good", "best", "first", "next", "solenoid", "coil", "coils", "hydraulic", "electric"]);
   if (/\s+co\.?\s*$/i.test(text) && GENERIC_CO_WORDS.has(lowerBase)) return null;
+  if (/^[A-Z]{1,3}\s+co\.?$/i.test(text)) return null;
+  if (/^(?:hd|isa|cmod)\s+co\.?$/i.test(text)) return null;
 
   // Reject software-version/repack noise (e.g. "SPecialiST RePack AppVersion Co", "RePack by someone")
   if (/\b(?:repack|appversion|portable|keygen|crack|patch|activator|installer)\b/i.test(text)) return null;
@@ -2331,6 +2613,7 @@ function sanitizeCompanyName(value) {
 
   // Reject bare legal-form without any name ("ООО", "АО", "ИП")
   if (/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)$/i.test(text)) return null;
+  if (/^(?:наше|ваше)\s+предприятие$/i.test(text)) return null;
 
   if (/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)\s*(?:тел|телефон|phone|mobile|email|e-mail|сайт)$/i.test(text)) {
     return null;
@@ -2374,11 +2657,27 @@ function splitPhones(phones, body = "") {
 function extractLineItems(body) {
   const lines = body.split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
   const items = [];
+  const tabularRowPattern = /(?:^|[\n\r]|\s{2,})(?:№\s+Наименование\s+Кол-?во\s+Ед\.?изм\.?\s*)?(\d{1,3})\s+(.+?)\s+((?:\d{5,9})|(?:[A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8}))\s+(?:(?:[A-Za-zА-ЯЁа-яё]{1,5}\s+){0,3})?\d{1,4}[xх×*]\d{1,4}(?:[xх×*]\d{1,4})?(?:\s*[A-Za-zА-Яа-яЁё"]{0,4})?\s+(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?(?=$|[\n\r]|\s{2,})/gi;
 
   for (const block of parseArticleQtyBlocks(body)) {
     if (!items.some((item) => normalizeArticleCode(item.article) === normalizeArticleCode(block.article))) {
       items.push(block);
     }
+  }
+
+  for (const match of body.matchAll(tabularRowPattern)) {
+    const article = normalizeArticleCode(match[3]);
+    const sourceLine = cleanup(match[0]);
+    if (!article || isObviousArticleNoise(article, sourceLine)) continue;
+    if (items.some((item) => normalizeArticleCode(item.article) === article)) continue;
+    items.push({
+      article,
+      quantity: Math.round(parseFloat(String(match[4]).replace(",", "."))) || 1,
+      unit: match[5] || "шт",
+      descriptionRu: `${cleanup(match[2])} ${article}`.trim(),
+      explicitArticle: true,
+      sourceLine
+    });
   }
 
   for (const rawLine of lines) {
@@ -2388,6 +2687,42 @@ function extractLineItems(body) {
     // Strip "Позиция N:" or "Поз. N:" prefix
     const line = rawLine.replace(/^(?:Позиция|Поз\.?)\s*\d{1,3}\s*[:.\s]+/i, "").trim();
     if (!line) continue;
+
+    // ── Tabular quoted row: "1 Уплотнение масляное 122571 NBR G 60х75х8 10" ──
+    const tableRowSource = line.replace(/^№\s+Наименование\s+Кол-?во\s+Ед\.?изм\.?\s*/i, "").trim();
+    const tableRowMatch = tableRowSource.match(/^\d{1,3}\s+(.+?)\s+((?:\d{5,9})|(?:[A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8}))\s+(?:(?:[A-Za-zА-ЯЁа-яё]{1,5}\s+){0,3})?\d{1,4}[xх×*]\d{1,4}(?:[xх×*]\d{1,4})?(?:\s*[A-Za-zА-Яа-яЁё"]{0,4})?\s+(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?$/i);
+    if (tableRowMatch && !isObviousArticleNoise(tableRowMatch[2], tableRowSource)) {
+      items.push({
+        article: normalizeArticleCode(tableRowMatch[2]),
+        quantity: Math.round(parseFloat(tableRowMatch[3].replace(",", "."))) || 1,
+        unit: tableRowMatch[4] || "шт",
+        descriptionRu: `${tableRowMatch[1]} ${tableRowMatch[2]}`.trim(),
+        explicitArticle: true,
+        sourceLine: tableRowSource
+      });
+      continue;
+    }
+
+    // ── Exact numbered article lines: "1) WK06Y-01-C-N-0" ──
+    const numberedExactArticleMatch = line.match(/^\d{1,3}[.)]\s*([A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8})$/i);
+    if (numberedExactArticleMatch) {
+      items.push({ article: normalizeArticleCode(numberedExactArticleMatch[1]), quantity: 1, unit: "шт", descriptionRu: line, explicitArticle: true, sourceLine: line });
+      continue;
+    }
+
+    // ── Numbered branded line: "1) Bieri AKP20-0,012-300-V" ──
+    const numberedBrandArticleMatch = line.match(/^\d{1,3}[.)]\s*[A-Za-zÀ-ÿА-Яа-яЁё][A-Za-zÀ-ÿА-Яа-яЁё&.+-]{1,30}\s+([A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8})$/i);
+    if (numberedBrandArticleMatch) {
+      items.push({ article: normalizeArticleCode(numberedBrandArticleMatch[1]), quantity: 1, unit: "шт", descriptionRu: line, explicitArticle: true, sourceLine: line });
+      continue;
+    }
+
+    // ── Numbered descriptive line with stable code: "1) Coil 230DG-32-1329" ──
+    const numberedDescriptorArticleMatch = line.match(/^\d{1,3}[.)]\s*(?:Coil|Катушка|Клапан|Насос)\s+([A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8})$/i);
+    if (numberedDescriptorArticleMatch) {
+      items.push({ article: normalizeArticleCode(numberedDescriptorArticleMatch[1]), quantity: 1, unit: "шт", descriptionRu: line, explicitArticle: true, sourceLine: line });
+      continue;
+    }
 
     // ── Format: "Description ARTICLE - N шт" (product line with trailing qty) ──
     const productQtyMatch = line.match(PRODUCT_QTY_PATTERN);
@@ -2502,7 +2837,29 @@ function extractLineItems(body) {
     items.push(ni);
   }
 
-  return items;
+  return pruneShadowLineItems(items);
+}
+
+function pruneShadowLineItems(items) {
+  return items.filter((item, _, allItems) => {
+    const article = normalizeArticleCode(item.article);
+    if (!article) return false;
+
+    return !allItems.some((other) => {
+      if (other === item) return false;
+      const otherArticle = normalizeArticleCode(other.article);
+      if (!otherArticle || otherArticle === article) return false;
+      if (!otherArticle.includes(article) || otherArticle.length < article.length + 2) return false;
+
+      const itemDescription = cleanup(item.descriptionRu || item.sourceLine || "");
+      const otherDescription = cleanup(other.descriptionRu || other.sourceLine || "");
+
+      if (itemDescription && otherDescription && itemDescription === otherDescription) return true;
+      if (itemDescription && itemDescription.includes(otherArticle)) return true;
+      if (otherDescription && otherDescription.includes(article) && /[-/,.:]/.test(otherArticle)) return true;
+      return false;
+    });
+  });
 }
 
 /**
@@ -2748,6 +3105,7 @@ function extractAllArticlesFromDescription(text) {
 
   const productContextPattern = /(?:^|[\s-])(?:[A-Za-zÀ-ÿА-Яа-яЁё][A-Za-zÀ-ÿА-Яа-яЁё&.-]{1,30}(?:\s+(?:und|and|&)\s+[A-Za-zÀ-ÿА-Яа-яЁё][A-Za-zÀ-ÿА-Яа-яЁё&.-]{1,30})?)\s+([A-Za-zА-Яа-яЁё]?\d[A-Za-zА-Яа-яЁё0-9/-]{2,20}|\d{4,9}|[A-Za-zА-Яа-яЁё]{1,4}[A-Za-zА-Яа-яЁё0-9]{1,8}(?:[-/.][A-Za-zА-Яа-яЁё0-9]{1,12}){1,6})/gi;
   for (const m of text.matchAll(productContextPattern)) add(m[1]);
+  for (const m of text.matchAll(/\b(\d{5,9})\b(?=\s+(?:NBR|FKM|EPDM|PTFE|VITON|FPM|VMQ|HNBR|SIL)\b|\s+\d{1,4}[xх×*]\d{1,4}(?:[xх×*]\d{1,4})?\b)/gi)) add(m[1]);
 
   for (const m of text.matchAll(EXTENDED_CODE_PATTERN)) add(m[1]);
   for (const m of text.matchAll(DIGIT_LEAD_SEGMENTED_CODE_PATTERN)) add(m[1]);
@@ -3483,7 +3841,9 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^AISI\s+\d{3}[A-Z]?$/.test(normalized)) return true;
   // Dimension/size expressions: 4x14mm, 20mm, 10x10, 3/4" — engineering sizes, not articles
   if (/^\d+[xхх×*]\d+(?:[.,]\d+)?(?:mm|cm|m|")?$/i.test(normalized)) return true;
+  if (/^\d+[xхх×*]\d+(?:[xхх×*]\d+){1,3}(?:[.,]\d+)?(?:mm|cm|m|")?$/i.test(normalized)) return true;
   if (/^\d+(?:[.,]\d+)?\s*(?:mm|cm|мм|см)$/i.test(normalized)) return true;
+  if (/^\d{2,5}(?:-\d{2,5}){2,}(?:-[a-z]{1,4})?$/i.test(normalized) && /(?:ysclid|rab-temp|processed|orders|bitrix|form_result|isa-hd)/i.test(line)) return true;
   // Image/file attachment names used as articles: IMG-5248, DSC-1234, SCAN-001
   if (GENERIC_IMAGE_ATTACHMENT_PATTERN.test(normalized)) return true;
   // Prefixed catalog/INN codes misidentified as articles: 2A3952010011, 3A3952010260
@@ -3747,8 +4107,8 @@ function parseTildaFormBody(body) {
 
   // Company/INN
   const company = fields["company"] || fields["компания"] || fields["организация"] || null;
-  const innMatch = formSection.match(/ИНН\s*[:\-]?\s*(\d{10,12})/i);
-  const inn = innMatch?.[1] || null;
+  const innMatch = formSection.match(/ИНН\s*[:\-]?\s*(\d{9,12})/i);
+  const inn = (!innMatch?.[1] || isOwnInn(innMatch[1])) ? null : innMatch[1];
 
   return { name, phone: phoneVal, email: emailVal, product, company, inn, formSection };
 }
@@ -3758,46 +4118,63 @@ function parseRobotFormBody(subject, body) {
   const formHeaderIdx = body.search(/Заполнена\s+(?:форма|web-форма)|Имя\s+посетителя:|Новый\s+(?:заказ|лид)|Заказ\s+звонка/i);
   const formEndIdx = body.search(/(?:Запрос|Заявка|Вопрос)\s+отправлен[а]?:/i);
   const sectionStart = formHeaderIdx !== -1 ? formHeaderIdx : 0;
-  const formSection = (formEndIdx > sectionStart)
+  let formSection = (formEndIdx > sectionStart)
     ? body.slice(sectionStart, formEndIdx)
     : body.slice(sectionStart, sectionStart + 1500);
+  formSection = formSection
+    .replace(/^Страница\s+отправки:\s*.*$/gim, "")
+    .replace(/^Просмотр\s+результата\s+на\s+сайте:\s*.*$/gim, "")
+    .replace(/^https?:\/\/[^\s]+$/gim, "")
+    .replace(/^\s*\*\s*(?:From|Sent|To|Cc|Subject)\*:\s*.*$/gim, "")
+    .trim();
 
-  // Visitor name: "Имя посетителя: X" or widget "Ваше имя\n***\nX"
+  // Visitor name: "Имя посетителя: X" or alternative field names or widget
   const nameMatch =
-    formSection.match(/Имя\s+посетителя:\s*(.+?)[\r\n]/i) ||
-    body.match(/Ваше\s+имя\s*[\r\n]\*+[\r\n](.+?)[\r\n]/i);
+    formSection.match(/(?:Имя\s+посетителя|ФИО|Контактное\s+лицо):\s*(.+?)[\r\n]/i) ||
+    body.match(/Ваше\s+имя\s*[\r\n]\*+[\r\n](.+?)[\r\n]/i) ||
+    formSection.match(/^Имя:\s*(.+?)[\r\n]/im);
   const name = nameMatch?.[1]?.trim() || null;
 
   // Real sender email embedded in form body (not robot@siderus.ru)
-  const emailInlineMatch = formSection.match(/^E?-?mail:\s*([\w.!#$%&'*+/=?^`{|}~-]+@[\w.-]+\.[a-z]{2,})/im);
+  const emailInlineMatch = formSection.match(/^(?:E?-?mail|Почта|Электронная\s+почта):\s*([\w.!#$%&'*+/=?^`{|}~-]+@[\w.-]+\.[a-z]{2,})/im);
   const emailMailtoMatch = formSection.match(/mailto:([\w.!#$%&'*+/=?^`{|}~-]+@[\w.-]+\.[a-z]{2,})/i);
   const emailWidgetMatch = body.match(/E-?mail\s*[\r\n]\*+[\r\n]\s*([\w.!#$%&'*+/=?^`{|}~-]+@[\w.-]+\.[a-z]{2,})/i);
   const email = (emailInlineMatch?.[1] || emailMailtoMatch?.[1] || emailWidgetMatch?.[1] || null)
     ?.toLowerCase().replace(/:$/, "") || null;
 
-  // Phone: "Телефон: +7..." or "WhatsApp: +7..." or widget "Телефон\n***\n+7..."
-  const phoneInlineMatch = formSection.match(/(?:Телефон|WhatsApp):\s*([+\d][\d\s\-()]{5,})/i);
+  // Phone: "Телефон/Тел/WhatsApp/Мобильный: +7..." or widget
+  const phoneInlineMatch = formSection.match(/(?:Телефон|Тел|WhatsApp|Мобильный):\s*([+\d][\d\s\-()/.]{5,})/i);
   const phoneWidgetMatch = body.match(/(?:Телефон|WhatsApp)\s*[\r\n]\*+[\r\n]\s*([+\d][\d\s\-()]{5,})/i);
   const phone = (phoneInlineMatch?.[1] || phoneWidgetMatch?.[1])?.trim() || null;
 
   // Product / item name
-  const productMatch = formSection.match(/(?:Название\s+товара|Продукт|Товар):\s*(.+?)[\r\n]/i);
+  const productMatch = formSection.match(/(?:Название\s+товара|Продукт|Товар|Запрос|Артикул|Наименование):\s*(.+?)[\r\n]/i);
   const product = productMatch?.[1]?.trim() || null;
 
   // Message / question text (stop before next form field or URL)
-  const msgMatch = formSection.match(/(?:Сообщение|Вопрос):\s*([\s\S]+?)(?:\n[ \t]*\n|\nСтраница\s+отправки|\nID\s+товара|$)/i);
+  const msgMatch = formSection.match(/(?:Сообщение|Вопрос|Комментарий|Текст\s+заявки):\s*([\s\S]+?)(?:\n[ \t]*\n|\nСтраница\s+отправки|\nID\s+товара|$)/i);
   const message = msgMatch?.[1]?.trim().slice(0, 500) || null;
 
-  // Company and INN (sometimes present in advanced forms)
-  const companyMatch = formSection.match(/Название\s+организации:\s*(.+?)[\r\n]/i);
+  // Company and INN (standard + extended field names)
+  const companyMatch = formSection.match(/(?:Название\s+организации|Компания|Организация|Предприятие):\s*(.+?)[\r\n]/i);
   const company = companyMatch?.[1]?.trim() || null;
-  const innMatch = formSection.match(/ИНН:\s*(\d{10,12})/i);
-  const inn = innMatch?.[1] || null;
+  const innMatch = formSection.match(/ИНН:\s*(\d{9,12})/i);
+  const inn = (!innMatch?.[1] || isOwnInn(innMatch[1])) ? null : innMatch[1];
+
+  // Quantity (Количество: 5 шт)
+  const qtyMatch = formSection.match(/(?:Количество|Кол-во):\s*(\d[\d\s,.]*)\s*([а-яёa-z]+)?/i);
+  const quantity = qtyMatch ? { value: qtyMatch[1].trim(), unit: qtyMatch[2]?.trim() || null } : null;
+
+  // КП form: "Запрошено КП на товары:" or "Список товаров:" → parse as lineItems hint
+  const kpFormMatch = /(?:запрошено\s+кп|список\s+товаров|перечень\s+позиций)\s*[:\n]/i.test(formSection);
+
+  // Form with file attachment: robot@ sender + attachment → keep webFormSource
+  const hasAttachmentForm = /robot@/i.test(body);
 
   // Resume form → should be classified as spam
   const isResume = /резюме|вакансия/i.test(subject + " " + formSection);
 
-  return { name, email, phone, product, message, company, inn, formSection, isResume };
+  return { name, email, phone, product, message, company, inn, quantity, kpForm: kpFormMatch, hasAttachmentForm, formSection, isResume };
 }
 
 function extractForwardedSender(body) {
@@ -3857,9 +4234,31 @@ function addNumericFragments(bucket, value, options = {}) {
 
 function extractRequisites(text) {
   // Handle combined ИНН/КПП: X/Y format first (КПП after slash)
-  const innKppMatch = text.match(/(?:ИНН|inn)\/КПП\s*[:#-]?\s*(\d{10,12})\/(\d{9})/i);
+  const innKppMatch = text.match(/(?:ИНН|inn)\/КПП\s*[:#-]?\s*(\d{9,12})\/(\d{9})/i);
+
+  // Helper: filter INN candidates by own-inn and EDO context
+  function filterInn(inn, matchInput) {
+    if (!inn) return null;
+    if (isOwnInn(inn)) return null;
+    // Check if this INN appears on a line with EDO context (and no explicit client/org marker)
+    if (matchInput) {
+      const lines = String(matchInput).split(/\n/);
+      for (let i = 0; i < lines.length; i++) {
+        const line = lines[i];
+        if (line.includes(inn)) {
+          const prevLine = i > 0 ? lines[i - 1] : '';
+          const hasEdoCtx = EDO_CONTEXT_PATTERN.test(line) || EDO_CONTEXT_PATTERN.test(prevLine);
+          const hasClientMarker = /ИНН\s+(?:организации|клиента)\s*[:#-]/i.test(line);
+          if (hasEdoCtx && !hasClientMarker) return null;
+        }
+      }
+    }
+    return inn;
+  }
+
+  const rawInn = innKppMatch?.[1] || text.match(INN_PATTERN)?.[1] || null;
   return {
-    inn: innKppMatch?.[1] || text.match(INN_PATTERN)?.[1] || null,
+    inn: filterInn(rawInn, text),
     kpp: innKppMatch?.[2] || text.match(KPP_PATTERN)?.[1] || null,
     ogrn: text.match(OGRN_PATTERN)?.[1] || null
   };
