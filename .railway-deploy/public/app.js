@@ -2163,7 +2163,7 @@ function renderRequestAnalytics() {
   // ═══ Attachment types ═══
   const attEntries = [...attTypeCount.entries()].sort((a, b) => b[1] - a[1]);
   const attIcons = { request: '📋', requisites: '📄', pricelist: '💰', photo: '📷', document: '📁', other: '📎' };
-  const attLabels = { request: 'Заявка', requisites: 'Реквизиты', pricelist: 'Прайс', photo: 'Фото', document: 'Документ', other: 'Другое' };
+  const attLabels = { request: 'Заявка', requisites: 'Реквизиты', pricelist: 'Спецификация', photo: 'Фото', document: 'Документ', other: 'Другое' };
   $('#attachment-types-chart').innerHTML = attEntries.length ? `<div style="display:flex;flex-wrap:wrap;gap:8px;">${attEntries.map(([type, count]) =>
     `<div style="background:var(--surface-2);border:1px solid var(--border);border-radius:6px;padding:8px 14px;display:flex;gap:8px;align-items:center;">
       <span>${attIcons[type] || '📎'}</span>
@@ -2695,7 +2695,7 @@ function renderEmailView(msg, viewEl, detailEl) {
     ${msg.attachments?.length ? `<div class="attachment-list">${msg.attachments.map((att) => {
       const hints = lead.attachmentHints || [];
       const hint = hints.find((h) => h.name === att);
-      const typeIcon = { request: '📋', requisites: '📄', pricelist: '💰', photo: '📷', document: '📁', other: '📎' };
+      const typeIcon = { request: '📋', requisites: '📄', pricelist: '📊', photo: '📷', document: '📁', other: '📎' };
       const attFile = (msg.attachmentFiles || []).find((f) => f.filename === att);
       const hasFile = attFile?.safeName;
       const attUrl = hasFile ? `/api/attachments/${encodeURIComponent(msgKey)}/${encodeURIComponent(att)}` : null;
@@ -3171,7 +3171,7 @@ function renderKb() {
 
   if (kbTab === 'stats') {
     const s = kbData.stats || {};
-    container.innerHTML = `<div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">${[['Правил', s.ruleCount],['Brand aliases', s.brandAliasCount],['Профилей', s.senderProfileCount],['Паттернов', s.fieldPatternCount],['Корпус', s.corpusCount],['Номенклатура', s.nomenclatureCount],['Own brands', s.ownBrandCount]].map(([l,v]) => `<div class="kpi-card"><div class="kpi-label">${esc(l)}</div><div class="kpi-value accent">${v ?? '—'}</div></div>`).join('')}</div>`;
+    container.innerHTML = `<div style="padding:20px;display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;">${[['Правил', s.ruleCount],['Альт. написания', s.brandAliasCount],['Профилей', s.senderProfileCount],['Паттернов', s.fieldPatternCount],['Корпус', s.corpusCount],['Номенклатура', s.nomenclatureCount],['Own brands', s.ownBrandCount]].map(([l,v]) => `<div class="kpi-card"><div class="kpi-label">${esc(l)}</div><div class="kpi-value accent">${v ?? '—'}</div></div>`).join('')}</div>`;
     return;
   }
   if (kbTab === 'rules') {
@@ -3188,7 +3188,7 @@ function renderKb() {
     return;
   }
   if (kbTab === 'brands') {
-    container.innerHTML = `<table class="data-table"><thead><tr><th>Бренд</th><th>Alias</th><th>ID</th></tr></thead><tbody>${(kbData.brandAliases || []).map((b) => `<tr><td><strong>${esc(b.canonical_brand)}</strong></td><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${esc(b.alias)}</td><td style="color:var(--text-muted);font-size:11px;">${b.id}</td></tr>`).join('')}</tbody></table>`;
+    container.innerHTML = `<table class="data-table"><thead><tr><th>Бренд</th><th>Альтернативное написание</th><th>ID</th></tr></thead><tbody>${(kbData.brandAliases || []).map((b) => `<tr><td><strong>${esc(b.canonical_brand)}</strong></td><td style="font-family:'JetBrains Mono',monospace;font-size:12px;">${esc(b.alias)}</td><td style="color:var(--text-muted);font-size:11px;">${b.id}</td></tr>`).join('')}</tbody></table>`;
     return;
   }
   if (kbTab === 'senders') {
@@ -3612,7 +3612,7 @@ async function refreshApiDocsHealth() {
           <div style="font-size:11px;color:var(--text-tertiary);">Role: ${health.background?.role || '-'}</div>
         </div>
         <div style="padding:10px 16px;border-radius:8px;background:var(--bg-tertiary);flex:1;min-width:140px;">
-          <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px;">Brand Aliases</div>
+          <div style="font-size:11px;color:var(--text-tertiary);margin-bottom:4px;">Альт. написания</div>
           <div style="font-size:18px;font-weight:700;color:var(--blue);">${stats.brandAliasCount || 0}</div>
           <div style="font-size:11px;color:var(--text-tertiary);">Own brands: ${stats.ownBrandCount || 0}</div>
         </div>
