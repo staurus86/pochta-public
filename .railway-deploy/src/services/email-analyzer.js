@@ -2327,10 +2327,35 @@ function extractDomainFromUrl(url) {
   }
 }
 
+// Keywords that indicate a job position/title line (not a name)
+const POSITION_KEYWORDS = /^(?:начальник|заместитель|руководитель|главный|ведущий|менеджер|инженер|директор|специалист|бухгалтер|юрист|аналитик|координатор|советник|консультант|технолог|оператор|сотрудник|отдел|служба|департамент|управление|филиал|ceo|cto|coo|cfo)(?:\s|$)/i;
+
 function extractFullNameFromBody(body) {
   const fromKb = detectionKb.matchField("signature_hint", body);
   // Take only the first line — KB pattern can match across newlines and grab position line
-  if (fromKb) return fromKb.split(/\n/)[0].trim();
+  if (fromKb) {
+    const kbLine = fromKb.split(/\n/)[0].trim();
+    // Skip if KB returned a job position line, not a name
+    if (!POSITION_KEYWORDS.test(kbLine)) {
+      // Expand name if trailing initial follows in body (e.g. "Алик Шарифгалиев" → "Алик Шарифгалиев М.")
+      const trailingInitial = body.match(new RegExp(kbLine.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s+([А-ЯЁ]\\.(?:\\s*[А-ЯЁ]\\.)?)"));
+      if (trailingInitial) return kbLine + " " + trailingInitial[1].trim();
+      return kbLine;
+    }
+  }
+
+  // "С уважением,\n[строка должности]\nФамилия Имя" — позиция между приветствием и именем
+  // Проверяем ПЕРЕД signatureWithCompany, т.к. тот захватывает строку должности из-за флага /i
+  const signatureWithPosition = body.match(
+    /(?:С уважением|Благодарю|Спасибо)[,.\s]*\r?\n\s*[^\n]{3,60}\r?\n\s*([А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+){1,2})/i
+  );
+  if (signatureWithPosition) {
+    const candidate = signatureWithPosition[1].trim();
+    // Пропустить если это название юрлица, а не имя
+    if (!/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ГК|НПО|НПП|ФГУП|МУП|Филиал)\b/i.test(candidate)) {
+      return candidate;
+    }
+  }
 
   // "С уважением, [ООО/АО/...] Фамилия Имя [Отчество]" — company before name
   const signatureWithCompany = body.match(
@@ -2372,12 +2397,17 @@ function extractFullNameFromBody(body) {
     const latin2words = /^([A-Z][a-z]{1,19})(?:\s+([A-Z][a-z]{1,19})){1,2}$/.test(line);
     // "Фамилия И.В." or "Фамилия И. В." — surname + initials (very common in RU business email)
     const surnameInitials = /^([А-ЯЁ][а-яё]{2,20})\s+([А-ЯЁ]\.\s*[А-ЯЁ]\.?)$/.test(line);
+    // "Имя Фамилия И." or "Фамилия Имя И." — два слова + один инициал с точкой
+    const cyrillicWithInitial = /^([А-ЯЁ][а-яё]{1,19})\s+([А-ЯЁ][а-яё]{1,19})\s+([А-ЯЁ]\.(?:\s*[А-ЯЁ]\.)?)$/.test(line);
+    // "Ф. И. О." — только инициалы (недостаточно для имени, пропускаем)
+    const onlyInitials = /^([А-ЯЁ]\.\s*){2,3}$/.test(line);
 
-    if (!cyrillic2words && !latin2words && !surnameInitials) continue;
+    if (onlyInitials) continue;
+    if (!cyrillic2words && !cyrillicWithInitial && !latin2words && !surnameInitials) continue;
 
     // Verify next or previous line looks like context (position, phone, email, company)
     const neighbor = lines[i + 1] || lines[i - 1] || "";
-    const hasContext = /(?:\+7|8[-\s(]|tel:|mob:|e-?mail:|@|менеджер|инженер|директор|специалист|manager|engineer|sales)/i.test(neighbor);
+    const hasContext = /(?:\+7|8[-\s(]|tel:|mob:|e-?mail:|@|менеджер|инженер|директор|специалист|начальник|заместитель|руководитель|главный|бухгалтер|manager|engineer|sales|ООО|АО\b|ОАО|ЗАО|ПАО|ИП\b|ГК\b|НПО|НПП|Филиал|ФГУП|МУП)/i.test(neighbor);
     if (hasContext) {
       // Normalise "Иванов И. В." → "Иванов И.В."
       return line.replace(/([А-ЯЁ])\.\s+([А-ЯЁ])/, "$1.$2");
