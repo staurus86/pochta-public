@@ -385,7 +385,12 @@ export function analyzeEmail(project, payload) {
   if (!robotFormData && !tildaFormData && looksLikeQuotedRobotForm(quotedContent)) {
     quotedRobotFormData = parseRobotFormBody(subject, cleanupQuotedFormText(quotedContent));
     if (quotedRobotFormData.email) fromEmail = quotedRobotFormData.email;
-    if (quotedRobotFormData.name) fromName = quotedRobotFormData.name;
+    if (quotedRobotFormData.name) {
+      const currentWords = fromName.trim().split(/\s+/).filter(Boolean).length;
+      const formWords = quotedRobotFormData.name.trim().split(/\s+/).filter(Boolean).length;
+      // Перезаписываем только если форма даёт больше информации (больше слов)
+      if (formWords > currentWords) fromName = quotedRobotFormData.name;
+    }
   }
 
   // Quick classification WITHOUT attachment content (attachment reading happens below for non-spam only)

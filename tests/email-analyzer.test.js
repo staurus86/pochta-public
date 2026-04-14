@@ -2058,3 +2058,16 @@ runTest("ЭДО-идентификатор Диадок не попадает в
   const edoInArticles = articles.some(a => /^2BM-/i.test(a));
   assert.equal(edoInArticles, false, `ЭДО-идентификатор не должен быть артикулом, найдено: ${articles.join(", ")}`);
 });
+
+runTest("Форма не перезаписывает полное display name (Алиса Гурьева → Алиса)", () => {
+  // Симулируем ответ на форму: fromName из заголовка — полное имя,
+  // но цитированная форма содержит только имя
+  const result = analyzeEmail(project, {
+    subject: "Re: FW: Вопрос через обратную связь с сайта SIDERUS",
+    fromEmail: "gurevaa18@mail.ru",
+    fromName: "Алиса Гурьева",
+    body: `-\nАлиса Гурьева\nОтправлено из Почты Mail\n\n> Четверг, 9 апреля 2026, 17:30 +03:00 от SIDERUS:\n>\n> -----Original Message-----\n> From: robot@siderus.ru\n> Subject: Вопрос через обратную связь с сайта SIDERUS\n>\n> Новый вопрос на сайте SIDERUS (8391)\n> Имя посетителя: Алиса\n> Телефон:+7 917 908-14-54\n> Email: gurevaa18@mail.ru\n> Вопрос: Прошу указать цену\n> Модуль управления MV2067512015 IGEL - 2шт`,
+    attachments: []
+  });
+  assert.equal(result.sender?.fullName, "Алиса Гурьева", `Ожидали "Алиса Гурьева", получили "${result.sender?.fullName}"`);
+});
