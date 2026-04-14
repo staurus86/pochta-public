@@ -2035,3 +2035,26 @@ runTest("extracts quoted robot form request without tracking site or generic con
   assert.ok((result.lead.detectedBrands || []).includes("IGEL Electric"));
   assert.ok(!(result.lead.detectedBrands || []).includes("Control Techniques"));
 });
+
+runTest("ЭДО-идентификатор Диадок не попадает в артикулы", () => {
+  const result = analyzeEmail(project, {
+    subject: "Запрос",
+    fromEmail: "artur@oilgis.ru",
+    fromName: "",
+    body: `Добрый день
+Интересует поставка:
+1. Насос Bieri AKP20-0,012-300-V
+
+Алик Шарифгалиев М.
+ООО ОйлГИС
+8 903 351 9285
+
+Наше предприятие работает в ЭДО Диадок
+Идентификатор 2BM-0278106553-2012052808163395382630000000000
+Ожидаем приглашения на обмен`,
+    attachments: []
+  });
+  const articles = result.lead?.articles || [];
+  const edoInArticles = articles.some(a => /^2BM-/i.test(a));
+  assert.equal(edoInArticles, false, `ЭДО-идентификатор не должен быть артикулом, найдено: ${articles.join(", ")}`);
+});
