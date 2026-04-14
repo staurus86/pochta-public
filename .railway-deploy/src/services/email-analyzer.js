@@ -275,8 +275,8 @@ const ARTICLE_NEGATIVE_PATTERNS = [
   /^(?:R\/[A-Z]+\d+|CA\s+\d+|FONTFILE\d*|Type\/Font)$/i,
   // URL-like paths (ns.adobe.com/*, purl.org/*, www.w3.org/*)
   /^(?:ns|www|purl)\.[a-z]+\.[a-z]+/i,
-  // Diadoc/EDO document numbers: BM-9701077015-770101001
-  /^BM-\d{7,}(?:-\d{7,})+$/i
+  // Diadoc/EDO document numbers: BM-..., 2BM-... (any segment length)
+  /^[02]?[A-ZА-ЯЁ]{1,3}-\d{7,}(?:-\d+)*$/i
 ];
 const ARTICLE_CONTEXT_POSITIVE_PATTERNS = [
   /\b(?:part number|manufacturer part number|mpn|p\/n|pn|арт\.?|артикул|каталожн(?:ый|ого) номер|модель|model)\b/i,
@@ -3854,8 +3854,8 @@ function isObviousArticleNoise(code, sourceLine = "") {
     const uuidSegs = normalized.split("-");
     if (uuidSegs.length >= 3 && uuidSegs.every((s) => s.length >= 3 && s.length <= 12)) return true;
   }
-  // Russian PFR (pension fund) registration codes: 2BM-9701077015-770101001, BM-9701077015
-  if (/^[02]?[A-ZА-Я]{1,2}-\d{10}(?:-\d{9})?$/i.test(normalized)) return true;
+  // Diadoc/EDO/PFR registration codes: 2BM-INN-TIMESTAMP, BM-INN, etc.
+  if (/^[02]?[A-ZА-ЯЁ]{1,3}-\d{7,}(?:-\d+)*$/i.test(normalized)) return true;
   // OKPO/OKTMO/INN/KPP/UNP codes (7-12 pure digits) in company registration context
   if (/^\d{7,12}$/.test(normalized) && REQUISITES_CONTEXT_PATTERN.test(line)) return true;
   // Phone numbers in contact/signature context (Тел:, моб., факс, доб., Сот. etc.)
