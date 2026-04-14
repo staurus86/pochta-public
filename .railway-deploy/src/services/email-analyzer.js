@@ -1177,6 +1177,18 @@ function classifyMessage({ subject, body, attachments, fromEmail, projectBrands 
   };
 }
 
+const ORG_UNIT_PREFIXES = /^(?:филиал|отдел|цех|управление|департамент|служба|лаборатория|сектор|группа|подразделение|division|department|branch)[\s«"]*/i;
+
+function isOrgUnitName(str) {
+  if (!str) return false;
+  const s = str.trim();
+  // Начинается с названия подразделения
+  if (ORG_UNIT_PREFIXES.test(s)) return true;
+  // Одно слово полностью в верхнем регистре / аббревиатура (СФКЗЦ, НТИИМ и т.п.)
+  if (/^[«"]?[А-ЯЁA-Z][А-ЯЁA-Z0-9\-«»"']+[»"]?$/.test(s) && !/\s/.test(s)) return true;
+  return false;
+}
+
 function extractSender(fromName, fromEmail, body, attachments, signature = "") {
   const urls = body.match(URL_PATTERN) || [];
   const phones = body.match(PHONE_PATTERN) || [];
@@ -1193,7 +1205,8 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
     ? inferCompanyFromDomain(fromEmail)
     : null;
   const companyName = sanitizeCompanyName(extractedCompanyName || inferredCompanyName || domainCompanyName);
-  const fullName = fromName || extractFullNameFromBody(body) || inferNameFromEmail(fromEmail) || "Не определено";
+  const nameFromDisplay = isOrgUnitName(fromName) ? null : fromName;
+  const fullName = nameFromDisplay || extractFullNameFromBody(body) || inferNameFromEmail(fromEmail) || "Не определено";
   const position = extractPosition(body) || null;
   const website = externalUrls[0] || inferWebsiteFromEmail(fromEmail);
   const { cityPhone, mobilePhone } = splitPhones(phones, body);
