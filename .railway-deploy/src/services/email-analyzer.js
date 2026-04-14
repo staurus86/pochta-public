@@ -2440,10 +2440,23 @@ function inferNameFromEmail(email) {
   return null;
 }
 
+// Должности, которые часто встречаются в подписях (fallback если KB не нашёл)
+const POSITION_SIGNATURE_PATTERN = /(?:^|\n)\s*((?:начальник|заместитель\s+начальника?|главный\s+(?:инженер|технолог|бухгалтер|специалист|механик)|зав\.\s*(?:отделом|кафедрой|лабораторией|складом)|заведующ(?:ий|ая)\s+\S+|руководитель\s+(?:отдела|направления|группы|проекта|службы)|ведущий\s+(?:инженер|специалист|менеджер)|генеральный\s+директор|коммерческий\s+директор|технический\s+директор|финансовый\s+директор|исполнительный\s+директор|директор\s+по\s+\S+)\s*[^\n,]{0,50})/im;
+
 function extractPosition(body) {
-  // Improvement 4: use matchFieldBest to prefer longest match among similar-priority candidates
+  // KB match: приоритет (обучаемые паттерны)
   const position = detectionKb.matchFieldBest("position", body);
-  return position ? cleanup(position) : null;
+  if (position) return cleanup(position);
+
+  // Fallback: явный лейбл "Должность: X"
+  const labelMatch = body.match(/(?:должность|position)\s*[:\-–]\s*([^\n,]{3,80})/i);
+  if (labelMatch) return cleanup(labelMatch[1]);
+
+  // Fallback: строка должности в подписи
+  const signatureMatch = POSITION_SIGNATURE_PATTERN.exec(body);
+  if (signatureMatch) return cleanup(signatureMatch[1]);
+
+  return null;
 }
 
 function normalizePhoneNumber(raw) {
