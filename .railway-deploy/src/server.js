@@ -16,6 +16,7 @@ import { buildLegacyIntegrationOpenApi } from "./services/integration-openapi.js
 import { getTenderRuntime, runTenderImporter } from "./services/tender-runner.js";
 import { ProjectScheduler } from "./services/project-scheduler.js";
 import { getMailboxFileRuntime, reprocessMailboxMessages, runMailboxFileParser } from "./services/project3-runner.js";
+import { parseMailboxConfigText } from "./services/mailbox-config-parser.js";
 import { detectionKb } from "./services/detection-kb.js";
 import { ManagerAuth } from "./services/manager-auth.js";
 import {
@@ -1015,6 +1016,24 @@ async function handleApi(req, res, url) {
     } catch {
       return sendJson(res, 404, { error: "Attachment not found." });
     }
+  }
+
+  const mailboxesMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/mailboxes$/);
+  if (req.method === "GET" && mailboxesMatch) {
+    const project = await store.getProject(mailboxesMatch[1]);
+    if (!project) return sendJson(res, 404, { error: "Project not found." });
+    if (project.type !== "mailbox-file-parser") return sendJson(res, 400, { error: "Mailboxes available only for mailbox-file-parser projects." });
+    const sourceFile = path.resolve(rootDir, project.runtime?.sourceFile || "1.txt");
+    let mailboxes = [];
+    try {
+      const contents = await readFile(sourceFile, "utf-8");
+      mailboxes = parseMailboxConfigText(contents).map((a) => ({
+        mailbox: a.mailbox,
+        brand: a.brand || "",
+        siteUrl: a.siteUrl || ""
+      }));
+    } catch { /* file missing or parse error */ }
+    return sendJson(res, 200, { mailboxes, total: mailboxes.length });
   }
 
   const runtimeMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/runtime$/);

@@ -855,6 +855,7 @@ function setupForms() {
   });
 
   $('#p3-refresh-runtime').addEventListener('click', () => refreshP3Runtime());
+  $('#p3-mailboxes-refresh').addEventListener('click', () => refreshP3Mailboxes());
 
   // ═══ PROJECT 4 ═══
   $('#p4-run-form')?.addEventListener('submit', async (e) => {
@@ -1397,6 +1398,38 @@ async function refreshP3() {
   renderP3Kpis();
   renderP3Schedule();
   await refreshP3Runtime();
+  await refreshP3Mailboxes();
+}
+
+async function refreshP3Mailboxes() {
+  const countEl = $('#p3-mailboxes-count');
+  const bodyEl = $('#p3-mailboxes-body');
+  try {
+    const res = await fetch(`/api/projects/${P3_ID}/mailboxes`);
+    const data = await res.json();
+    const list = data.mailboxes || [];
+    if (countEl) countEl.textContent = list.length;
+    if (!bodyEl) return;
+    if (!list.length) {
+      bodyEl.innerHTML = '<div style="padding:12px;color:var(--text-tertiary);font-size:13px;">Ящики не найдены. Проверьте 1.txt.</div>';
+      return;
+    }
+    bodyEl.innerHTML = `<table style="width:100%;border-collapse:collapse;font-size:12px;">
+      <thead><tr style="border-bottom:1px solid var(--border);">
+        <th style="text-align:left;padding:8px 12px;color:var(--text-secondary);font-weight:500;">Адрес</th>
+        <th style="text-align:left;padding:8px 12px;color:var(--text-secondary);font-weight:500;">Бренд</th>
+        <th style="text-align:left;padding:8px 12px;color:var(--text-secondary);font-weight:500;">Сайт</th>
+      </tr></thead>
+      <tbody>${list.map((m, i) => `<tr style="border-bottom:1px solid var(--border-subtle,var(--border));${i % 2 === 1 ? 'background:var(--surface-0);' : ''}">
+        <td style="padding:7px 12px;font-family:'JetBrains Mono',monospace;font-size:11px;">${esc(m.mailbox)}</td>
+        <td style="padding:7px 12px;">${esc(m.brand)}</td>
+        <td style="padding:7px 12px;">${m.siteUrl ? `<a href="${esc(m.siteUrl)}" target="_blank" rel="noopener" style="color:var(--accent);">${esc(m.siteUrl)}</a>` : '—'}</td>
+      </tr>`).join('')}</tbody>
+    </table>`;
+  } catch {
+    if (bodyEl) bodyEl.innerHTML = '<div style="padding:12px;color:var(--text-tertiary);font-size:13px;">Ошибка загрузки.</div>';
+    if (countEl) countEl.textContent = '—';
+  }
 }
 
 async function refreshP4() {
