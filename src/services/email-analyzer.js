@@ -2338,7 +2338,11 @@ function extractFullNameFromBody(body) {
     // Skip if KB returned a job position line, not a name
     if (!POSITION_KEYWORDS.test(kbLine)) {
       // Expand name if trailing initial follows in body (e.g. "Алик Шарифгалиев" → "Алик Шарифгалиев М.")
-      const trailingInitial = body.match(new RegExp(kbLine.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s+([А-ЯЁ]\\.(?:\\s*[А-ЯЁ]\\.)?)"));
+      const bodyLines = body.split(/\n/);
+      const signatureZone = bodyLines.slice(-15).join("\n");
+      const trailingInitial = signatureZone.match(
+        new RegExp(kbLine.replace(/[.*+?^${}()|[\]\\]/g, "\\$&") + "\\s+([А-ЯЁ]\\.(?:\\s*[А-ЯЁ]\\.)?)")
+      );
       if (trailingInitial) return kbLine + " " + trailingInitial[1].trim();
       return kbLine;
     }
@@ -2351,8 +2355,8 @@ function extractFullNameFromBody(body) {
   );
   if (signatureWithPosition) {
     const candidate = signatureWithPosition[1].trim();
-    // Пропустить если это название юрлица, а не имя
-    if (!/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ГК|НПО|НПП|ФГУП|МУП|Филиал)\b/i.test(candidate)) {
+    // Пропустить если это название юрлица или подразделения, а не имя
+    if (!isOrgUnitName(candidate) && !/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ГК|НПО|НПП|ФГУП|МУП|Филиал)\b/i.test(candidate)) {
       return candidate;
     }
   }
@@ -2407,7 +2411,7 @@ function extractFullNameFromBody(body) {
 
     // Verify next or previous line looks like context (position, phone, email, company)
     const neighbor = lines[i + 1] || lines[i - 1] || "";
-    const hasContext = /(?:\+7|8[-\s(]|tel:|mob:|e-?mail:|@|менеджер|инженер|директор|специалист|начальник|заместитель|руководитель|главный|бухгалтер|manager|engineer|sales|ООО|АО\b|ОАО|ЗАО|ПАО|ИП\b|ГК\b|НПО|НПП|Филиал|ФГУП|МУП)/i.test(neighbor);
+    const hasContext = /(?:\+7|8[-\s(]|tel:|mob:|e-?mail:|@|менеджер|инженер|директор|специалист|начальник|заместитель|руководитель|главный|бухгалтер|manager|engineer|sales|ООО|\bАО\b|ОАО|ЗАО|ПАО|\bИП\b|\bГК\b|НПО|НПП|Филиал|ФГУП|МУП)/i.test(neighbor);
     if (hasContext) {
       // Normalise "Иванов И. В." → "Иванов И.В."
       return line.replace(/([А-ЯЁ])\.\s+([А-ЯЁ])/, "$1.$2");
