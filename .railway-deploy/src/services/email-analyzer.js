@@ -2574,12 +2574,11 @@ function inferNameFromEmail(email) {
 }
 
 // Должности, которые часто встречаются в подписях (fallback если KB не нашёл)
-const POSITION_SIGNATURE_PATTERN = /(?:^|\n)\s*((?:начальник|заместитель\s+начальника?|главный\s+(?:инженер|технолог|бухгалтер|специалист|механик)|зав\.\s*(?:отделом|кафедрой|лабораторией|складом)|заведующ(?:ий|ая)\s+\S+|руководитель\s+(?:отдела|направления|группы|проекта|службы)|ведущий\s+(?:инженер|специалист|менеджер)|генеральный\s+директор|коммерческий\s+директор|технический\s+директор|финансовый\s+директор|исполнительный\s+директор|директор\s+по\s+\S+)\s*[^\n,]{0,50})/im;
+const POSITION_SIGNATURE_PATTERN = /(?:^|\n)\s*((?:начальник|заместитель\s+начальника?|главный\s+(?:инженер|технолог|бухгалтер|специалист|механик)|зав\.\s*(?:отделом|кафедрой|лабораторией|складом)|заведующ(?:ий|ая)\s+\S+|руководитель\s+(?:отдела|направления|группы|проекта|службы)|ведущий\s+(?:инженер|специалист|менеджер)|генеральный\s+директор|коммерческий\s+директор|технический\s+директор|финансовый\s+директор|исполнительный\s+директор|директор\s+по\s+\S+)[^\n]{0,80})/im;
 
 function extractPosition(body) {
   // KB match: приоритет (обучаемые паттерны)
-  const position = detectionKb.matchFieldBest("position", body);
-  if (position) return cleanup(position);
+  const kbPosition = detectionKb.matchFieldBest("position", body);
 
   // Fallback: явный лейбл "Должность: X"
   const labelMatch = body.match(/(?:должность|position)\s*[:\-–]\s*([^\n,]{3,80})/i);
@@ -2587,7 +2586,77 @@ function extractPosition(body) {
 
   // Fallback: строка должности в подписи
   const signatureMatch = POSITION_SIGNATURE_PATTERN.exec(body);
-  if (signatureMatch) return cleanup(signatureMatch[1]);
+  if (signatureMatch) {
+    const sigPos = cleanup(signatureMatch[1]);
+    // Используем KB-результат только если он длиннее (полнее)
+    if (kbPosition && kbPosition.length >= sigPos.length) return cleanup(kbPosition);
+    return sigPos;
+  }
+
+  // Fallback: должность стоит ПЕРЕД именем (после приветствия)
+  // "С уважением,\n<ДОЛЖНОСТЬ>\nФамилия Имя"
+  {
+    const GREETING_RE = /(?:С уважением|Best regards|Regards|Спасибо|Благодарю|Kind regards|Sincerely)[,.\s]*/i;
+    const bodyLines = body.split(/\r?\n/).map((l) => l.trim());
+    for (let i = 0; i < bodyLines.length - 1; i++) {
+      if (!GREETING_RE.test(bodyLines[i])) continue;
+      // Следующие 1-2 строки могут быть должностью
+      const candidates = [bodyLines[i + 1], bodyLines[i + 2]].filter(Boolean);
+      for (const candidate of candidates) {
+        if (!candidate || candidate.length < 3 || candidate.length > 120) continue;
+        // Пропустить строки похожие на имя (Фамилия Имя с заглавными словами)
+        const looksLikeName = /^[А-ЯЁA-Z][а-яёa-z]+\s+[А-ЯЁA-Z][а-яёa-z]+/.test(candidate);
+        if (looksLikeName) continue;
+        // Пропустить строки с @ или телефонами
+        if (/@/.test(candidate) || /^\+?[\d\s()\-]{6,}$/.test(candidate)) continue;
+        // Строка начинается с ключевого слова должности (кириллица) или с заглавной латиницы (англ. должность)
+        if (POSITION_KEYWORDS.test(candidate) || /^[A-Z][a-z]/.test(candidate)) {
+          // Валидация: следующая строка — имя, компания или телефон
+          const candidateIdx = bodyLines.indexOf(candidate, i);
+          const lineAfter = candidateIdx >= 0 ? (bodyLines[candidateIdx + 1] || "") : "";
+          const looksLikeContext = /^[А-ЯЁA-Z]/.test(lineAfter) || /\+7|8[-\s(]|\d{3}/.test(lineAfter);
+          if (looksLikeContext) {
+            const greetingPos = cleanup(candidate);
+            // Вернуть более длинный результат: KB или greeting-шаг
+            if (kbPosition && kbPosition.length >= greetingPos.length) return cleanup(kbPosition);
+            return greetingPos;
+          }
+        }
+      }
+    }
+  }
+
+  // KB как fallback — если не нашли ничего длиннее
+  if (kbPosition) return cleanup(kbPosition);
+
+  // Fallback: латинская многословная должность
+  // Строка 10-120 символов, только латиница+пробелы+дефисы, без @ и URL
+  // Соседняя строка — имя (2 слова с заглавными) или телефон
+  {
+    const latinLines = body.split(/\r?\n/).map((l) => l.trim());
+    for (let i = 0; i < latinLines.length; i++) {
+      const line = latinLines[i];
+      if (!/^[A-Za-z][A-Za-z\s\-,.\/]{9,119}$/.test(line)) continue;
+      if (/@|https?:\/\//.test(line)) continue;
+      if (/^(?:LLC|Ltd|Inc|Corp|GmbH|ООО|АО|ОАО|ЗАО)$/i.test(line)) continue;
+      // Строка содержит пробел (несколько слов)
+      if (!line.includes(" ")) continue;
+      // Строка должна содержать хотя бы одно ключевое слово должности (job title words)
+      if (!/\b(?:manager|engineer|director|specialist|analyst|technician|officer|supervisor|coordinator|consultant|executive|procurement|purchasing|project|sales|technical|senior|lead|chief|head|deputy)\b/i.test(line)) continue;
+      // Пропустить предложения (заканчиваются на . ? !)
+      if (/[.?!]$/.test(line)) continue;
+      // Проверяем окно ±3 строки (пропуская пустые)
+      const nearbyLines = [];
+      for (let d = -3; d <= 3; d++) {
+        if (d === 0) continue;
+        const nl = latinLines[i + d];
+        if (nl && nl.trim()) nearbyLines.push(nl.trim());
+      }
+      const neighborIsName = nearbyLines.some((nl) => /^[A-Z][a-z]+\s+[A-Z][a-z]+/.test(nl));
+      const neighborIsPhone = nearbyLines.some((nl) => /\+7|\+\d{1,3}\s*\(|tel[.:\s]/.test(nl));
+      if (neighborIsName || neighborIsPhone) return cleanup(line);
+    }
+  }
 
   return null;
 }

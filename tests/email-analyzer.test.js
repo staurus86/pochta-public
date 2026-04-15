@@ -2212,3 +2212,47 @@ runTest("Дедуп lineItems: одна физическая позиция не
   const a99Items = items.filter((i) => /A99L-0159-0409/i.test(i.article || ""));
   assert.ok(a99Items.length <= 1, `Должна быть одна позиция A99L-0159-0409, получили ${a99Items.length}: ${JSON.stringify(a99Items)}`);
 });
+
+// --- Task 4: Должности расширенные паттерны ---
+
+runTest("Должность: юрист перед именем извлекается", () => {
+  const result = analyzeEmail(project, {
+    subject: "Запрос",
+    fromEmail: "oksana@law-firm.ru",
+    fromName: "",
+    body: "Прошу выставить КП.\n\nС уважением,\nюрист\nКаратун Оксана Юрьевна\n8 (3462) 33-04-05",
+    attachments: []
+  });
+  assert.ok(
+    /юрист/i.test(result.sender?.position || ""),
+    `Должность юрист не извлечена, получили: "${result.sender?.position}"`
+  );
+});
+
+runTest("Должность: Менеджер отдела продаж — полная, не обрезанная", () => {
+  const result = analyzeEmail(project, {
+    subject: "Запрос",
+    fromEmail: "irina@kolvrat.ru",
+    fromName: "",
+    body: "Прошу КП.\n\nС уважением,\nТарасова Ирина\nМенеджер отдела продаж\nООО КОЛОВРАТ",
+    attachments: []
+  });
+  assert.ok(
+    /Менеджер отдела продаж/i.test(result.sender?.position || ""),
+    `Должность должна быть полной "Менеджер отдела продаж", получили: "${result.sender?.position}"`
+  );
+});
+
+runTest("Должность: Procurement manager of ITER PPTF Project — латинская многословная", () => {
+  const result = analyzeEmail(project, {
+    subject: "Request",
+    fromEmail: "a.zimmermann@gkmp32.com",
+    fromName: "Anna Zimmermann",
+    body: "Dear team,\n\nPlease quote for our project.\n\nAnna Zimmermann\n\nProcurement manager of ITER PPTF Project\nLLC\n\ntel. +7 (495) 150-14-50",
+    attachments: []
+  });
+  assert.ok(
+    /Procurement manager/i.test(result.sender?.position || ""),
+    `Должность Procurement manager не извлечена, получили: "${result.sender?.position}"`
+  );
+});
