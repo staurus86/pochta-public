@@ -221,6 +221,70 @@ function classifyInn(inn) {
   return 'UNKNOWN';
 }
 
+// Normalize INN: digits only, 10 or 12 chars (9 for Belarus УНП), or null
+function normalizeInn(v) {
+  if (!v) return null;
+  const digits = String(v).replace(/\D/g, "");
+  if (digits.length === 9 || digits.length === 10 || digits.length === 12) return digits;
+  return null;
+}
+
+// Detect field label values that accidentally ended up in a field (e.g. company = "ИНН:")
+const FIELD_LABEL_RE = /^(?:инн|кпп|огрн|телефон|тел|phone|e-?mail|email|факс|fax|адрес|address|сайт|www|сообщение|message|вопрос|comment|комментарий|наименование|название|организация|компания|предприятие|контактное\s+лицо|имя|name|фио|номер:?)[:.\s]*$/i;
+function isCompanyLabel(v) {
+  if (!v) return false;
+  return FIELD_LABEL_RE.test(String(v).trim());
+}
+
+// ORG legal form detection in a string (suggests it's a company, not a person)
+const ORG_LEGAL_FORM_RE = /\b(?:ООО|ОАО|ЗАО|АО|ПАО|ИП|ФГУП|МУП|ГУП|НКО|АНО|LLC|Ltd\.?|GmbH|JSC|CJSC|Inc\.?|S\.A\.|B\.V\.)\b/u;
+
+// Post-validation: fix entity role errors (org in fullName, person in companyName)
+function validateSenderFields(sender) {
+  // 1. INN must be normalized digits-only string
+  if (sender.inn) {
+    const normalized = normalizeInn(sender.inn);
+    sender.inn = normalized;
+  }
+
+  // 2. Reject label values in companyName
+  if (isCompanyLabel(sender.companyName)) {
+    sender.companyName = null;
+    if (sender.sources) sender.sources.company = null;
+  }
+
+  // 3. fullName contains org legal form → move to companyName if empty, clear fullName
+  if (sender.fullName && sender.fullName !== "Не определено" && ORG_LEGAL_FORM_RE.test(sender.fullName)) {
+    const nameParts = sender.fullName.split(/[-–—]\s*/);
+    // "ООО Компания - Иван Петров" → extract human part after dash
+    const humanPart = nameParts.length > 1
+      ? nameParts.find((p) => /^[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+){1,2}$/.test(p.trim()))
+      : null;
+    const orgPart = nameParts[0].trim();
+
+    if (!sender.companyName && orgPart) {
+      sender.companyName = sanitizeCompanyName(orgPart) || sender.companyName;
+      if (sender.sources) sender.sources.company = sender.sources.company || "name_fallback";
+    }
+    sender.fullName = humanPart ? humanPart.trim() : null;
+    if (sender.sources && !humanPart) sender.sources.name = null;
+  }
+
+  // 4. companyName that looks like a person's full name (but not an org) → clear it
+  //    Heuristic: 2-3 Cyrillic words, each titlecase, no legal form
+  if (sender.companyName && !ORG_LEGAL_FORM_RE.test(sender.companyName)) {
+    if (/^[А-ЯЁ][а-яё]+(?:\s+[А-ЯЁ][а-яё]+){1,2}$/.test(sender.companyName.trim())) {
+      // Looks like a person name in companyName — move to fullName if fullName is empty/unknown
+      if (!sender.fullName || sender.fullName === "Не определено") {
+        sender.fullName = sender.companyName;
+        if (sender.sources) sender.sources.name = sender.sources.company || "company_fallback";
+      }
+      sender.companyName = null;
+      if (sender.sources) sender.sources.company = null;
+    }
+  }
+}
+
 // Brand names that should not be detected as articles or company names
 const BRAND_NOISE = new Set([
   "SIDERUS", "KOLOVRAT", "KLVRT", "ERSA", "ITEC", "SCHISCHEK", "SERA", "SERFILCO", "VEGA",
@@ -603,13 +667,13 @@ export function analyzeEmail(project, payload) {
   }
   // Inject company/INN from form fields if present
   const formCompany = robotFormData?.company || tildaFormData?.company || quotedRobotFormData?.company;
-  if (formCompany && !sender.companyName) {
+  if (formCompany && !isCompanyLabel(formCompany) && !sender.companyName) {
     sender.companyName = sanitizeCompanyName(formCompany);
     sender.sources.company = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
   }
   const formInn = robotFormData?.inn || tildaFormData?.inn || quotedRobotFormData?.inn;
   if (formInn && !sender.inn) {
-    sender.inn = formInn;
+    sender.inn = normalizeInn(formInn);
     sender.sources.inn = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
   }
   applySenderProfileHints(sender, classification, fromEmail);
@@ -761,6 +825,9 @@ export function analyzeEmail(project, payload) {
       { id: "articles_post_correction", classifier: "client", scope: "lead", pattern: "articles_detected", weight: 3 }
     ];
   }
+
+  // Post-validate sender fields: normalize INN, fix entity role errors
+  validateSenderFields(sender);
 
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands, lead });
 
@@ -1000,7 +1067,7 @@ function applyCompanyDirectoryHints(sender, fromEmail) {
     }
   }
   if (!sender.inn && directoryEntry.inn) {
-    sender.inn = directoryEntry.inn;
+    sender.inn = normalizeInn(directoryEntry.inn);
     sender.sources.inn = "company_directory";
   }
   if (!sender.position && directoryEntry.contact_position) {
@@ -1023,7 +1090,7 @@ function mergeAttachmentRequisites(sender, attachmentAnalysis) {
   if (!sender.inn && allInn.length >= 1) {
     // Prefer INN from a file that also has КПП (more authoritative requisite document)
     const innWithKpp = files.find((file) => (file.detectedInn || []).length > 0 && (file.detectedKpp || []).length > 0);
-    sender.inn = innWithKpp ? innWithKpp.detectedInn[0] : allInn[0];
+    sender.inn = normalizeInn(innWithKpp ? innWithKpp.detectedInn[0] : allInn[0]);
     sender.sources.inn = "attachment";
   }
   if (!sender.kpp && allKpp.length === 1) {
@@ -1297,7 +1364,7 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
     website,
     cityPhone,
     mobilePhone,
-    inn: requisites.inn,
+    inn: normalizeInn(requisites.inn),
     kpp: requisites.kpp,
     ogrn: requisites.ogrn,
     legalCardAttached,
@@ -2865,7 +2932,7 @@ function mergeQuotedSenderFallback(sender, quotedSender) {
   }
 
   if (!sender.inn && quotedSender.inn && !isOwnCompanyData("inn", quotedSender.inn)) {
-    sender.inn = quotedSender.inn;
+    sender.inn = normalizeInn(quotedSender.inn);
     sender.sources.inn = quotedSender.sources?.inn || "quoted_body";
   }
 
@@ -4515,9 +4582,10 @@ function parseTildaFormBody(body) {
     || fields["v1"] || null;
 
   // Company/INN
-  const company = fields["company"] || fields["компания"] || fields["организация"] || null;
+  const companyRaw = fields["company"] || fields["компания"] || fields["организация"] || null;
+  const company = isCompanyLabel(companyRaw) ? null : companyRaw;
   const innMatch = formSection.match(/ИНН\s*[:\-]?\s*(\d{9,12})/i);
-  const inn = (!innMatch?.[1] || isOwnInn(innMatch[1])) ? null : innMatch[1];
+  const inn = (!innMatch?.[1] || isOwnInn(innMatch[1])) ? null : normalizeInn(innMatch[1]);
 
   return { name, phone: phoneVal, email: emailVal, product, company, inn, formSection };
 }
@@ -4569,10 +4637,10 @@ function parseRobotFormBody(subject, body) {
 
   // Company and INN (standard + extended field names)
   const companyMatch = formSection.match(/(?:Название\s+организации|Компания|Организация|Предприятие):\s*(.+?)[\r\n]/i);
-  const companyRaw = companyMatch?.[1]?.trim() || null;
-  const company = isOwnCompanyData("company", companyRaw) ? null : companyRaw;
+  const companyRawRobot = companyMatch?.[1]?.trim() || null;
+  const company = (isOwnCompanyData("company", companyRawRobot) || isCompanyLabel(companyRawRobot)) ? null : companyRawRobot;
   const innMatch = formSection.match(/ИНН:\s*(\d{9,12})/i);
-  const inn = (!innMatch?.[1] || isOwnInn(innMatch[1])) ? null : innMatch[1];
+  const inn = (!innMatch?.[1] || isOwnInn(innMatch[1])) ? null : normalizeInn(innMatch[1]);
 
   // Quantity (Количество: 5 шт)
   const qtyMatch = formSection.match(/(?:Количество|Кол-во):\s*(\d[\d\s,.]*)\s*([а-яёa-z]+)?/i);

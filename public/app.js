@@ -1682,7 +1682,7 @@ function exportInboxXlsx() {
       (m.bodyPreview || l.freeText || '').slice(0, 1000),
       m.pipelineStatus || '', a.classification?.label || '', a.classification?.confidence || '',
       s.fullName || '', s.position || '',
-      s.companyName || '', s.inn || '', s.cityPhone || s.mobilePhone || '',
+      s.companyName || '', String(s.inn || ''), s.cityPhone || s.mobilePhone || '',
       (a.detectedBrands || []).join('; '), (l.articles || []).join('; ')
     ];
   });
