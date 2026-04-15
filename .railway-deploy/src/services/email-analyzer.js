@@ -28,7 +28,7 @@ try {
 
 const URL_PATTERN = /https?:\/\/[^\s)]+/gi;
 // Supports 3-digit area codes (mobile 9xx, regions 3xx/4xx/8xx) and 4-digit city codes (3952, 3812, etc.)
-const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}(?:[\s).-]*\d{2,4}){2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?|\(\d{3,5}\)\s*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?/g;
+const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}(?:[\s).-]*\d{2,4}){2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?|\(\d{3,5}\)\s*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?|8\s*\(\d{3,5}\)\s*\d{5,7}/g;
 // Broader pattern for international phones in form bodies (e.g. +998 90 581 10 04)
 const INTL_PHONE_PATTERN = /\+(?!7\b)\d{1,3}[\s(.-]*\d{2,4}(?:[\s).-]*\d{2,4}){2,4}/g;
 const PHONE_LIKE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}/i;
@@ -242,8 +242,18 @@ function isCompanyLabel(v) {
 const ORG_LEGAL_FORM_RE = /\b(?:ООО|ОАО|ЗАО|АО|ПАО|ИП|ФГУП|МУП|ГУП|НКО|АНО|LLC|Ltd\.?|GmbH|JSC|CJSC|Inc\.?|S\.A\.|B\.V\.)\b/u;
 
 // Post-validation: fix entity role errors (org in fullName, person in companyName)
+// Boilerplate / service phrases that must never be stored as fullName
+const FULLNAME_STOPLIST = /^(?:письмо\s+(?:сгенерировано|отправлено|создано)|настоящее\s+электронное|это\s+(?:письмо|сообщение|email)\s+(?:не|было|является|отправлено)|email\s+support\s*[\[(]|this\s+(?:email|message|letter|is\s+an?\s+auto)|disclaimer|confidential(?:ity)?|legal\s+notice|unsubscribe|если\s+вы\s+получили|данное\s+(?:письмо|сообщение)\s+является)/i;
+
 function validateSenderFields(sender) {
   let corrections = 0;
+
+  // 0. Reject boilerplate / service phrases in fullName
+  if (sender.fullName && sender.fullName !== "Не определено" && FULLNAME_STOPLIST.test(sender.fullName)) {
+    sender.fullName = null;
+    if (sender.sources) sender.sources.name = null;
+    corrections++;
+  }
 
   // 1. INN must be normalized digits-only string
   if (sender.inn) {
@@ -592,7 +602,7 @@ export function analyzeEmail(project, payload) {
   // Applied after form overrides so robot-form and tilda-form are not affected
   if (!robotFormData && !tildaFormData && !quotedRobotFormData && classification.label !== "СПАМ") {
     const fullText = `${subject} ${bodyForClassification}`.toLowerCase();
-    const isNewsletter = /(?:отписат[ьс]|unsubscribe|отказат[ьс][яь]\s+от\s+(?:рассылки|подписки)|список\s+рассылки|mailing\s+list|email\s+marketing|view\s+in\s+(?:browser|your\s+browser)|если\s+(?:вы\s+)?(?:не\s+)?(?:хотите|желаете)\s+получать|вы\s+получили\s+это\s+(?:письмо|сообщение)\s+(?:так\s+как|потому))/i.test(fullText);
+    const isNewsletter = /(?:отписат[ьс]|unsubscribe|отказат[ьс][яь]\s+от\s+(?:рассылки|подписки)|список\s+рассылки|mailing\s+list|email\s+marketing|view\s+in\s+(?:browser|your\s+browser)|если\s+(?:вы\s+)?(?:не\s+)?(?:хотите|желаете)\s+получать|вы\s+получили\s+это\s+(?:письмо|сообщение)\s+(?:так\s+как|потому)|дайджест|digest\s+\w|недельный\s+обзор|еженедельн(?:ый|ые)\s+(?:обзор|новости|дайджест)|ежемесячн(?:ый|ые)\s+(?:обзор|новости|дайджест)|новости\s+(?:рынка|отрасли|компании|недели)|обзор\s+(?:рынка|недели|событий))/i.test(fullText);
     const isWebinar = /(?:вебинар|webinar|онлайн[- ]?(?:курс|мероприятие|конференция|семинар)|приглашаем\s+(?:вас\s+)?(?:на|принять)|зарегистрируйтесь\s+(?:на|бесплатно)|ближайшие\s+(?:мероприятия|события|вебинары|курсы)|расписание\s+(?:вебинаров|курсов|мероприятий))/i.test(fullText);
     const isServiceOutreach = /(?:предлага[ею]м\s+(?:вам\s+)?(?:наши|свои)\s+услуги|готовы\s+(?:предложить|сотрудничать|стать\s+вашим)|(?:возможность|предложение)\s+(?:о\s+)?сотрудничества|рассмотрите\s+(?:наше\s+)?(?:коммерческое\s+)?предложение|презентуем\s+(?:наши|нашу)|типография|полиграфи[яю])/i.test(fullText);
     if (isNewsletter || isWebinar) {
@@ -2898,6 +2908,15 @@ function extractPosition(body) {
 }
 
 function normalizePhoneNumber(raw) {
+  // Special case: explicit 4-digit area code in parentheses: 8(3349)22450, 8(4112)345678
+  // These are valid Russian city numbers (Kogalym, Yakutsk, etc.)
+  const parenMatch = raw.match(/^8\s*\((\d{4,5})\)\s*(\d{4,7})$/);
+  if (parenMatch) {
+    const areaCode = parenMatch[1];
+    const local = parenMatch[2];
+    return `+7 (${areaCode}) ${local}`;
+  }
+
   const digits = raw.replace(/\D/g, "");
   // Expect 11 digits starting with 7 or 8
   let d = digits;
@@ -2910,9 +2929,6 @@ function normalizePhoneNumber(raw) {
   // 5xx - some regions, 8xx - toll-free (800,8xx), 9xx - mobile
   // Invalid: 0xx, 1xx, 6xx, 7xx
   if (/^[0167]/.test(code)) return null;
-  // Format with 4-digit area codes (e.g. 3952, 3812): subscriber number is 6 digits split 2-2-2
-  // Detect: if area code is 3-digit but matches 4-digit city code prefix pattern
-  // Standard 11-digit: +7(AAA)BBB-BB-BB (always valid for 3-digit codes)
   return `+7 (${code}) ${d.slice(4, 7)}-${d.slice(7, 9)}-${d.slice(9, 11)}`;
 }
 
@@ -4421,6 +4437,8 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/(?:Ver|Version|Build|Release):\d/i.test(normalized)) return true;
   // Field label prefixes: CODE:4-017-1816, TYPE: L110-F2G
   if (/^(?:CODE|TYPE|REF|PART):/i.test(normalized)) return true;
+  // Phone extension codes: dob.216, dob216, доб.251 (after transliteration → dob.NNN)
+  if (/^dob\.?\d{1,6}$/i.test(normalized)) return true;
   // Email field values extracted as articles: Email:user123, e-mail:snab4
   if (/^e-?mail:\w+/i.test(normalized)) return true;
   // Full URLs that slipped through: HTTPS://M4D.NALOG.GOV.RU
