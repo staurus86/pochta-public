@@ -2286,3 +2286,33 @@ ID товара: 1056655
     `Полное название товара не найдено в lineItems, получили: ${JSON.stringify(items.map((i) => ({ article: i.article, desc: i.descriptionRu })))}`
   );
 });
+
+// --- Task 6: Мультибренд classifyBrandSignal ---
+
+runTest("Мультибренд: каталожный текст с несколькими брендами — не Мультибрендовая", () => {
+  const result = analyzeEmail(project, {
+    subject: "Вопрос",
+    fromEmail: "buyer@plant.ru",
+    fromName: "",
+    body: "Добрый день! Мы также работаем с такими производителями как ABB, Schneider Electric. Можем предложить широкий ассортимент. Пожалуйста, уточните наличие.",
+    attachments: []
+  });
+  assert.notEqual(
+    result.lead?.requestType, "Мультибрендовая",
+    `Каталожный текст не должен давать Мультибрендовую, получили: "${result.lead?.requestType}"`
+  );
+});
+
+runTest("Мультибренд: два бренда с артикулами в теле — Мультибрендовая", () => {
+  const result = analyzeEmail(project, {
+    subject: "Запрос ABB и Schneider Electric",
+    fromEmail: "buyer@plant.ru",
+    fromName: "",
+    body: "Прошу КП на ABB ACS580-01 — 1 шт. и Schneider Electric ATV320U07M2B — 1 шт.",
+    attachments: []
+  });
+  assert.equal(
+    result.lead?.requestType, "Мультибрендовая",
+    `Два бренда с артикулами должны дать Мультибрендовую, получили: "${result.lead?.requestType}"`
+  );
+});

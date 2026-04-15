@@ -1566,7 +1566,31 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     })),
     urgency,
     attachmentHints,
-    requestType: detectedBrands.length > 1 ? "Мультибрендовая" : detectedBrands.length === 1 ? "Монобрендовая" : finalArticles.length > 0 || detectedProductTypes.length > 0 ? "Не определено (есть артикулы)" : "Не определено"
+    requestType: (() => {
+      if (detectedBrands.length === 0) {
+        return finalArticles.length > 0 || detectedProductTypes.length > 0 ? "Не определено (есть артикулы)" : "Не определено";
+      }
+      if (detectedBrands.length === 1) return "Монобрендовая";
+      // Несколько брендов: проверить силу сигнала
+      const CATALOG_CONTEXT_PHRASES = /(?:также\s+работаем|можем\s+предложить|есть\s+в\s+наличии|поставляем|в\s+том\s+числе|широкий\s+ассортимент|официальный\s+дилер|дистрибьютор|представитель|authorized\s+dealer|distributor)/i;
+      const brandSignals = detectedBrands.map((b) => {
+        // strong: бренд в теме письма
+        if (new RegExp(escapeRegExp(b), "i").test(subject)) return "strong";
+        const brandRe = new RegExp(escapeRegExp(b), "i");
+        for (const line of body.split(/\n/)) {
+          if (!brandRe.test(line)) continue;
+          if (ARTICLE_CONTEXT_POSITIVE_PATTERNS.some((p) => p.test(line))) return "strong";
+          if (/\b\d+\s*(?:шт|штук|ед|компл|пар|м|кг|л)\b/i.test(line)) return "strong";
+          if (CATALOG_CONTEXT_PHRASES.test(line)) return "weak";
+        }
+        return "weak";
+      });
+      const strongCount = brandSignals.filter((s) => s === "strong").length;
+      if (strongCount >= 2) return "Мультибрендовая";
+      if (strongCount >= 1 && brandSignals.some((s) => s === "weak")) return "Мультибрендовая";
+      // Все weak — считаем по основному бренду
+      return "Монобрендовая";
+    })()
   };
 }
 
