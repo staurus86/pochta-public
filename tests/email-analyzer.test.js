@@ -2167,3 +2167,48 @@ runTest("Фильтр: ИНН коловрата не попадает в sender
     `Название коловрата не должно быть в companyName, получили: ${result.sender?.companyName}`
   );
 });
+
+// --- Task 3: deduplicateByAbsorption ---
+
+runTest("Дедуп: усечённый 99L-0159-0409 не должен быть если есть A99L-0159-0409", () => {
+  const result = analyzeEmail(project, {
+    subject: "Запрос",
+    fromEmail: "buyer@factory.ru",
+    fromName: "",
+    body: "Прошу выставить КП:\nФильтроэлемент гидравлический А99L-0159-0409#SSET Novotec Ultra-Clean — 30 шт.",
+    attachments: []
+  });
+  const articles = result.lead?.articles || [];
+  const hasTruncated = articles.some((a) => a === "99L-0159-0409");
+  const hasFull = articles.some((a) => /A99L-0159-0409/i.test(a));
+  assert.ok(!hasTruncated, `Усечённый артикул 99L-0159-0409 не должен присутствовать, articles: ${articles}`);
+  assert.ok(hasFull, `Полный A99L-0159-0409 должен быть, articles: ${articles}`);
+});
+
+runTest("Дедуп: Ultra-Clean не является артикулом (CamelWord-CamelWord без цифр)", () => {
+  const result = analyzeEmail(project, {
+    subject: "Запрос",
+    fromEmail: "buyer@factory.ru",
+    fromName: "",
+    body: "Фильтроэлемент А99L-0159-0409 Novotec Ultra-Clean — 30 шт.",
+    attachments: []
+  });
+  const articles = result.lead?.articles || [];
+  assert.ok(
+    !articles.some((a) => /^Ultra-Clean$/i.test(a)),
+    `Ultra-Clean не должен быть артикулом, articles: ${articles}`
+  );
+});
+
+runTest("Дедуп lineItems: одна физическая позиция не дублируется", () => {
+  const result = analyzeEmail(project, {
+    subject: "Запрос",
+    fromEmail: "buyer@factory.ru",
+    fromName: "",
+    body: "Запрашиваю:\nФильтроэлемент А99L-0159-0409 Novotec Ultra-Clean — 30 шт.",
+    attachments: []
+  });
+  const items = result.lead?.lineItems || [];
+  const a99Items = items.filter((i) => /A99L-0159-0409/i.test(i.article || ""));
+  assert.ok(a99Items.length <= 1, `Должна быть одна позиция A99L-0159-0409, получили ${a99Items.length}: ${JSON.stringify(a99Items)}`);
+});

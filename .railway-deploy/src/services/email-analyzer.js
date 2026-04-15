@@ -307,7 +307,9 @@ const ARTICLE_NEGATIVE_PATTERNS = [
   // URL-like paths (ns.adobe.com/*, purl.org/*, www.w3.org/*)
   /^(?:ns|www|purl)\.[a-z]+\.[a-z]+/i,
   // Diadoc/EDO document numbers: BM-..., 2BM-... (any segment length)
-  /^[02]?[A-ZА-ЯЁ]{1,3}-\d{7,}(?:-\d+)*$/i
+  /^[02]?[A-ZА-ЯЁ]{1,3}-\d{7,}(?:-\d+)*$/i,
+  // CamelCase-CamelCase без цифр — торговое наименование, не артикул (Ultra-Clean, Super-Flow)
+  /^[A-ZА-ЯЁ][a-zа-яё]{2,}-[A-ZА-ЯЁ][a-zа-яё]{2,}$/
 ];
 const ARTICLE_CONTEXT_POSITIVE_PATTERNS = [
   /\b(?:part number|manufacturer part number|mpn|p\/n|pn|арт\.?|артикул|каталожн(?:ый|ого) номер|модель|model)\b/i,
@@ -1310,19 +1312,82 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const subjectArticles = extractArticlesFromSubject(subject, forbiddenDigits);
   const attachmentArticles = extractArticlesFromAttachments(attachments, forbiddenDigits);
   const brandAdjacentCodes = extractBrandAdjacentCodes(body, forbiddenDigits);
-  const allArticles = unique([...subjectArticles, ...prefixedArticles, ...standaloneArticles, ...numericArticles, ...strongContextArticles, ...trailingMixedArticles, ...productContextArticles, ...attachmentArticles, ...brandAdjacentCodes].filter(Boolean));
+  const allArticles = deduplicateByAbsorption(
+    unique([...subjectArticles, ...prefixedArticles, ...standaloneArticles, ...numericArticles, ...strongContextArticles, ...trailingMixedArticles, ...productContextArticles, ...attachmentArticles, ...brandAdjacentCodes].filter(Boolean)),
+    "keep-longest"
+  );
   const attachmentsText = attachments.join(" ");
   const hasNameplatePhotos = /шильд|nameplate/i.test(attachmentsText);
   const hasArticlePhotos = /артик|sku|label/i.test(attachmentsText);
-  const lineItems = extractLineItems(body).filter((item) => {
+  const lineItemsRaw = extractLineItems(body).filter((item) => {
     if (!item.article) return false;
     const context = [item.sourceLine, item.descriptionRu, item.source].filter(Boolean).join(" ");
     return !isObviousArticleNoise(item.article, context || body) && (item.explicitArticle || isLikelyArticle(item.article, forbiddenDigits, context || body));
   }).map((item) => ({ ...item, source: item.source || "body" }));
+  // Dedup lineItems: объединить позиции с совпадающим нормализованным артикулом
+  // Не мержить при конфликтующих данных (разные кол-ва или разные описания) — конфликты обрабатываются ниже
+  const lineItemMap = new Map();
+  for (const item of lineItemsRaw) {
+    const key = normalizeArticleCode(item.article || "").toLowerCase();
+    if (!key) { lineItemMap.set(Symbol(), item); continue; }
+    const existing = lineItemMap.get(key);
+    if (!existing) { lineItemMap.set(key, { ...item }); continue; }
+    // Проверить конфликт количества
+    const existingQty = existing.quantity != null ? Number(existing.quantity) : null;
+    const newQty = item.quantity != null ? Number(item.quantity) : null;
+    if (existingQty != null && newQty != null && existingQty !== newQty) {
+      // Конфликт кол-ва — оставить оба, добавить второй с уникальным ключом
+      lineItemMap.set(Symbol(), item);
+      continue;
+    }
+    // Оставить наиболее длинное описание (без конфликта)
+    if ((item.descriptionRu || "").length > (existing.descriptionRu || "").length) {
+      existing.descriptionRu = item.descriptionRu;
+    }
+    if ((item.sourceLine || "").length > (existing.sourceLine || "").length) {
+      existing.sourceLine = item.sourceLine;
+    }
+    if (existing.quantity == null && newQty != null) existing.quantity = newQty;
+  }
+  // Второй проход: слить DESC: freetext-позиции с реальными артикулами если артикул встречается в slugе
+  const resolvedLineItems = [];
+  const usedDescKeys = new Set();
+  for (const [key, item] of lineItemMap) {
+    const isDescItem = item.article.startsWith("DESC:");
+    if (!isDescItem) {
+      // Real article item — ищем DESC: item чей slug содержит этот артикул
+      const normArt = item.article.toLowerCase();
+      for (const [dk, descItem] of lineItemMap) {
+        if (!descItem.article.startsWith("DESC:")) continue;
+        if (usedDescKeys.has(dk)) continue;
+        const descLower = descItem.article.toLowerCase();
+        if (descLower.includes(normArt)) {
+          // Merge: use real article + description from freetext item
+          if (!item.descriptionRu && descItem.descriptionRu) item.descriptionRu = descItem.descriptionRu;
+          if (item.quantity == null && descItem.quantity != null) item.quantity = descItem.quantity;
+          if (!item.unit && descItem.unit) item.unit = descItem.unit;
+          usedDescKeys.add(dk);
+          break;
+        }
+      }
+      resolvedLineItems.push(item);
+    } else if (typeof key === "symbol") {
+      // Позиции без ключа (нет артикула) — сохраняем если не поглощены
+      if (!usedDescKeys.has(key)) resolvedLineItems.push(item);
+    }
+    // DESC: items со строковым ключом — только если не были слиты выше
+  }
+  // DESC: items не слитые с реальными артикулами — сохраняем
+  for (const [dk, descItem] of lineItemMap) {
+    if (descItem.article.startsWith("DESC:") && !usedDescKeys.has(dk)) {
+      resolvedLineItems.push(descItem);
+    }
+  }
+  let lineItems = resolvedLineItems;
   // Limit brand scan text to avoid attachment-bomb hallucinations (large catalogs / PDFs)
   const brandScanBody = body.length > 6000 ? body.slice(0, 6000) : body;
   const rawBrands = unique(kbBrands.concat(detectBrands([subject, brandScanBody, attachmentsText].join("\n"), brands)));
-  let detectedBrands = detectionKb.filterOwnBrands(rawBrands);
+  let detectedBrands = detectionKb.filterOwnBrands(deduplicateByAbsorption(rawBrands, "keep-shortest"));
   const explicitTextBrands = [...detectedBrands];
 
   const attachmentHints = parseAttachmentHints(attachments);
@@ -1419,6 +1484,39 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
           explicitArticle: false
       });
       bridgedArticleSet.add(normArt);
+  }
+
+  // Финальный dedup lineItems: поглотить DESC: freetext-slugи если реальный артикул уже в списке
+  {
+    const seenRealArticles = new Map(); // normArt → index in lineItems
+    for (let i = 0; i < lineItems.length; i++) {
+      if (!lineItems[i].article.startsWith("DESC:")) {
+        seenRealArticles.set(normalizeArticleCode(lineItems[i].article).toLowerCase(), i);
+      }
+    }
+    const finalLineItems = [];
+    for (const item of lineItems) {
+      if (item.article.startsWith("DESC:")) {
+        const descLow = item.article.toLowerCase();
+        let merged = false;
+        for (const [normArt, idx] of seenRealArticles) {
+          if (normArt && descLow.includes(normArt)) {
+            const real = finalLineItems[idx] || lineItems[idx];
+            if (real) {
+              if (!real.descriptionRu && item.descriptionRu) real.descriptionRu = item.descriptionRu;
+              if (real.quantity == null && item.quantity != null) real.quantity = item.quantity;
+              if (!real.unit && item.unit) real.unit = item.unit;
+            }
+            merged = true;
+            break;
+          }
+        }
+        if (!merged) finalLineItems.push(item);
+      } else {
+        finalLineItems.push(item);
+      }
+    }
+    lineItems = finalLineItems;
   }
 
   return {
@@ -3935,6 +4033,8 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/Пpocmotp$/i.test(normalized)) return true;
   if (/^(?:8|7)?-?800(?:-\d{1,4}){1,}$/.test(normalized)) return true;
   if (/^[a-z]+(?:\.[a-z0-9]+){2,}$/i.test(normalized)) return true;
+  // CamelCase-CamelCase без цифр — торговое наименование, не артикул (Ultra-Clean, Super-Flow)
+  if (/^[A-ZА-ЯЁ][a-zа-яё]{2,}-[A-ZА-ЯЁ][a-zа-яё]{2,}$/.test(normalized)) return true;
   // URL paths with domain-like segments: ns.adobe.com/xap/1.0, purl.org/dc/elements/1.1
   if (/^[a-z]+\.[a-z]+\.[a-z]+/i.test(normalized)) return true;
   // Domain-like with path: purl.org/dc/elements/1.1, www.w3.org/1999/02/22-rdf
@@ -4117,6 +4217,30 @@ function detectBrands(text, brands) {
 
 function unique(items) {
   return [...new Set(items)];
+}
+
+/**
+ * Deduplicates strings by substring absorption.
+ * mode 'keep-longest': if A ⊂ B → remove A (артикулы, описания)
+ * mode 'keep-shortest': if A ⊂ B → remove B (бренды — длинный = ошибочный захват)
+ */
+function deduplicateByAbsorption(items, mode = "keep-longest") {
+  if (!items || items.length <= 1) return items || [];
+  const normalized = items.map((s) => String(s || "").toLowerCase().trim());
+  return items.filter((item, i) => {
+    const ni = normalized[i];
+    if (!ni) return false;
+    return !normalized.some((nj, j) => {
+      if (i === j || !nj || nj === ni) return false;
+      const absorbed = mode === "keep-longest"
+        // ni is shorter — drop ni only when nj is a bounded extension (≤4 chars prefix/suffix added)
+        ? (nj.includes(ni) && nj.length > ni.length &&
+           (nj.endsWith(ni) || nj.startsWith(ni)) &&
+           (nj.length - ni.length) <= 4)
+        : (ni.includes(nj) && ni.length > nj.length);  // ni is longer — drop ni (brands: keep shortest)
+      return absorbed;
+    });
+  });
 }
 
 /** Case-insensitive dedup for brands — keeps the first casing encountered */
