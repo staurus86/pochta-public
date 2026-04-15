@@ -36,7 +36,7 @@ const OFFICE_XML_ARTICLE_NOISE_PATTERNS = [
   /^97-2003$/i,
   /^1TABLE$/i,
   /^(?:BG|LT|TX)\d{1,2}$/i,
-  /^THEME(?:\/THEME){1,}(?:\d+)?$/i,
+  /^THEME(?:\/THEME){1,}(?:\/?\d+)?(?:\.XML(?:PK)?)?$/i,
   /^DRAWINGML\/\d{4}\/MAIN$/i,
   /^OPENXMLFORMATS(?:\/[A-Z0-9._-]+){1,}$/i,
   /^SCHEMAS(?:\/[A-Z0-9._:-]+){1,}$/i,
@@ -46,7 +46,7 @@ const OFFICE_XML_ARTICLE_NOISE_PATTERNS = [
 const OFFICE_XML_TEXT_NOISE_PATTERNS = [
   /\b(?:_rels|docprops|\[content_types\]\.xml|content[_-]?types|word\/|xl\/|ppt\/)\b/i,
   /\b(?:schemas\.openxmlformats\.org|openxmlformats\.org|drawingml\/\d{4}\/main)\b/i,
-  /\b(?:theme\/theme\/theme\d+\.xml|word\.document\.8)\b/i,
+  /\b(?:theme\/theme\/theme\d+\.xml(?:PK)?|word\.document\.\d)\b/i,
   /\bPK[\x03\x05\x07]/i
 ];
 const PDF_INTERNAL_TEXT_NOISE_PATTERNS = [
@@ -55,12 +55,25 @@ const PDF_INTERNAL_TEXT_NOISE_PATTERNS = [
   /^\s*(?:r\/f\d+|r\/gs\d+|r\/image\d+|image\d+|im\d+|gs\d+|ca\s+\d+|lc\s+\d+|lj\s+\d+|lw\s+\d+|ml\s+\d+)\s*$/i,
   /^\s*d:\d{8,14}\s*$/i,
   /^\s*feff[0-9a-f]{12,}\s*$/i,
-  /^\s*[0-9a-f]{24,}\s*$/i
+  /^\s*[0-9a-f]{24,}\s*$/i,
+  // PDF stream object markers and binary content
+  /\b(?:endobj|endstream|startxref|\/Width|\/Height|\/Length\b|\/BitsPerComponent|\/DCTDecode|\/FlateDecode|\/Filter|\/BaseFont|\/FontDescriptor|\/ToUnicode|\/CIDFont|\/ColorSpace|\/XObject|\/Resources|\/MediaBox|\/CropBox|\/Rotate|\/Pages|\/Root|\/Info)\b/i,
+  // PDF font metrics lines: "DW 1000", "W [67 [500 250]]", "/Ascent 891", "MaxWidth 2614"
+  /^\s*(?:DW|W|CW)\s+[\d\[\].\s]+$/i,
+  // PDF image dimension lines: standalone numbers after /Width or /Height context
+  /\/(?:Width|Height)\s+\d+/i,
+  // JPEG DCT decode markers (456789:CDEFGHIJSTUVWXYZ...)
+  /\d{4,}:[A-Z]{6,}/i,
+  // ICC color profile identifiers (IEC61966-2.1 = sRGB)
+  /\bIEC\s*61966(?:[-.]?\d+)*\b/i,
+  // PDF object references: "0 obj", "0 R", stream markers
+  /^\s*\d+\s+\d+\s+(?:obj|R)\s*$/i,
+  /^\s*(?:stream|endstream|endobj|xref|trailer)\s*$/i
 ];
 const CSS_STYLE_TOKEN_PATTERN = /^(?:FONT|LINE|LETTER|WORD|TEXT|MARGIN|PADDING|BORDER|BACKGROUND|COLOR|WIDTH|HEIGHT|TOP|LEFT|RIGHT|BOTTOM|DISPLAY|POSITION)(?:-[A-Z]+)+:\S+$/i;
 const WORD_INTERNAL_TOKEN_PATTERN = /^WW8[A-Z0-9]+$/i;
 const WORD_STYLE_TOKEN_PATTERN = /^(?:WW-[A-Z0-9-]+|\d+ROMAN|V\d+)$/i;
-const STANDARD_TOKEN_PATTERN = /^(?:IEC|ISO|EN|DIN)\d+(?:-\d+){1,}$/i;
+const STANDARD_TOKEN_PATTERN = /^(?:IEC|ISO|EN|DIN)\d+(?:[-/.]\d+)*$/i;
 
 export function analyzeStoredAttachments(messageKey, attachmentFiles = [], options = {}) {
   const limits = { ...DEFAULT_LIMITS, ...options };
@@ -468,13 +481,41 @@ function cleanupExtractedText(text) {
     .replace(/[\x00-\x08\x0B\x0C\x0E-\x1F]+/g, " ")
     .replace(/\r/g, "\n")
     .replace(/\n{3,}/g, "\n\n")
+    // Strip JPEG DCT markers that leak from PDF binary streams (456789:CDEFGHIJSTUVWXYZ...)
+    .replace(/\d{4,}:[A-Z]{6,}[A-Za-z]*/g, "")
+    // Strip ICC color profile references (IEC61966-2.1 sRGB)
+    .replace(/\bIEC\s*61966(?:[-.]?\d+)*/gi, "")
+    // Strip PDF font metric fragments: "DW 1000", "/Ascent 891", "/MaxWidth 2614"
+    .replace(/\/(?:Ascent|Descent|AvgWidth|MaxWidth|StemV|CapHeight|ItalicAngle|FontBBox|DW|CW|W)\s+[-\d\[\].\s]+/gi, "")
+    // Strip PDF dimension fragments: "/Width 2480", "/Height 2338"
+    .replace(/\/(?:Width|Height|Length|BitsPerComponent)\s+\d+/gi, "")
+    // Strip Office binary structure markers (1Table, CompObj, WordDocument)
+    .replace(/\b(?:1Table|0Table|CompObj|WordDocument|SummaryInformation|DocumentSummaryInformation)\b/gi, "")
+    // Strip theme/xml paths with PK zip signatures
+    .replace(/\b(?:theme\/theme\/theme\d+\.xml(?:PK)?|word\.document\.\d)\b/gi, "")
+    // Strip PDF version markers (1.0, 2.0 at start of content)
+    .replace(/(?:^|\s)(?:PDF-?\d+\.\d+|\d\.\d)(?:\s|$)/g, " ")
     .split("\n")
     .map((line) => line.replace(/[^\S\n\t]+/g, " ").trim())
     .filter((line) => line
       && !OFFICE_XML_TEXT_NOISE_PATTERNS.some((pattern) => pattern.test(line))
-      && !PDF_INTERNAL_TEXT_NOISE_PATTERNS.some((pattern) => pattern.test(line)))
+      && !PDF_INTERNAL_TEXT_NOISE_PATTERNS.some((pattern) => pattern.test(line))
+      // Filter lines that are mostly PDF object syntax
+      && !isPdfBinaryNoiseLine(line))
     .join("\n")
     .trim();
+}
+
+function isPdfBinaryNoiseLine(line) {
+  // Lines that are pure PDF object syntax: "12 0 obj", "endobj", "stream", "/Type /Font"
+  if (/^\s*\d+\s+\d+\s+obj\s*$/.test(line)) return true;
+  if (/^\s*(?:endobj|endstream|stream|startxref|xref|trailer)\s*$/i.test(line)) return true;
+  // Lines with high ratio of PDF operators: /Name tokens
+  const slashTokens = (line.match(/\/[A-Za-z]\w+/g) || []).length;
+  if (slashTokens >= 3 && line.length < 200) return true;
+  // Lines that are only numbers and brackets (font width arrays)
+  if (/^\s*[\d\s\[\].,-]+\s*$/.test(line) && line.length > 10) return true;
+  return false;
 }
 
 function extractTextFromLegacyOfficeBuffer(buffer, ext = "") {
@@ -540,6 +581,9 @@ function detectAttachmentArticles(text) {
   return uniqueMatches(text.toUpperCase(), ARTICLE_PATTERN)
     .map((value) => normalizeAttachmentArticle(value))
     .filter(Boolean)
+    // Reject pure numeric codes under 5 digits from loose attachment detection
+    // (real short numeric articles like 615 are handled via line item extraction with context)
+    .filter((value) => !/^\d{1,4}$/.test(value))
     .slice(0, 30);
 }
 
@@ -666,7 +710,8 @@ function normalizeAttachmentArticle(value) {
   if (/^(?:8|7)?-?800(?:-\d{1,4}){1,}$/.test(normalized)) return "";
   if (/^\d{2,4}(?:-\d{2}){2,}$/.test(normalized)) return "";
   if (/^2BM-[A-Z0-9-]+$/i.test(normalized)) return "";
-  if (/^(?:DN|PN|NPS|G|R|RC|RP)\s*\d+(?:[/.]\d+)?$/i.test(normalized)) return "";
+  // Engineering specs: DN50, PN16, G1/2 — but not article-like PN2271 (4+ digits)
+  if (/^(?:DN\s*\d{1,4}|PN\s*\d{1,3}|NPS\s*\d+|G\s*\d+(?:[/.]\d+)?|R\s*\d+(?:[/.]\d+)?|RC\s*\d+(?:[/.]\d+)?|RP\s*\d+(?:[/.]\d+)?)$/i.test(normalized)) return "";
   if (/^CID:/i.test(normalized)) return "";
   if (/^[A-ZА-ЯЁ]{1,3}\s+\d{1,3}$/.test(normalized) && /^(?:DN|PN)$/i.test(normalized.split(/\s+/)[0])) return "";
   if (OFFICE_XML_ARTICLE_NOISE_PATTERNS.some((pattern) => pattern.test(normalized))) return "";
@@ -679,12 +724,52 @@ function normalizeAttachmentArticle(value) {
   if (WORD_STYLE_TOKEN_PATTERN.test(normalized)) return "";
   if (STANDARD_TOKEN_PATTERN.test(normalized)) return "";
   if (/^\d+\.\d{2,5}$/.test(normalized)) return "";
+  // Version numbers: 1.0, 2.0, 0.0, 3.0, decimal dimensions: 595.2, 841.9
+  if (/^\d{1,4}\.\d{1,2}$/.test(normalized)) return "";
   if (/^EOF\s+\d+$/i.test(normalized)) return "";
   if (/^65535$/.test(normalized)) return "";
   if (/^\d{20}$/.test(normalized)) return "";
   if (/^0+\d*$/.test(normalized)) return "";
+  // PDF Unicode escape residue: 000A, 000C, 004A, 004O etc.
+  if (/^0{2,}\d?[A-Z]$/i.test(normalized)) return "";
   if (/^\d{5,}:[A-Z]{8,}$/i.test(normalized)) return "";
   if (/^(?:XML|DOCX|XLSX|WORD|EXCEL)\/[A-Z0-9/_-]+$/i.test(normalized)) return "";
+  // Reject year-like numbers 1990-2039 (never real articles in attachments)
+  if (/^(?:19\d{2}|20[0-3]\d)$/.test(normalized)) return "";
+  // Reject ICC color profile and standard identifiers
+  if (/^IEC\d/i.test(normalized)) return "";
+  // Reject known PDF dimension/metric values (common A4/A3 at various DPI, font metrics)
+  if (/^(?:2480|2338|1653|1169|842|595|1240|1754|3508|4961|3307|2339|2614|2558|1000|65535)$/.test(normalized)) return "";
+  // Reject JPEG DCT marker residue
+  if (/^\d+:[A-Z]{4,}/.test(normalized)) return "";
+  // CSS vendor-prefixed tokens: MS-TEXT-SIZE-ADJUST:100, WEBKIT-*
+  if (/^(?:MS|WEBKIT|MOZ|O)-[A-Z-]+:\d/i.test(normalized)) return "";
+  // PDF font/metadata names: GTS_PDFA1, CAOLAN80, ALLLEX86, ALFABY2X, CALIBRI1, ARIAL1, CYR1
+  if (/^(?:GTS_PDF|CAOLAN|ADOBE\d|ALLLEX|ALFABY|CALIBRI\d|ARIAL\d|TIMES\d|CYR\d)/i.test(normalized)) return "";
+  if (/^\d+ROMAN$/i.test(normalized)) return "";
+  // Date patterns: 01-2026, 03-2025
+  if (/^\d{2}-(?:19|20)\d{2}$/.test(normalized)) return "";
+  // Simple fractions/thread sizes: 1/2, 1/4, 1/1, 10/2 (without prefix like G or M)
+  if (/^\d{1,2}\/\d{1,2}$/.test(normalized)) return "";
+  // Office document paths and filenames: DRS/E2ODOC.XML, drs/e2oDoc.xmlPK, e2oDoc.xml
+  if (/^DRS\//i.test(normalized) || /\.XMLPK$/i.test(normalized)) return "";
+  if (/^E2ODOC/i.test(normalized)) return "";
+  // Hash-like strings (24+ uppercase without separators)
+  if (/^[A-Z0-9]{24,}$/.test(normalized)) return "";
+  // Bank account/BIK/corr.account patterns: 30101810*, 40702810*, 04452*
+  if (/^(?:301|407|044)\d{5,17}$/.test(normalized)) return "";
+  // KPP (9 digits ending in 001/01): 390601001, 771801001
+  if (/^\d{9}$/.test(normalized) && /001$/.test(normalized)) return "";
+  // Russian postal indexes (6 digits): 600014, 107031
+  if (/^\d{6}$/.test(normalized)) return "";
+  // OKVED classifier codes: 46.69.5, 46.69.9
+  if (/^\d{2}\.\d{2}\.\d{1,3}$/.test(normalized)) return "";
+  // URL slugs with multiple English words: fdmrn8c0b-bilge-level-switch-float
+  if (/^[a-z0-9]+-[a-z]+-[a-z]+-[a-z]+/i.test(normalized) && normalized.length > 20) return "";
+  // Strings containing commas (addresses, multi-value fields) — never valid articles
+  if (normalized.includes(",")) return "";
+  // Strings > 40 chars — too long for article codes
+  if (normalized.length > 40) return "";
   return normalized;
 }
 
