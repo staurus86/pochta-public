@@ -1671,7 +1671,7 @@ function exportInboxXlsx() {
     return;
   }
 
-  const headers = ['№', 'Дата', 'От', 'Ящик', 'Тема', 'Тело письма', 'Статус', 'Категория', 'Confidence', 'Компания', 'ИНН', 'Телефон', 'Бренды', 'Артикулы'];
+  const headers = ['№', 'Дата', 'От', 'Ящик', 'Тема', 'Тело письма', 'Статус', 'Категория', 'Confidence', 'ФИО', 'Должность', 'Компания', 'ИНН', 'Телефон', 'Бренды', 'Артикулы'];
   const data = runnerMessages.map((m, idx) => {
     const a = m.analysis || {};
     const s = a.sender || {};
@@ -1681,6 +1681,7 @@ function exportInboxXlsx() {
       m.createdAt || '', m.from || s.email || '', m.mailbox || '', m.subject || '',
       (m.bodyPreview || l.freeText || '').slice(0, 1000),
       m.pipelineStatus || '', a.classification?.label || '', a.classification?.confidence || '',
+      s.fullName || '', s.position || '',
       s.companyName || '', s.inn || '', s.cityPhone || s.mobilePhone || '',
       (a.detectedBrands || []).join('; '), (l.articles || []).join('; ')
     ];
@@ -1690,8 +1691,8 @@ function exportInboxXlsx() {
   // Column widths
   ws['!cols'] = [
     { wch: 5 }, { wch: 20 }, { wch: 25 }, { wch: 25 }, { wch: 40 }, { wch: 60 },
-    { wch: 16 }, { wch: 14 }, { wch: 10 }, { wch: 25 }, { wch: 14 }, { wch: 18 },
-    { wch: 25 }, { wch: 30 }
+    { wch: 16 }, { wch: 14 }, { wch: 10 }, { wch: 22 }, { wch: 22 }, { wch: 25 },
+    { wch: 14 }, { wch: 18 }, { wch: 25 }, { wch: 30 }
   ];
   const wb = XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Заявки');
