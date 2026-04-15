@@ -2316,3 +2316,35 @@ runTest("Мультибренд: два бренда с артикулами в 
     `Два бренда с артикулами должны дать Мультибрендовую, получили: "${result.lead?.requestType}"`
   );
 });
+
+// --- Task 7: mass_request CC флаг ---
+
+runTest("Флаг массового запроса: CC с двумя внешними адресами", () => {
+  const result = analyzeEmail(project, {
+    subject: "Запрос КП",
+    fromEmail: "buyer@somecompany.ru",
+    fromName: "Иван",
+    body: "Прошу КП на ABB ACS580-01 — 1 шт.",
+    attachments: [],
+    cc: ["supplier2@other.ru", "supplier3@third.ru"]
+  });
+  assert.ok(
+    result.intakeFlow?.flags?.includes("mass_request"),
+    `Ожидался флаг mass_request при CC >= 2, intakeFlow: ${JSON.stringify(result.intakeFlow)}`
+  );
+});
+
+runTest("Флаг массового запроса: CC пустой — флага нет", () => {
+  const result = analyzeEmail(project, {
+    subject: "Запрос КП",
+    fromEmail: "buyer@somecompany.ru",
+    fromName: "Иван",
+    body: "Прошу КП на ABB ACS580-01.",
+    attachments: [],
+    cc: []
+  });
+  assert.ok(
+    !(result.intakeFlow?.flags || []).includes("mass_request"),
+    `Флаг mass_request не должен быть при пустом CC`
+  );
+});

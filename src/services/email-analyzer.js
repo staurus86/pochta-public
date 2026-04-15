@@ -396,6 +396,15 @@ export function analyzeEmail(project, payload) {
     }
   }
 
+  // Mass request flag: CC >= 2 external addresses or CC with different domain
+  const rawCc = (payload.cc || []).map((a) => String(a).toLowerCase().trim());
+  const rawToRecipients = (payload.toRecipients || []).map((a) => String(a).toLowerCase().trim());
+  const externalCc = rawCc.filter((a) => !isOwnCompanyData("email", a) && a !== fromEmail);
+  const externalTo = rawToRecipients.filter((a) => !isOwnCompanyData("email", a) && a !== fromEmail);
+  const fromDomain = fromEmail.split("@")[1] || "";
+  const isMassRequest = externalCc.length >= 2
+    || (externalCc.length >= 1 && externalCc.some((a) => (a.split("@")[1] || "") !== fromDomain));
+
   // Robot website form (robot@siderus.ru) — extract real visitor data from form fields
   let robotFormData = null;
   if (fromEmail === "robot@siderus.ru") {
@@ -769,7 +778,7 @@ export function analyzeEmail(project, payload) {
     lead,
     crm,
     detectedBrands: uniqueBrands(detectionKb.filterOwnBrands(lead.detectedBrands)).slice(0, 15),
-    intakeFlow: buildIntakeFlow(classification.label, crm, lead),
+    intakeFlow: buildIntakeFlow(classification.label, crm, lead, { isMassRequest }),
     suggestedReply,
     rawInput: {
       subject,
@@ -2319,7 +2328,7 @@ function inferCategoryFromNomenclature(match, detectedProductTypes = []) {
   return detectedProductTypes[0] || null;
 }
 
-function buildIntakeFlow(classification, crm, lead) {
+function buildIntakeFlow(classification, crm, lead, meta = {}) {
   const isClient = classification === "Клиент";
   const isVendor = classification === "Поставщик услуг";
   const isSpam = classification === "СПАМ";
@@ -2345,7 +2354,9 @@ function buildIntakeFlow(classification, crm, lead) {
       ? blockingConflicts.length > 0 ? "detection_conflicts" : "low_completeness"
       : null,
     isVendorInquiry: isVendor,
-    skipCrmSync: isSpam || isVendor
+    skipCrmSync: isSpam || isVendor,
+    flags: meta.isMassRequest ? ["mass_request"] : [],
+    syncPriority: meta.isMassRequest ? "low" : "normal"
   };
 }
 
