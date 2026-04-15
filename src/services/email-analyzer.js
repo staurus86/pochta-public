@@ -2626,7 +2626,7 @@ function mergeQuotedSenderFallback(sender, quotedSender) {
     || (!hasLegalEntityMarker(senderCompany) && hasLegalEntityMarker(quotedCompany))
     || (/^[A-Za-z][A-Za-z\s.-]*\s+co\.?$/i.test(senderCompany) && hasLegalEntityMarker(quotedCompany))
   );
-  if (shouldReplaceCompany) {
+  if (shouldReplaceCompany && !isOwnCompanyData("company", quotedCompany)) {
     sender.companyName = quotedCompany;
     sender.sources.company = quotedSender.sources?.company || "quoted_body";
   }
