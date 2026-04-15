@@ -820,6 +820,19 @@ export function analyzeEmail(project, payload) {
   } else if (classification.detectedBrands?.length) {
     lead.detectedBrands = uniqueBrands([...lead.detectedBrands, ...classification.detectedBrands]);
   }
+
+  // Zone filter: if we have many brands and a real reply chain, keep only brands
+  // that appear in the primary zone (subject + primaryBody) to avoid history bleed
+  if ((lead.detectedBrands || []).length > 5 && quotedContent && /(?:От|From)\s*:\s*\S+@/i.test(quotedContent)) {
+    const primaryZone = ` ${String(subject || "").toLowerCase()} ${String(primaryBody || "").toLowerCase()} `;
+    const primaryZoneBrands = (lead.detectedBrands || []).filter((brand) => {
+      const b = ` ${brand.toLowerCase()} `;
+      return primaryZone.includes(b) || new RegExp(`\\b${escapeRegExp(brand.toLowerCase())}\\b`).test(primaryZone);
+    });
+    if (primaryZoneBrands.length > 0) {
+      lead.detectedBrands = primaryZoneBrands;
+    }
+  }
   if (!lead.sources) lead.sources = {};
   lead.sources.brands = summarizeSourceList(classification.brandSources || [], (lead.detectedBrands || []).length > 0);
   hydrateRecognitionSummary(lead, sender);
@@ -2987,7 +3000,10 @@ function sanitizeCompanyName(value) {
   let text = cleanup(value);
   if (!text) return null;
 
+  // Fix broken guillemets: "ОАО « Белгазпромбанк" → "ОАО «Белгазпромбанк"
   text = text
+    .replace(/«\s+/g, "«")
+    .replace(/\s+»/g, "»")
     .replace(/\s+(?:тел\.?|телефон|phone|mobile|моб\.?|сайт|site|e-?mail|email)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
     .replace(/\s+(?:www\.[^\s]+|https?:\/\/[^\s]+)\s*$/i, "")
     .replace(/\s+\+\d[\d()\s.-]*$/i, "")
@@ -4283,6 +4299,14 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (CSS_STYLE_TOKEN_PATTERN.test(normalized)) return true;
   if (WORD_INTERNAL_TOKEN_PATTERN.test(normalized)) return true;
   if (WORD_STYLE_TOKEN_PATTERN.test(normalized)) return true;
+  // CSS dimension values: 792.0PT, 42.5PT, 4PX, 9PT, 1.5EM, etc.
+  if (/^\d+(?:[.,]\d+)?(?:PT|PX|EM|REM|VH|VW|CM|MM|IN|CH|PC|EX|EX)$/i.test(normalized)) return true;
+  // Office HTML panose font descriptors: panose-1:2, panose-1:20706050209
+  if (/^PANOSE-\d+:\d/i.test(normalized)) return true;
+  // CSS class selector fragments: p.msonormal0, .msonormal, p.normal
+  if (/^(?:p|h[1-6]|span|div|td|li|ul|ol)\.[a-z][a-z0-9_-]{0,30}$/i.test(normalized)) return true;
+  // Cyrillic label prefix bleed: "нomep:MV2067512015" — label:value from garbled OCR/encoding
+  if (/^[А-Яа-яЁё]{2,15}:[A-ZА-Я0-9][A-ZА-Яa-zа-я0-9_/-]{3,}$/u.test(normalized)) return true;
   // Russian steel grades: 08Х18Н10Т, 12Х18Н9, 20Х13, 40ХН и т.п. (digit(s) + Cyrillic letters + digits/letters)
   if (/^\d{1,2}[А-ЯЁ]{1,4}\d{1,3}[А-ЯЁТ]?$/.test(normalized)) return true;
   // Material standards: AISI 304, AISI 316L — STANDARD_TOKEN_PATTERN now covers AISI without space, handle "AISI NNN" with space
@@ -4820,11 +4844,18 @@ function matchesBrand(normalizedText, candidate) {
 }
 
 function stripHtml(text) {
-  if (!/<[a-zA-Z]/.test(text)) return cleanupText(text);
-  return cleanupText(text
+  // Only enter HTML processing if there are actual HTML tags (not just email addresses like <user@domain>)
+  const hasHtmlTags = /<(?:[a-zA-Z][a-zA-Z0-9]*[\s>\/]|!--|!DOCTYPE)/i.test(text);
+  if (!hasHtmlTags) return cleanupText(text);
+  // Apply Office cleanup only when there are actual style/VML markers
+  const hasOfficeCss = /<style|panose-|msonormal|\.mso/i.test(text);
+  return (hasOfficeCss ? cleanupOfficeText : (x) => x)(cleanupText(text
     // Remove style/script blocks entirely
     .replace(/<style[^>]*>[\s\S]*?<\/style>/gi, " ")
     .replace(/<script[^>]*>[\s\S]*?<\/script>/gi, " ")
+    // Remove Office VML/XML blobs
+    .replace(/<!--\[if\s[^\]]*\]>[\s\S]*?<!\[endif\]-->/gi, " ")
+    .replace(/<o:p>[\s\S]*?<\/o:p>/gi, " ")
     .replace(/<br\s*\/?>/gi, "\n")
     .replace(/<\/(?:p|div|tr|li|h[1-6])>/gi, "\n")
     // Remove data URIs in inline styles (base64 images)
@@ -4837,7 +4868,21 @@ function stripHtml(text) {
     .replace(/&quot;/gi, '"')
     .replace(/&#(\d+);/g, (_, c) => String.fromCharCode(Number(c)))
     // Remove CSS-like artifacts (mj-column-per-100, font-family lines)
-    .replace(/mj-[\w-]+/gi, " "));
+    .replace(/mj-[\w-]+/gi, " ")));
+}
+
+// Remove Office HTML residue that survives tag stripping (panose, CSS property lines, class selectors)
+function cleanupOfficeText(text) {
+  return text
+    // Remove panose property lines: "panose-1:2 11 6 9 2 2 4 3 2 4"
+    .replace(/\bpanose-\d+:\s*[\d\s]+/gi, " ")
+    // Remove CSS property lines: "font-size:14pt; color:#000000" or "margin:0cm 0cm 0pt"
+    .replace(/\b(?:font|line|letter|word|text|margin|padding|border|background|color|width|height|display|position)\s*-?[a-z-]*\s*:\s*[^\n;]{1,80}[;\n]/gi, " ")
+    // Remove CSS class selector lines: "p.MsoNormal{" or ".MsoNormal {"
+    .replace(/\.[A-Za-z][A-Za-z0-9_-]{1,40}\s*\{[^}]{0,200}\}/g, " ")
+    // Remove standalone CSS class selector fragments: ".msonormal" ".normal" on own line
+    .replace(/^\s*\.?[a-z][a-z0-9_-]{1,30}\s*\{?\s*$/gim, " ")
+    .replace(/\s{2,}/g, " ");
 }
 
 function cleanupText(text) {
