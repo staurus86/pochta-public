@@ -2735,7 +2735,8 @@ function renderEmailView(msg, viewEl, detailEl) {
       const typeIcon = { request: '📋', requisites: '📄', pricelist: '📊', photo: '📷', document: '📁', other: '📎' };
       const attFile = (msg.attachmentFiles || []).find((f) => f.filename === att);
       const hasFile = attFile?.safeName;
-      const attUrl = hasFile ? `/api/attachments/${encodeURIComponent(msgKey)}/${encodeURIComponent(att)}?token=${encodeURIComponent(getAuthToken() || '')}` : null;
+      const _attToken = getAuthToken();
+      const attUrl = (hasFile && _attToken) ? `/api/attachments/${encodeURIComponent(msgKey)}/${encodeURIComponent(att)}?token=${encodeURIComponent(_attToken)}` : null;
       const sizeStr = attFile?.size ? ` (${formatFileSize(attFile.size)})` : '';
       if (attUrl) {
         return `<a href="${attUrl}" target="_blank" class="attachment-chip" style="text-decoration:none;cursor:pointer;" title="Открыть ${esc(att)}"><span class="att-icon">${typeIcon[hint?.type] || '📎'}</span> ${esc(att)}${sizeStr}</a>`;
