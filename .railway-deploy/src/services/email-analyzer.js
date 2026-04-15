@@ -29,6 +29,8 @@ try {
 const URL_PATTERN = /https?:\/\/[^\s)]+/gi;
 // Supports 3-digit area codes (mobile 9xx, regions 3xx/4xx/8xx) and 4-digit city codes (3952, 3812, etc.)
 const PHONE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}(?:[\s).-]*\d{2,4}){2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?|\(\d{3,5}\)\s*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}(?:[.,]\s*доб\.?\s*\d{1,6})?/g;
+// Broader pattern for international phones in form bodies (e.g. +998 90 581 10 04)
+const INTL_PHONE_PATTERN = /\+(?!7\b)\d{1,3}[\s(.-]*\d{2,4}(?:[\s).-]*\d{2,4}){2,4}/g;
 const PHONE_LIKE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}/i;
 const PHONE_LABEL_PATTERN = /(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber)\s*[:#-]?\s*((?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}|\d{3,4}[\s(.-]*\d{2,3}[\s).-]*\d{2}[\s.-]*\d{2}(?!\d))/i;
 const CONTACT_CONTEXT_PATTERN = /\b(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber|email|e-mail|почта)\b/i;
@@ -663,7 +665,16 @@ export function analyzeEmail(project, payload) {
     const { mobilePhone, cityPhone } = splitPhones([formPhone], formPhone);
     sender.mobilePhone = mobilePhone || sender.mobilePhone;
     sender.cityPhone = cityPhone || sender.cityPhone;
-    if (mobilePhone || cityPhone) sender.sources.phone = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
+    if (mobilePhone || cityPhone) {
+      sender.sources.phone = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
+    } else if (formPhone.trim()) {
+      // International phone (non-RU) that normalizer rejects — store raw in mobilePhone
+      const rawTrimmed = formPhone.trim().replace(/\s{2,}/g, " ");
+      if (/^\+\d/.test(rawTrimmed) && rawTrimmed.replace(/\D/g, "").length >= 7) {
+        sender.mobilePhone = rawTrimmed;
+        sender.sources.phone = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
+      }
+    }
   }
   // Inject company/INN from form fields if present
   const formCompany = robotFormData?.company || tildaFormData?.company || quotedRobotFormData?.company;
@@ -4567,25 +4578,34 @@ function parseTildaFormBody(body) {
     if (val && val !== "yes" && val !== "no") fields[key] = val;
   }
 
-  // Name: "name", "Name", "ФИО", "имя"
-  const name = fields["name"] || fields["фио"] || fields["имя"] || null;
+  // Name: standard + extended label set
+  const name = fields["name"] || fields["фио"] || fields["имя"] || fields["контактное лицо"]
+    || fields["представитель"] || fields["ответственный"] || fields["контакт"] || null;
 
-  // Phone
-  const phoneVal = fields["phone"] || fields["телефон"] || fields["тел"] || null;
+  // Phone: extended label set + international fallback
+  const phoneVal = fields["phone"] || fields["телефон"] || fields["тел"] || fields["моб"]
+    || fields["мобильный"] || fields["whatsapp"] || fields["viber"]
+    || fields["номер телефона"] || fields["контактный телефон"] || null;
 
   // Email
-  const emailVal = fields["email"] || fields["e-mail"] || null;
+  const emailVal = fields["email"] || fields["e-mail"] || fields["почта"] || fields["электронная почта"] || null;
 
   // Product/message: "comment", "message", "сообщение", "запрос", "v1" (first text field)
   const product = fields["comment"] || fields["message"] || fields["сообщение"]
     || fields["запрос"] || fields["товар"] || fields["продукт"]
     || fields["v1"] || null;
 
-  // Company/INN
-  const companyRaw = fields["company"] || fields["компания"] || fields["организация"] || null;
+  // Company/INN — extended field set
+  const companyRaw = fields["company"] || fields["компания"] || fields["организация"]
+    || fields["название организации"] || fields["наименование организации"]
+    || fields["юр. лицо"] || fields["юридическое лицо"]
+    || fields["заказчик"] || fields["покупатель"] || fields["контрагент"] || null;
   const company = isCompanyLabel(companyRaw) ? null : companyRaw;
-  const innMatch = formSection.match(/ИНН\s*[:\-]?\s*(\d{9,12})/i);
-  const inn = (!innMatch?.[1] || isOwnInn(innMatch[1])) ? null : normalizeInn(innMatch[1]);
+  // INN from field OR regex fallback in formSection
+  const innFieldRaw = fields["инн"] || fields["инн организации"] || fields["унп"] || null;
+  const innRegexMatch = !innFieldRaw ? formSection.match(/(?:ИНН|УНП|УНН)\s*[:#-]?\s*(\d{9,12})/i) : null;
+  const innRaw = innFieldRaw || innRegexMatch?.[1] || null;
+  const inn = (!innRaw || isOwnInn(innRaw)) ? null : normalizeInn(innRaw);
 
   return { name, phone: phoneVal, email: emailVal, product, company, inn, formSection };
 }
@@ -4619,10 +4639,16 @@ function parseRobotFormBody(subject, body) {
   const email = (emailInlineMatch?.[1] || emailMailtoMatch?.[1] || emailWidgetMatch?.[1] || null)
     ?.toLowerCase().replace(/:$/, "") || null;
 
-  // Phone: "Телефон/Тел/WhatsApp/Мобильный: +7..." or widget
-  const phoneInlineMatch = formSection.match(/(?:Телефон|Тел|WhatsApp|Мобильный):\s*([+\d][\d\s\-()/.]{5,})/i);
-  const phoneWidgetMatch = body.match(/(?:Телефон|WhatsApp)\s*[\r\n]\*+[\r\n]\s*([+\d][\d\s\-()]{5,})/i);
-  const phone = (phoneInlineMatch?.[1] || phoneWidgetMatch?.[1])?.trim() || null;
+  // Phone: labeled field (wide label set) or widget format or international fallback
+  const phoneInlineMatch = formSection.match(
+    /(?:Телефон|Тел\.?|WhatsApp|Viber|Мобильный|Моб\.?|Контактный\s+(?:тел\.?|телефон)|Номер\s+телефона|Рабочий\s+тел\.?|Phone|Связь):\s*([+\d][\d\s\-()/+.]{5,})/i
+  );
+  const phoneWidgetMatch = body.match(/(?:Телефон|WhatsApp|Phone)\s*[\r\n]\*+[\r\n]\s*([+\d][\d\s\-()]{5,})/i);
+  // International fallback: if labeled matches failed, look for any international phone in formSection
+  const phoneIntlFallback = (!phoneInlineMatch && !phoneWidgetMatch)
+    ? (formSection.match(INTL_PHONE_PATTERN) || [])[0] || null
+    : null;
+  const phone = (phoneInlineMatch?.[1] || phoneWidgetMatch?.[1] || phoneIntlFallback)?.trim() || null;
 
   // Product / item name
   const productMatch = formSection.match(
@@ -4635,11 +4661,16 @@ function parseRobotFormBody(subject, body) {
   const msgMatch = formSection.match(/(?:Сообщение|Вопрос|Комментарий|Текст\s+заявки):\s*([\s\S]+?)(?:\n[ \t]*\n|\nСтраница\s+отправки|\nID\s+товара|$)/i);
   const message = msgMatch?.[1]?.trim().slice(0, 500) || null;
 
-  // Company and INN (standard + extended field names)
-  const companyMatch = formSection.match(/(?:Название\s+организации|Компания|Организация|Предприятие):\s*(.+?)[\r\n]/i);
+  // Company and INN (extended field names + combined ИНН/КПП format)
+  const companyMatch = formSection.match(
+    /(?:Название\s+организации|Наименование\s+организации|Юр(?:идическое)?\s*(?:лицо|наименование)|Компания|Организация|Предприятие|Заказчик|Покупатель|Контрагент|Работодатель|Место\s+работы|ЮЛ):\s*(.+?)[\r\n]/i
+  );
   const companyRawRobot = companyMatch?.[1]?.trim() || null;
   const company = (isOwnCompanyData("company", companyRawRobot) || isCompanyLabel(companyRawRobot)) ? null : companyRawRobot;
-  const innMatch = formSection.match(/ИНН:\s*(\d{9,12})/i);
+  // INN: standard, combined ИНН/КПП, "ИНН организации", Беларусь УНП
+  const innMatch =
+    formSection.match(/(?:ИНН\s+организации|ИНН\s+клиента|ИНН)(?:\/КПП)?\s*[:#-]?\s*(\d{9,12})/i) ||
+    formSection.match(/(?:УНП|УНН)\s*[:#-]?\s*(\d{9})/i);
   const inn = (!innMatch?.[1] || isOwnInn(innMatch[1])) ? null : normalizeInn(innMatch[1]);
 
   // Quantity (Количество: 5 шт)
