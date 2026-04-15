@@ -243,9 +243,12 @@ const ORG_LEGAL_FORM_RE = /\b(?:ООО|ОАО|ЗАО|АО|ПАО|ИП|ФГУП|�
 
 // Post-validation: fix entity role errors (org in fullName, person in companyName)
 function validateSenderFields(sender) {
+  let corrections = 0;
+
   // 1. INN must be normalized digits-only string
   if (sender.inn) {
     const normalized = normalizeInn(sender.inn);
+    if (normalized !== sender.inn) corrections++;
     sender.inn = normalized;
   }
 
@@ -253,6 +256,7 @@ function validateSenderFields(sender) {
   if (isCompanyLabel(sender.companyName)) {
     sender.companyName = null;
     if (sender.sources) sender.sources.company = null;
+    corrections++;
   }
 
   // 3. fullName contains org legal form → move to companyName if empty, clear fullName
@@ -270,6 +274,7 @@ function validateSenderFields(sender) {
     }
     sender.fullName = humanPart ? humanPart.trim() : null;
     if (sender.sources && !humanPart) sender.sources.name = null;
+    corrections++;
   }
 
   // 4. companyName that looks like a person's full name (but not an org) → clear it
@@ -283,8 +288,11 @@ function validateSenderFields(sender) {
       }
       sender.companyName = null;
       if (sender.sources) sender.sources.company = null;
+      corrections++;
     }
   }
+
+  return corrections;
 }
 
 // Brand names that should not be detected as articles or company names
@@ -879,7 +887,15 @@ export function analyzeEmail(project, payload) {
   }
 
   // Post-validate sender fields: normalize INN, fix entity role errors
-  validateSenderFields(sender);
+  const senderCorrections = validateSenderFields(sender);
+
+  // Multi-dimension confidence: classification × entity extraction quality
+  // Entity confidence comes from overallConfidence of recognition diagnostics
+  const entityConfidence = lead.recognitionSummary?.overallConfidence ?? 0.7;
+  const classificationConf = classification.confidence ?? 0.7;
+  // Penalty for sender field corrections: each correction = 5% penalty (max 15%)
+  const correctionPenalty = Math.min(senderCorrections * 0.05, 0.15);
+  lead.confidence = Math.max(0, classificationConf * entityConfidence - correctionPenalty);
 
   const crm = matchCompanyInCrm(project, { sender, detectedBrands: lead.detectedBrands, lead });
 
@@ -3047,7 +3063,11 @@ function sanitizeCompanyName(value) {
   if (!text) return null;
 
   // Fix broken guillemets: "ОАО « Белгазпромбанк" → "ОАО «Белгазпромбанк"
+  // Also strip orphaned leading/trailing guillemets and mismatched pairs
   text = text
+    .replace(/^»\s+/g, "")          // leading orphaned closing guillemet
+    .replace(/\s+«$/g, "")          // trailing orphaned opening guillemet
+    .replace(/^"([^"]+)"$/, "$1")   // strip outer ASCII double quotes if fully wrapped
     .replace(/«\s+/g, "«")
     .replace(/\s+»/g, "»")
     .replace(/\s+(?:тел\.?|телефон|phone|mobile|моб\.?|сайт|site|e-?mail|email)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
