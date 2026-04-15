@@ -229,8 +229,13 @@ const BRAND_NOISE = new Set([
 ]);
 
 const BRAND_FALSE_POSITIVE_ALIASES = new Set([
-  "top", "moro", "ydra", "hydra", "global", "control", "process", "electronic", "data"
+  "top", "moro", "ydra", "hydra", "global", "control", "process", "electronic", "data",
+  // Calendar month names — appear in quoted email date headers ("Sent: Tuesday, March 31, 2026")
+  "march", "april", "may", "june", "july"
 ]);
+// Aliases that must match as whole words (word boundary) to avoid substring false positives
+// "foss" → prevent matching inside "danfoss"
+const BRAND_WORD_BOUNDARY_LOCAL = new Set(["foss"]);
 const OFFICE_XML_ARTICLE_NOISE_PATTERNS = [
   /^UTF-?8$/i,
   /^97-2003$/i,
@@ -1972,14 +1977,31 @@ function isSameItemName(a, b) {
   return na === nb || na.includes(nb) || nb.includes(na);
 }
 
+function lineItemDisplayName(article, descriptionRu) {
+  // If descriptionRu starts with the article code itself, it's a raw source line, not a product name.
+  // Strip the article prefix (and surrounding noise like quantity/units) to get a comparable name.
+  const desc = cleanup(descriptionRu || "");
+  if (!desc || !article) return desc;
+  const normalArt = normalizeArticleCode(article) || "";
+  if (!normalArt) return desc;
+  const descNorm = desc.toLowerCase();
+  const artNorm = normalArt.toLowerCase();
+  if (descNorm.startsWith(artNorm)) {
+    // Strip article prefix + typical surrounding chars (space, dash, quantity like "- 2.00 шт")
+    const stripped = desc.slice(normalArt.length).replace(/^[\s\-–—.:,;()\d]+(?:шт\.?|pcs\.?|ед\.?)?[\s\-–—.:,;()]*/, "").trim();
+    return stripped;
+  }
+  return desc;
+}
+
 function collectArticleNameConflicts(lead) {
   const nameByArticle = new Map();
   for (const item of lead.lineItems || []) {
     const article = normalizeArticleCode(item?.article);
-    const name = cleanup(item?.descriptionRu || "");
-    if (!article || !name) continue;
+    const rawName = lineItemDisplayName(article, item?.descriptionRu || "");
+    if (!article || !rawName) continue;
     if (!nameByArticle.has(article)) nameByArticle.set(article, []);
-    nameByArticle.get(article).push({ name, source: item?.source || null });
+    nameByArticle.get(article).push({ name: rawName, source: item?.source || null });
   }
   for (const item of lead.productNames || []) {
     const article = normalizeArticleCode(item?.article);
@@ -2951,6 +2973,10 @@ function sanitizeCompanyName(value) {
   // Only mass-mailing platforms, NOT generic email services used by real clients (e.g. snipermail.ru)
   const SPAM_SERVICE_NAMES = new Set(["mailchimp", "unisender", "sendpulse", "getresponse", "sendinblue", "mailerlite"]);
   if (SPAM_SERVICE_NAMES.has(lowerBase)) return null;
+
+  // Reject "ООО [ФИО]" — legal form followed by a person's full name (3 Cyrillic words starting with uppercase)
+  // Happens when signature lines bleed across: "ООО\nИванов Иван Иванович" → "ООО Иванов Иван Иванович"
+  if (/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)\s+[А-ЯЁ][а-яё]{1,20}\s+[А-ЯЁ][а-яё]{1,20}(?:\s+[А-ЯЁ][а-яё]{1,20})?(?:\s+[а-яё]\.?)?$/u.test(text)) return null;
 
   // Reject bare legal-form without any name ("ООО", "АО", "ИП")
   if (/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)$/i.test(text)) return null;
@@ -4678,6 +4704,10 @@ function matchesBrand(normalizedText, candidate) {
   if (normalizedText.includes(normalizedCandidate)) {
     if (candidateWords.length === 1 && candidateWords[0].length < 4 && !BRAND_CONTEXT_PATTERN.test(normalizedText)) {
       return false;
+    }
+    // Word-boundary-required aliases: must not match as substring inside another word
+    if (candidateWords.length === 1 && BRAND_WORD_BOUNDARY_LOCAL.has(candidateWords[0])) {
+      return new RegExp(`\\b${escapeRegExp(candidateWords[0])}\\b`, "i").test(normalizedText);
     }
     return true;
   }
