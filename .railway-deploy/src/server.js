@@ -568,6 +568,55 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, result);
   }
 
+  // Attachment download — must be before the auth gate because browsers
+  // cannot send Bearer headers when opening files in new tabs.
+  const attachMatch = url.pathname.match(/^\/api\/attachments\/([^/]+)\/(.+)$/);
+  if (req.method === "GET" && attachMatch) {
+    // auth: Bearer header OR ?token= query param
+    const attachUser = extractAuthUser(req) || (() => {
+      const qt = url.searchParams.get("token");
+      return qt ? managerAuth.verifyToken(qt) : null;
+    })();
+    if (!attachUser) return sendJson(res, 401, { error: "Authentication required" });
+    const messageKey = decodeURIComponent(attachMatch[1]);
+    const filename = decodeURIComponent(attachMatch[2]);
+    const safeName = filename.replace(/[<>:"/\\|?*]/g, "_");
+    const filePath = path.join(dataDir, "attachments", messageKey, safeName);
+    // C1: Prevent path traversal — verify resolved path stays inside attachments dir
+    const attachBase = path.resolve(path.join(dataDir, "attachments"));
+    const resolvedPath = path.resolve(filePath);
+    if (!resolvedPath.startsWith(attachBase + path.sep) && resolvedPath !== attachBase) {
+      return sendJson(res, 403, { error: "Access denied." });
+    }
+    try {
+      const contents = await readFile(filePath);
+      const ext = path.extname(safeName).toLowerCase();
+      const mimeTypes = {
+        ".pdf": "application/pdf",
+        ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
+        ".png": "image/png", ".gif": "image/gif", ".webp": "image/webp",
+        ".bmp": "image/bmp", ".tiff": "image/tiff", ".tif": "image/tiff",
+        ".doc": "application/msword",
+        ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+        ".xls": "application/vnd.ms-excel",
+        ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+        ".csv": "text/csv",
+        ".txt": "text/plain",
+        ".zip": "application/zip",
+        ".rar": "application/x-rar-compressed"
+      };
+      const ct = mimeTypes[ext] || "application/octet-stream";
+      res.writeHead(200, {
+        "Content-Type": ct,
+        "Content-Disposition": `inline; filename="${encodeURIComponent(filename)}"`,
+        "Content-Length": contents.length
+      });
+      return res.end(contents);
+    } catch {
+      return sendJson(res, 404, { error: "Attachment not found." });
+    }
+  }
+
   // ── Global auth gate — all /api/* routes below require a valid token ──
   requireAuth(req);
 
@@ -974,48 +1023,6 @@ async function handleApi(req, res, url) {
 
     const project = await store.createProject(payload);
     return sendJson(res, 201, { project });
-  }
-
-  // Attachment download
-  const attachMatch = url.pathname.match(/^\/api\/attachments\/([^/]+)\/(.+)$/);
-  if (req.method === "GET" && attachMatch) {
-    const messageKey = decodeURIComponent(attachMatch[1]);
-    const filename = decodeURIComponent(attachMatch[2]);
-    const safeName = filename.replace(/[<>:"/\\|?*]/g, "_");
-    const filePath = path.join(dataDir, "attachments", messageKey, safeName);
-    // C1: Prevent path traversal — verify resolved path stays inside attachments dir
-    const attachBase = path.resolve(path.join(dataDir, "attachments"));
-    const resolvedPath = path.resolve(filePath);
-    if (!resolvedPath.startsWith(attachBase + path.sep) && resolvedPath !== attachBase) {
-      return sendJson(res, 403, { error: "Access denied." });
-    }
-    try {
-      const contents = await readFile(filePath);
-      const ext = path.extname(safeName).toLowerCase();
-      const mimeTypes = {
-        ".pdf": "application/pdf",
-        ".jpg": "image/jpeg", ".jpeg": "image/jpeg",
-        ".png": "image/png", ".gif": "image/gif", ".webp": "image/webp",
-        ".bmp": "image/bmp", ".tiff": "image/tiff", ".tif": "image/tiff",
-        ".doc": "application/msword",
-        ".docx": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-        ".xls": "application/vnd.ms-excel",
-        ".xlsx": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
-        ".csv": "text/csv",
-        ".txt": "text/plain",
-        ".zip": "application/zip",
-        ".rar": "application/x-rar-compressed"
-      };
-      const ct = mimeTypes[ext] || "application/octet-stream";
-      res.writeHead(200, {
-        "Content-Type": ct,
-        "Content-Disposition": `inline; filename="${encodeURIComponent(filename)}"`,
-        "Content-Length": contents.length
-      });
-      return res.end(contents);
-    } catch {
-      return sendJson(res, 404, { error: "Attachment not found." });
-    }
   }
 
   const mailboxesMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/mailboxes$/);
