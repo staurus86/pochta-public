@@ -175,9 +175,40 @@ const OWN_DOMAINS = new Set([
   "maximator-ru.ru", "stromag-ru.ru", "endress-hauser.pro"
 ]);
 
+const OWN_COMPANY_IDENTITY = {
+  phones: ["+7 (499) 647-47-07", "+7 (800) 777-47-07"],
+  inn: new Set(["9701077015"]),
+  kpp: new Set(["773101001"]),
+  ogrn: new Set(["1177746518740"]),
+  domains: OWN_DOMAINS,
+  nameParts: ["сайдерус", "siderus", "коловрат", "kolovrat"],
+};
+
 // Own company INNs — never treat as client INN
-const OWN_INNS = new Set(['9701077015']);
+const OWN_INNS = OWN_COMPANY_IDENTITY.inn;
 function isOwnInn(inn) { return OWN_INNS.has(String(inn || '')); }
+
+function isOwnCompanyData(field, value) {
+  if (!value) return false;
+  const v = String(value).trim();
+  switch (field) {
+    case "phone": {
+      // normalizePhoneNumber is defined later in this file — hoisting works for named functions
+      const normalized = normalizePhoneNumber(v);
+      return normalized ? OWN_COMPANY_IDENTITY.phones.includes(normalized) : false;
+    }
+    case "inn":  return OWN_COMPANY_IDENTITY.inn.has(v.replace(/\D/g, ""));
+    case "kpp":  return OWN_COMPANY_IDENTITY.kpp.has(v.replace(/\D/g, ""));
+    case "ogrn": return OWN_COMPANY_IDENTITY.ogrn.has(v.replace(/\D/g, ""));
+    case "email": {
+      const domain = v.split("@")[1]?.toLowerCase();
+      return domain ? OWN_COMPANY_IDENTITY.domains.has(domain) : false;
+    }
+    case "company":
+      return OWN_COMPANY_IDENTITY.nameParts.some((p) => v.toLowerCase().includes(p));
+    default: return false;
+  }
+}
 
 // ЭДО-context: INN from EDO operator lines should be skipped as client candidates
 const EDO_CONTEXT_PATTERN = /(?:диадок|diadoc|сбис|sbis|контур|kontur|оператор\s+эдо|эдо\s+оператор|электронный\s+документооборот|подключен\s+к)\s{0,20}/i;
@@ -1193,6 +1224,9 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
   const urls = body.match(URL_PATTERN) || [];
   const phones = body.match(PHONE_PATTERN) || [];
   const requisites = extractRequisites(body);
+  if (isOwnCompanyData("inn", requisites?.inn)) requisites.inn = null;
+  if (isOwnCompanyData("kpp", requisites?.kpp)) requisites.kpp = null;
+  if (isOwnCompanyData("ogrn", requisites?.ogrn)) requisites.ogrn = null;
   // Filter out own URLs from detected links
   const externalUrls = urls.filter((u) => {
     const domain = extractDomainFromUrl(u);
@@ -1204,7 +1238,8 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
   const domainCompanyName = (!extractedCompanyName && !inferredCompanyName)
     ? inferCompanyFromDomain(fromEmail)
     : null;
-  const companyName = sanitizeCompanyName(extractedCompanyName || inferredCompanyName || domainCompanyName);
+  const rawCompanyName = sanitizeCompanyName(extractedCompanyName || inferredCompanyName || domainCompanyName);
+  const companyName = isOwnCompanyData("company", rawCompanyName) ? null : rawCompanyName;
   const nameFromDisplay = isOrgUnitName(fromName) ? null : fromName;
   const fullName = nameFromDisplay || extractFullNameFromBody(body) || inferNameFromEmail(fromEmail) || "Не определено";
   const position = extractPosition(body) || null;
@@ -2572,12 +2607,14 @@ function mergeQuotedSenderFallback(sender, quotedSender) {
   if (!sender || !quotedSender) return;
 
   if ((!sender.mobilePhone && !sender.cityPhone) && (quotedSender.mobilePhone || quotedSender.cityPhone)) {
-    sender.mobilePhone = quotedSender.mobilePhone || sender.mobilePhone;
-    sender.cityPhone = quotedSender.cityPhone || sender.cityPhone;
-    sender.sources.phone = quotedSender.sources?.phone || "quoted_body";
+    const qMobile = isOwnCompanyData("phone", quotedSender.mobilePhone) ? null : quotedSender.mobilePhone;
+    const qCity   = isOwnCompanyData("phone", quotedSender.cityPhone)   ? null : quotedSender.cityPhone;
+    sender.mobilePhone = qMobile || sender.mobilePhone;
+    sender.cityPhone   = qCity   || sender.cityPhone;
+    if (qMobile || qCity) sender.sources.phone = quotedSender.sources?.phone || "quoted_body";
   }
 
-  if (!sender.inn && quotedSender.inn) {
+  if (!sender.inn && quotedSender.inn && !isOwnCompanyData("inn", quotedSender.inn)) {
     sender.inn = quotedSender.inn;
     sender.sources.inn = quotedSender.sources?.inn || "quoted_body";
   }
@@ -2714,7 +2751,8 @@ function isTollFreePhone(normalized) {
 }
 
 function splitPhones(phones, body = "") {
-  const validated = unique((phones || []).map((phone) => normalizePhoneNumber(phone)).filter(Boolean));
+  const validated = unique((phones || []).map((phone) => normalizePhoneNumber(phone)).filter(Boolean))
+    .filter((phone) => !isOwnCompanyData("phone", phone));
   const explicitlyLabeled = body.match(PHONE_LABEL_PATTERN)?.[1] ? normalizePhoneNumber(body.match(PHONE_LABEL_PATTERN)[1]) : null;
 
   if (explicitlyLabeled) {
@@ -4233,7 +4271,8 @@ function parseRobotFormBody(subject, body) {
 
   // Company and INN (standard + extended field names)
   const companyMatch = formSection.match(/(?:Название\s+организации|Компания|Организация|Предприятие):\s*(.+?)[\r\n]/i);
-  const company = companyMatch?.[1]?.trim() || null;
+  const companyRaw = companyMatch?.[1]?.trim() || null;
+  const company = isOwnCompanyData("company", companyRaw) ? null : companyRaw;
   const innMatch = formSection.match(/ИНН:\s*(\d{9,12})/i);
   const inn = (!innMatch?.[1] || isOwnInn(innMatch[1])) ? null : innMatch[1];
 
