@@ -699,6 +699,32 @@ export function analyzeEmail(project, payload) {
     });
     lead.totalPositions = Math.max(lead.lineItems.length, (lead.articles || []).length);
   }
+  // Инжектировать полное название товара из формы (productFullName)
+  if (activeFormData?.productFullName && activeFormData?.product) {
+    const formArticle = normalizeArticleCode(activeFormData.product);
+    if (formArticle) {
+      const existing = (lead.lineItems || []).find((i) => normalizeArticleCode(i.article || "") === formArticle);
+      if (existing) {
+        if (!existing.descriptionRu || existing.descriptionRu === existing.article) {
+          existing.descriptionRu = activeFormData.productFullName;
+        }
+      } else if (!(lead.lineItems || []).some((i) => (i.descriptionRu || "").includes(activeFormData.productFullName))) {
+        lead.lineItems = lead.lineItems || [];
+        lead.lineItems.push({
+          article: activeFormData.product,
+          descriptionRu: activeFormData.productFullName,
+          source: "form",
+          explicitArticle: true,
+          quantity: activeFormData.quantity?.value ? Number(activeFormData.quantity.value) : null,
+          unit: activeFormData.quantity?.unit || null
+        });
+        if (formArticle && !(lead.articles || []).includes(formArticle)) {
+          lead.articles = [...(lead.articles || []), formArticle];
+        }
+      }
+    }
+  }
+
   enrichLeadFromKnowledgeBase(lead, classification, project, [subjectForExtraction, bodyForExtraction, attachmentContent].filter(Boolean).join("\n\n"));
   if (!lead.detectedBrands?.length && classification.detectedBrands?.length) {
     lead.detectedBrands = [...classification.detectedBrands];
@@ -4289,6 +4315,21 @@ function unique(items) {
 }
 
 /**
+ * Из строки вида "AT 051 DA F04 N 11 DS Пневмопривод" берёт всё до первого кириллического слова.
+ * Возвращает { article: "AT 051 DA F04 N 11 DS", description: "AT 051 DA F04 N 11 DS Пневмопривод" }
+ */
+function splitProductNameFromArticle(text) {
+  if (!text) return { article: null, description: null };
+  const t = text.trim();
+  // Найти первое кириллическое слово — оно начинает текстовое описание
+  const cyrMatch = t.match(/^([\s\S]*?)\s+([А-ЯЁа-яё].*)$/);
+  if (cyrMatch && cyrMatch[1].trim()) {
+    return { article: cyrMatch[1].trim(), description: t };
+  }
+  return { article: t, description: t };
+}
+
+/**
  * Deduplicates strings by substring absorption.
  * mode 'keep-longest': if A ⊂ B → remove A (артикулы, описания)
  * mode 'keep-shortest': if A ⊂ B → remove B (бренды — длинный = ошибочный захват)
@@ -4455,8 +4496,11 @@ function parseRobotFormBody(subject, body) {
   const phone = (phoneInlineMatch?.[1] || phoneWidgetMatch?.[1])?.trim() || null;
 
   // Product / item name
-  const productMatch = formSection.match(/(?:Название\s+товара|Продукт|Товар|Запрос|Артикул|Наименование):\s*(.+?)[\r\n]/i);
-  const product = productMatch?.[1]?.trim() || null;
+  const productMatch = formSection.match(
+    /(?:Название\s+товара|Наименование\s+товара|Наименование|Продукт|Товар|Запрос|Артикул\s+товара|Артикул|Модель|Позиция|Наим\.\s*товара):\s*(.+?)[\r\n]/i
+  );
+  const productRaw = productMatch?.[1]?.trim() || null;
+  const { article: product, description: productFullName } = splitProductNameFromArticle(productRaw);
 
   // Message / question text (stop before next form field or URL)
   const msgMatch = formSection.match(/(?:Сообщение|Вопрос|Комментарий|Текст\s+заявки):\s*([\s\S]+?)(?:\n[ \t]*\n|\nСтраница\s+отправки|\nID\s+товара|$)/i);
@@ -4482,7 +4526,7 @@ function parseRobotFormBody(subject, body) {
   // Resume form → should be classified as spam
   const isResume = /резюме|вакансия/i.test(subject + " " + formSection);
 
-  return { name, email, phone, product, message, company, inn, quantity, kpForm: kpFormMatch, hasAttachmentForm, formSection, isResume };
+  return { name, email, phone, product, productFullName, message, company, inn, quantity, kpForm: kpFormMatch, hasAttachmentForm, formSection, isResume };
 }
 
 function extractForwardedSender(body) {

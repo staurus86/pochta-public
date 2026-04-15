@@ -2256,3 +2256,33 @@ runTest("Должность: Procurement manager of ITER PPTF Project — лат
     `Должность Procurement manager не извлечена, получили: "${result.sender?.position}"`
   );
 });
+
+// --- Task 5: Форм-заявка полное название товара ---
+
+runTest("Форм-заявка: полное название товара AT 051 DA F04 N 11 DS Пневмопривод", () => {
+  const result = analyzeEmail(project, {
+    subject: "Заполнена форма \"Товар под заказ\" на сайте SIDERUS (8413)",
+    fromEmail: "robot@siderus.ru",
+    fromName: "",
+    body: `Заполнена форма "Товар под заказ" на сайте SIDERUS (8413)
+Имя посетителя: ООО"РЕЦЕПС" Николай
+Телефон:
+Email: recepson@mail.ru
+WhatsApp:
+Название товара: AT 051 DA F04 N 11 DS Пневмопривод
+Ссылка на товар: https://siderus.ru/orders/processed/at-051-da-f04-n-11-ds-pnevmoprivod/
+ID товара: 1056655
+Название организации:
+ИНН:
+Сообщение:
+Страница отправки: https://siderus.ru/orders/processed/at-051-da-f04-n-11-ds-pnevmoprivod/
+Запрос отправлен: 13.04.2026 12:52:24`,
+    attachments: []
+  });
+  const items = result.lead?.lineItems || [];
+  const descriptions = items.map((i) => i.descriptionRu || i.description || "").join(" ");
+  assert.ok(
+    /AT 051 DA F04 N 11 DS Пневмопривод/i.test(descriptions),
+    `Полное название товара не найдено в lineItems, получили: ${JSON.stringify(items.map((i) => ({ article: i.article, desc: i.descriptionRu })))}`
+  );
+});
