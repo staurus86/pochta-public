@@ -580,6 +580,34 @@ export function analyzeEmail(project, payload) {
     ];
   }
 
+  // Newsletter / webinar / service-outreach override → СПАМ
+  // Applied after form overrides so robot-form and tilda-form are not affected
+  if (!robotFormData && !tildaFormData && !quotedRobotFormData && classification.label !== "СПАМ") {
+    const fullText = `${subject} ${bodyForClassification}`.toLowerCase();
+    const isNewsletter = /(?:отписат[ьс]|unsubscribe|отказат[ьс][яь]\s+от\s+(?:рассылки|подписки)|список\s+рассылки|mailing\s+list|email\s+marketing|view\s+in\s+(?:browser|your\s+browser)|если\s+(?:вы\s+)?(?:не\s+)?(?:хотите|желаете)\s+получать|вы\s+получили\s+это\s+(?:письмо|сообщение)\s+(?:так\s+как|потому))/i.test(fullText);
+    const isWebinar = /(?:вебинар|webinar|онлайн[- ]?(?:курс|мероприятие|конференция|семинар)|приглашаем\s+(?:вас\s+)?(?:на|принять)|зарегистрируйтесь\s+(?:на|бесплатно)|ближайшие\s+(?:мероприятия|события|вебинары|курсы)|расписание\s+(?:вебинаров|курсов|мероприятий))/i.test(fullText);
+    const isServiceOutreach = /(?:предлага[ею]м\s+(?:вам\s+)?(?:наши|свои)\s+услуги|готовы\s+(?:предложить|сотрудничать|стать\s+вашим)|(?:возможность|предложение)\s+(?:о\s+)?сотрудничества|рассмотрите\s+(?:наше\s+)?(?:коммерческое\s+)?предложение|презентуем\s+(?:наши|нашу)|типография|полиграфи[яю])/i.test(fullText);
+    if (isNewsletter || isWebinar) {
+      classification.label = "СПАМ";
+      classification.confidence = Math.max(classification.confidence || 0, 0.85);
+      classification.signals = classification.signals || {};
+      classification.signals.matchedRules = [
+        ...(classification.signals.matchedRules || []),
+        { id: isWebinar ? "webinar_detection" : "newsletter_detection", classifier: "spam",
+          scope: "body", pattern: isWebinar ? "webinar_keywords" : "unsubscribe_markers", weight: 8 }
+      ];
+    } else if (isServiceOutreach && classification.label === "Клиент") {
+      // Downgrade to Поставщик услуг — service offers look like clients but aren't
+      classification.label = "Поставщик услуг";
+      classification.confidence = Math.min(classification.confidence || 0.7, 0.75);
+      classification.signals = classification.signals || {};
+      classification.signals.matchedRules = [
+        ...(classification.signals.matchedRules || []),
+        { id: "service_outreach_detection", classifier: "vendor", scope: "body", pattern: "service_offer_keywords", weight: 5 }
+      ];
+    }
+  }
+
   // Filter own brands (Siderus, Коловрат, etc.) from classification results
   classification.detectedBrands = detectionKb.filterOwnBrands(classification.detectedBrands);
 
@@ -874,7 +902,7 @@ export function analyzeEmail(project, payload) {
     lead,
     crm,
     detectedBrands: uniqueBrands(detectionKb.filterOwnBrands(lead.detectedBrands)).slice(0, 15),
-    intakeFlow: buildIntakeFlow(classification.label, crm, lead, { isMassRequest }),
+    intakeFlow: buildIntakeFlow(classification.label, crm, lead, { isMassRequest, sender }),
     suggestedReply,
     rawInput: {
       subject,
@@ -2453,22 +2481,40 @@ function buildIntakeFlow(classification, crm, lead, meta = {}) {
   const requiresReview = blockingConflicts.length > 0
     || (isClient && (diagnostics.completenessScore ?? 100) < 20);
 
+  // Quality gate — additional review triggers for clients only
+  let qualityGateTriggered = false;
+  let qualityGateReason = null;
+  if (isClient && !requiresReview) {
+    const sender = meta.sender || {};
+    const hasNoRequisites = !sender.companyName && !sender.inn;
+    const hasVeryLowConfidence = (lead.confidence ?? 1) < 0.5;
+    if (hasNoRequisites && hasVeryLowConfidence) {
+      qualityGateTriggered = true;
+      qualityGateReason = "quality_gate";
+    }
+  }
+
+  const needsReview = requiresReview || qualityGateTriggered;
+  const flags = [];
+  if (meta.isMassRequest) flags.push("mass_request");
+  if (qualityGateTriggered) flags.push("quality_gate");
+
   return {
     parseToFields: !isSpam,
     requestClarification: crm.needsClarification,
-    createClientInCrm: isClient && !crm.isExistingCompany && !requiresReview,
-    createRequestInCrm: isClient && !requiresReview,
+    createClientInCrm: isClient && !crm.isExistingCompany && !needsReview,
+    createRequestInCrm: isClient && !needsReview,
     assignMop: crm.curatorMop,
     assignMoz: crm.curatorMoz,
     requestType: lead.requestType,
     // New fields
-    requiresReview,
-    reviewReason: requiresReview
-      ? blockingConflicts.length > 0 ? "detection_conflicts" : "low_completeness"
+    requiresReview: needsReview,
+    reviewReason: needsReview
+      ? (qualityGateTriggered ? "quality_gate" : blockingConflicts.length > 0 ? "detection_conflicts" : "low_completeness")
       : null,
     isVendorInquiry: isVendor,
     skipCrmSync: isSpam || isVendor,
-    flags: meta.isMassRequest ? ["mass_request"] : [],
+    flags,
     syncPriority: meta.isMassRequest ? "low" : "normal"
   };
 }
