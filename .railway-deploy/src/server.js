@@ -542,7 +542,8 @@ async function handleApi(req, res, url) {
     const sseHeaders = {
       "Content-Type": "text/event-stream",
       "Cache-Control": "no-cache",
-      Connection: "keep-alive"
+      Connection: "keep-alive",
+      "X-Accel-Buffering": "no"
     };
     if (corsOrigin) sseHeaders["Access-Control-Allow-Origin"] = corsOrigin;
     res.writeHead(200, sseHeaders);
@@ -1179,8 +1180,9 @@ async function handleApi(req, res, url) {
       for (let i = 0; i < messages.length; i += BATCH_SIZE) {
         if (job.status !== "running") break;
         const batch = messages.slice(i, i + BATCH_SIZE);
-        for (const msg of batch) {
+        for (let j = 0; j < batch.length; j++) {
           if (job.status !== "running") break;
+          const msg = batch[j];
           job.progress.currentSubject = msg.subject || "(без темы)";
           if (!msg.analysis && !msg.body && !msg.bodyPreview) { job.progress.skipped++; continue; }
           try {
@@ -1210,6 +1212,8 @@ async function handleApi(req, res, url) {
             recordProcessingTelemetrySample(telemetry, Date.now() - sampleStartedAt);
             job.progress.processed++;
           } catch { job.progress.errors++; }
+          // Yield every 10 messages to keep event loop responsive (SSE keepalive, health checks)
+          if (j % 10 === 9) { telemetry.yields += 1; await yieldProcessingLoop(); }
         }
 
         telemetry.batches += 1;
