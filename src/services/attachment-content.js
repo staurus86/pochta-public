@@ -190,7 +190,8 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
         extractedText = extractTextFromLegacyOfficeBuffer(buffer, ext);
       }
 
-      const isTabular = TEXT_EXTENSIONS.has(ext) ? false : (ext === ".xlsx" || ext === ".csv" || ext === ".tsv");
+      const isTabular = TEXT_EXTENSIONS.has(ext) ? false
+        : (ext === ".xlsx" || ext === ".csv" || ext === ".tsv" || result.category === "product_request" || result.category === "specification");
       const cleanedFullText = cleanupExtractedText(extractedText);
       // For LLM / brand scan / preview: limit to maxExtractedCharsPerFile
       extractedText = cleanedFullText.slice(0, limits.maxExtractedCharsPerFile);
@@ -283,6 +284,9 @@ function sanitizeFilename(filename) {
 // Only sender fields (INN, company, email, name) should be extracted from them.
 const REQUISITES_FILENAME_RE = /реквизит|карточк|карт[аы]?(?:[-_ ]|$)|контрагент|(?:^|[-_ ])(ООО|ОАО|ЗАО|ПАО|ИП|ТОО|LLP|LLC|GmbH)(?:[-_ ]|$)|(?:^|[-_ ])ТК(?:[-_ ]|$)|card|details|банк/i;
 
+// XLSX/XLS files that are product request sheets — articles, brands, quantities expected
+const PRODUCT_REQUEST_FILENAME_RE = /запрос|заявк[аи]|потребност|тз\b|т\.з\.|техзадан|техническое\s*задание|заказ[^_\w]|заказ$|specification|спецификац/i;
+
 function categorizeAttachment(filename, ext, contentType) {
   const lower = String(filename || "").toLowerCase();
   // DOC/DOCX requisites files: company cards, registration details, bank requisites
@@ -290,6 +294,8 @@ function categorizeAttachment(filename, ext, contentType) {
   // Any file with explicit requisites/banking keywords
   if (/реквизит|карточк|контрагент|банк|details/i.test(lower)) return "requisites";
   if (/сч[её]т|invoice/i.test(lower)) return "invoice";
+  // XLSX/XLS product request files — always use full tabular extraction
+  if (PRODUCT_REQUEST_FILENAME_RE.test(filename) && [".xlsx", ".xls", ".csv", ".tsv"].includes(ext)) return "product_request";
   if (/спецификац|specification|spec/i.test(lower)) return "specification";
   if (/прайс|price/i.test(lower)) return "price_list";
   if (PDF_EXTENSIONS.has(ext)) return "pdf";
@@ -627,6 +633,14 @@ function extractAttachmentLineItems(text, ext, filename = "") {
   return extractLooseAttachmentLineItems(lines, filename);
 }
 
+// Header column patterns — broad synonyms for Russian B2B spreadsheets
+const HDR_ARTICLE = /артик|sku|код\s*(?:товара|позиц|детал)?|part[\s._-]?no\.?|p\/n|арт\b|арт\.|обозначен|шифр|designation/i;
+const HDR_NAME    = /наимен|товар|описан|позици|product|material|матери[аа]л|изделие|title|name\b|номенклатур/i;
+const HDR_QTY     = /кол-?во|колич|qty|quantity|кол\.|потребн/i;
+const HDR_UNIT    = /ед\.?\s*(?:изм\.?)?|единиц|unit|uom/i;
+const HDR_BRAND   = /бренд|brand|марка|производитель|производит|вендор|vendor|изготовит|поставщик|supplier/i;
+const HDR_ROWNUM  = /^(?:№|п\/п|поз\.?|n°|pos\.?|#|\d{1,3})$/i; // row counter — skip for article
+
 function extractTabularLineItems(lines, filename) {
   const rows = lines
     .map((line) => line.split(/\t|;{1,}/).map((cell) => cleanupCellValue(cell)).filter(Boolean))
@@ -634,17 +648,51 @@ function extractTabularLineItems(lines, filename) {
 
   if (rows.length === 0) return [];
 
-  const headerRow = rows.find((row) => row.some((cell) => /артик|наимен|товар|кол-?во|колич|ед\.?|unit|qty/i.test(cell))) || rows[0];
-  const articleIdx = findHeaderIndex(headerRow, /артик|sku|код|part/i);
-  const nameIdx = findHeaderIndex(headerRow, /наимен|товар|описан|позици|product/i);
-  const qtyIdx = findHeaderIndex(headerRow, /кол-?во|колич|qty|quantity/i);
-  const unitIdx = findHeaderIndex(headerRow, /ед\.?|unit|uom/i);
+  // Find header row: prefer explicit header over first row
+  const headerRowIdx = rows.findIndex((row) =>
+    row.some((cell) => HDR_ARTICLE.test(cell) || HDR_NAME.test(cell) || HDR_QTY.test(cell))
+  );
+  const headerRow = headerRowIdx >= 0 ? rows[headerRowIdx] : null;
 
-  const startIndex = headerRow === rows[0] ? 1 : Math.max(rows.indexOf(headerRow) + 1, 1);
+  let articleIdx = -1, nameIdx = -1, qtyIdx = -1, unitIdx = -1, brandIdx = -1, rowNumIdx = -1;
+
+  if (headerRow) {
+    articleIdx = findHeaderIndex(headerRow, HDR_ARTICLE);
+    nameIdx    = findHeaderIndex(headerRow, HDR_NAME);
+    qtyIdx     = findHeaderIndex(headerRow, HDR_QTY);
+    unitIdx    = findHeaderIndex(headerRow, HDR_UNIT);
+    brandIdx   = findHeaderIndex(headerRow, HDR_BRAND);
+    rowNumIdx  = headerRow.findIndex((cell) => HDR_ROWNUM.test(cell));
+  } else {
+    // No header — guess columns from first data rows
+    const sample = rows.slice(0, Math.min(5, rows.length));
+    const colCount = Math.max(...sample.map((r) => r.length));
+    for (let col = 0; col < colCount; col++) {
+      const colVals = sample.map((r) => r[col] || "").filter(Boolean);
+      const articleScore = colVals.filter(isAttachmentArticleCandidate).length;
+      const qtyScore = colVals.filter((v) => /^\d{1,5}$/.test(v.trim()) && Number(v) < 100000).length;
+      const unitScore = colVals.filter((v) => UNIT_PATTERN.test(v.trim())).length;
+      const rowNumScore = colVals.filter((v) => /^\d{1,3}$/.test(v.trim()) && Number(v) < 500).length;
+      if (rowNumScore >= colVals.length * 0.6 && rowNumIdx < 0) { rowNumIdx = col; continue; }
+      if (unitScore >= colVals.length * 0.5 && unitIdx < 0) { unitIdx = col; continue; }
+      if (qtyScore >= colVals.length * 0.5 && qtyIdx < 0) { qtyIdx = col; continue; }
+      if (articleScore >= colVals.length * 0.4 && articleIdx < 0) { articleIdx = col; continue; }
+      if (nameIdx < 0 && col !== rowNumIdx && col !== unitIdx && col !== qtyIdx && col !== articleIdx) nameIdx = col;
+    }
+  }
+
+  const startIndex = headerRow ? headerRowIdx + 1 : 0;
   const items = [];
   for (const row of rows.slice(startIndex)) {
-    const article = normalizeAttachmentArticle(pickRowValue(row, articleIdx) || row.find(isAttachmentArticleCandidate) || "");
-    const descriptionRu = cleanupAttachmentName(pickRowValue(row, nameIdx) || inferDescriptionFromRow(row, { articleIdx, qtyIdx, unitIdx }) || "");
+    // Skip row-number-only rows and header-like repeats
+    if (row.every((c) => HDR_ROWNUM.test(c) || HDR_ARTICLE.test(c) || HDR_NAME.test(c))) continue;
+    // Skip the row-counter column when searching for article
+    const rowWithoutNum = rowNumIdx >= 0 ? row.filter((_, i) => i !== rowNumIdx) : row;
+    const articleRaw = pickRowValue(row, articleIdx) || rowWithoutNum.find(isAttachmentArticleCandidate) || "";
+    const article = normalizeAttachmentArticle(articleRaw);
+    const brand = brandIdx >= 0 ? cleanupAttachmentName(pickRowValue(row, brandIdx)) : "";
+    const nameRaw = pickRowValue(row, nameIdx) || inferDescriptionFromRow(row, { articleIdx, qtyIdx, unitIdx, rowNumIdx });
+    const descriptionRu = cleanupAttachmentName(nameRaw + (brand ? ` [${brand}]` : ""));
     const quantity = parseAttachmentQuantity(pickRowValue(row, qtyIdx) || "");
     const unit = cleanupAttachmentUnit(pickRowValue(row, unitIdx) || inferUnitFromRow(row) || "шт");
     if (!article && !descriptionRu) continue;
@@ -654,6 +702,7 @@ function extractTabularLineItems(lines, filename) {
       quantity,
       unit,
       descriptionRu: descriptionRu || null,
+      brand: brand || null,
       source: `attachment:${filename || "table"}`
     });
   }
@@ -703,11 +752,12 @@ function pickRowValue(row, index) {
   return index >= 0 ? row[index] || "" : "";
 }
 
-function inferDescriptionFromRow(row, { articleIdx, qtyIdx, unitIdx }) {
+function inferDescriptionFromRow(row, { articleIdx, qtyIdx, unitIdx, rowNumIdx = -1 }) {
   return row
-    .filter((cell, idx) => idx !== articleIdx && idx !== qtyIdx && idx !== unitIdx)
+    .filter((cell, idx) => idx !== articleIdx && idx !== qtyIdx && idx !== unitIdx && idx !== rowNumIdx)
     .filter((cell) => !isAttachmentArticleCandidate(cell))
     .filter((cell) => !parseAttachmentQuantity(cell))
+    .filter((cell) => !UNIT_PATTERN.test(cell.trim()))
     .join(" ");
 }
 
