@@ -933,7 +933,7 @@ export function analyzeEmail(project, payload) {
     sender,
     lead,
     crm,
-    detectedBrands: uniqueBrands(detectionKb.filterOwnBrands(lead.detectedBrands)).slice(0, 15),
+    detectedBrands: uniqueBrands(detectionKb.filterOwnBrands(lead.detectedBrands)).slice(0, 50),
     intakeFlow: buildIntakeFlow(classification.label, crm, lead, { isMassRequest, sender }),
     suggestedReply,
     rawInput: {

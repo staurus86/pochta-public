@@ -189,7 +189,12 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
         extractedText = extractTextFromLegacyOfficeBuffer(buffer, ext);
       }
 
-      extractedText = cleanupExtractedText(extractedText).slice(0, limits.maxExtractedCharsPerFile);
+      const isTabular = TEXT_EXTENSIONS.has(ext) ? false : (ext === ".xlsx" || ext === ".csv" || ext === ".tsv");
+      const cleanedFullText = cleanupExtractedText(extractedText);
+      // For LLM / brand scan / preview: limit to maxExtractedCharsPerFile
+      extractedText = cleanedFullText.slice(0, limits.maxExtractedCharsPerFile);
+      // For tabular files: scan the full cleaned text for brand detection (brands can be in any row)
+      const brandScanText = isTabular ? cleanedFullText : extractedText;
       if (!extractedText) {
         result.reason = "no_text_extracted";
         files.push(result);
@@ -207,16 +212,21 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
 
       processedCount += 1;
       result.status = "processed";
-      result.extractedChars = extractedText.length;
+      result.extractedChars = cleanedFullText.length;
       result.preview = extractedText.slice(0, 400);
       result.detectedArticles = detectAttachmentArticles(extractedText);
-      result.detectedBrands = detectionKb.detectBrands(extractedText, []);
+      result.detectedBrands = detectionKb.detectBrands(brandScanText, []);
       result.detectedInn = uniqueMatches(extractedText, INN_PATTERN)
         .filter((value) => value.length === 10 || value.length === 12)
         .filter((value) => !value.startsWith("00")); // Real Russian INN never starts with 00 (region code 01-92)
       result.detectedKpp = uniqueMatches(extractedText, KPP_PATTERN);
       result.detectedOgrn = uniqueMatches(extractedText, OGRN_PATTERN).filter((value) => value.length === 13 || value.length === 15);
-      result.lineItems = extractAttachmentLineItems(extractedText, ext, result.filename).slice(0, 50);
+      // For tabular files: extract from full text (no row limit) — xlsx can have 400+ positions
+      // For non-tabular: use truncated text to avoid processing noise from unstructured docs
+      result.lineItems = extractAttachmentLineItems(
+        isTabular ? cleanedFullText : extractedText,
+        ext, result.filename
+      );
       result.fieldCoverage = {
         hasArticles: result.detectedArticles.length > 0 || result.lineItems.some((item) => item.article),
         hasNames: result.lineItems.some((item) => item.descriptionRu),

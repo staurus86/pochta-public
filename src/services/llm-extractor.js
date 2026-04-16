@@ -340,8 +340,8 @@ export function mergeLlmExtraction(result, llmData, messageKey = "") {
  */
 export function buildRulesFoundSummary(result) {
     return {
-        articles: (result.lead?.articles || []).slice(0, 20),
-        brands: (result.detectedBrands || []).slice(0, 15),
+        articles: (result.lead?.articles || []).slice(0, 50),
+        brands: (result.detectedBrands || []).slice(0, 30),
         sender_name: result.sender?.fullName || null,
         sender_email: result.sender?.email || null,
         sender_phone: result.sender?.mobilePhone || result.sender?.cityPhone || null,
