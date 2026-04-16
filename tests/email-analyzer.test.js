@@ -1093,7 +1093,8 @@ runTest("filters requisites and engineering ids from attachment-derived articles
         attachmentFiles: [{ filename: "Реквизиты.txt", safeName, size, contentType: "text/plain" }]
       });
 
-      assert.ok(result.lead.articles.includes("WRD0004"));
+      // Файл "Реквизиты.txt" — реквизитный документ. Никаких артикулов из него.
+      assert.ok(!result.lead.articles.includes("WRD0004"), "WRD0004 не должен быть артикулом из реквизитного файла");
       assert.ok(!result.lead.articles.includes("2BM-9701077015-770101001-201711021137514319612"));
       assert.ok(!result.lead.articles.includes("8-800-201-42-41"));
       assert.ok(!result.lead.articles.includes("1167746069380"));
