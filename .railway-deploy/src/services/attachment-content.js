@@ -80,6 +80,7 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
   const startedAt = Date.now();
   const files = [];
   const textParts = [];
+  const articleTextParts = []; // excludes requisites/invoice files
   let processedCount = 0;
   let skippedCount = 0;
   let totalBytes = 0;
@@ -240,6 +241,11 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
         if (chunk) {
           textParts.push(`Вложение: ${filename}\n${chunk}`);
           totalChars += chunk.length;
+          // Requisites/invoice files contain company registration data, not product lists.
+          // Exclude them from article extraction to prevent INN/ОКПО/KPP leaking as articles/quantities.
+          if (!["requisites", "invoice"].includes(result.category)) {
+            articleTextParts.push(`Вложение: ${filename}\n${chunk}`);
+          }
         }
       }
     } catch (error) {
@@ -253,6 +259,7 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
   return {
     files,
     combinedText: textParts.join("\n\n").trim(),
+    articleText: articleTextParts.join("\n\n").trim(),
     meta: {
       processedCount,
       skippedCount,

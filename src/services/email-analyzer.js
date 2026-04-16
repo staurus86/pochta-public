@@ -670,7 +670,8 @@ export function analyzeEmail(project, payload) {
     payload.attachmentFiles || [],
     payload.attachmentProcessingOptions || {}
   );
-  const attachmentContent = sanitizeAttachmentText(attachmentAnalysis.combinedText || "");
+  // Use articleText (excludes requisites/invoice files) to prevent INN/ОКПО leaking into articles/quantities
+  const attachmentContent = sanitizeAttachmentText(attachmentAnalysis.articleText || attachmentAnalysis.combinedText || "");
   const brandRelevantAttachmentText = buildBrandRelevantAttachmentText(attachmentAnalysis);
 
   // Merge brands detected in attachment content into classification
@@ -1835,6 +1836,12 @@ function mergeAttachmentLeadData(lead, attachmentAnalysis = {}) {
     });
   }
 
+  // Strip INN/OGRN-range quantities (>= 1_000_000_000) — company registration codes leaking from attachments
+  for (const item of mergedLineItems) {
+    if (item.quantity != null && item.quantity >= 1_000_000_000) {
+      item.quantity = null;
+    }
+  }
   lead.lineItems = mergedLineItems;
   lead.articles = mergedArticles;
   lead.productNames = mergedProductNames;
