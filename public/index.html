@@ -9,10 +9,14 @@
 </head>
 <body>
   <div class="app">
+    <div class="sidebar-backdrop" id="sidebar-backdrop" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,0.5);z-index:49;"></div>
     <!-- ═══════ SIDEBAR ═══════ -->
     <aside class="sidebar">
       <div class="sidebar-brand">
-        <h1><span class="logo-icon">P</span> Pochta</h1>
+        <div style="display:flex;align-items:center;gap:10px;overflow:hidden;">
+          <h1><span class="logo-icon">P</span> <span class="logo-text">Pochta</span></h1>
+        </div>
+        <button class="sidebar-toggle" id="sidebar-toggle" title="Свернуть навигацию">‹</button>
         <div class="version">CRM Mail Module v2.0</div>
       </div>
 
@@ -79,6 +83,7 @@
     <!-- ═══════ MAIN ═══════ -->
     <div class="main">
       <header class="main-header">
+        <button class="sidebar-mobile-toggle" id="sidebar-mobile-toggle" title="Открыть меню" style="display:none;background:none;border:1px solid var(--border);border-radius:6px;color:var(--text-muted);cursor:pointer;padding:5px 8px;font-size:14px;line-height:1;margin-right:4px;">☰</button>
         <h2 id="page-title">Дашборд</h2>
         <div class="header-actions" style="display:flex;gap:8px;align-items:center;">
           <select id="project-select" class="form-select" style="width:220px;font-size:12px;padding:6px 10px;"></select>

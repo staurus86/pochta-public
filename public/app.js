@@ -446,6 +446,7 @@ if (getAuthToken()) await init();
 
 async function init() {
   setupNavigation();
+  initSidebarToggle();
   setupForms();
   await refreshProjects();
   await Promise.all([refreshKb(), refreshAllMailboxMessages()]);
@@ -3785,5 +3786,50 @@ async function refreshCrmConfig() {
     });
   } catch {
     el.innerHTML = '<span style="color:var(--text-muted);font-size:12px;">CRM config unavailable</span>';
+  }
+}
+
+// ═══════════════════════════════════════════════════════
+//  SIDEBAR TOGGLE
+// ═══════════════════════════════════════════════════════
+
+function initSidebarToggle() {
+  const sidebar = document.querySelector('.sidebar');
+  const toggleBtn = document.getElementById('sidebar-toggle');
+  const mobileToggleBtn = document.getElementById('sidebar-mobile-toggle');
+  const backdrop = document.getElementById('sidebar-backdrop');
+  if (!sidebar) return;
+
+  const STORAGE_KEY = 'pochta_sidebar_collapsed';
+
+  function setCollapsed(collapsed) {
+    sidebar.classList.toggle('collapsed', collapsed);
+    document.documentElement.style.setProperty('--sidebar-width', collapsed ? '48px' : '240px');
+    if (toggleBtn) toggleBtn.textContent = collapsed ? '›' : '‹';
+    try { localStorage.setItem(STORAGE_KEY, collapsed ? '1' : '0'); } catch (_) {}
+  }
+
+  const saved = localStorage.getItem(STORAGE_KEY);
+  if (saved === '1') setCollapsed(true);
+
+  if (toggleBtn) {
+    toggleBtn.addEventListener('click', () => {
+      setCollapsed(!sidebar.classList.contains('collapsed'));
+    });
+  }
+
+  function openMobileSidebar() {
+    sidebar.classList.add('mobile-open');
+    if (backdrop) backdrop.style.display = 'block';
+  }
+  function closeMobileSidebar() {
+    sidebar.classList.remove('mobile-open');
+    if (backdrop) backdrop.style.display = 'none';
+  }
+  if (mobileToggleBtn) {
+    mobileToggleBtn.addEventListener('click', openMobileSidebar);
+  }
+  if (backdrop) {
+    backdrop.addEventListener('click', closeMobileSidebar);
   }
 }
