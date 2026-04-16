@@ -236,7 +236,8 @@
 
         <!-- ═══ PAGE: INBOX ═══ -->
         <div class="page" id="page-inbox">
-          <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+          <!-- Toolbar Row 1: Actions -->
+          <div class="toolbar-actions" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
             <button class="btn btn-primary" id="inbox-fetch-btn">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
               Получить письма
@@ -253,61 +254,67 @@
             <button class="btn btn-danger btn-sm" id="inbox-delete-all-btn">Удалить все</button>
             <button class="btn btn-ghost btn-sm" id="inbox-export-csv-btn">CSV</button>
             <button class="btn btn-ghost btn-sm" id="inbox-export-xlsx-btn">XLSX</button>
+            <div style="flex:1;min-width:140px;">
+              <input class="form-input" id="inbox-search" placeholder="Поиск по теме, email..." style="width:100%;font-size:11px;padding:6px 10px;" />
+            </div>
+            <span id="inbox-status-text" style="font-size:12px;color:var(--text-muted);"></span>
+          </div>
+          <!-- Toolbar Row 2: Filters -->
+          <div class="toolbar-filters" style="display:flex;align-items:center;gap:6px;margin-bottom:10px;flex-wrap:wrap;">
+            <span style="font-size:10px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-muted);">Фильтры:</span>
+            <select class="form-select" id="inbox-mailbox-filter" style="font-size:11px;padding:5px 8px;width:130px;">
+              <option value="">Все ящики</option>
+            </select>
+            <select class="form-select" id="inbox-attachment-filter" style="font-size:11px;padding:5px 8px;width:120px;">
+              <option value="">Вложения: все</option>
+              <option value="has">С вложениями</option>
+              <option value="none">Без вложений</option>
+              <option value="pdf">PDF</option>
+              <option value="xls">Excel</option>
+              <option value="doc">Word</option>
+              <option value="img">Изображения</option>
+            </select>
+            <select class="form-select" id="inbox-recognition-filter" style="font-size:11px;padding:5px 8px;width:160px;">
+              <option value="">Распознание: все</option>
+              <option value="missing_article">Нет артикула</option>
+              <option value="missing_brand">Нет бренда</option>
+              <option value="missing_name">Нет наименования</option>
+              <option value="missing_phone">Нет телефона</option>
+              <option value="missing_company">Нет компании</option>
+              <option value="missing_inn">Нет ИНН</option>
+              <option value="attachments_unparsed">Вложения не разобраны</option>
+              <option value="weak_detection">Слабый детект</option>
+              <option value="has_conflicts">Есть конфликты</option>
+              <option value="unconfirmed">Не подтверждены</option>
+              <option value="high_priority">Высокий приоритет</option>
+              <option value="sla_overdue">Просрочены по SLA</option>
+              <option value="all_key_fields">Ключевые поля найдены</option>
+              <option value="fully_parsed">Максимально разобранные</option>
+            </select>
+            <select class="form-select" id="inbox-llm-filter" style="font-size:11px;padding:5px 8px;width:120px;">
+              <option value="">LLM: все</option>
+              <option value="llm_done">Прошли LLM</option>
+              <option value="llm_pending">Не прошли LLM</option>
+            </select>
             <div style="margin-left:auto;display:flex;gap:6px;align-items:center;">
-              <select class="form-select" id="inbox-mailbox-filter" style="font-size:11px;padding:6px 8px;width:140px;">
-                <option value="">Все ящики</option>
-              </select>
-              <select class="form-select" id="inbox-attachment-filter" style="font-size:11px;padding:6px 8px;width:130px;">
-                <option value="">Вложения: все</option>
-                <option value="has">С вложениями</option>
-                <option value="none">Без вложений</option>
-                <option value="pdf">PDF</option>
-                <option value="xls">Excel</option>
-                <option value="doc">Word</option>
-                <option value="img">Изображения</option>
-              </select>
-              <select class="form-select" id="inbox-recognition-filter" style="font-size:11px;padding:6px 8px;width:170px;">
-                <option value="">Распознание: все</option>
-                <option value="missing_article">Нет артикула</option>
-                <option value="missing_brand">Нет бренда</option>
-                <option value="missing_name">Нет наименования</option>
-                <option value="missing_phone">Нет телефона</option>
-                <option value="missing_company">Нет компании</option>
-                <option value="missing_inn">Нет ИНН</option>
-                <option value="attachments_unparsed">Вложения не разобраны</option>
-                <option value="weak_detection">Слабый детект</option>
-                <option value="has_conflicts">Есть конфликты</option>
-                <option value="unconfirmed">Не подтверждены</option>
-                <option value="high_priority">Высокий приоритет</option>
-                <option value="sla_overdue">Просрочены по SLA</option>
-                <option value="all_key_fields">Ключевые поля найдены</option>
-                <option value="fully_parsed">Максимально разобранные</option>
-              </select>
-              <select class="form-select" id="inbox-llm-filter" style="font-size:11px;padding:6px 8px;width:130px;">
-                <option value="">LLM: все</option>
-                <option value="llm_done">Прошли LLM</option>
-                <option value="llm_pending">Не прошли LLM</option>
-              </select>
-              <input class="form-input" id="inbox-search" placeholder="Поиск по теме, email..." style="width:200px;font-size:11px;padding:6px 10px;" />
-              <select class="form-select" id="inbox-sort" style="font-size:11px;padding:6px 8px;width:130px;">
+              <select class="form-select" id="inbox-sort" style="font-size:11px;padding:5px 8px;width:120px;">
                 <option value="date-desc">Новые</option>
                 <option value="date-asc">Старые</option>
                 <option value="confidence-asc">Низкий conf.</option>
                 <option value="confidence-desc">Высокий conf.</option>
                 <option value="mailbox">По ящику</option>
               </select>
-              <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);cursor:pointer;" title="Группировать по цепочкам (тема + отправитель)">
+              <label style="display:flex;align-items:center;gap:4px;font-size:11px;color:var(--text-muted);cursor:pointer;" title="Группировать по цепочкам">
                 <input type="checkbox" id="inbox-group-threads" style="margin:0;">
                 Треды
               </label>
-              <select class="form-select" id="inbox-auto-refresh" style="font-size:11px;padding:6px 8px;width:100px;" title="Авто-обновление">
+              <select class="form-select" id="inbox-auto-refresh" style="font-size:11px;padding:5px 8px;width:95px;" title="Авто-обновление">
                 <option value="0">Авто: выкл</option>
                 <option value="30">30 сек</option>
                 <option value="60">1 мин</option>
                 <option value="300">5 мин</option>
               </select>
             </div>
-            <span id="inbox-status-text" style="font-size:12px;color:var(--text-muted);"></span>
           </div>
           <div class="inbox-tabs" id="inbox-tabs">
             <button class="inbox-tab active" data-inbox-tab="all">Все <span class="inbox-tab-count" id="tab-count-all">0</span></button>
