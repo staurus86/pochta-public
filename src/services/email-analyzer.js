@@ -3254,6 +3254,68 @@ function extractLineItems(body) {
     const line = rawLine.replace(/^(?:Позиция|Поз\.?)\s*\d{1,3}\s*[:.\s]+/i, "").trim();
     if (!line) continue;
 
+    // ── Tab-delimited tabular row: "N\tname\t[article]\t...\tunit\tqty" ──
+    // Handles content extracted from XLSX/PDF attachments with tab separators
+    if (line.includes("\t")) {
+      const rawTabCols = line.split("\t").map((c) => c.trim()).filter(Boolean);
+      if (rawTabCols.length >= 3) {
+        const UNIT_TAB_RE = /^(?:шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп)\.?$/i;
+        // Strip leading row-number column
+        const tabCols = /^\d{1,3}$/.test(rawTabCols[0]) ? rawTabCols.slice(1) : rawTabCols;
+        if (tabCols.length >= 2) {
+          // Find qty: last pure-number column with value > 0
+          let qtyIdx = -1;
+          for (let ci = tabCols.length - 1; ci >= 0; ci--) {
+            if (/^\d+(?:[.,]\d+)?$/.test(tabCols[ci]) && parseFloat(tabCols[ci]) > 0) { qtyIdx = ci; break; }
+          }
+          if (qtyIdx >= 0) {
+            const tabQty = Math.round(parseFloat(tabCols[qtyIdx].replace(",", "."))) || 1;
+            // Find unit column
+            const tabUnitIdx = tabCols.findIndex((c) => UNIT_TAB_RE.test(c));
+            const tabUnit = tabUnitIdx >= 0 ? tabCols[tabUnitIdx].replace(/\.$/, "").toLowerCase() : "шт";
+            const skipTabIdxs = new Set([qtyIdx, tabUnitIdx].filter((i) => i >= 0));
+
+            // Find explicit article column: Latin/mixed short code with digits (no multi-word Cyrillic name)
+            // Pattern: "H2S SR-H-MC", "ЭМИС-Y2-40-1,5-V-IP53", "SR-H-MC", or 5-9 digit code
+            const ARTICLE_TAB_COL_RE = /^(?:[A-Za-z][A-Za-z0-9]{0,8}(?:\s+[A-Za-z0-9][A-Za-z0-9\-\/]{1,15}|[-\/][A-Za-z0-9]{1,12})+|\d{5,9})$/;
+            let tabArticleIdx = -1;
+            let tabArticleStr = null;
+            for (let ci = 0; ci < tabCols.length; ci++) {
+              if (skipTabIdxs.has(ci)) continue;
+              const c = tabCols[ci];
+              if (ARTICLE_TAB_COL_RE.test(c) && /\d/.test(c) && !isObviousArticleNoise(c, line)) {
+                tabArticleIdx = ci; tabArticleStr = c; break;
+              }
+            }
+
+            // Name: columns before the article (or before unit/qty if no article column)
+            const nameEndIdx = tabArticleIdx >= 1 ? tabArticleIdx
+              : Math.min(...[tabUnitIdx, qtyIdx].filter((i) => i >= 0));
+            const tabName = tabCols.slice(0, nameEndIdx).join(" ").trim();
+
+            if (tabName && tabName.length >= 3) {
+              if (tabArticleStr) {
+                const normTabArt = normalizeArticleCode(tabArticleStr);
+                if (normTabArt && !isObviousArticleNoise(normTabArt, line) && !items.some((i) => normalizeArticleCode(i.article) === normTabArt)) {
+                  items.push({ article: normTabArt, quantity: tabQty, unit: tabUnit, descriptionRu: tabName, explicitArticle: true, sourceLine: line });
+                }
+              } else {
+                // Try to extract article code from name column
+                const artFromTabName = extractArticleFromDescription(tabName);
+                if (artFromTabName) {
+                  const normTabArt = normalizeArticleCode(artFromTabName);
+                  if (normTabArt && !isObviousArticleNoise(normTabArt, line) && !items.some((i) => normalizeArticleCode(i.article) === normTabArt)) {
+                    items.push({ article: normTabArt, quantity: tabQty, unit: tabUnit, descriptionRu: tabName, explicitArticle: true, sourceLine: line });
+                  }
+                }
+              }
+            }
+            continue; // Prevents fallthrough to tabMatch which mis-splits codes on commas
+          }
+        }
+      }
+    }
+
     // ── Tabular quoted row: "1 Уплотнение масляное 122571 NBR G 60х75х8 10" ──
     const tableRowSource = line.replace(/^№\s+Наименование\s+Кол-?во\s+Ед\.?изм\.?\s*/i, "").trim();
     const tableRowMatch = tableRowSource.match(/^\d{1,3}\s+(.+?)\s+((?:\d{5,9})|(?:[A-Za-zА-ЯЁа-яё0-9]+(?:[-/,.:][A-Za-zА-ЯЁа-яё0-9]+){1,8}))\s+(?:(?:[A-Za-zА-ЯЁа-яё]{1,5}\s+){0,3})?\d{1,4}[xх×*]\d{1,4}(?:[xх×*]\d{1,4})?(?:\s*[A-Za-zА-Яа-яЁё"]{0,4})?\s+(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?$/i);
@@ -3500,8 +3562,27 @@ function extractFreeTextItems(body, detectedBrands = [], existingArticles = []) 
       // Skip if this line already contributed a structured article (avoid duplicate items)
       const lineUpper = line.toUpperCase();
       if (existingArticles.some((a) => lineUpper.includes(a.toUpperCase()))) continue;
-      addItem(desc, qty, unit);
+      // Strip leading row number from description (tabular list artifact)
+      const descNoRow = desc.replace(/^\d{1,3}[\s\t]+/, "").trim();
+      addItem(descNoRow || desc, qty, unit);
       continue;
+    }
+
+    // ── Pattern A3: "description unit N" (unit before number, e.g. from tabular list) ──
+    const unitBeforeQtyMatch = line.match(/^(.{5,60}?)\s+(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\s+(\d+(?:[.,]\d+)?)\s*$/i);
+    if (unitBeforeQtyMatch) {
+      const rawDesc = unitBeforeQtyMatch[1].trim();
+      // Strip leading row number (incl. tab separator)
+      const desc = rawDesc.replace(/^\d{1,3}[\s\t]+/, "").trim();
+      const qty = unitBeforeQtyMatch[3];
+      const unit = unitBeforeQtyMatch[2];
+      if (desc.length >= MIN_DESC_LENGTH && !/^[A-Za-z0-9][-A-Za-z0-9/:_.]{2,}$/.test(desc)) {
+        const lowerDesc = line.toLowerCase();
+        if (!existingArticles.some((a) => a && !a.startsWith("DESC:") && lowerDesc.includes(a.toLowerCase()))) {
+          addItem(desc, qty, unit);
+          continue;
+        }
+      }
     }
 
     // ── Trigger B: request keyword signal ──
@@ -3532,7 +3613,27 @@ function extractFreeTextItems(body, detectedBrands = [], existingArticles = []) 
           a && !a.startsWith("DESC:") && lowerLine.includes(a.toLowerCase())
         );
         if (!lineHasRealArticle && line.length >= MIN_DESC_LENGTH && line.length <= 120) {
-          addItem(line, 1, "шт");
+          // Strip row-number and trailing unit/qty artifacts before creating DESC slug
+          let descLine = line;
+          if (line.includes("\t")) {
+            const tabParts = line.split("\t").map((c) => c.trim());
+            const UNIT_DROP_RE = /^(?:шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп)\.?$/i;
+            // Drop trailing qty and unit columns
+            while (tabParts.length > 1 && (/^\d+(?:[.,]\d+)?$/.test(tabParts[tabParts.length - 1]) || UNIT_DROP_RE.test(tabParts[tabParts.length - 1]) || /^[а-яёА-ЯЁ]{1,6}\.?$/.test(tabParts[tabParts.length - 1]))) {
+              tabParts.pop();
+            }
+            // Drop leading row number column
+            if (/^\d{1,3}$/.test(tabParts[0])) tabParts.shift();
+            descLine = tabParts.join(" ").trim();
+          } else {
+            // Non-tab: strip leading row number and trailing "unit N" or "N unit"
+            descLine = line
+              .replace(/^\d{1,3}\s+/, "")
+              .replace(/\s+(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп)\.?\s+\d+(?:[.,]\d+)?\s*$/i, "")
+              .replace(/\s+\d+(?:[.,]\d+)?\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп)\.?\s*$/i, "")
+              .trim();
+          }
+          addItem(descLine || line, 1, "шт");
           continue;
         }
       }
