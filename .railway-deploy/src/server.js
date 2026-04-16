@@ -1184,6 +1184,8 @@ async function handleApi(req, res, url) {
           const msg = batch[j];
           job.progress.currentSubject = msg.subject || "(без темы)";
           if (!msg.analysis && !msg.body && !msg.bodyPreview) { job.progress.skipped++; continue; }
+          // Never reanalyze confirmed spam/duplicates
+          if (msg.pipelineStatus === "ignored_spam" || msg.pipelineStatus === "ignored_duplicate") { job.progress.skipped++; continue; }
           try {
             const sampleStartedAt = Date.now();
             const body = msg.body || msg.bodyPreview || msg.analysis?.lead?.freeText || "";
