@@ -200,15 +200,7 @@ setInterval(() => {
           msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
           const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
           if (!wasManuallyChanged) {
-            const label = newAnalysis.classification?.label;
-            const requiresReview = newAnalysis.intakeFlow?.requiresReview;
-            msg.pipelineStatus = label === "СПАМ"
-              ? "ignored_spam"
-              : label === "Клиент"
-                ? (requiresReview ? "review" : "ready_for_crm")
-                : newAnalysis.crm?.needsClarification
-                  ? "needs_clarification"
-                  : "review";
+            msg.pipelineStatus = computePipelineStatus(newAnalysis);
           }
           count++;
         } catch (err) {
@@ -223,6 +215,19 @@ setInterval(() => {
     }
   }).catch((err) => console.warn("LLM backlog scheduler error:", err.message));
 }, LLM_BACKLOG_INTERVAL_MS).unref();
+
+/**
+ * Compute pipeline status from analysis result.
+ * Accounts for LLM downgrade (LLM said "other" for a Клиент — send to review).
+ */
+function computePipelineStatus(analysis) {
+    const label = analysis.classification?.label;
+    const requiresReview = analysis.intakeFlow?.requiresReview || analysis.classification?.llmDowngraded;
+    if (label === "СПАМ") return "ignored_spam";
+    if (label === "Клиент") return requiresReview ? "review" : "ready_for_crm";
+    if (analysis.crm?.needsClarification) return "needs_clarification";
+    return "review";
+}
 
 let isReady = false;
 let isShuttingDown = false;
@@ -489,14 +494,7 @@ async function finalizeProjectRun(job, project, run) {
             // Update pipelineStatus unless manually overridden
             const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
             if (!wasManuallyChanged) {
-              const label = newAnalysis.classification?.label;
-              msg.pipelineStatus = label === "СПАМ"
-                ? "ignored_spam"
-                : label === "Клиент"
-                  ? "ready_for_crm"
-                  : newAnalysis.crm?.needsClarification
-                    ? "needs_clarification"
-                    : "review";
+              msg.pipelineStatus = computePipelineStatus(newAnalysis);
             }
             count++;
           } catch (err) {
@@ -1209,12 +1207,7 @@ async function handleApi(req, res, url) {
             msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
             const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
             if (!wasManuallyChanged) {
-              const label = newAnalysis.classification?.label;
-              const requiresReview = newAnalysis.intakeFlow?.requiresReview;
-              msg.pipelineStatus = label === "СПАМ" ? "ignored_spam"
-                : label === "Клиент" ? (requiresReview ? "review" : "ready_for_crm")
-                : newAnalysis.crm?.needsClarification ? "needs_clarification"
-                : "review";
+              msg.pipelineStatus = computePipelineStatus(newAnalysis);
             }
             recordProcessingTelemetrySample(telemetry, Date.now() - sampleStartedAt);
             job.progress.processed++;

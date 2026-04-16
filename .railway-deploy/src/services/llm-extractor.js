@@ -289,19 +289,47 @@ export function mergeLlmExtraction(result, llmData, messageKey = "") {
     }
     result.sender = sender;
 
-    // --- Reclassify "Не определено" using LLM request_type -------------------
-    if (result.classification?.label === "Не определено" && llmData.request_type) {
+    // --- Reclassify using LLM request_type -----------------------------------
+    if (llmData.request_type) {
         const rt = llmData.request_type;
-        if (["quotation", "order", "info_request", "complaint"].includes(rt)) {
-            result.classification.label = "Клиент";
-            result.classification.llmReclassified = true;
+        const label = result.classification?.label;
+
+        if (label === "Не определено") {
+            // Upgrade: unknown → client/vendor
+            if (["quotation", "order", "info_request", "complaint"].includes(rt)) {
+                result.classification.label = "Клиент";
+                result.classification.llmReclassified = true;
+                result.classification.llmRequestType = rt;
+            } else if (rt === "vendor_offer") {
+                result.classification.label = "Поставщик услуг";
+                result.classification.llmReclassified = true;
+                result.classification.llmRequestType = rt;
+            }
+        } else if (rt === "other" && label === "Клиент") {
+            // Downgrade: LLM says this is not a client request (spam/newsletter/etc)
+            result.classification.needsReview = true;
             result.classification.llmRequestType = rt;
-        } else if (rt === "vendor_offer") {
-            result.classification.label = "Поставщик услуг";
-            result.classification.llmReclassified = true;
-            result.classification.llmRequestType = rt;
+            result.classification.llmDowngraded = true;
         }
     }
+
+    // --- Compute missing_for_processing (filter already-found fields) --------
+    const rawMissing = Array.isArray(llmData.missing_for_processing) ? llmData.missing_for_processing : [];
+    const hasArticles = (result.lead?.articles || []).length > 0;
+    const hasBrands = (result.detectedBrands || []).length > 0;
+    const hasName = Boolean(result.sender?.fullName);
+    const hasCompany = Boolean(result.sender?.companyName);
+    const hasInn = Boolean(result.sender?.inn);
+    const hasQty = (result.lead?.lineItems || []).some((i) => i.quantity != null);
+    const filteredMissing = rawMissing.filter((f) => {
+        if (f === "article") return !hasArticles;
+        if (f === "brand") return !hasBrands;
+        if (f === "contact_name") return !hasName;
+        if (f === "company") return !hasCompany;
+        if (f === "inn") return !hasInn;
+        if (f === "quantity") return !hasQty;
+        return true; // kpp, ogrn, phone — keep as-is
+    });
 
     // --- Attach LLM extraction metadata --------------------------------------
     const { model, logSuggestions } = cfg();
@@ -310,7 +338,7 @@ export function mergeLlmExtraction(result, llmData, messageKey = "") {
         model,
         requestType: llmData.request_type || null,
         isUrgent: Boolean(llmData.is_urgent),
-        missingForProcessing: Array.isArray(llmData.missing_for_processing) ? llmData.missing_for_processing : [],
+        missingForProcessing: filteredMissing,
         newArticlesAdded: newLineItems.length,
         detectionGapsCount: Array.isArray(llmData.detection_gaps) ? llmData.detection_gaps.length : 0
     };
