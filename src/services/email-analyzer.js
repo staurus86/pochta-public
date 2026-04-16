@@ -4389,6 +4389,8 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^[a-z]+\.[a-z]+\.[a-z]+/i.test(normalized)) return true;
   // Domain-like with path: purl.org/dc/elements/1.1, www.w3.org/1999/02/22-rdf
   if (/^(?:www|ns|purl)\./i.test(normalized)) return true;
+  // Domain/path URLs without scheme: yandex.ru/maps/..., 2gis.ru/..., google.com/maps/...
+  if (/^[a-z0-9-]+\.(?:ru|com|net|org|info|biz|app|io|eu|de|ua|by|kz|рф)\//i.test(normalized)) return true;
   // RDF/XML namespace paths: 1999/02/22-rdf-syntax-ns
   if (/^\d{4}\/\d{2}\/\d{2}-/i.test(normalized)) return true;
   if (OFFICE_XML_ARTICLE_NOISE_PATTERNS.some((pattern) => pattern.test(normalized))) return true;
@@ -4429,6 +4431,10 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (CLASSIFIER_DOTTED_CODE_PATTERN.test(normalized)) return true;
   if (/^\d{1,6}$/.test(normalized) && !hasStrongArticleContext && !hasBrandAdjacentNumericContext) return true;
   if (/^\d+\.\d{2,}$/.test(normalized)) return true;
+  // GPS coordinate fragments (5+ decimal places): 55.654137, 37.123456, 2C55.654137
+  if (/\.\d{5,}$/.test(normalized)) return true;
+  // INN-KPP concatenated codes: 9701077015-770101001 (10-digit INN + 9-digit KPP)
+  if (/^\d{10}-\d{9}$/.test(normalized)) return true;
   if (/^EOF\s+\d+$/i.test(normalized)) return true;
   if (/^65535$/.test(normalized)) return true;
   if (/^\d{20}$/.test(normalized)) return true;
