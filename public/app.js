@@ -497,6 +497,8 @@ function setupNavigation() {
   $$('.nav-item[data-page]').forEach((btn) => {
     btn.addEventListener('click', () => navigateTo(btn.dataset.page));
   });
+  // Apply header button visibility for the initial page
+  navigateTo(currentPage);
 
   $$('#kb-tabs .tab').forEach((tab) => {
     tab.addEventListener('click', () => {
@@ -538,6 +540,13 @@ function navigateTo(page) {
     'api-docs': 'API Documentation'
   };
   pageTitle.textContent = titles[page] || 'Pochta';
+
+  // Show reanalyze buttons only on pages where they make sense
+  const showReanalyze = ['inbox', 'analyze', 'project2', 'project3', 'project4'].includes(page);
+  const reanalyzeBtn = $('#reanalyze-btn');
+  const reanalyzeLlmBtn = $('#reanalyze-llm-btn');
+  if (reanalyzeBtn) reanalyzeBtn.style.display = showReanalyze ? '' : 'none';
+  if (reanalyzeLlmBtn) reanalyzeLlmBtn.style.display = showReanalyze ? '' : 'none';
 
   if (page === 'inbox') refreshAllMailboxMessages();
   if (page === 'project2') refreshP2();
