@@ -1493,21 +1493,25 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const freeText = body.trim().slice(0, 2000);
   const searchText = [subject, body].join("\n");
   const forbiddenDigits = collectForbiddenArticleDigits(body);
-  const prefixedArticles = Array.from(body.matchAll(ARTICLE_PATTERN))
+  // Strip URLs before article extraction — URL path segments (tracking tokens like
+  // trk.mail.ru/t/DGUMAH8.aeb2.Ew50... ) are mistakenly extracted as article codes.
+  // Keep original `body` for sender/brand extraction where URL context matters.
+  const bodyNoUrls = body.replace(/https?:\/\/[^\s)]+/gi, " ");
+  const prefixedArticles = Array.from(bodyNoUrls.matchAll(ARTICLE_PATTERN))
     .map((match) => ({
       article: normalizeArticleCode(match[1]),
-      sourceLine: getContextLine(body, match.index, match[0]?.length || String(match[1] || "").length)
+      sourceLine: getContextLine(bodyNoUrls, match.index, match[0]?.length || String(match[1] || "").length)
     }))
     .filter((item) => isLikelyArticle(item.article, forbiddenDigits, item.sourceLine))
     .map((item) => item.article);
-  const standaloneArticles = extractStandaloneCodes(body, forbiddenDigits);
-  const numericArticles = extractNumericArticles(body, forbiddenDigits);
-  const strongContextArticles = extractStrongContextArticles(body, forbiddenDigits);
-  const trailingMixedArticles = extractTrailingMixedArticles(body, forbiddenDigits);
-  const productContextArticles = extractProductContextArticles(body, forbiddenDigits);
+  const standaloneArticles = extractStandaloneCodes(bodyNoUrls, forbiddenDigits);
+  const numericArticles = extractNumericArticles(bodyNoUrls, forbiddenDigits);
+  const strongContextArticles = extractStrongContextArticles(bodyNoUrls, forbiddenDigits);
+  const trailingMixedArticles = extractTrailingMixedArticles(bodyNoUrls, forbiddenDigits);
+  const productContextArticles = extractProductContextArticles(bodyNoUrls, forbiddenDigits);
   const subjectArticles = extractArticlesFromSubject(subject, forbiddenDigits);
   const attachmentArticles = extractArticlesFromAttachments(attachments, forbiddenDigits);
-  const brandAdjacentCodes = extractBrandAdjacentCodes(body, forbiddenDigits);
+  const brandAdjacentCodes = extractBrandAdjacentCodes(bodyNoUrls, forbiddenDigits);
   const allArticles = deduplicateByAbsorption(
     unique([...subjectArticles, ...prefixedArticles, ...standaloneArticles, ...numericArticles, ...strongContextArticles, ...trailingMixedArticles, ...productContextArticles, ...attachmentArticles, ...brandAdjacentCodes].filter(Boolean)),
     "keep-longest"
@@ -1515,10 +1519,10 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const attachmentsText = attachments.join(" ");
   const hasNameplatePhotos = /шильд|nameplate/i.test(attachmentsText);
   const hasArticlePhotos = /артик|sku|label/i.test(attachmentsText);
-  const lineItemsRaw = extractLineItems(body).filter((item) => {
+  const lineItemsRaw = extractLineItems(bodyNoUrls).filter((item) => {
     if (!item.article) return false;
     const context = [item.sourceLine, item.descriptionRu, item.source].filter(Boolean).join(" ");
-    return !isObviousArticleNoise(item.article, context || body) && (item.explicitArticle || isLikelyArticle(item.article, forbiddenDigits, context || body));
+    return !isObviousArticleNoise(item.article, context || bodyNoUrls) && (item.explicitArticle || isLikelyArticle(item.article, forbiddenDigits, context || bodyNoUrls));
   }).map((item) => ({ ...item, source: item.source || "body" }));
   // Dedup lineItems: объединить позиции с совпадающим нормализованным артикулом
   // Не мержить при конфликтующих данных (разные кол-ва или разные описания) — конфликты обрабатываются ниже
