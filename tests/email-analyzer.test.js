@@ -153,6 +153,47 @@ runTest("enriches sender from company directory when email is known", () => {
   assert.equal(analysis.sender.position, "Специалист по закупкам");
 });
 
+runTest("drops office number and phone digit fragments as articles", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Елена",
+    fromEmail: "krona@example.ru",
+    subject: "запрос",
+    attachments: "",
+    body: `
+      Добрый день.
+      Прошу направить КП на клапан:
+      Клап.всас.;нагн.Sera RF410.2-14 90006847 - 2 шт
+
+      С уважением,
+      Елена
+      398006, г. Липецк, 30 лет ВЛКСМ, 2а, оф.1
+      Тел: (3952) 42-92-13, тел/факс: (3952) 42-85-25
+    `
+  });
+  const arts = analysis.lead.articles.map(String);
+  assert.ok(!arts.includes("of.1"), `"of.1" должен быть отфильтрован, получено: ${JSON.stringify(arts)}`);
+  assert.ok(!arts.includes("оф.1"), `"оф.1" должен быть отфильтрован, получено: ${JSON.stringify(arts)}`);
+  assert.ok(!arts.includes("42-85"), `"42-85" (часть номера телефона) должен быть отфильтрован, получено: ${JSON.stringify(arts)}`);
+  assert.ok(!arts.includes("42-92"), `"42-92" (часть номера телефона) должен быть отфильтрован, получено: ${JSON.stringify(arts)}`);
+});
+
+runTest("strips 'конт'/'контактный'/'раб' suffix from company name", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Надежда",
+    fromEmail: "buyer@cps.ru",
+    subject: "заявка",
+    attachments: "",
+    body: `
+      Барьер искробезопасности STAHL 9165/16-11 2 шт
+      С Уважением, Надежда, ООО "ЦЕНТРПРОМСНАБ" конт тел 89270480966
+    `
+  });
+  const company = analysis.sender.companyName || "";
+  assert.ok(!/\bконт\b/i.test(company), `"конт" не должно оставаться в названии, получено: ${JSON.stringify(company)}`);
+  assert.ok(!/\bраб\b/i.test(company), `"раб" не должно оставаться в названии, получено: ${JSON.stringify(company)}`);
+  assert.ok(/ЦЕНТРПРОМСНАБ/i.test(company), `ожидалось ЦЕНТРПРОМСНАБ, получено: ${JSON.stringify(company)}`);
+});
+
 runTest("does not treat phone-like values as articles", () => {
   const analysis = analyzeEmail(project, {
     fromName: "Елена Смирнова",

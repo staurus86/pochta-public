@@ -3115,11 +3115,11 @@ function sanitizeCompanyName(value) {
     .replace(/^"([^"]+)"$/, "$1")   // strip outer ASCII double quotes if fully wrapped
     .replace(/«\s+/g, "«")
     .replace(/\s+»/g, "»")
-    .replace(/\s+(?:тел\.?|телефон|phone|mobile|моб\.?|сайт|site|e-?mail|email)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
+    .replace(/\s+(?:тел\.?|телефон|phone|mobile|моб\.?|сайт|site|e-?mail|email|конт(?:актн\w*)?\.?|раб\.?)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
     .replace(/\s+(?:www\.[^\s]+|https?:\/\/[^\s]+)\s*$/i, "")
     .replace(/\s+\+\d[\d()\s.-]*$/i, "")
     .replace(/\s+(?:\+?7|8)(?:[\s(.-]*\d){10,}[\s\S]*$/i, "")
-    .replace(/[;,:\-–—]\s*(?:тел\.?|телефон|phone|mobile|моб\.?|сайт|site|e-?mail|email)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
+    .replace(/[;,:\-–—]\s*(?:тел\.?|телефон|phone|mobile|моб\.?|сайт|site|e-?mail|email|конт(?:актн\w*)?\.?|раб\.?)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
     .replace(/\s+(?:г\.|город|ул\.|улица|пр-?т|проспект|д\.|дом)\s+[\s\S]*$/i, "")
     .replace(/\s+(?:юридический\s+и\s+фактический|юридический|фактический|почтовый)(?=$|\s|[.,;:()])[\s\S]*$/i, "")
     .replace(/\s+Наше\s+предприятие[\s\S]*$/i, "")
@@ -4617,6 +4617,11 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^(?:CODE|TYPE|REF|PART):/i.test(normalized)) return true;
   // Phone extension codes: dob.216, dob216, доб.251 (after transliteration → dob.NNN)
   if (/^dob\.?\d{1,6}$/i.test(normalized)) return true;
+  // Office number in address: "оф.1", "of.1", "оф1", "of12" — never a product article
+  if (/^(?:оф|of|off?ice)\.?\d{1,5}$/i.test(normalized)) return true;
+  // Short phone digit fragments in phone/contact context: "42-85" from "(3952) 42-85-25"
+  // Two-digit pairs separated by "-" inside a line that mentions тел/факс/моб/phone
+  if (/^\d{2,3}-\d{2,3}$/.test(normalized) && /(?:тел[.:\s/,]|телефон|моб[.:\s/,]|факс|fax|phone|whatsapp|viber)/i.test(line)) return true;
   // Email field values extracted as articles: Email:user123, e-mail:snab4
   if (/^e-?mail:\w+/i.test(normalized)) return true;
   // Full URLs that slipped through: HTTPS://M4D.NALOG.GOV.RU
