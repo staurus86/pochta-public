@@ -38,7 +38,7 @@ const IDENTIFIER_CONTEXT_PATTERN = /\b(?:инн|inn|кпп|kpp|огрн|ogrn|req
 const INN_PATTERN = /(?:ИНН|inn|УНП)(?:\/КПП)?\s*[:#-]?\s*(\d{9,12})/i;
 const KPP_PATTERN = /(?:КПП|kpp)\s*[:#-]?\s*(\d{9})/i;
 const OGRN_PATTERN = /(?:ОГРН|ogrn)\s*[:#-]?\s*(\d{13,15})/i;
-const ARTICLE_PATTERN = /(?:арт(?:икул(?:а|у|ом|е|ы|ов|ам|ами|ах)?)?|sku)\s*[:#-]?\s*([A-Za-zА-Яа-яЁё0-9][A-Za-zА-Яа-яЁё0-9\-/_]{2,})/gi;
+const ARTICLE_PATTERN = /(?:арт(?:икул(?:а|у|ом|е|ы|ов|ам|ами|ах)?)?|sku)\s*[:#-]?\s*([A-Za-zА-Яа-яЁё0-9][A-Za-zА-Яа-яЁё0-9\-/_]{2,}(?:[ \t]+[A-Za-z][A-Za-z0-9]{1,15}){0,2})/gi;
 const STANDALONE_CODE_PATTERN = /\b([A-Z][A-Z0-9]{2,}[-/.]?[A-Z0-9]{2,}(?:[-/.][A-Z0-9]+)*)\b/g;
 // Numeric article: 509-1720, 3HAC12345-1, 6GK7-343-2AH01, 233.50.100
 const NUMERIC_ARTICLE_PATTERN = /\b(\d{2,6}[-/.]\d{2,6}(?:[-/.][A-Za-z0-9]{1,6})*)\b/g;
@@ -1513,10 +1513,22 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const subjectArticles = extractArticlesFromSubject(subject, forbiddenDigits);
   const attachmentArticles = extractArticlesFromAttachments(attachments, forbiddenDigits);
   const brandAdjacentCodes = extractBrandAdjacentCodes(bodyNoUrls, forbiddenDigits);
-  const allArticles = deduplicateByAbsorption(
+  let allArticles = deduplicateByAbsorption(
     unique([...subjectArticles, ...prefixedArticles, ...standaloneArticles, ...numericArticles, ...strongContextArticles, ...trailingMixedArticles, ...productContextArticles, ...attachmentArticles, ...brandAdjacentCodes].filter(Boolean)),
     "keep-longest"
   );
+  // Drop single-token articles that are sub-tokens of multi-word articles (S201, C16 → dropped if "S201 C16" present)
+  const mwArticles = allArticles.filter((a) => /\s/.test(String(a)));
+  if (mwArticles.length > 0) {
+    const subTokens = new Set();
+    for (const mw of mwArticles) {
+      for (const tok of String(mw).split(/\s+/)) {
+        const t = tok.trim().toLowerCase();
+        if (t) subTokens.add(t);
+      }
+    }
+    allArticles = allArticles.filter((a) => /\s/.test(String(a)) || !subTokens.has(String(a).toLowerCase()));
+  }
   const attachmentsText = attachments.join(" ");
   const hasNameplatePhotos = /шильд|nameplate/i.test(attachmentsText);
   const hasArticlePhotos = /артик|sku|label/i.test(attachmentsText);
@@ -1585,6 +1597,13 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     }
   }
   let lineItems = resolvedLineItems;
+  // Drop lineItems whose single-token article is a sub-token of a multi-word article lineItem
+  const mwLiArticles = lineItems.filter((li) => li.article && /\s/.test(li.article)).map((li) => li.article.toLowerCase());
+  if (mwLiArticles.length > 0) {
+    const subToks = new Set();
+    for (const a of mwLiArticles) for (const t of a.split(/\s+/)) if (t) subToks.add(t);
+    lineItems = lineItems.filter((li) => !li.article || /\s/.test(li.article) || !subToks.has(String(li.article).toLowerCase()));
+  }
   // Limit brand scan text to avoid attachment-bomb hallucinations (large catalogs / PDFs)
   const brandScanBody = body.length > 6000 ? body.slice(0, 6000) : body;
   const rawBrands = unique(kbBrands.concat(detectBrands([subject, brandScanBody, attachmentsText].join("\n"), brands)));
@@ -3396,6 +3415,16 @@ function extractLineItems(body) {
       const fallbackArticles = extractAllArticlesFromDescription(beforeQty).filter((article) => !isObviousArticleNoise(article, beforeQty));
       if (fallbackArticles.length) {
         items.push({ article: normalizeArticleCode(fallbackArticles[0]), quantity: Math.round(qty) || 1, unit, descriptionRu: line, explicitArticle: true, sourceLine: line });
+        continue;
+      }
+    }
+
+    // ── Format: "Артикул X [Y] x N шт" (labeled multi-word article + qty) ──
+    const labeledArtQtyMatch = line.match(/(?:арт(?:икул\w*)?|sku)\s*[:#-]?\s*([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:._]{2,}(?:[ \t]+[A-Za-z][A-Za-z0-9]{1,15}){0,2})\s+[xх×*]\s*(\d+)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп)?/i);
+    if (labeledArtQtyMatch) {
+      const art = normalizeArticleCode(labeledArtQtyMatch[1].trim());
+      if (art && !isObviousArticleNoise(art, line)) {
+        items.push({ article: art, quantity: Number(labeledArtQtyMatch[2]) || 1, unit: labeledArtQtyMatch[3] || "шт", descriptionRu: line, explicitArticle: true, sourceLine: line });
         continue;
       }
     }
