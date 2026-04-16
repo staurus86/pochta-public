@@ -1022,7 +1022,7 @@ body {
 .keyboard-hint {
   position: fixed;
   bottom: 24px;
-  left: 260px;
+  left: calc(var(--sidebar-width) + 20px);
   font-size: 10px;
   color: var(--text-muted);
   display: flex;
