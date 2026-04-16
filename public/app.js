@@ -737,6 +737,12 @@ function setupForms() {
     llmPollInterval = setInterval(async () => {
       try {
         const jr = await fetch(`/api/projects/${activePid}/job/${llmJobId}`);
+        if (jr.status === 404) {
+          stopLlmPoll(); hideLlmProgress();
+          showToast('Сервер перезапустился во время LLM — проверьте результаты во входящих.');
+          refreshAllMailboxMessages?.(); if (currentPage === 'inbox') renderInbox?.();
+          return;
+        }
         const jd = await jr.json();
         const job = jd.job;
         if (!job) return;
