@@ -4463,10 +4463,52 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^\d{2,4}\.\d{1,2}$/.test(normalized)) return true;
   // Bank account/BIK/corr.account: 30101810*, 40702810*, 04452*
   if (/^(?:301|407|044)\d{5,17}$/.test(normalized)) return true;
+  // Long bank/account number with letter separator: 0278005403T027801001
+  if (/^\d{5,}[A-Z]\d{5,}$/i.test(normalized)) return true;
+  // Date with .PDF/.DOCX extension suffix from attachment references: 01.01.25.PDF
+  if (/^\d{1,2}[./]\d{1,2}[./]\d{2,4}\.(?:pdf|docx?|xlsx?)$/i.test(normalized)) return true;
+  // Date with Russian year marker OCR'd as r: 02.08.2002r.Company
+  if (/^\d{2}\.\d{2}\.\d{4}[rRгГ]\./i.test(normalized)) return true;
+  // GOST/account/doc reference with Russian "г" OCR'd: 0422029r0
+  if (/^\d{5,9}[rRгГ]\d{0,2}$/i.test(normalized)) return true;
+  // OCR transliterated Russian word: word+digit.word (PO6EPRONU.L, PECRRY6.NNRCA)
+  if (/^[A-Z]{2,}\d[A-Z]{3,}\.[A-Z]{1,5}$/i.test(normalized)) return true;
+  if (/^[A-Z]{4,}\d\.[A-Z]{4,}$/i.test(normalized)) return true;
+  // OCR noise: prefix (digit/letter) + digit + dash + pure-alpha suffix ≥4: 50-NERUS, S0-RERRS
+  if (/^[A-Z]?\d{1,2}-[A-Z]{4,}$/i.test(normalized)) return true;
+  // OCR Cyrillic→Latin substitution patterns from PDF requisites blocks:
+  //   0=О, 6=Б, 4=Д/Ч — word-like strings that are never real article codes
+  // Starts with 6 (=Б) followed by 3-6 pure letters: 6YXRA, 6ANRC, 6AIIC
+  if (/^6[A-Z]{3,6}$/i.test(normalized)) return true;
+  // Letter + single digit + 3-5 pure letters: A4PEC (=АДРЕС)
+  if (/^[A-Z][0-9][A-Z]{3,5}$/i.test(normalized)) return true;
+  // Starts with 0 (=О) + 2-4 letters + ends with 0: 0KN0
+  if (/^0[A-Z]{2,4}0$/i.test(normalized)) return true;
+  // Short starts-with-0 word: 0HEP, 0RRN6PN etc — 0 + alphanums, no digits except 0 at start
+  if (/^0[A-Z]{2,5}$/i.test(normalized)) return true;
+  // 0 + letters + digit + letters (OCR word with embedded 6/digit): 0RRN6PN
+  if (/^0[A-Z]{2,4}[0-9][A-Z]{2,3}$/i.test(normalized)) return true;
+  // Explicit blocklist of OCR-transliterated Russian requisite words not covered by patterns above
+  // AKQX0HEPH0E = АКЦИОНЕРНОЕ, AUE6PAREQ = АКЦИОНЕРН..., CNE4ENUN = СЧЁТ
+  if (["AKQX0HEPH0E", "AUE6PAREQ", "CNE4ENUN", "AUE6PARE0", "KHE4ENUN", "CNE4"].includes(normalized)) return true;
   // Simple fractions: 1/2, 1/4, 1/1, 10/2
   if (/^\d{1,2}\/\d{1,2}$/.test(normalized)) return true;
-  // Hash-like strings (24+ uppercase alphanumeric without separators)
-  if (/^[A-Z0-9]{24,}$/.test(normalized) && !/[-/.]/.test(normalized)) return true;
+  // Hash-like / random strings (16+ uppercase alphanumeric without separators, starting with letter)
+  // Real article codes at 16+ chars without any separator are rare; those starting with digits
+  // are kept (e.g. 73317BN2PN90N05910N7 = legitimate WIKA/Rosemount catalog number)
+  if (/^[A-Z][A-Z0-9]{15,}$/.test(normalized) && !/[-/.]/.test(normalized)) return true;
+  // Base64 / encoded content with "/" but no "-":
+  //   Real article codes with "/": MLT220/151 (before=6, after=3), G1/2 (before=1), 8x16/21 (before=4)
+  //   Base64 fragments: long total OR long before-slash OR non-trivial after-slash
+  if (normalized.includes("/") && !normalized.includes("-")) {
+    const slashIdx = normalized.indexOf("/");
+    const before = normalized.slice(0, slashIdx);
+    const after = normalized.slice(slashIdx + 1);
+    if (normalized.length >= 14 || before.length >= 8 || (after.length >= 4 && normalized.length >= 11)) return true;
+  }
+  // Pure hex strings of 12+ chars (only 0-9 and A-F) — binary/encoding residue from email bodies
+  // These are never real article codes; e.g. 2848454F54457C4133414, 426F706F4865782C20
+  if (/^[0-9A-F]{12,}$/i.test(normalized) && !/[G-Zg-z]/.test(normalized)) return true;
   // PDF Unicode escape residue: 000A, 000C, 004A, 004O etc.
   if (/^0{2,}\d?[A-Z]$/i.test(normalized)) return true;
   // Office document filenames: e2oDoc.xml, e2oDoc.xmlPK
