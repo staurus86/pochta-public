@@ -1198,6 +1198,10 @@ async function handleApi(req, res, url) {
               attachmentFiles: (msg.attachmentFiles || []).map((a) => typeof a === "string" ? { filename: a } : a)
             });
             newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
+            // Preserve LLM extraction results — reanalysis uses sync analyzeEmail which
+            // doesn't call the LLM API; wiping llmExtraction would reset llm_pending state.
+            if (msg.analysis?.llmExtraction) newAnalysis.llmExtraction = msg.analysis.llmExtraction;
+            if (msg.analysis?.llmConfig) newAnalysis.llmConfig = msg.analysis.llmConfig;
             msg.analysis = newAnalysis;
             msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
             const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
