@@ -2796,6 +2796,13 @@ function buildAccordionDetailPanel(msg, a) {
       }${articles.length > 8 ? `<span class="acc-article-chip" style="color:var(--text-muted);">+${articles.length - 8} ещё</span>` : ''}</div>`
     : '';
 
+  const productNameList = getLeadProductNameList(lead);
+  const productNamesBlock = productNameList.length
+    ? `<div style="margin-top:8px;"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Названия товара</div><div style="display:flex;flex-direction:column;gap:3px;font-size:11px;line-height:1.35;">${
+        productNameList.slice(0, 10).map((name) => `<div style="padding:2px 0;color:var(--text-secondary);">• ${esc(name)}</div>`).join('')
+      }${productNameList.length > 10 ? `<div style="color:var(--text-muted);font-size:10px;">+${productNameList.length - 10} ещё</div>` : ''}</div></div>`
+    : '';
+
   const llmExt = a.llmExtraction || null;
   const diagFields = [
     ['Приоритет', rd.priority],
@@ -2841,7 +2848,7 @@ function buildAccordionDetailPanel(msg, a) {
 
   return statusBlock
     + accSection('client', '👤', 'Клиент', clientFields.map(([k,v,c]) => accField(k, v, c||'')).join(''), crmInfo, true)
-    + accSection('request', '📦', 'Заявка', requestFields.map(([k,v,c]) => accField(k, v, c||'')).join(''), articleChips, true)
+    + accSection('request', '📦', 'Заявка', requestFields.map(([k,v,c]) => accField(k, v, c||'')).join(''), articleChips + productNamesBlock, true)
     + accSection('diag', '⚙', 'Диагностика', diagFields.map(([k,v,c]) => accField(k, v, c||'')).join(''), '', false)
     + actions;
 }
@@ -2862,6 +2869,7 @@ function renderEmailView(msg, viewEl, detailEl) {
       <div style="display:flex;align-items:flex-start;justify-content:space-between;gap:12px;">
         <h3>${esc(msg.subject || 'Без темы')}</h3>
         <div style="display:flex;gap:6px;flex-shrink:0;">
+          <button class="btn btn-ghost btn-sm" onclick="window.__showIntegrationJson('${escAttr(msgKey)}')" title="Посмотреть JSON, который уходит в интеграционный API" style="font-family:'JetBrains Mono',monospace;">{ } JSON</button>
           ${msg.pipelineStatus === 'ignored_spam' ? `<button class="btn btn-unspam btn-sm" onclick="window.__unspamMsg('${escAttr(msgKey)}')" title="Перенести на проверку менеджера">↩ На проверку</button>` : ''}
           <button class="btn btn-danger btn-sm" onclick="window.__deleteMsg('${escAttr(msgKey)}')" title="Удалить письмо">Удалить</button>
         </div>
@@ -3073,6 +3081,62 @@ window.__deleteMsg = async (key) => {
 // Global unspam handler
 window.__unspamMsg = async (key) => {
   await unspamMessage(key);
+};
+
+// Show integration JSON for a message (the exact payload that goes to external API)
+window.__showIntegrationJson = async (key) => {
+  const msg = allRunnerMessages.find((m) => m.messageKey === key);
+  const pid = msg?._projectId || P3_ID;
+  const url = `/api/projects/${pid}/messages/${encodeURIComponent(key)}/integration-json`;
+  let payload;
+  try {
+    const res = await fetch(url);
+    if (!res.ok) {
+      alert(`Не удалось получить JSON: ${res.status}`);
+      return;
+    }
+    const body = await res.json();
+    payload = body.data;
+  } catch (e) {
+    alert(`Ошибка загрузки JSON: ${e.message}`);
+    return;
+  }
+  const jsonText = JSON.stringify(payload, null, 2);
+  const backdrop = document.createElement('div');
+  backdrop.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;padding:24px;';
+  backdrop.innerHTML = `
+    <div style="background:var(--bg-secondary,#1a1d24);border:1px solid var(--border,#2a2e38);border-radius:8px;max-width:1100px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border,#2a2e38);">
+        <div>
+          <div style="font-weight:600;font-size:14px;">Integration JSON</div>
+          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Точный payload, уходящий во внешний API: <code style="font-family:'JetBrains Mono',monospace;color:var(--text-secondary);">GET /api/integration/projects/${esc(pid)}/messages/${esc(key)}</code></div>
+        </div>
+        <div style="display:flex;gap:8px;">
+          <button class="btn btn-sm" id="__json-copy-btn">Копировать</button>
+          <a class="btn btn-sm" href="${url}" target="_blank" rel="noopener" style="text-decoration:none;">Открыть RAW</a>
+          <button class="btn btn-sm btn-danger" id="__json-close-btn">Закрыть</button>
+        </div>
+      </div>
+      <pre id="__json-pre" style="margin:0;padding:16px 18px;overflow:auto;flex:1;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;color:var(--text-primary);background:var(--bg-primary,#0f1117);white-space:pre-wrap;word-break:break-word;"></pre>
+    </div>`;
+  backdrop.querySelector('#__json-pre').textContent = jsonText;
+  document.body.appendChild(backdrop);
+  const close = () => backdrop.remove();
+  backdrop.addEventListener('click', (ev) => { if (ev.target === backdrop) close(); });
+  backdrop.querySelector('#__json-close-btn').addEventListener('click', close);
+  backdrop.querySelector('#__json-copy-btn').addEventListener('click', async () => {
+    try {
+      await navigator.clipboard.writeText(jsonText);
+      const btn = backdrop.querySelector('#__json-copy-btn');
+      const prev = btn.textContent;
+      btn.textContent = '✓ Скопировано';
+      setTimeout(() => { btn.textContent = prev; }, 1500);
+    } catch {
+      alert('Не удалось скопировать в буфер обмена');
+    }
+  });
+  const onKey = (ev) => { if (ev.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } };
+  document.addEventListener('keydown', onKey);
 };
 
 // ═══ TRAINING handlers ═══

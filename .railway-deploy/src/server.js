@@ -1421,6 +1421,24 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, { message });
   }
 
+  const messageIntegrationJsonMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages\/([^/]+)\/integration-json$/);
+  if (req.method === "GET" && messageIntegrationJsonMatch) {
+    const project = await store.getProject(messageIntegrationJsonMatch[1]);
+    if (!project) {
+      return sendJson(res, 404, { error: "Project not found." });
+    }
+    const messageKey = decodeURIComponent(messageIntegrationJsonMatch[2]);
+    const { normalizeIntegrationMessage } = await import("./services/integration-api.js");
+    const message = (project.recentMessages || []).find((item) => (item.messageKey || item.id) === messageKey);
+    if (!message) {
+      return sendJson(res, 404, { error: "Message not found." });
+    }
+    const payload = normalizeIntegrationMessage(project, message, {
+      include: "body,attachments_analysis,extraction_meta,audit"
+    });
+    return sendJson(res, 200, { data: payload });
+  }
+
   if (req.method === "PATCH" && messagePatchMatch) {
     const project = await store.getProject(messagePatchMatch[1]);
     if (!project) {
