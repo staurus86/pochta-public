@@ -14,6 +14,7 @@
 import { appendFileSync } from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { writeLlmCache } from "./llm-cache.js";
 
 const __dir = path.dirname(fileURLToPath(import.meta.url));
 const SUGGESTIONS_LOG = path.resolve(__dir, "../../data/llm-suggestions.jsonl");
@@ -313,6 +314,23 @@ export function mergeLlmExtraction(result, llmData, messageKey = "") {
         newArticlesAdded: newLineItems.length,
         detectionGapsCount: Array.isArray(llmData.detection_gaps) ? llmData.detection_gaps.length : 0
     };
+
+    // --- Persist LLM result to durable cache (survives reanalysis) -----------
+    writeLlmCache(messageKey, {
+        processedAt: result.llmExtraction.processedAt,
+        model,
+        subject: result.rawInput?.subject || "",
+        fromEmail: sender.email || "",
+        classification: result.classification?.label || "",
+        requestType: result.llmExtraction.requestType,
+        isUrgent: result.llmExtraction.isUrgent,
+        missingForProcessing: result.llmExtraction.missingForProcessing,
+        articles: (result.lead?.articles || []).slice(),
+        brands: (result.detectedBrands || []).slice(),
+        contact: { name: result.lead?.contactName || null, company: result.lead?.companyName || null, phone: result.lead?.phone || null, inn: result.lead?.inn || null },
+        newArticlesAdded: result.llmExtraction.newArticlesAdded,
+        detectionGaps: Array.isArray(llmData.detection_gaps) ? llmData.detection_gaps : []
+    });
 
     // --- Log detection gaps for system improvement ---------------------------
     if (logSuggestions && Array.isArray(llmData.detection_gaps) && llmData.detection_gaps.length > 0) {

@@ -37,6 +37,7 @@ import {
   summarizeIntegrationProblems
 } from "./services/integration-api.js";
 import { LegacyWebhookDispatcher } from "./services/webhook-dispatcher.js";
+import { readLlmCache } from "./services/llm-cache.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1200,7 +1201,9 @@ async function handleApi(req, res, url) {
             newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
             // Preserve LLM extraction results — reanalysis uses sync analyzeEmail which
             // doesn't call the LLM API; wiping llmExtraction would reset llm_pending state.
-            if (msg.analysis?.llmExtraction) newAnalysis.llmExtraction = msg.analysis.llmExtraction;
+            // Priority: existing in-memory llmExtraction → durable llm-cache → nothing.
+            const savedLlm = msg.analysis?.llmExtraction || readLlmCache(msg.messageKey || msg.id);
+            if (savedLlm) newAnalysis.llmExtraction = savedLlm;
             if (msg.analysis?.llmConfig) newAnalysis.llmConfig = msg.analysis.llmConfig;
             msg.analysis = newAnalysis;
             msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
