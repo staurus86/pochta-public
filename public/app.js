@@ -2697,6 +2697,112 @@ document.addEventListener('keydown', (e) => {
   }
 });
 
+function buildAccordionDetailPanel(msg, a) {
+  const sender = a.sender || {};
+  const lead = a.lead || {};
+  const crm = a.crm || {};
+  const cls = a.classification || {};
+  const msgKey = mid(msg);
+  const rd = lead.recognitionDecision || {};
+
+  const pipelineStatus = msg.pipelineStatus || '';
+  const statusMap = {
+    ready_for_crm:      { icon: '✓', label: 'Готово к CRM',   cls: 'status-ready',  textCls: 'green', badge: 'Заявка',     badgeStyle: 'background:var(--green);color:#0f1117;' },
+    ignored_spam:       { icon: '✕', label: 'Спам',            cls: 'status-spam',   textCls: 'rose',  badge: 'Спам',       badgeStyle: 'background:var(--rose-dim);color:var(--rose);' },
+    needs_clarification:{ icon: '?', label: 'Уточнение',      cls: 'status-review', textCls: 'amber', badge: 'Уточнение',  badgeStyle: 'background:var(--amber-dim);color:var(--amber);' },
+    review:             { icon: '⚠', label: 'На модерацию',   cls: 'status-review', textCls: 'amber', badge: 'Модерация',  badgeStyle: 'background:var(--amber-dim);color:var(--amber);' },
+  };
+  const sm = statusMap[pipelineStatus] || { icon: '·', label: pipelineStatus || 'Анализ', cls: 'status-unknown', textCls: '', badge: '', badgeStyle: '' };
+  const conf = cls.confidence != null ? Math.round(cls.confidence * 100) + '%' : '';
+  const category = cls.label || '';
+
+  const statusBlock = `
+    <div class="acc-status-block ${esc(sm.cls)}">
+      <div class="acc-status-icon">${sm.icon}</div>
+      <div>
+        <div class="acc-status-label ${esc(sm.textCls)}">${esc(sm.label)}</div>
+        <div class="acc-status-conf">${conf ? `Уверенность: ${conf}` : ''}${category ? ` · ${esc(category)}` : ''}</div>
+      </div>
+      ${sm.badge ? `<span class="acc-status-badge" style="${sm.badgeStyle}">${esc(sm.badge)}</span>` : ''}
+    </div>`;
+
+  const clientFields = [
+    ['Имя', sender.fullName],
+    ['Должность', sender.position],
+    ['Email', sender.email],
+    ['Компания', sender.companyName],
+    ['ИНН', sender.inn, 'green'],
+    ['Телефон', sender.mobilePhone || sender.cityPhone],
+    ['Сайт', sender.website],
+  ].filter(([,v]) => v);
+
+  const crmInfo = (crm.isExistingCompany || crm.curatorMop)
+    ? `<div class="acc-crm-info">✓ ${crm.isExistingCompany ? 'Известный клиент' : ''}${crm.curatorMop ? ` · МОП: ${esc(crm.curatorMop)}` : ''}${crm.curatorMoz ? ` · МОЗ: ${esc(crm.curatorMoz)}` : ''}</div>`
+    : '';
+
+  const brands = a.detectedBrands || lead.detectedBrands || [];
+  const articles = lead.articles || [];
+  const lineItems = lead.lineItems || [];
+  const totalQty = lineItems.reduce((s, li) => s + (li.quantity || 0), 0);
+
+  const requestFields = [
+    ['Бренд', brands.length ? brands.join(', ') : null, 'purple'],
+    ['Тип', lead.requestType],
+    ['Позиций', lead.totalPositions || (articles.length || null)],
+    ['Кол-во', totalQty > 0 ? totalQty + ' шт' : null],
+  ].filter(([,v]) => v);
+
+  const articleChips = articles.length
+    ? `<div style="margin-top:8px;"><div style="font-size:10px;color:var(--text-muted);margin-bottom:4px;text-transform:uppercase;letter-spacing:.06em;">Артикулы</div>${
+        articles.slice(0, 8).map((art) => {
+          const li = lineItems.find((l) => l.article === art);
+          return `<span class="acc-article-chip">${esc(art)}${li?.quantity ? ` ×${li.quantity}` : ''}</span>`;
+        }).join('')
+      }${articles.length > 8 ? `<span class="acc-article-chip" style="color:var(--text-muted);">+${articles.length - 8} ещё</span>` : ''}</div>`
+    : '';
+
+  const diagFields = [
+    ['Приоритет', rd.priority],
+    ['Причина', rd.failureReason],
+    ['Уверенность', cls.confidence != null ? Math.round(cls.confidence * 100) + '%' : null],
+    ['Completeness', (lead.recognitionSummary?.completenessScore != null) ? lead.recognitionSummary.completenessScore + '%' : null],
+    ['Конфликты', lead.recognitionSummary?.hasConflicts ? 'Есть' : 'Нет'],
+  ].filter(([,v]) => v);
+
+  function accField(key, val, valCls = '') {
+    return `<div class="acc-field"><span class="acc-field-key">${esc(key)}</span><span class="acc-field-val ${esc(valCls)}">${esc(String(val))}</span></div>`;
+  }
+
+  function accSection(id, icon, title, fieldsHtml, extra, defaultOpen) {
+    return `
+      <div class="acc-section" data-acc-id="${esc(id)}">
+        <div class="acc-header" onclick="window.__accToggle(this)">
+          <span class="acc-title ${defaultOpen ? 'open' : ''}">${icon} ${esc(title)}</span>
+          <span class="acc-arrow">${defaultOpen ? '▾' : '▸'}</span>
+        </div>
+        <div class="acc-body" style="${defaultOpen ? '' : 'display:none;'}">
+          ${fieldsHtml}
+          ${extra || ''}
+        </div>
+      </div>`;
+  }
+
+  const actions = `
+    <div class="acc-actions">
+      <button class="btn-full" style="background:var(--green);color:#0f1117;" onclick="window.__accSetStatus('${escAttr(msgKey)}','ready_for_crm')">✓ Передать в CRM</button>
+      <div class="btn-row">
+        <button class="btn-full" style="background:var(--rose-dim);color:var(--rose);border:1px solid rgba(248,113,113,0.3);" onclick="window.__accSetStatus('${escAttr(msgKey)}','ignored_spam')">Спам</button>
+        <button class="btn-full" style="background:var(--amber-dim);color:var(--amber);border:1px solid rgba(251,191,36,0.3);" onclick="window.__accSetStatus('${escAttr(msgKey)}','needs_clarification')">Уточнить</button>
+      </div>
+    </div>`;
+
+  return statusBlock
+    + accSection('client', '👤', 'Клиент', clientFields.map(([k,v,c]) => accField(k, v, c||'')).join(''), crmInfo, true)
+    + accSection('request', '📦', 'Заявка', requestFields.map(([k,v,c]) => accField(k, v, c||'')).join(''), articleChips, true)
+    + accSection('diag', '⚙', 'Диагностика', diagFields.map(([k,v,c]) => accField(k, v, c||'')).join(''), '', false)
+    + actions;
+}
+
 function renderEmailView(msg, viewEl, detailEl) {
   const a = msg.analysis || {};
   const sender = a.sender || {};
@@ -2770,7 +2876,13 @@ function renderEmailView(msg, viewEl, detailEl) {
   const primaryPhone = sender.mobilePhone || sender.cityPhone || '';
 
   try {
-  detailEl.innerHTML = `
+    detailEl.innerHTML = buildAccordionDetailPanel(msg, a);
+  } catch (e) {
+    detailEl.innerHTML = `<div class="detail-section"><div class="detail-section-title" style="color:var(--rose);">Ошибка рендера</div><pre style="font-size:10px;color:var(--text-muted);white-space:pre-wrap;">${esc(String(e))}</pre></div>`;
+  }
+
+  // LEGACY detail block (kept for reference, unreachable)
+  if (false) { detailEl.innerHTML = `
     <div class="detail-section">
       <div class="detail-section-title">Решение системы</div>
       ${detailField('Приоритет', renderPriorityBadge(recognitionDecision.priority || 'low'), true)}
@@ -2906,11 +3018,7 @@ function renderEmailView(msg, viewEl, detailEl) {
       ${crm.needsClarification ? '<button class="btn btn-ghost btn-sm" style="width:100%">Запросить реквизиты</button>' : ''}
       <button class="btn btn-danger btn-sm" style="width:100%" onclick="window.__deleteMsg('${escAttr(msgKey)}')">Удалить письмо</button>
     </div>
-  `;
-  } catch (err) {
-    detailEl.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠️</div><h4>Ошибка отрисовки</h4><p style="font-size:11px;color:var(--text-muted);">${esc(err.message)}</p></div>`;
-    console.error('renderEmailView detail error:', err);
-  }
+  `; }
 }
 
 // Global delete handler
@@ -3788,6 +3896,42 @@ async function refreshCrmConfig() {
     el.innerHTML = '<span style="color:var(--text-muted);font-size:12px;">CRM config unavailable</span>';
   }
 }
+
+// ═══════════════════════════════════════════════════════
+//  ACCORDION HANDLERS
+// ═══════════════════════════════════════════════════════
+
+// Accordion toggle
+window.__accToggle = function(headerEl) {
+  const section = headerEl.closest('.acc-section');
+  const body = section.querySelector('.acc-body');
+  const arrow = headerEl.querySelector('.acc-arrow');
+  const title = headerEl.querySelector('.acc-title');
+  const isOpen = body.style.display !== 'none';
+  body.style.display = isOpen ? 'none' : '';
+  arrow.textContent = isOpen ? '▸' : '▾';
+  title.classList.toggle('open', !isOpen);
+};
+
+// Accordion status change — reuses existing fetch interceptor for auth
+window.__accSetStatus = async function(msgKey, status) {
+  const msg = allRunnerMessages.find((m) => mid(m) === msgKey);
+  const pid = msg?._projectId || P3_ID;
+  try {
+    const resp = await fetch(`/api/projects/${encodeURIComponent(pid)}/messages/${encodeURIComponent(msgKey)}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ pipelineStatus: status })
+    });
+    if (resp.ok) {
+      if (msg) msg.pipelineStatus = status;
+      if (typeof renderInbox === 'function') renderInbox();
+      if (typeof showToast === 'function') showToast('Статус обновлён');
+    }
+  } catch(e) {
+    if (typeof showToast === 'function') showToast('Ошибка: ' + e.message, true);
+  }
+};
 
 // ═══════════════════════════════════════════════════════
 //  SIDEBAR TOGGLE
