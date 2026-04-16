@@ -2319,6 +2319,136 @@ runTest("Мультибренд: два бренда с артикулами в 
 
 // --- Task 7: mass_request CC флаг ---
 
+// --- Task 8: Smoke fix — production bugs 16.04.2026 ---
+
+runTest("Должность: юрист на одной строке с С уважением извлекается", () => {
+  const result = analyzeEmail(project, {
+    subject: "запрос КП",
+    fromEmail: "karatun.oksana@mail.ru",
+    fromName: "Каратун Оксана Юрьевна",
+    body: "Прошу предоставить КП.\n\nС уважением, юрист\nКаратун Оксана Юрьевна\n8 (3462) 33-04-05",
+    attachments: []
+  });
+  assert.ok(
+    /юрист/i.test(result.sender?.position || ""),
+    `Должность юрист на одной строке с приветствием не извлечена, получили: "${result.sender?.position}"`
+  );
+});
+
+runTest("Бренды: ULTRA POMPE не детектируется из ultra-clean", () => {
+  const result = analyzeEmail(project, {
+    subject: "запрос",
+    fromEmail: "buyer@external.ru",
+    fromName: "",
+    body: "Novotec Ultra-Clean filter — 5 шт.",
+    attachments: []
+  });
+  const brands = result.lead?.detectedBrands || [];
+  assert.ok(
+    !brands.some((b) => /ULTRA POMPE/i.test(b)),
+    `ULTRA POMPE не должен детектироваться из ultra-clean, brands: ${JSON.stringify(brands)}`
+  );
+});
+
+runTest("Бренды: Novotec без Novotec EDM — один бренд Novotec", () => {
+  const result = analyzeEmail(project, {
+    subject: "запрос",
+    fromEmail: "buyer@external.ru",
+    fromName: "",
+    body: "Прошу КП на Novotec Ultra-Clean — 10 шт.",
+    attachments: []
+  });
+  const brands = result.lead?.detectedBrands || [];
+  assert.ok(
+    !brands.some((b) => /Novotec EDM/i.test(b)),
+    `Novotec EDM не должен детектироваться из слова novotec, brands: ${JSON.stringify(brands)}`
+  );
+  assert.ok(
+    brands.some((b) => /^Novotec$/i.test(b)),
+    `Novotec должен присутствовать, brands: ${JSON.stringify(brands)}`
+  );
+});
+
+runTest("Бренды: SSET из артикула #SSET не детектируется как бренд", () => {
+  const result = analyzeEmail(project, {
+    subject: "запрос",
+    fromEmail: "buyer@external.ru",
+    fromName: "",
+    body: "А99L-0159-0409#SSET Novotec Ultra-Clean — 30 шт.",
+    attachments: []
+  });
+  const brands = result.lead?.detectedBrands || [];
+  assert.ok(
+    !brands.some((b) => /^SSET$/i.test(b)),
+    `SSET из артикула не должен быть брендом, brands: ${JSON.stringify(brands)}`
+  );
+});
+
+runTest("Бренды: Epson не детектируется из recepson@mail.ru", () => {
+  const result = analyzeEmail(project, {
+    subject: "Заполнена форма \"Товар под заказ\" на сайте SIDERUS (8413)",
+    fromEmail: "robot@siderus.ru",
+    fromName: "",
+    body: `Заполнена форма "Товар под заказ" на сайте SIDERUS (8413)
+Имя посетителя: ООО"РЕЦЕПС" Николай
+Телефон:
+Email: recepson@mail.ru
+WhatsApp:
+Название товара: AT 051 DA F04 N 11 DS Пневмопривод
+Ссылка на товар:
+ID товара: 1056655`,
+    attachments: []
+  });
+  const brands = result.lead?.detectedBrands || [];
+  assert.ok(
+    !brands.some((b) => /epson/i.test(b)),
+    `Epson не должен детектироваться из email-адреса recepson@mail.ru, brands: ${JSON.stringify(brands)}`
+  );
+});
+
+runTest("URL: crm.siderus.online фильтруется как собственный сабдомен", () => {
+  const result = analyzeEmail(project, {
+    subject: "RE: запрос",
+    fromEmail: "manager@external.ru",
+    fromName: "Менеджер",
+    body: "Добрый день!\nhttps://crm.siderus.online/img/mail/e.jpg?_=12345\nИрина Тарасова",
+    attachments: []
+  });
+  const website = result.sender?.website || "";
+  assert.ok(
+    !website.includes("crm.siderus.online"),
+    `crm.siderus.online должен фильтроваться как собственный домен, website: "${website}"`
+  );
+});
+
+runTest("lineItems: qty=30 для А99L-0159-0409 Novotec Ultra-Clean — 30 шт.", () => {
+  const result = analyzeEmail(project, {
+    subject: "запрос КП",
+    fromEmail: "buyer@external.ru",
+    fromName: "",
+    body: "Прошу предоставить КП.\n\nФильтроэлемент гидравлический А99L-0159-0409#SSET Novotec Ultra-Clean — 30 шт.",
+    attachments: []
+  });
+  const items = result.lead?.lineItems || [];
+  const a99item = items.find((i) => /A99L-0159-0409/i.test(i.article || ""));
+  assert.ok(a99item, `Позиция A99L-0159-0409 должна присутствовать, lineItems: ${JSON.stringify(items.map((i) => i.article))}`);
+  assert.equal(a99item?.quantity, 30, `Количество должно быть 30, получили: ${a99item?.quantity}`);
+});
+
+runTest("lineItems: одна позиция A99L-0159-0409 (длинное описание, нет дублирования)", () => {
+  const result = analyzeEmail(project, {
+    subject: "запрос КП",
+    fromEmail: "buyer@external.ru",
+    fromName: "",
+    body: "Прошу предоставить КП.\n\nФильтроэлемент гидравлический А99L-0159-0409#SSET Novotec Ultra-Clean — 30 шт.",
+    attachments: []
+  });
+  const items = result.lead?.lineItems || [];
+  const a99items = items.filter((i) => /A99L-0159-0409/i.test(i.article || ""));
+  assert.ok(a99items.length <= 1, `Должна быть одна позиция A99L-0159-0409, получили ${a99items.length}: ${JSON.stringify(items.map((i) => i.article))}`);
+  assert.ok(items.every((i) => !/^DESC:/i.test(i.article || "")), `DESC-позиции не должны остаться после мержа, lineItems: ${JSON.stringify(items.map((i) => i.article))}`);
+});
+
 runTest("Флаг массового запроса: CC с двумя внешними адресами", () => {
   const result = analyzeEmail(project, {
     subject: "Запрос КП",

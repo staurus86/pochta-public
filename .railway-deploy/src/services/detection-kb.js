@@ -8,7 +8,10 @@ const FREE_EMAIL_DOMAINS = new Set(["gmail.com", "mail.ru", "bk.ru", "list.ru", 
 const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   "top", "moro", "ydra", "hydra", "global", "control", "process", "electronic", "data",
   // Calendar month names that appear in quoted email date headers ("Sent: Tuesday, March 31, 2026")
-  "march", "april", "may", "june", "july"
+  "march", "april", "may", "june", "july",
+  // Too-generic words that cause false positives in product descriptions
+  "ultra", // "ultra-clean", "ultrafilter", "ultrasonic" → false ULTRA POMPE matches
+  "sset",  // "#SSET" catalog suffix in Fanuc/Novotec article codes → false SSET brand
 ]);
 // Aliases that must match as whole words only (prevent substring false positives)
 // "puls" — prevent matching inside "vegapuls"; "foss" — prevent matching inside "danfoss"
@@ -1553,7 +1556,10 @@ class DetectionKnowledgeBase {
   }
 
   detectBrands(text, projectBrands = []) {
-    const lowered = String(text || "").toLowerCase();
+    // Strip email addresses before brand detection to prevent alias matches inside local parts
+    // e.g. "epson" alias must not match "recepson@mail.ru"
+    const stripped = String(text || "").replace(/\b[\w.+%-]+@[\w.-]+\.[a-z]{2,}\b/gi, " ");
+    const lowered = stripped.toLowerCase();
     const padded = ` ${lowered} `;
     const aliases = this.getBrandAliases();
     const matched = aliases

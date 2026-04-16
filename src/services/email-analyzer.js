@@ -165,7 +165,7 @@ function transliterateToSlug(text) {
         .join("")
         .replace(/-+/g, "-")
         .replace(/^-|-$/g, "")
-        .slice(0, 40);
+        .slice(0, 80);
 }
 
 // Own company domains — emails FROM these are not customer companies
@@ -315,7 +315,10 @@ const BRAND_NOISE = new Set([
 const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   "top", "moro", "ydra", "hydra", "global", "control", "process", "electronic", "data",
   // Calendar month names — appear in quoted email date headers ("Sent: Tuesday, March 31, 2026")
-  "march", "april", "may", "june", "july"
+  "march", "april", "may", "june", "july",
+  // Too-generic words causing false positives in product descriptions
+  "ultra", // "ultra-clean", "ultrafilter" etc → false ULTRA POMPE/similar matches
+  "sset",  // "#SSET" catalog suffix in Fanuc/Novotec article codes → false SSET brand
 ]);
 // Aliases that must match as whole words (word boundary) to avoid substring false positives
 // "foss" → prevent matching inside "danfoss"
@@ -862,9 +865,12 @@ export function analyzeEmail(project, payload) {
 
   enrichLeadFromKnowledgeBase(lead, classification, project, [subjectForExtraction, bodyForExtraction, attachmentContent].filter(Boolean).join("\n\n"));
   if (!lead.detectedBrands?.length && classification.detectedBrands?.length) {
-    lead.detectedBrands = [...classification.detectedBrands];
+    lead.detectedBrands = deduplicateByAbsorption([...classification.detectedBrands], "keep-shortest");
   } else if (classification.detectedBrands?.length) {
-    lead.detectedBrands = uniqueBrands([...lead.detectedBrands, ...classification.detectedBrands]);
+    lead.detectedBrands = deduplicateByAbsorption(
+      uniqueBrands([...lead.detectedBrands, ...classification.detectedBrands]),
+      "keep-shortest"
+    );
   }
 
   // Zone filter: if we have many brands and a real reply chain, keep only brands
@@ -1414,10 +1420,15 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
   if (isOwnCompanyData("inn", requisites?.inn)) requisites.inn = null;
   if (isOwnCompanyData("kpp", requisites?.kpp)) requisites.kpp = null;
   if (isOwnCompanyData("ogrn", requisites?.ogrn)) requisites.ogrn = null;
-  // Filter out own URLs from detected links
+  // Filter out own URLs from detected links (including subdomains like crm.siderus.online)
   const externalUrls = urls.filter((u) => {
     const domain = extractDomainFromUrl(u);
-    return domain && !OWN_DOMAINS.has(domain) && !isTrackingHost(domain);
+    if (!domain) return false;
+    if (isTrackingHost(domain)) return false;
+    if (OWN_DOMAINS.has(domain)) return false;
+    // Check if domain is a subdomain of any own domain (e.g. crm.siderus.online → siderus.online)
+    if ([...OWN_DOMAINS].some((od) => domain.endsWith("." + od))) return false;
+    return true;
   });
   const extractedCompanyName = extractCompanyName(body, signature);
   const inferredCompanyName = inferCompanyNameFromEmail(fromEmail);
@@ -2840,12 +2851,19 @@ function extractPosition(body) {
   }
 
   // Fallback: должность стоит ПЕРЕД именем (после приветствия)
-  // "С уважением,\n<ДОЛЖНОСТЬ>\nФамилия Имя"
+  // "С уважением,\n<ДОЛЖНОСТЬ>\nФамилия Имя" OR "С уважением, <ДОЛЖНОСТЬ>\nФамилия Имя"
   {
     const GREETING_RE = /(?:С уважением|Best regards|Regards|Спасибо|Благодарю|Kind regards|Sincerely)[,.\s]*/i;
     const bodyLines = body.split(/\r?\n/).map((l) => l.trim());
     for (let i = 0; i < bodyLines.length - 1; i++) {
       if (!GREETING_RE.test(bodyLines[i])) continue;
+      // Check if position is on the SAME LINE as the greeting ("С уважением, юрист")
+      const sameLineRest = bodyLines[i].replace(GREETING_RE, "").trim();
+      if (sameLineRest && sameLineRest.length >= 3 && sameLineRest.length <= 80
+          && !/@/.test(sameLineRest) && POSITION_KEYWORDS.test(sameLineRest)) {
+        if (kbPosition && kbPosition.length >= sameLineRest.length) return cleanup(kbPosition);
+        return cleanup(sameLineRest);
+      }
       // Следующие 1-2 строки могут быть должностью
       const candidates = [bodyLines[i + 1], bodyLines[i + 2]].filter(Boolean);
       for (const candidate of candidates) {
@@ -3465,7 +3483,7 @@ function extractFreeTextItems(body, detectedBrands = [], existingArticles = []) 
 
     // ── Trigger A: quantity signal ──
     // Pattern A1: "description — N unit" (explicit dash separator)
-    const dashMatch = line.match(/^(.{5,80}?)\s*[-–—]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\s*$/i);
+    const dashMatch = line.match(/^(.{5,80}?)\s*[-–—]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\.?\s*$/i);
     // Pattern A2: "description N unit" (space only, no dash)
     const spaceMatch = line.match(/^(.{5,60}?)\s+(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\s*$/i);
     const qtyMatch = dashMatch || spaceMatch;
