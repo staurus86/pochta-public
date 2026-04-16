@@ -2788,12 +2788,20 @@ function buildAccordionDetailPanel(msg, a) {
       }${articles.length > 8 ? `<span class="acc-article-chip" style="color:var(--text-muted);">+${articles.length - 8} ещё</span>` : ''}</div>`
     : '';
 
+  const llmExt = a.llmExtraction || null;
   const diagFields = [
     ['Приоритет', rd.priority],
     ['Причина', rd.failureReason],
     ['Уверенность', cls.confidence != null ? Math.round(cls.confidence * 100) + '%' : null],
     ['Completeness', (lead.recognitionSummary?.completenessScore != null) ? lead.recognitionSummary.completenessScore + '%' : null],
     ['Конфликты', lead.recognitionSummary?.hasConflicts ? 'Есть' : 'Нет'],
+    // LLM fields
+    ['✦ LLM модель', llmExt?.model],
+    ['✦ LLM дата', llmExt?.processedAt ? new Date(llmExt.processedAt).toLocaleString('ru') : null],
+    ['✦ Тип запроса', llmExt?.requestType],
+    ['✦ Срочно', llmExt?.isUrgent ? 'Да' : null],
+    ['✦ Не хватает', llmExt?.missingForProcessing?.length ? llmExt.missingForProcessing.join(', ') : null],
+    ['✦ Новых артикулов', llmExt?.newArticlesAdded ? String(llmExt.newArticlesAdded) : null],
   ].filter(([,v]) => v);
 
   function accField(key, val, valCls = '') {
