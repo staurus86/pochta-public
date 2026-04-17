@@ -1262,14 +1262,47 @@ function findSemanticNomenclatureMatches(query) {
 
   if (tokens.length >= 2) tokenQueries.push(tokens.slice(0, 2).join(" "));
   if (tokens.length >= 3) tokenQueries.push(tokens.slice(0, 3).join(" "));
-  tokenQueries.push(...tokens);
+  // Intentionally NOT pushing individual tokens: single Russian words (доставки, опция,
+  // коллеги, экспресс, напоминаем, ...) match brand nomenclature descriptions too loosely.
+  // Known brand aliases are already covered by detectBrands() via alias matching.
 
+  const loweredQuery = cleaned.toLowerCase();
+  const queryTokenSet = new Set(
+    loweredQuery
+      .split(/[^a-zа-яё0-9]+/)
+      .filter((tok) => tok.length >= 4 && !SEMANTIC_QUERY_STOPWORDS.has(tok))
+  );
   const matches = [];
   for (const tokenQuery of tokenQueries) {
     for (const item of detectionKb.searchNomenclature(tokenQuery, { limit: 3 })) {
-      if (!matches.some((existing) => existing.article_normalized === item.article_normalized)) {
-        matches.push({ ...item, match_type: "semantic_token" });
+      if (matches.some((existing) => existing.article_normalized === item.article_normalized)) continue;
+      // Validate match quality: SQLite FTS returns any row sharing common words with the
+      // query ("сроки недель" → HYDAC whose description has "Сроки ... 17-20 недель").
+      // Accept a candidate only if EITHER:
+      //   (a) its brand name tokens appear in the query (direct brand mention), OR
+      //   (b) it shares ≥3 non-stopword tokens with the query description fields
+      //       (semantic description match like "санитайзер пищевой линия" → Frontmatec).
+      // Without this filter, semantic fallback injected ~100 false brands per inbox.
+      const brandTokens = String(item.brand || "")
+        .toLowerCase()
+        .split(/[^a-zа-яё0-9]+/)
+        .filter((tok) => tok.length >= 3);
+      const brandInQuery = brandTokens.length > 0 && brandTokens.every((tok) => loweredQuery.includes(tok));
+      if (!brandInQuery) {
+        const itemText = [item.brand, item.article, item.article_normalized, item.product_name, item.description, item.synonyms]
+          .filter(Boolean)
+          .join(" ")
+          .toLowerCase();
+        const itemTokens = new Set(
+          itemText.split(/[^a-zа-яё0-9]+/).filter((tok) => tok.length >= 4)
+        );
+        let overlap = 0;
+        for (const qt of queryTokenSet) {
+          if (itemTokens.has(qt)) overlap += 1;
+        }
+        if (overlap < 3) continue;
       }
+      matches.push({ ...item, match_type: "semantic_token" });
     }
   }
 

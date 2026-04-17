@@ -2608,3 +2608,47 @@ runTest("stripImageAltTextChain: одиночный [текст] не стрип
   const brands = analysis.lead.detectedBrands || [];
   assert.ok(brands.includes("ABB"), `Ожидался ABB в [ABB], получено: ${brands.join(", ")}`);
 });
+
+runTest("semantic-token noise: обычные русские слова не матчат бренды через KB search", () => {
+  // Регрессия: findSemanticNomenclatureMatches токенизировал query и гонял КАЖДЫЙ
+  // токен ≥4 символов через searchNomenclature. Русские слова "доставки", "опция",
+  // "коллеги", "экспресс", "напоминаем" матчились на бренды из описаний nomenclature —
+  // ~100 строк в инбоксе получали 1-2 ложных бренда без единого упоминания в теле.
+  const analysis = analyzeEmail(project, {
+    fromName: "Info",
+    fromEmail: "info@example.ru",
+    subject: "Текущие новости доставки",
+    attachments: "",
+    body: [
+      "Добрый вечер уважаемые коллеги.",
+      "",
+      "Напоминаем, что у нас есть опция экспресс доставки из США и Европы через Китай.",
+      "",
+      "Сроки 3-5 недель.",
+      "",
+      "С уважением, Фомичев"
+    ].join("\n")
+  });
+  const brands = analysis.lead.detectedBrands || [];
+  assert.equal(brands.length, 0, `Ожидалось 0 брендов (нет ни одного явного упоминания в теле), получено: ${brands.join(", ")}`);
+});
+
+runTest("semantic-token: legit клиент с полным брендом+артикулом всё ещё детектим", () => {
+  // Контроль: убрали single-token semantic push, но detectBrands через alias матчинг
+  // продолжает работать для известных брендов.
+  const analysis = analyzeEmail(project, {
+    fromName: "Иван Петров",
+    fromEmail: "buyer@client.ru",
+    subject: "Запрос цены Siemens",
+    attachments: "",
+    body: [
+      "Добрый день,",
+      "",
+      "Нужен Siemens 6SE7024-7FD62 x5 шт.",
+      "",
+      "С уважением, Иван"
+    ].join("\n")
+  });
+  const brands = analysis.lead.detectedBrands || [];
+  assert.ok(brands.some((b) => /siemens/i.test(b)), `Siemens должен детектиться, получено: ${brands.join(", ")}`);
+});
