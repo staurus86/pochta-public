@@ -2702,3 +2702,57 @@ runTest("signature-brand-cluster: малое число брендов не фи
   assert.ok(brands.some((b) => /siemens/.test(b)), `Siemens должен остаться: ${brands.join(", ")}`);
   assert.ok(brands.some((b) => /grundfos/.test(b)), `Grundfos должен остаться: ${brands.join(", ")}`);
 });
+
+runTest("mixed-script: OCR-битые mixed-токены (кирилл+латин) удаляются из allArticles, inner ASCII сохраняется", () => {
+  // Pattern из реального inbox: описание товара с битой кодировкой (OCR: Cyrillic А/В/Н/Т похожи на Latin)
+  // "ТРАНЗИСТОР IRFD9024" превращается в "TPAHЗICTOP IRFD9024" — mixed noise,
+  // но чистый IRFD9024 всё равно извлекается отдельно.
+  const analysis = analyzeEmail(project, {
+    fromName: "Клиент",
+    fromEmail: "buyer@example.ru",
+    subject: "Запрос",
+    attachments: "",
+    body: [
+      "Добрый день,",
+      "",
+      "Прошу КП по позициям:",
+      "1. TPAHЗICTOP IRFD9024 — 5 шт",
+      "2. Fiльtp-peгуляtop Masoneilan 78-40-4 — 2 шт",
+      "3. Просто артикул XMLB010A2S11 — 1 шт",
+      "",
+      "Контакты:",
+      "Тел.: +7(495)123-45-67 дoб.216",
+      "",
+      "С уважением"
+    ].join("\n")
+  });
+  const arts = (analysis.lead.articles || []).map((a) => String(a));
+  // Inner ASCII артикулы должны быть сохранены
+  assert.ok(arts.some((a) => /IRFD9024/i.test(a)), `IRFD9024 должен остаться: ${arts.join("; ")}`);
+  assert.ok(arts.some((a) => /78-40/i.test(a)), `78-40 должен остаться: ${arts.join("; ")}`);
+  assert.ok(arts.some((a) => /XMLB010A2S11/i.test(a)), `XMLB010A2S11: ${arts.join("; ")}`);
+  // Mixed-токены должны быть удалены
+  assert.ok(!arts.some((a) => /TPAHЗICTOP/i.test(a)), `TPAHЗICTOP mixed не должен попасть: ${arts.join("; ")}`);
+  assert.ok(!arts.some((a) => /Fiльtp/i.test(a)), `Fiльtp mixed: ${arts.join("; ")}`);
+  assert.ok(!arts.some((a) => /дoб/i.test(a)), `дoб.216 mixed: ${arts.join("; ")}`);
+});
+
+runTest("mixed-script: pure ASCII и pure Cyrillic артикулы НЕ фильтруются", () => {
+  // Контроль: чистые ASCII (IRFD9024) и pure Cyrillic steel grades (08Х18Н10Т) должны проходить.
+  const analysis = analyzeEmail(project, {
+    fromName: "Клиент",
+    fromEmail: "buyer@example.ru",
+    subject: "Запрос артикулов IRFD9024 и S201 C16",
+    attachments: "",
+    body: [
+      "Запрос КП:",
+      "IRFD9024 — 10 шт",
+      "S201-C16 — 5 шт",
+      "XMLB010A2S11 — 2 шт",
+    ].join("\n")
+  });
+  const arts = (analysis.lead.articles || []).map((a) => String(a));
+  assert.ok(arts.some((a) => /IRFD9024/i.test(a)), `IRFD9024: ${arts.join("; ")}`);
+  assert.ok(arts.some((a) => /S201/i.test(a)), `S201-C16: ${arts.join("; ")}`);
+  assert.ok(arts.some((a) => /XMLB010A2S11/i.test(a)), `XMLB010A2S11: ${arts.join("; ")}`);
+});

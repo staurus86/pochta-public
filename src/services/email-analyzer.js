@@ -4511,6 +4511,12 @@ function isObviousArticleNoise(code, sourceLine = "") {
     line && new RegExp(`\\b[${EXTENDED_BRAND_WORD_RE}][${EXTENDED_BRAND_WORD_RE}üöäÜÖÄ-]{2,20}\\s+${escapeRegExp(normalized)}\\b`, "i").test(line)
   );
   if (!normalized) return true;
+  // Mixed-script noise: cyrillic + latin letters in same token after homoglyph transliteration.
+  // Real article codes are either all-ASCII (6EP1961-3BA21) or all-Cyrillic (08Х18Н10Т).
+  // Mixed = OCR/encoding corruption ("TPAHЗICTOP IRFD9024"), typo units ("1шtуka"),
+  // phone extensions ("дoб.216"), form names ("TOPГ-12"), position labels ("поз.76.7").
+  // Inner real articles (IRFD9024, 78-40-4, 6EP1961-3BA21) are already extracted separately.
+  if (/[a-zA-Z]/.test(normalized) && /[а-яёА-ЯЁ]/.test(normalized)) return true;
   // DESC: synthetic slug articles (freetext positions without real article code)
   if (/^DESC:/i.test(normalized)) return true;
   // mailto: links mistaken for articles
