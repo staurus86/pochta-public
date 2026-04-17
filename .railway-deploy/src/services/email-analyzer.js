@@ -1605,8 +1605,12 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     lineItems = lineItems.filter((li) => !li.article || /\s/.test(li.article) || !subToks.has(String(li.article).toLowerCase()));
   }
   // Limit brand scan text to avoid attachment-bomb hallucinations (large catalogs / PDFs)
-  const brandScanBody = body.length > 6000 ? body.slice(0, 6000) : body;
-  const rawBrands = unique(kbBrands.concat(detectBrands([subject, brandScanBody, attachmentsText].join("\n"), brands)));
+  // Also strip Siderus-style "Бренды, по которым мы работаем..." capability list —
+  // this signature catalog re-appears in every reply/forward and pollutes 200+ bogus brands per row.
+  const bodyForBrands = stripBrandCapabilityList(body);
+  const brandScanBody = bodyForBrands.length > 6000 ? bodyForBrands.slice(0, 6000) : bodyForBrands;
+  const attachmentsTextForBrands = stripBrandCapabilityList(attachmentsText);
+  const rawBrands = unique(kbBrands.concat(detectBrands([subject, brandScanBody, attachmentsTextForBrands].join("\n"), brands)));
   let detectedBrands = detectionKb.filterOwnBrands(deduplicateByAbsorption(rawBrands, "keep-shortest"));
   const explicitTextBrands = [...detectedBrands];
 
@@ -4142,6 +4146,23 @@ function separateQuotedText(text) {
     newContent: newLines.join("\n").trim(),
     quotedContent: quotedLines.join("\n").trim()
   };
+}
+
+// Strip "Бренды, по которым мы ... работаем" capability lists from signatures.
+// Siderus employee signatures include a catalog of 70+ brands, which gets extracted
+// as if requested by the client. Same text re-appears in every quoted reply, so
+// it also pollutes threads from external senders. Cut from the marker line to EOM.
+const BRAND_CAPABILITY_MARKER = /(?:Бренды[,\s]*(?:по\s+которым|с\s+которыми|по\s+к-рым)\s+мы\b|(?:мы\s+)?наиболее\s+активно\s+работаем|Brands?\s+we\s+(?:work\s+with|represent))/i;
+
+function stripBrandCapabilityList(text) {
+  const src = String(text || "");
+  if (!src) return src;
+  const match = BRAND_CAPABILITY_MARKER.exec(src);
+  if (!match) return src;
+  // Cut from the start of the line containing the marker to end of text
+  const lineStart = src.lastIndexOf("\n", match.index);
+  const cutAt = lineStart === -1 ? 0 : lineStart;
+  return src.slice(0, cutAt).replace(/\s+$/, "");
 }
 
 function extractSignature(text) {

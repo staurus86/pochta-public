@@ -17,6 +17,22 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
 // "puls" — prevent matching inside "vegapuls"; "foss" — prevent matching inside "danfoss"
 const BRAND_WORD_BOUNDARY_ALIASES = new Set(["puls", "foss"]);
 
+// Marker for "brand capability list" in signatures:
+// "Бренды, по которым мы работаем" — Siderus employees include a 70+ brand catalog
+// in their email signature. This gets re-quoted in every reply and pollutes brand
+// detection. Cut from the marker line to end-of-text before matching aliases.
+const BRAND_CAPABILITY_MARKER = /(?:Бренды[,\s]*(?:по\s+которым|с\s+которыми|по\s+к-рым)\s+мы\b|(?:мы\s+)?наиболее\s+активно\s+работаем|Brands?\s+we\s+(?:work\s+with|represent))/i;
+
+function stripBrandCapabilityListText(text) {
+  const src = String(text || "");
+  if (!src) return src;
+  const match = BRAND_CAPABILITY_MARKER.exec(src);
+  if (!match) return src;
+  const lineStart = src.lastIndexOf("\n", match.index);
+  const cutAt = lineStart === -1 ? 0 : lineStart;
+  return src.slice(0, cutAt).replace(/\s+$/, "");
+}
+
 const DEFAULT_RULES = [
   { scope: "body", classifier: "spam", matchType: "regex", pattern: "casino|crypto|легкий заработок|раскрут(ка|им)|seo[- ]?продвиж|unsubscr|viagra|кэшбэк|отписа|подписк|рассылк|промокод|выиграли|лотере", weight: 6, notes: "Базовый spam filter" },
   { scope: "subject", classifier: "spam", matchType: "regex", pattern: "скидк|распродаж|акци[яи]|кэшбэк|до\\s*-?\\d+%|промокод|sale|free|бесплатн", weight: 5, notes: "Маркетинговый spam subject" },
@@ -1556,9 +1572,13 @@ class DetectionKnowledgeBase {
   }
 
   detectBrands(text, projectBrands = []) {
+    // Strip "Бренды, по которым мы работаем..." capability list from signatures —
+    // Siderus employee signatures contain a catalog of 70+ brands that gets re-quoted
+    // in every reply/forward and pollutes detection with hundreds of bogus brands.
+    const cleaned = stripBrandCapabilityListText(text);
     // Strip email addresses before brand detection to prevent alias matches inside local parts
     // e.g. "epson" alias must not match "recepson@mail.ru"
-    const stripped = String(text || "").replace(/\b[\w.+%-]+@[\w.-]+\.[a-z]{2,}\b/gi, " ");
+    const stripped = String(cleaned || "").replace(/\b[\w.+%-]+@[\w.-]+\.[a-z]{2,}\b/gi, " ");
     const lowered = stripped.toLowerCase();
     const padded = ` ${lowered} `;
     const aliases = this.getBrandAliases();
