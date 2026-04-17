@@ -4830,11 +4830,12 @@ function detectBrands(text, brands) {
   }
 
   const projectMatches = (brands || []).filter((brand) => matchesBrand(normalizedText, brand));
-  if (projectMatches.length > 0) {
-    return dedupeCaseInsensitive(projectMatches);
-  }
+  const combined = projectMatches.length > 0
+    ? dedupeCaseInsensitive(projectMatches)
+    : dedupeCaseInsensitive([...matched]);
 
-  return dedupeCaseInsensitive([...matched]);
+  if (combined.length < 10 || !detectionKb.filterSignatureBrandCluster) return combined;
+  return detectionKb.filterSignatureBrandCluster(combined, normalizedText.toLowerCase(), aliases);
 }
 
 function unique(items) {

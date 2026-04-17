@@ -47,6 +47,79 @@ function stripImageAltTextChain(text) {
   return src.replace(IMAGE_ALT_CHAIN_PATTERN, " ");
 }
 
+// Signature brand-chain cluster filter: many clients append a comma-separated list of
+// 15-50 brands they stock to their email signatures, without any "Бренды, по которым..."
+// marker (e.g. Electrovent, АИСС). Post-hoc detection: locate positions of each detected
+// brand in the text, cluster mentions by proximity (≤80 chars apart), and drop brands
+// whose ALL mentions fall inside a cluster containing ≥10 distinct brands. Legitimate
+// request brands (appearing once in the body with article context) are preserved.
+function filterSignatureBrandCluster(detectedBrands, loweredText, brandAliasMap, clusterThreshold = 10, maxInterGap = 18) {
+  if (!detectedBrands || detectedBrands.length < clusterThreshold) return detectedBrands;
+  if (!loweredText) return detectedBrands;
+
+  const brandMentions = new Map();
+  for (const brand of detectedBrands) {
+    const key = String(brand).toLowerCase();
+    const aliases = brandAliasMap.get(key) || [key];
+    const mentions = [];
+    for (const alias of aliases) {
+      if (!alias || alias.length < 2) continue;
+      let idx = 0;
+      while ((idx = loweredText.indexOf(alias, idx)) !== -1) {
+        mentions.push({ pos: idx, len: alias.length });
+        idx += alias.length;
+      }
+    }
+    if (mentions.length > 0) brandMentions.set(brand, mentions);
+  }
+
+  const allMentions = [];
+  for (const [brand, mentions] of brandMentions) {
+    for (const m of mentions) allMentions.push({ pos: m.pos, end: m.pos + m.len, brand });
+  }
+  if (allMentions.length === 0) return detectedBrands;
+  allMentions.sort((left, right) => left.pos - right.pos);
+
+  // Cluster: consecutive brand mentions where the text BETWEEN them is short
+  // (≤ maxInterGap chars) and contains no digits. This captures signature
+  // brand-chains like "ABB, Siemens, РОСМА, ПРОМА, SEITRON" even when one
+  // listed name ("ПРОМА") is not in the KB and creates a gap. Digits break
+  // the cluster (distinguishes product lines with article codes).
+  // Nested/overlapping mentions (e.g. Danfoss/FOSS same pos) are merged.
+  const clusters = [];
+  let current = [allMentions[0]];
+  for (let i = 1; i < allMentions.length; i += 1) {
+    const prev = allMentions[i - 1];
+    const curr = allMentions[i];
+    const gap = curr.pos - prev.end;
+    const between = gap > 0 ? loweredText.slice(prev.end, curr.pos) : "";
+    const overlapping = gap < 0;
+    const hasDigit = /\d/.test(between);
+    if (overlapping || (gap <= maxInterGap && !hasDigit)) {
+      current.push(curr);
+    } else {
+      clusters.push(current);
+      current = [curr];
+    }
+  }
+  clusters.push(current);
+
+  const dropBrands = new Set();
+  for (const cluster of clusters) {
+    const uniqueInCluster = new Set(cluster.map((m) => m.brand));
+    if (uniqueInCluster.size < clusterThreshold) continue;
+    const clusterStart = cluster[0].pos;
+    const clusterEnd = cluster[cluster.length - 1].end;
+    for (const brand of uniqueInCluster) {
+      const mentions = brandMentions.get(brand) || [];
+      const hasOutside = mentions.some((m) => m.pos + m.len < clusterStart || m.pos > clusterEnd);
+      if (!hasOutside) dropBrands.add(brand);
+    }
+  }
+
+  return detectedBrands.filter((brand) => !dropBrands.has(brand));
+}
+
 const DEFAULT_RULES = [
   { scope: "body", classifier: "spam", matchType: "regex", pattern: "casino|crypto|легкий заработок|раскрут(ка|им)|seo[- ]?продвиж|unsubscr|viagra|кэшбэк|отписа|подписк|рассылк|промокод|выиграли|лотере", weight: 6, notes: "Базовый spam filter" },
   { scope: "subject", classifier: "spam", matchType: "regex", pattern: "скидк|распродаж|акци[яи]|кэшбэк|до\\s*-?\\d+%|промокод|sale|free|бесплатн", weight: 5, notes: "Маркетинговый spam subject" },
@@ -1622,11 +1695,21 @@ class DetectionKnowledgeBase {
       return padded.includes(b);
     });
 
-    if (projectMatched.length > 0) {
-      return dedupeCaseInsensitive(projectMatched);
-    }
+    const combined = projectMatched.length > 0
+      ? dedupeCaseInsensitive(projectMatched)
+      : dedupeCaseInsensitive([...matched, ...projectMatched]);
 
-    return dedupeCaseInsensitive([...matched, ...projectMatched]);
+    if (combined.length < 10) return combined;
+
+    // Build brand→aliases map for position-based cluster filter
+    const brandAliasMap = new Map();
+    for (const { alias, canonical_brand } of aliases) {
+      const key = String(canonical_brand || "").toLowerCase();
+      if (!key) continue;
+      if (!brandAliasMap.has(key)) brandAliasMap.set(key, []);
+      brandAliasMap.get(key).push(String(alias || "").toLowerCase());
+    }
+    return filterSignatureBrandCluster(combined, lowered, brandAliasMap);
   }
 
   matchField(fieldName, text) {
@@ -1756,6 +1839,17 @@ class DetectionKnowledgeBase {
     } catch {
       // best-effort
     }
+  }
+
+  filterSignatureBrandCluster(detectedBrands, loweredText, aliases) {
+    const brandAliasMap = new Map();
+    for (const { alias, canonical_brand } of aliases || this.getBrandAliases()) {
+      const key = String(canonical_brand || "").toLowerCase();
+      if (!key) continue;
+      if (!brandAliasMap.has(key)) brandAliasMap.set(key, []);
+      brandAliasMap.get(key).push(String(alias || "").toLowerCase());
+    }
+    return filterSignatureBrandCluster(detectedBrands, loweredText, brandAliasMap);
   }
 }
 
