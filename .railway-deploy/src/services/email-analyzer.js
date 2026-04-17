@@ -1203,10 +1203,14 @@ function enrichLeadFromKnowledgeBase(lead, classification, project, searchText =
     return;
   }
   const brandCandidates = new Map();
+  // Strip newsletter image alt-text chains and Siderus "Бренды, по которым..." capability
+  // lists before KB nomenclature lookup — otherwise logo/signature alt-text leaks brand
+  // matches via semantic search (e.g. Laserzz newsletter ⇒ "Agilent Technologies").
+  const cleanedSearchText = stripImageAltTextChain(stripBrandCapabilityList(String(searchText || "")));
   const queries = [
     ...(lead.productNames || []).map((item) => item?.name),
     ...(lead.lineItems || []).map((item) => item?.descriptionRu),
-    ...String(searchText || "").split(/\r?\n/).slice(0, 8)
+    ...cleanedSearchText.split(/\r?\n/).slice(0, 8)
   ]
     .map((value) => cleanup(value))
     .filter(Boolean)
@@ -1607,9 +1611,9 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   // Limit brand scan text to avoid attachment-bomb hallucinations (large catalogs / PDFs)
   // Also strip Siderus-style "Бренды, по которым мы работаем..." capability list —
   // this signature catalog re-appears in every reply/forward and pollutes 200+ bogus brands per row.
-  const bodyForBrands = stripBrandCapabilityList(body);
+  const bodyForBrands = stripImageAltTextChain(stripBrandCapabilityList(body));
   const brandScanBody = bodyForBrands.length > 6000 ? bodyForBrands.slice(0, 6000) : bodyForBrands;
-  const attachmentsTextForBrands = stripBrandCapabilityList(attachmentsText);
+  const attachmentsTextForBrands = stripImageAltTextChain(stripBrandCapabilityList(attachmentsText));
   const rawBrands = unique(kbBrands.concat(detectBrands([subject, brandScanBody, attachmentsTextForBrands].join("\n"), brands)));
   let detectedBrands = detectionKb.filterOwnBrands(deduplicateByAbsorption(rawBrands, "keep-shortest"));
   const explicitTextBrands = [...detectedBrands];
@@ -4163,6 +4167,16 @@ function stripBrandCapabilityList(text) {
   const lineStart = src.lastIndexOf("\n", match.index);
   const cutAt = lineStart === -1 ? 0 : lineStart;
   return src.slice(0, cutAt).replace(/\s+$/, "");
+}
+
+// Image alt-text bracket chains (e.g. newsletter logos) render as [Alt1][Alt2][Alt3]
+// in plain-text, leaking brand names from image descriptions into brand detection.
+const IMAGE_ALT_CHAIN_PATTERN = /(?:\[[^\]\n]{3,200}\][ \t]*){2,}/g;
+
+function stripImageAltTextChain(text) {
+  const src = String(text || "");
+  if (!src) return src;
+  return src.replace(IMAGE_ALT_CHAIN_PATTERN, " ");
 }
 
 function extractSignature(text) {

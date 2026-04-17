@@ -2565,3 +2565,46 @@ runTest("stripBrandCapabilityList: английский вариант Brands we
   const brands = analysis.lead.detectedBrands || [];
   assert.ok(brands.length < 4, `Ожидалось < 4 брендов, получено ${brands.length}: ${brands.join(", ")}`);
 });
+
+runTest("stripImageAltTextChain: newsletter alt-text бренды не попадают в detectedBrands", () => {
+  // Реальный кейс Laserzz #69, #171, #328, #772: HTML newsletter конвертирован в текст,
+  // alt-атрибуты картинок рендерятся как [Alt1][Alt2][Alt3] в начале тела.
+  // Проверяем: бренды именно из alt-text цепочки (Agilent/Emerson/WIKA/Endress/KELLER) не
+  // попадают в detectedBrands. Семантический поиск по токенам остаётся отдельной задачей.
+  const analysis = analyzeEmail(project, {
+    fromName: "Laserzz",
+    fromEmail: "info@laserzz.ru",
+    subject: "Текущие новости доставки и немного творчества",
+    attachments: "",
+    body: [
+      "[Agilent Technologies (Agilent) - производитель вакуумных насосов, измерительного оборудования, лабораторных приборов][Emerson][Company Anniversary — 50 Years of KELLER Pressure | KELLER Pressure][Endress+Hauser][WIKA]",
+      "",
+      "Добрый вечер уважаемые коллеги.",
+      "",
+      "Напоминаем, что у нас есть опция экспресс доставки из США и Европы товаров в РФ через Китай.",
+      "",
+      "С уважением,",
+      "Фомичев Георгий"
+    ].join("\n")
+  });
+  const brands = analysis.lead.detectedBrands || [];
+  const altTextLeak = brands.filter((b) => /agilent|emerson|wika|endress|\bkeller\b/i.test(String(b)));
+  assert.equal(altTextLeak.length, 0, `Alt-text бренды утекли в detectedBrands: ${altTextLeak.join(", ")} (всего: ${brands.join(", ")})`);
+});
+
+runTest("stripImageAltTextChain: одиночный [текст] не стрипается", () => {
+  // Контроль: одиночная скобка — НЕ alt-chain, брендов внутри всё ещё детектим.
+  const analysis = analyzeEmail(project, {
+    fromName: "Клиент",
+    fromEmail: "buyer@example.ru",
+    subject: "Нужен автомат",
+    attachments: "",
+    body: [
+      "Добрый день, нужен [ABB] S201 C16 x10 шт.",
+      "",
+      "С уважением, Иван"
+    ].join("\n")
+  });
+  const brands = analysis.lead.detectedBrands || [];
+  assert.ok(brands.includes("ABB"), `Ожидался ABB в [ABB], получено: ${brands.join(", ")}`);
+});

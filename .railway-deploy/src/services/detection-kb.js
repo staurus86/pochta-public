@@ -33,6 +33,20 @@ function stripBrandCapabilityListText(text) {
   return src.slice(0, cutAt).replace(/\s+$/, "");
 }
 
+// Image alt-text bracket chains: HTML newsletters/signatures render <img alt="..."/>
+// as [Alt text] in plain-text. Multiple consecutive images become [Alt1][Alt2][Alt3]
+// at body start or between paragraphs, leaking brand names from image descriptions
+// (e.g. Laserzz: [Agilent Technologies][Emerson][WIKA]...) into brand detection.
+// 2+ consecutive bracket chunks with 3-200 char content (no newline inside) reliably
+// signal an image-chain artifact, not legitimate inline text.
+const IMAGE_ALT_CHAIN_PATTERN = /(?:\[[^\]\n]{3,200}\][ \t]*){2,}/g;
+
+function stripImageAltTextChain(text) {
+  const src = String(text || "");
+  if (!src) return src;
+  return src.replace(IMAGE_ALT_CHAIN_PATTERN, " ");
+}
+
 const DEFAULT_RULES = [
   { scope: "body", classifier: "spam", matchType: "regex", pattern: "casino|crypto|легкий заработок|раскрут(ка|им)|seo[- ]?продвиж|unsubscr|viagra|кэшбэк|отписа|подписк|рассылк|промокод|выиграли|лотере", weight: 6, notes: "Базовый spam filter" },
   { scope: "subject", classifier: "spam", matchType: "regex", pattern: "скидк|распродаж|акци[яи]|кэшбэк|до\\s*-?\\d+%|промокод|sale|free|бесплатн", weight: 5, notes: "Маркетинговый spam subject" },
@@ -1576,9 +1590,10 @@ class DetectionKnowledgeBase {
     // Siderus employee signatures contain a catalog of 70+ brands that gets re-quoted
     // in every reply/forward and pollutes detection with hundreds of bogus brands.
     const cleaned = stripBrandCapabilityListText(text);
+    const dealted = stripImageAltTextChain(cleaned);
     // Strip email addresses before brand detection to prevent alias matches inside local parts
     // e.g. "epson" alias must not match "recepson@mail.ru"
-    const stripped = String(cleaned || "").replace(/\b[\w.+%-]+@[\w.-]+\.[a-z]{2,}\b/gi, " ");
+    const stripped = String(dealted || "").replace(/\b[\w.+%-]+@[\w.-]+\.[a-z]{2,}\b/gi, " ");
     const lowered = stripped.toLowerCase();
     const padded = ` ${lowered} `;
     const aliases = this.getBrandAliases();
