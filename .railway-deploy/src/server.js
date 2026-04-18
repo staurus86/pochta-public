@@ -1276,56 +1276,71 @@ async function handleApi(req, res, url) {
 
     job.progress = { total: queue.length, processed: 0, skipped: 0, errors: 0, currentSubject: null };
 
-    // Run async in background
+    // Run async in background with bounded concurrency pool
     (async () => {
       const { analyzeEmailAsync } = await import("./services/email-analyzer.js");
-      const LLM_DELAY_MS = 3500; // ~17 req/min — safe rate limit
-      let processedCount = 0;
-
-      for (const msg of queue) {
-        if (job.status !== "running") break; // cancelled
-
-        job.progress.currentSubject = msg.subject || "(без темы)";
-        const body = msg.body || msg.bodyPreview || msg.analysis?.lead?.freeText || "";
+      // Concurrency pool: N workers pull from shared queue. With N=5 and ~2s/request
+      // this gives ~150 req/min vs. 17 req/min in the old sequential loop — ~9× speedup.
+      // Override via LLM_REANALYZE_CONCURRENCY env if provider has stricter rate limits.
+      const CONCURRENCY = Math.max(1, Number(process.env.LLM_REANALYZE_CONCURRENCY) || 5);
+      let queueIdx = 0;
+      let lastPersistedCount = 0;
+      let persistInFlight = false;
+      const persistGuard = async () => {
+        if (persistInFlight) return;
+        const due = (job.progress.processed + job.progress.errors) - lastPersistedCount;
+        if (due < 10) return;
+        persistInFlight = true;
         try {
-          const newAnalysis = await analyzeEmailAsync(project, {
-            messageKey: msg.messageKey || msg.id,
-            fromEmail: msg.from || msg.analysis?.sender?.email || "",
-            fromName: msg.analysis?.sender?.fullName || "",
-            subject: msg.subject || "",
-            body,
-            attachments: (msg.attachmentFiles || msg.attachments || []).map((a) => typeof a === "string" ? a : a.filename || a.name || ""),
-            attachmentFiles: (msg.attachmentFiles || []).map((a) => typeof a === "string" ? { filename: a } : a)
-          });
-          newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
-          msg.analysis = newAnalysis;
-          msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
-          // Update pipelineStatus unless manually overridden
-          const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
-          if (!wasManuallyChanged) {
-            const label = newAnalysis.classification?.label;
-            msg.pipelineStatus = label === "СПАМ"
-              ? "ignored_spam"
-              : label === "Клиент"
-                ? "ready_for_crm"
-                : newAnalysis.crm?.needsClarification
-                  ? "needs_clarification"
-                  : "review";
-          }
-          job.progress.processed++;
-          processedCount++;
-        } catch {
-          job.progress.errors++;
-        }
-
-        // Persist every 10 messages
-        if (processedCount % 10 === 0) {
+          lastPersistedCount = job.progress.processed + job.progress.errors;
           await store.persist();
+        } finally {
+          persistInFlight = false;
         }
+      };
 
-        // Rate limit pause
-        await new Promise((r) => setTimeout(r, LLM_DELAY_MS));
+      async function worker() {
+        while (job.status === "running") {
+          const idx = queueIdx++;
+          if (idx >= queue.length) break;
+          const msg = queue[idx];
+
+          job.progress.currentSubject = msg.subject || "(без темы)";
+          const body = msg.body || msg.bodyPreview || msg.analysis?.lead?.freeText || "";
+          try {
+            const newAnalysis = await analyzeEmailAsync(project, {
+              messageKey: msg.messageKey || msg.id,
+              fromEmail: msg.from || msg.analysis?.sender?.email || "",
+              fromName: msg.analysis?.sender?.fullName || "",
+              subject: msg.subject || "",
+              body,
+              attachments: (msg.attachmentFiles || msg.attachments || []).map((a) => typeof a === "string" ? a : a.filename || a.name || ""),
+              attachmentFiles: (msg.attachmentFiles || []).map((a) => typeof a === "string" ? { filename: a } : a)
+            });
+            newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
+            msg.analysis = newAnalysis;
+            msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
+            const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
+            if (!wasManuallyChanged) {
+              const label = newAnalysis.classification?.label;
+              msg.pipelineStatus = label === "СПАМ"
+                ? "ignored_spam"
+                : label === "Клиент"
+                  ? "ready_for_crm"
+                  : newAnalysis.crm?.needsClarification
+                    ? "needs_clarification"
+                    : "review";
+            }
+            job.progress.processed++;
+          } catch {
+            job.progress.errors++;
+          }
+
+          await persistGuard();
+        }
       }
+
+      await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
 
       // Retroactive reclassification: messages that have stored llmExtraction.requestType
       // but still show "Не определено" (e.g. processed before reclassification logic existed)
