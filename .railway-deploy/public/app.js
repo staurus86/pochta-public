@@ -1705,7 +1705,12 @@ function exportInboxXlsx() {
   }
 
   const headers = ['№', 'Дата', 'От', 'Ящик', 'Тема', 'Тело письма', 'Статус', 'Категория', 'Confidence', 'ФИО', 'Должность', 'Компания', 'ИНН', 'Телефон', 'Бренды', 'Артикулы', 'LLM Тип запроса', 'LLM Срочно', 'LLM Не хватает'];
-  const data = runnerMessages.map((m, idx) => {
+  const colWidths = [
+    { wch: 5 }, { wch: 20 }, { wch: 25 }, { wch: 25 }, { wch: 40 }, { wch: 60 },
+    { wch: 16 }, { wch: 14 }, { wch: 10 }, { wch: 22 }, { wch: 22 }, { wch: 25 },
+    { wch: 14 }, { wch: 18 }, { wch: 25 }, { wch: 30 }, { wch: 18 }, { wch: 10 }, { wch: 30 }
+  ];
+  const toRow = (m, idx) => {
     const a = m.analysis || {};
     const s = a.sender || {};
     const l = a.lead || {};
@@ -1720,19 +1725,21 @@ function exportInboxXlsx() {
       (a.detectedBrands || []).join('; '), (l.articles || []).join('; '),
       llm.requestType || '', llm.isUrgent ? 'Да' : '', (llm.missingForProcessing || []).join('; ')
     ];
-  });
+  };
 
-  const ws = XLSX.utils.aoa_to_sheet([headers, ...data]);
-  // Column widths
-  ws['!cols'] = [
-    { wch: 5 }, { wch: 20 }, { wch: 25 }, { wch: 25 }, { wch: 40 }, { wch: 60 },
-    { wch: 16 }, { wch: 14 }, { wch: 10 }, { wch: 22 }, { wch: 22 }, { wch: 25 },
-    { wch: 14 }, { wch: 18 }, { wch: 25 }, { wch: 30 }, { wch: 18 }, { wch: 10 }, { wch: 30 }
-  ];
+  const mainMsgs = runnerMessages;
+  const spamMsgs = allRunnerMessages.filter(isSpam);
+
+  const wsMain = XLSX.utils.aoa_to_sheet([headers, ...mainMsgs.map(toRow)]);
+  wsMain['!cols'] = colWidths;
+  const wsSpam = XLSX.utils.aoa_to_sheet([headers, ...spamMsgs.map(toRow)]);
+  wsSpam['!cols'] = colWidths;
+
   const wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Заявки');
+  XLSX.utils.book_append_sheet(wb, wsMain, 'Заявки');
+  XLSX.utils.book_append_sheet(wb, wsSpam, 'Спам');
   XLSX.writeFile(wb, `pochta-inbox-${new Date().toISOString().slice(0, 10)}.xlsx`);
-  showToast(`Экспортировано ${runnerMessages.length} писем в XLSX`);
+  showToast(`Экспортировано: ${mainMsgs.length} заявок + ${spamMsgs.length} спам`);
 }
 
 // ═══ Copy to clipboard ═══
