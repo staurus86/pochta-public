@@ -12,6 +12,12 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   // Too-generic words that cause false positives in product descriptions
   "ultra", // "ultra-clean", "ultrafilter", "ultrasonic" → false ULTRA POMPE matches
   "sset",  // "#SSET" catalog suffix in Fanuc/Novotec article codes → false SSET brand
+  // Ghost-brand audit (1753 emails, 904 with ghost brands) — aliases causing substring/scatter false positives
+  "pace", "link", "belt", "tele", "radio", "digi", "ital", "robot", "true", "bar",
+  "onda", "stem", "worldwide", "thermal", "transfer", "micro", "standard", "meta",
+  "motor", "norma", "inc", "sdi", "able", "liquid",
+  // Country/region aliases — appear in postal addresses ("123610, Россия, Москва")
+  "россия", "russia", "rossiya", "moscow", "москва",
 ]);
 // Aliases that must match as whole words only (prevent substring false positives)
 // "puls" — prevent matching inside "vegapuls"; "foss" — prevent matching inside "danfoss"
@@ -1723,8 +1729,9 @@ class DetectionKnowledgeBase {
         if (BRAND_FALSE_POSITIVE_ALIASES.has(alias)) {
           return false;
         }
-        // Short aliases (< 4 chars) or word-boundary-required aliases need strict word boundary
-        if (alias.length < 4 || BRAND_WORD_BOUNDARY_ALIASES.has(alias)) {
+        // Single-word aliases ALWAYS require word boundary — prevent substring hits like
+        // "digi" inside "digital", "ital" inside "digital", "robot" inside "robot-mail-...".
+        if (!/\s/.test(alias) || alias.length < 4 || BRAND_WORD_BOUNDARY_ALIASES.has(alias)) {
           return new RegExp(`\\b${escapeRegex(alias)}\\b`, "i").test(lowered);
         }
         return padded.includes(alias);
@@ -1736,7 +1743,8 @@ class DetectionKnowledgeBase {
       if (BRAND_FALSE_POSITIVE_ALIASES.has(b)) {
         return false;
       }
-      if (b.length < 4 || BRAND_WORD_BOUNDARY_ALIASES.has(b)) {
+      // Single-word project brands ALWAYS require word boundary (same reason as aliases)
+      if (!/\s/.test(b) || b.length < 4 || BRAND_WORD_BOUNDARY_ALIASES.has(b)) {
         return new RegExp(`\\b${escapeRegex(b)}\\b`, "i").test(lowered);
       }
       return padded.includes(b);

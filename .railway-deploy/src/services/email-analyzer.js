@@ -309,7 +309,9 @@ function validateSenderFields(sender) {
 const BRAND_NOISE = new Set([
   "SIDERUS", "KOLOVRAT", "KLVRT", "ERSA", "ITEC", "SCHISCHEK", "SERA", "SERFILCO", "VEGA",
   "WALDNER", "KIESEL", "MAXIMATOR", "STROMAG", "SCHIMPF", "PETERSIME",
-  "ENDRESS", "HAUSER", "STAHL", "VAHLE"
+  "ENDRESS", "HAUSER", "STAHL", "VAHLE",
+  // Country/region names appearing in postal addresses — never brands in KB
+  "РОССИЯ", "RUSSIA", "ROSSIYA", "MOSCOW", "МОСКВА"
 ]);
 
 const BRAND_FALSE_POSITIVE_ALIASES = new Set([
@@ -319,6 +321,12 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   // Too-generic words causing false positives in product descriptions
   "ultra", // "ultra-clean", "ultrafilter" etc → false ULTRA POMPE/similar matches
   "sset",  // "#SSET" catalog suffix in Fanuc/Novotec article codes → false SSET brand
+  // Ghost-brand audit (1753 emails, 904 with ghost brands) — aliases causing substring/scatter false positives
+  "pace", "link", "belt", "tele", "radio", "digi", "ital", "robot", "true", "bar",
+  "onda", "stem", "worldwide", "thermal", "transfer", "micro", "standard", "meta",
+  "motor", "norma", "inc", "sdi", "able", "liquid",
+  // Country/region aliases — appear in postal addresses ("123610, Россия, Москва")
+  "россия", "russia", "rossiya", "moscow", "москва",
 ]);
 // Aliases that must match as whole words (word boundary) to avoid substring false positives
 // "foss" → prevent matching inside "danfoss"
@@ -5272,11 +5280,13 @@ function matchesBrand(normalizedText, candidate) {
     if (candidateWords.length === 1 && candidateWords[0].length < 4 && !BRAND_CONTEXT_PATTERN.test(normalizedText)) {
       return false;
     }
-    // Word-boundary-required aliases: must not match as substring inside another word
-    if (candidateWords.length === 1 && BRAND_WORD_BOUNDARY_LOCAL.has(candidateWords[0])) {
+    // Single-word aliases must ALWAYS match at word boundary — prevent substring hits
+    // like "digi" inside "digital", "ital" inside "digital", "robot" inside "robot-mail-...".
+    if (candidateWords.length === 1) {
       return new RegExp(`\\b${escapeRegExp(candidateWords[0])}\\b`, "i").test(normalizedText);
     }
-    return true;
+    // Multi-word: anchor first and last token at word boundaries inside the matched region
+    return new RegExp(`\\b${escapeRegExp(normalizedCandidate.trim())}\\b`, "i").test(normalizedText);
   }
 
   if (!BRAND_CONTEXT_PATTERN.test(normalizedText)) {
@@ -5284,7 +5294,13 @@ function matchesBrand(normalizedText, candidate) {
   }
 
   const parts = candidateWords.filter((item) => item.length >= 3 && !BRAND_FALSE_POSITIVE_ALIASES.has(item));
-  return parts.length > 1 && parts.every((part) => normalizedText.includes(` ${part} `));
+  if (parts.length < 2) return false;
+  // Require contiguous match: allow up to 1 intervening short word (<=12 chars) between parts
+  const re = new RegExp(
+    "\\b" + parts.map(escapeRegExp).join("(?:\\s+\\S{1,12}){0,1}\\s+") + "\\b",
+    "i"
+  );
+  return re.test(normalizedText);
 }
 
 function stripHtml(text) {
