@@ -18,6 +18,15 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   "motor", "norma", "inc", "sdi", "able", "liquid",
   // Country/region aliases — appear in postal addresses ("123610, Россия, Москва")
   "россия", "russia", "rossiya", "moscow", "москва",
+  // Batch F / P20: residual generic noise that still triggered single-token canonicals
+  // or cross-brand shared aliases on 1753-row verify (SENSOR / TEL / FLOW / SPM / AISI /
+  // O-RING — single-token canonicals; "seals"/"dichtungen"/"dichtungen)" — shared across
+  // Corteco/Simrit/"Nilos ring"; "suction" — generic pump-spec noun).
+  "sensor", "tel", "flow", "suction", "aisi", "o-ring", "spm", "seals", "dichtungen",
+  "dichtungen)",
+  // Batch F / P20 (verify scan fallout): "power" (rs-power.ru domain leak), "sensors"
+  // (plural "Sensors NORIS & NOVOTECHNIK").
+  "power", "sensors",
 ]);
 // Aliases that must match as whole words only (prevent substring false positives)
 // "puls" — prevent matching inside "vegapuls"; "foss" — prevent matching inside "danfoss"
@@ -1764,13 +1773,17 @@ class DetectionKnowledgeBase {
         }
         // Batch E / P17: reject single-token aliases for multi-token canonicals whose first
         // token is conflict-prone. See BRAND_MULTI_FIRST_TOKEN_CONFLICT above.
+        // Batch F / P20: also split on hyphens so hyphen-joined first tokens like
+        // "Check-All Valve" (tokens=["check-all","valve"], pre-hyphen="check") and single-
+        // hyphen canonicals "Electro-Sensors" (tokens=["electro-sensors"], pre-hyphen=
+        // "electro") are caught.
         const canonicalLower = String(entry.canonical_brand || "").toLowerCase();
         const canonicalTokens = canonicalLower.split(/\s+/).filter(Boolean);
-        if (
-          canonicalTokens.length >= 2 &&
-          BRAND_MULTI_FIRST_TOKEN_CONFLICT.has(canonicalTokens[0]) &&
-          !/\s/.test(alias)
-        ) {
+        const canonicalTokensHyphenSplit = canonicalLower.split(/[\s-]+/).filter(Boolean);
+        const firstConflict =
+          (canonicalTokens.length >= 2 && BRAND_MULTI_FIRST_TOKEN_CONFLICT.has(canonicalTokens[0])) ||
+          (canonicalTokensHyphenSplit.length >= 2 && BRAND_MULTI_FIRST_TOKEN_CONFLICT.has(canonicalTokensHyphenSplit[0]));
+        if (firstConflict && !/\s/.test(alias)) {
           return false;
         }
         // Single-word aliases ALWAYS require word boundary — prevent substring hits like

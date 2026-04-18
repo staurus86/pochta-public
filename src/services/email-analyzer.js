@@ -327,6 +327,15 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   "motor", "norma", "inc", "sdi", "able", "liquid",
   // Country/region aliases — appear in postal addresses ("123610, Россия, Москва")
   "россия", "russia", "rossiya", "moscow", "москва",
+  // Batch F / P20: mirror of detection-kb.js — residual generic noise (SENSOR / TEL / FLOW /
+  // SPM / AISI / O-RING single-token canonicals; "seals"/"dichtungen"/"dichtungen)" shared
+  // across Corteco/Simrit/Nilos ring; "suction" generic pump-spec noun).
+  "sensor", "tel", "flow", "suction", "aisi", "o-ring", "spm", "seals", "dichtungen",
+  "dichtungen)",
+  // Batch F / P20 (verify scan fallout): single-token canonicals that leak via shared-alias
+  // dedup when hyphen-split first-token filter newly removes their multi-word siblings.
+  // "power" (domain rs-power.ru), "sensors" (plural "Sensors NORIS & NOVOTECHNIK").
+  "power", "sensors",
 ]);
 // Batch D / P13 + Batch E / P17: aliases whose FIRST token is a common generic word — when such
 // an alias has ≥2 tokens (e.g. "Alfa Electric", "Power Innovation", "High Perfection Tech",
@@ -679,6 +688,54 @@ export function analyzeEmail(project, payload) {
     const spamSender = extractSender(fromName, fromEmail, bodyForSender, attachments, signature);
     applySenderProfileHints(spamSender, classification, fromEmail);
     applyCompanyDirectoryHints(spamSender, fromEmail);
+    // Batch F / P18: body-grounding gate for SPAM — SPAM emails (WordPress auto-forms
+    // wordpress@endress-hauser.pro with body "<b>Заявка с формы обратной связи</b>
+    // <p>Имя: тест2</p>") get classified as СПАМ via form-test rules but still carry
+    // brand hits from the subject ("Отправка заявки с сайта Endress - Hauser"). The
+    // regular P15 gate later in analyzeEmail never fires for СПАМ because of this early
+    // return. Apply a compact body-only gate so analysis.detectedBrands stays empty when
+    // the body does not ground the brand. Safe: SPAM path does not read attachments, so
+    // primaryBody IS the effective grounding text (no broader source to lose). Runs
+    // AFTER applySenderProfileHints so profile-injected brands are also gated.
+    if ((classification.detectedBrands || []).length > 0) {
+      const groundingLower = String(primaryBody || body || "").toLowerCase();
+      const groundingNormalized = normalizeComparableText(primaryBody || body || "");
+      const kbAliases = new Map();
+      try {
+        for (const entry of (detectionKb.getBrandAliases() || [])) {
+          const key = String(entry.canonical_brand || "").toLowerCase();
+          if (!key) continue;
+          if (!kbAliases.has(key)) kbAliases.set(key, []);
+          kbAliases.get(key).push(String(entry.alias || "").toLowerCase());
+        }
+      } catch (_) { /* noop */ }
+      const isSpamBrandGrounded = (brand) => {
+        const b = String(brand || "").trim();
+        if (!b) return false;
+        if (matchesBrand(groundingNormalized, b)) return true;
+        const brandTokens = b.toLowerCase().split(/\s+/).filter(Boolean);
+        const isMultiToken = brandTokens.length >= 2;
+        const aliases = kbAliases.get(b.toLowerCase()) || [];
+        for (const alias of aliases) {
+          if (!alias || alias.length < 3) continue;
+          if (isMultiToken && !/\s/.test(alias)) continue;
+          if (new RegExp(`\\b${escapeRegExp(alias)}\\b`, "i").test(groundingLower)) return true;
+        }
+        return false;
+      };
+      const groundedSpamBrands = classification.detectedBrands.filter(isSpamBrandGrounded);
+      if (groundedSpamBrands.length !== classification.detectedBrands.length) {
+        const dropped = classification.detectedBrands.filter((b) => !groundedSpamBrands.includes(b));
+        if (dropped.length > 0) {
+          classification.sources = classification.sources || {};
+          classification.sources.droppedBrands_noBodyOverlap = uniqueBrands([
+            ...(classification.sources.droppedBrands_noBodyOverlap || []),
+            ...dropped
+          ]);
+        }
+        classification.detectedBrands = groundedSpamBrands;
+      }
+    }
     return {
       analysisId: randomUUID(),
       createdAt: new Date().toISOString(),
@@ -930,19 +987,15 @@ export function analyzeEmail(project, payload) {
   // enrichLeadFromKnowledgeBase but at the classification-merge seam.
   // Keeps mailbox-fallback (project3-runner mailbox→brand) intact because that runs AFTER
   // analyzeEmail returns.
-  if ((classification.detectedBrands || []).length > 0) {
+  const buildBrandGroundingCheck = () => {
     const groundingText = [bodyForExtraction, attachmentContent].filter(Boolean).join("\n\n");
     const groundedLower = String(groundingText || "").toLowerCase();
     const groundedNormalized = normalizeComparableText(groundingText);
     let kbAliases = null;
-    const isBrandGrounded = (brand) => {
+    return (brand) => {
       const b = String(brand || "").trim();
       if (!b) return false;
       if (matchesBrand(groundedNormalized, b)) return true;
-      // For multi-token brands, require a multi-token alias to appear verbatim — single-token
-      // KB aliases like "pressure"→"Pressure Tech", "high"→"High Perfection Tech",
-      // "check"→"Check Point" match too loosely against generic bodies ("pressure sensor",
-      // "high quality tech", "check valve") and defeat the grounding gate.
       const brandTokens = b.toLowerCase().split(/\s+/).filter(Boolean);
       const isMultiToken = brandTokens.length >= 2;
       try {
@@ -975,6 +1028,9 @@ export function analyzeEmail(project, payload) {
       } catch (_) { /* noop */ }
       return false;
     };
+  };
+  if ((classification.detectedBrands || []).length > 0) {
+    const isBrandGrounded = buildBrandGroundingCheck();
     const groundedBrands = (classification.detectedBrands || []).filter(isBrandGrounded);
     if (groundedBrands.length !== classification.detectedBrands.length) {
       const dropped = (classification.detectedBrands || []).filter((b) => !groundedBrands.includes(b));
@@ -996,6 +1052,52 @@ export function analyzeEmail(project, payload) {
       uniqueBrands([...lead.detectedBrands, ...classification.detectedBrands]),
       "keep-shortest"
     );
+  }
+
+  // Batch F / P18: mirror P15 gate on lead.detectedBrands. extractLead's own detectBrands
+  // scans [subject, brandScanBody, attachmentsText] — so a brand whose alias appears ONLY
+  // in the subject (WordPress auto-form: "Отправка заявки с сайта schischek", body is
+  // just "<b>Заявка с формы обратной связи</b>") still lands on lead.detectedBrands and
+  // bypasses the classification-level P15 gate entirely.
+  // Batch F / P18: narrow lead gate — only apply when the lead has ZERO concrete extraction
+  // signal (no real lineItem article, no allArticles, no productNames, no sender company/
+  // inn/phone). That pattern = "empty auto-form" (WordPress wordpress@<brand>.*.beget.tech
+  // with body "<b>Заявка с формы обратной связи</b>" or two tiny <p> fields). In every
+  // other case (real article, known sender), trust extractLead's own detectBrands — which
+  // now includes the P20 false-positive and first-token-conflict filters. This avoids
+  // regressing the semantic-fallback path (enrichLeadFromKnowledgeBase promotes brands
+  // from catalog product_name phrase matches that are NOT literally in body).
+  // Sender signals only count as "concrete" when they come from a real source, not the
+  // email_domain fallback (wordpress@schischek.*.beget.tech → companyName="Beget" from domain).
+  const senderCompanyReal =
+    Boolean(sender?.companyName) && sender?.sources?.company && sender.sources.company !== "email_domain";
+  const hasConcreteLeadContent =
+    (lead.lineItems || []).some((it) => it?.article && !/^DESC:/i.test(it.article)) ||
+    (lead.articles || []).length > 0 ||
+    (lead.productNames || []).length > 0 ||
+    senderCompanyReal ||
+    Boolean(sender?.inn) ||
+    Boolean(sender?.cityPhone) ||
+    Boolean(sender?.mobilePhone);
+  if (!hasConcreteLeadContent && (lead.detectedBrands || []).length > 0) {
+    const isBrandGrounded = buildBrandGroundingCheck();
+    const semanticGrounded = new Set(
+      (lead?.sources?.semanticGroundedBrands || []).map((b) => String(b).toLowerCase())
+    );
+    const groundedLeadBrands = (lead.detectedBrands || []).filter((brand) =>
+      semanticGrounded.has(String(brand).toLowerCase()) || isBrandGrounded(brand)
+    );
+    if (groundedLeadBrands.length !== lead.detectedBrands.length) {
+      const dropped = (lead.detectedBrands || []).filter((b) => !groundedLeadBrands.includes(b));
+      if (dropped.length > 0) {
+        classification.sources = classification.sources || {};
+        classification.sources.droppedBrands_noBodyOverlap = uniqueBrands([
+          ...(classification.sources.droppedBrands_noBodyOverlap || []),
+          ...dropped
+        ]);
+      }
+      lead.detectedBrands = groundedLeadBrands;
+    }
   }
 
   // Zone filter: if we have many brands and a real reply chain, keep only brands
@@ -1450,6 +1552,9 @@ function enrichLeadFromKnowledgeBase(lead, classification, project, searchText =
         lead.detectedBrands = detectionKb.filterOwnBrands(uniqueBrands([...(lead.detectedBrands || []), topBrand]));
         classification.detectedBrands = detectionKb.filterOwnBrands(uniqueBrands([...(classification.detectedBrands || []), topBrand]));
         lead.sources.brands = summarizeSourceList([...(lead.sources.brands || []), "nomenclature_semantic"], true);
+        // Batch F / P18: marker so the later lead body-grounding gate does NOT re-drop a
+        // brand that was already grounded by semantic/catalog rules (a/b/c).
+        lead.sources.semanticGroundedBrands = uniqueBrands([...(lead.sources.semanticGroundedBrands || []), topBrand]);
       } else {
         // Keep trace — expose as kb_inferred source metadata but DO NOT promote into detectedBrands.
         lead.sources.kb_inferred_brands = uniqueBrands([...(lead.sources.kb_inferred_brands || []), topBrand]);
@@ -4373,6 +4478,13 @@ function extractBrandAdjacentCodes(text, forbiddenDigits = new Set()) {
   for (const m of text.matchAll(pattern)) {
     const code = m[1];
     if (!forbiddenDigits.has(code) && !DATE_LIKE_PATTERN.test(code)) {
+      // Batch F / P19: reject pure-year codes ("2026") pulled out of quoted-reply date
+      // headers ("On Mon, 13 Apr 2026 at 12:04"), Mozilla header lines ("Date: Thu, 19 Mar 2026"),
+      // or Russian date lines ("Дата: Fri, 13 Mar 2026"). The upstream isObviousArticleNoise
+      // already rejects bare years without strong article context; apply it here too so the
+      // raw \d{4,9} path cannot bypass.
+      const contextLine = getContextLine(text, m.index, m[0]?.length || code.length);
+      if (isObviousArticleNoise(code, contextLine)) continue;
       matches.push(code);
     }
   }
@@ -5130,6 +5242,12 @@ function detectBrands(text, brands) {
   const canonicalAliasHits = new Map();
 
   for (const brand of knownBrands) {
+    // Batch F / P20: skip canonicals whose name itself is in BRAND_FALSE_POSITIVE_ALIASES
+    // (e.g. KB has canonical "SENSOR" which would otherwise match body word "sensor" via
+    // matchesBrand). These generic single-token canonicals are overwhelmingly noise.
+    if (BRAND_FALSE_POSITIVE_ALIASES.has(String(brand || "").toLowerCase())) {
+      continue;
+    }
     if (matchesBrand(normalizedText, brand)) {
       matched.add(brand);
     }
@@ -5142,15 +5260,22 @@ function detectBrands(text, brands) {
     // loosely against generic body phrases ("pressure sensor", "high quality tech",
     // "check valve") and cannot be distinguished from the canonical. Only multi-token aliases
     // (or matchesBrand on the canonical itself) may promote such brands.
+    // Batch F / P20: (a) also filter out aliases listed in BRAND_FALSE_POSITIVE_ALIASES; (b)
+    // also split canonical tokens on hyphens so hyphen-joined first tokens like "Check-All
+    // Valve" and single-hyphen canonicals "Electro-Sensors" also trip the first-token check.
     const aliasLower = String(entry.alias || "").toLowerCase();
+    if (BRAND_FALSE_POSITIVE_ALIASES.has(aliasLower)) {
+      continue;
+    }
     const canonicalLower = String(entry.canonical_brand || "").toLowerCase();
     const canonicalTokens = canonicalLower.split(/\s+/).filter(Boolean);
+    const canonicalTokensHyphenSplit = canonicalLower.split(/[\s-]+/).filter(Boolean);
     const firstCanonicalToken = canonicalTokens[0] || "";
-    if (
-      canonicalTokens.length >= 2 &&
-      BRAND_FIRST_TOKEN_CONFLICT.has(firstCanonicalToken) &&
-      !/\s/.test(aliasLower)
-    ) {
+    const firstCanonicalTokenHyphen = canonicalTokensHyphenSplit[0] || "";
+    const firstConflict =
+      (canonicalTokens.length >= 2 && BRAND_FIRST_TOKEN_CONFLICT.has(firstCanonicalToken)) ||
+      (canonicalTokensHyphenSplit.length >= 2 && BRAND_FIRST_TOKEN_CONFLICT.has(firstCanonicalTokenHyphen));
+    if (firstConflict && !/\s/.test(aliasLower)) {
       continue;
     }
     if (matchesBrand(normalizedText, entry.alias)) {
