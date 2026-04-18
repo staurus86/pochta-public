@@ -97,6 +97,24 @@ export async function runMailboxFileParser(project, rootDir, options = {}) {
       attachmentFiles
     });
 
+    // Fallback: when customer writes to a branded mailbox (info@paulvahle.ru) without
+    // mentioning the brand in body, use the mailbox-associated brand from config.
+    // Only fires for client-classified emails with zero detected brands.
+    if (
+      item.brand &&
+      analysis.classification?.label === "Клиент" &&
+      analysis.lead &&
+      (!analysis.lead.detectedBrands || analysis.lead.detectedBrands.length === 0)
+    ) {
+      analysis.lead.detectedBrands = [item.brand];
+      analysis.lead.sources = analysis.lead.sources || {};
+      analysis.lead.sources.brands = "mailbox_fallback";
+      // Propagate to classification.detectedBrands if that field exists and is empty
+      if (analysis.classification && (!analysis.classification.detectedBrands || analysis.classification.detectedBrands.length === 0)) {
+        analysis.classification.detectedBrands = [item.brand];
+      }
+    }
+
     const pipelineStatus = item.error
       ? "fetch_error"
       : analysis.classification.label === "СПАМ"
@@ -242,6 +260,24 @@ export async function reprocessMailboxMessages(project, options = {}) {
         attachments: message.attachments || [],
         attachmentFiles: message.attachmentFiles || []
       });
+
+      // Fallback: when customer writes to a branded mailbox (info@paulvahle.ru) without
+      // mentioning the brand in body, use the mailbox-associated brand from config.
+      // Only fires for client-classified emails with zero detected brands.
+      if (
+        message.brand &&
+        analysis.classification?.label === "Клиент" &&
+        analysis.lead &&
+        (!analysis.lead.detectedBrands || analysis.lead.detectedBrands.length === 0)
+      ) {
+        analysis.lead.detectedBrands = [message.brand];
+        analysis.lead.sources = analysis.lead.sources || {};
+        analysis.lead.sources.brands = "mailbox_fallback";
+        if (analysis.classification && (!analysis.classification.detectedBrands || analysis.classification.detectedBrands.length === 0)) {
+          analysis.classification.detectedBrands = [message.brand];
+        }
+      }
+
       recordTelemetrySample(telemetry, Date.now() - sampleStartedAt);
       const computedStatus = resolvePipelineStatus(message.error, analysis);
       const nextStatus = preserveStatus ? message.pipelineStatus : computedStatus;

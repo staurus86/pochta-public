@@ -2969,7 +2969,29 @@ function inferNameFromEmail(email) {
 // Должности, которые часто встречаются в подписях (fallback если KB не нашёл)
 const POSITION_SIGNATURE_PATTERN = /(?:^|\n)\s*((?:начальник|заместитель\s+начальника?|главный\s+(?:инженер|технолог|бухгалтер|специалист|механик)|зав\.\s*(?:отделом|кафедрой|лабораторией|складом)|заведующ(?:ий|ая)\s+\S+|руководитель\s+(?:отдела|направления|группы|проекта|службы)|ведущий\s+(?:инженер|специалист|менеджер)|генеральный\s+директор|коммерческий\s+директор|технический\s+директор|финансовый\s+директор|исполнительный\s+директор|директор\s+по\s+\S+)[^\n]{0,80})/im;
 
+// Strip quoted-reply blocks from an email body so that signature/position extraction
+// operates only on the sender's fresh reply, not on the embedded original message
+// (which often contains our own signature, "Офис-менеджер, ООО «КОЛОВРАТ»").
+export function stripQuotedReply(body) {
+  if (!body) return body;
+  const separators = [
+    /\n-{2,}\s*(?:Original Message|Исходное сообщение|Forwarded message|Пересланное сообщение)/i,
+    /\n(?:From|Отправитель|Sent|Отправлено|Date|Дата):\s/i,
+    /\nВ\s+(?:письме|сообщении)\s+от\s/i,
+    /\n\d{1,2}[.\/]\d{1,2}[.\/]\d{2,4}[,\s]+\d{1,2}:\d{2}.*?(?:пишет|wrote):/i
+  ];
+  let cut = body;
+  for (const sep of separators) {
+    const m = sep.exec(cut);
+    if (m && m.index > 20) cut = cut.slice(0, m.index);
+  }
+  return cut.split(/\r?\n/).filter((line) => !/^\s*[>|]/.test(line)).join("\n");
+}
+
 function extractPosition(body) {
+  // Strip quoted-reply blocks first: prevents picking up our own signature from
+  // the embedded original message (quoted below the customer's fresh reply).
+  body = stripQuotedReply(body);
   // KB match: приоритет (обучаемые паттерны)
   const kbPosition = detectionKb.matchFieldBest("position", body);
 

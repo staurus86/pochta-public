@@ -220,7 +220,23 @@ const DEFAULT_BRAND_ALIASES = [
   { canonicalBrand: "WAGO", alias: "wago" },
   { canonicalBrand: "Omron", alias: "omron" },
   { canonicalBrand: "Sick", alias: "sick" },
-  { canonicalBrand: "Balluff", alias: "balluff" }
+  { canonicalBrand: "Balluff", alias: "balluff" },
+  { canonicalBrand: "Petersime", alias: "petersime" },
+  { canonicalBrand: "Petersime", alias: "петерсайм" },
+  { canonicalBrand: "Petersime", alias: "питерсайм" },
+  { canonicalBrand: "Vahle", alias: "vahle" },
+  { canonicalBrand: "Vahle", alias: "paul vahle" },
+  { canonicalBrand: "Vahle", alias: "paulvahle" },
+  { canonicalBrand: "Sera", alias: "sera" },
+  { canonicalBrand: "Serfilco", alias: "serfilco" },
+  { canonicalBrand: "Ersa", alias: "ersa" },
+  { canonicalBrand: "Waldner", alias: "waldner" },
+  { canonicalBrand: "Maximator", alias: "maximator" },
+  { canonicalBrand: "Stromag", alias: "stromag" },
+  { canonicalBrand: "Schimpf", alias: "schimpf" },
+  { canonicalBrand: "Itec", alias: "itec" },
+  { canonicalBrand: "Vega", alias: "vega" },
+  { canonicalBrand: "Schischek", alias: "schischek" }
 ];
 
 const DEFAULT_SENDER_PROFILES = [
