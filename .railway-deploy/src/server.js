@@ -1342,26 +1342,43 @@ async function handleApi(req, res, url) {
 
       await Promise.all(Array.from({ length: CONCURRENCY }, () => worker()));
 
-      // Retroactive reclassification: messages that have stored llmExtraction.requestType
-      // but still show "Не определено" (e.g. processed before reclassification logic existed)
+      // Retroactive reclassification: apply stored llmExtraction.requestType to existing
+      // classifications. Handles: upgrades (Не определено → Клиент/Поставщик), downgrades
+      // (Клиент/Поставщик → Не определено when rt=other), flips (Клиент → Поставщик on vendor_offer)
       let retroclassified = 0;
       for (const msg of project.recentMessages || []) {
         if (!msg.analysis) continue;
-        if (msg.analysis.classification?.label !== "Не определено") continue;
         const rt = msg.analysis.llmExtraction?.requestType;
         if (!rt) continue;
         const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
         if (wasManuallyChanged) continue;
-        if (["quotation", "order", "info_request", "complaint"].includes(rt)) {
-          msg.analysis.classification.label = "Клиент";
-          msg.analysis.classification.llmReclassified = true;
+        const currentLabel = msg.analysis.classification?.label;
+
+        if (currentLabel === "Не определено") {
+          if (["quotation", "order", "info_request", "complaint"].includes(rt)) {
+            msg.analysis.classification.label = "Клиент";
+            msg.analysis.classification.llmReclassified = true;
+            msg.analysis.classification.llmRequestType = rt;
+            msg.pipelineStatus = msg.analysis.crm?.needsClarification ? "needs_clarification" : "ready_for_crm";
+            retroclassified++;
+          } else if (rt === "vendor_offer") {
+            msg.analysis.classification.label = "Поставщик услуг";
+            msg.analysis.classification.llmReclassified = true;
+            msg.analysis.classification.llmRequestType = rt;
+            retroclassified++;
+          }
+        } else if (rt === "other" && (currentLabel === "Клиент" || currentLabel === "Поставщик услуг")) {
+          msg.analysis.classification.label = "Не определено";
           msg.analysis.classification.llmRequestType = rt;
-          msg.pipelineStatus = msg.analysis.crm?.needsClarification ? "needs_clarification" : "ready_for_crm";
+          msg.analysis.classification.llmDowngraded = true;
+          msg.analysis.classification.needsReview = true;
+          msg.pipelineStatus = "review";
           retroclassified++;
-        } else if (rt === "vendor_offer") {
+        } else if (rt === "vendor_offer" && currentLabel === "Клиент") {
           msg.analysis.classification.label = "Поставщик услуг";
-          msg.analysis.classification.llmReclassified = true;
           msg.analysis.classification.llmRequestType = rt;
+          msg.analysis.classification.llmReclassified = true;
+          msg.pipelineStatus = "review";
           retroclassified++;
         }
       }

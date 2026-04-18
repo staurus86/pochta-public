@@ -123,6 +123,13 @@ R9. request_type:
 R10. is_urgent=true только при явных маркерах: «срочно», «ASAP», «до конца дня», «максимально быстро», «тендер истекает», «оборудование встало». Длинный список без дедлайна — не urgent.
 R11. detection_gaps — ТОЛЬКО то, что нашёл LLM и чего НЕТ в rulesFound. Не дублируй найденное правилами. Не пиши gaps для реально отсутствующих полей (если в письме нет КПП — это не gap). Suggestion должен быть конкретным regex или правилом, не общим советом.
 R12. missing_for_processing — что реально нужно для обработки ИМЕННО этого письма как клиентской заявки. Для vendor_offer/other верни [].
+R13. Банк/финструктура предлагает услуги ВЭД / валютного контроля / импортных расчётов / SWIFT → request_type="vendor_offer". company_name = банк-отправитель (Первоуральскбанк, Альфа-Банк и т.п.), НЕ ООО «КОЛОВРАТ»/«Siderus» из тела. articles=[], brands=[].
+R14. Длинный перечень известных промбрендов через запятую БЕЗ артикулов и количеств («мы поставим / работаем с / наш ассортимент: IFM, SICK, E+H, PILZ, SEW, SMC, Siemens, Festo, ABB...») = каталог поставщика. brands=[] (это не запрос клиента), request_type="vendor_offer".
+R15. Короткий ответ «Карточка/реквизиты во вложении», «Реквизиты для оплаты», «Данные компании» без нового запроса товара → request_type="info_request" (продолжение активной сделки). Извлекай company/INN/phone/sender_name из подписи и вложения, но articles=[], brands=[].
+R16. Fwd:/FW:/Пересылаемое сообщение — извлекай company/sender_name/inn/phone/brands/articles из ОРИГИНАЛА внутри цитаты, а не из forwarder-заголовка. Если верхний header от info@siderus.ru/robot@siderus.ru, а внутри внешний отправитель — это переадресация клиентского письма, берём данные из оригинала.
+R17. Различай приглашение на мероприятие vs тендер:
+    • Тендер (request_type="quotation", извлекай brand/article из ТЗ): маркеры «открытый запрос предложений», «процедура №», «согласно ТЗ», «поставка ... для ООО X в 2026», «направить предложение».
+    • СПАМ-рассылка (request_type="other", articles=[], brands=[]): маркеры «конференция», «форум», «вебинар», «регистрация по ссылке», «программа мероприятия», «спикеры», «докладов».
 
 === ПРИМЕРЫ ===
 
@@ -146,6 +153,26 @@ R12. missing_for_processing — что реально нужно для обра
 Пример 5 — кабели:
 Вход: "Прошу цену: ПВ3 1×1.5 — 200м, ПВ3 1×2.5 — 150м, КВВГ 5×1.5 — 80м"
 Выход (articles): [{"code":"ПВ3","description":"ПВ3 1×1.5","quantity":200,"unit":"м","brand":null},{"code":"ПВ3","description":"ПВ3 1×2.5","quantity":150,"unit":"м","brand":null},{"code":"КВВГ","description":"КВВГ 5×1.5","quantity":80,"unit":"м","brand":null}]
+
+Пример 6 — банк предлагает ВЭД (vendor_offer, R13):
+Вход: "Меня Лариса зовут, представляю подразделение ВЭД Первоуральскбанка. Пишу с предложением о сотрудничестве в части расчетов по импортным контрактам в иностранной валюте для ООО «КОЛОВРАТ». Банк не включен в списки санкций."
+Выход: {"articles":[],"brands":[],"sender_name":"Лариса","company_name":"АО «Первоуральскбанк»","inn":null,"request_type":"vendor_offer","is_urgent":false,"missing_for_processing":[]}
+
+Пример 7 — китайский поставщик с перечнем брендов (R14):
+Вход: "Наша компания Huizhou Token Trading осуществляет поставки в Россию. Мы поставим IFM, SICK, E+H, PILZ, SEW, SMC, Siemens, Festo, ABB, Schneider. Оптимальные цены и сроки."
+Выход: {"articles":[],"brands":[],"sender_name":"Антон","company_name":"Huizhou Token Trading Co., Ltd","inn":null,"request_type":"vendor_offer","is_urgent":false,"missing_for_processing":[]}
+
+Пример 8 — реквизиты по активной сделке (R15, info_request):
+Вход: "Re: ZGA05MV005 Тормоз двигателя. Добрый день. Карточка предприятия во вложении. С уважением, Dmitri Iusupov, Plant Manager, OOO Serioplast."
+Выход: {"articles":[],"brands":[],"sender_name":"Dmitri Iusupov","company_name":"OOO Serioplast","inn":null,"request_type":"info_request","is_urgent":false,"missing_for_processing":[]}
+
+Пример 9 — тендер, не СПАМ (R17):
+Вход: "ООО «УК ВОЛМА» объявляет открытый запрос предложений на поставку электродвигателей PERSKE на торцеватель ГКЛ для ВОЛМА-Воскресенск в 2026 году. Просим направить предложение согласно ТЗ."
+Выход: {"articles":[{"code":"DESC:elektrodvigatel-PERSKE-dlya-tortsevatelya-GKL","brand":"PERSKE","description":"Электродвигатель PERSKE на торцеватель ГКЛ","quantity":null,"unit":"шт"}],"brands":["PERSKE"],"company_name":"ООО «УК ВОЛМА»","request_type":"quotation","is_urgent":false,"missing_for_processing":["quantity"]}
+
+Пример 10 — рассылка про форум (СПАМ, R17):
+Вход: "Программа онлайн-форума по инженерному оборудованию ЖК. 18-20 марта, 57 докладов, пять заседаний. НП АВОК приглашает вас. Регистрация по ссылке."
+Выход: {"articles":[],"brands":[],"sender_name":null,"company_name":null,"request_type":"other","is_urgent":false,"missing_for_processing":[],"detection_gaps":[]}
 
 === SELF-CHECK ПЕРЕД ОТВЕТОМ ===
 ✓ Каждый articles[].code — непустая строка?
@@ -348,11 +375,17 @@ export function mergeLlmExtraction(result, llmData, messageKey = "") {
                 result.classification.llmReclassified = true;
                 result.classification.llmRequestType = rt;
             }
-        } else if (rt === "other" && label === "Клиент") {
-            // Downgrade: LLM says this is not a client request (spam/newsletter/etc)
-            result.classification.needsReview = true;
+        } else if (rt === "other" && (label === "Клиент" || label === "Поставщик услуг")) {
+            // Downgrade: LLM says this is not a real request → "Не определено" (review)
+            result.classification.label = "Не определено";
             result.classification.llmRequestType = rt;
             result.classification.llmDowngraded = true;
+            result.classification.needsReview = true;
+        } else if (rt === "vendor_offer" && label === "Клиент") {
+            // Misclassified vendor outreach → flip to supplier
+            result.classification.label = "Поставщик услуг";
+            result.classification.llmRequestType = rt;
+            result.classification.llmReclassified = true;
         }
     }
 

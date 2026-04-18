@@ -145,7 +145,46 @@ const DEFAULT_RULES = [
   { scope: "subject", classifier: "spam", matchType: "regex", pattern: "приглаша[её]т принять участие в (?:тендере|закупке|процедур[её]?|торгах)|приглашаем.{0,20}к участию в (?:закупке|тендере|торгах)|приглашение на\\s+тендер|приглашение\\s+на\\s+закупку", weight: 6, notes: "B2B тендерный/закупочный спам в теме" },
   { scope: "body", classifier: "spam", matchType: "regex", pattern: "приглаша[её]т принять участие в (?:тендере|закупке|процедур[её]?|торгах)|приглашаем.{0,20}к участию в (?:закупке|тендере|торгах)", weight: 5, notes: "B2B тендерный/закупочный спам в теле" },
   { scope: "subject", classifier: "spam", matchType: "regex", pattern: "вебинар|онлайн.(?:семинар|конференц|форум)|\\d+\\s+дней\\s+до\\s+(?:вебинара|семинара)|присоединяйтесь к", weight: 5, notes: "Вебинар/семинар приглашения в теме" },
-  { scope: "body", classifier: "spam", matchType: "regex", pattern: "зарегистрируйтесь.{0,40}(?:сейчас|бесплатно|на вебинар)|бесплатная регистрация\\s+на\\s+(?:вебинар|семинар|конференц)|участвуйте в (?:вебинаре|семинаре|конференции)|записаться на вебинар", weight: 4, notes: "Регистрация на вебинар/мероприятие" }
+  { scope: "body", classifier: "spam", matchType: "regex", pattern: "зарегистрируйтесь.{0,40}(?:сейчас|бесплатно|на вебинар)|бесплатная регистрация\\s+на\\s+(?:вебинар|семинар|конференц)|участвуйте в (?:вебинаре|семинаре|конференции)|записаться на вебинар", weight: 4, notes: "Регистрация на вебинар/мероприятие" },
+
+  // --- Seeded 2026-04-18 from xlsx-corpus analysis (F2) ---
+  { scope: "subject", classifier: "spam", matchType: "regex", pattern: "tilda:\\s*код\\s+активации", weight: 8, notes: "Tilda form activation noise" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "chatgpt\\s+plus\\s*-?\\s*payment\\s+error|update\\s+(?:required|payment\\s+method)\\s+.{0,40}chatgpt\\s+plus", weight: 8, notes: "ChatGPT Plus phishing" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "(?:днс|dns)\\s*гипер|гипер[- ]выгода|50%\\s+на\\s+всё\\s+dns", weight: 7, notes: "DNS Гипер fake promo" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "(?:закрой(?:те)?|избав(?:иться|ь))\\s+(?:все\\s+)?(?:долги|кредит)|жизн[ьи]\\s+без\\s+кредит|выход\\s+из\\s+долг", weight: 7, notes: "Loan closure scam" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "путь\\s+к\\s+стабильной\\s+доходност|стабильн(?:ый|ой)\\s+заработ(?:ок|ком)|время\\s+зарабатывать\\s+больше|активируйте\\s+финансов(?:ый\\s+поток|ую)|пособие\\s+с\\s+нуля", weight: 7, notes: "Income strategy / get-rich course" },
+  { scope: "subject", classifier: "spam", matchType: "regex", pattern: "активируйте\\s+(?:выгод|купон|финансов)", weight: 6, notes: "Activate-benefit clickbait" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "приглашени[ея]\\s+на\\s+(?:бесплатн\\w+\\s+)?(?:вебинар|конференци|онлайн[-\\s]встреч)|приглаша(?:ем|ю)\\s+ва(?:с|ших)\\s+(?:специалистов\\s+)?на\\s+(?:вебинар|конференци)", weight: 6, notes: "Webinar/conference invite" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "принять\\s+участие\\s+в\\s+(?:специализированн\\w+\\s+|международн\\w+\\s+)?выставк|итоги\\s+(?:выставки\\s+)?нефтегаз|выставк\\w+\\s+.{0,40}как\\s+это\\s+было|pharmtech\\s*(?:&amp;|and)\\s*ingredients", weight: 6, notes: "Exhibition promo" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "вступлени[ея]\\s+в\\s+саморегулируем|лицензи[ия]\\s+мчс.{0,20}минкульт|сро.{0,40}вступлени", weight: 7, notes: "SRO membership cold offer" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "дарим\\s+\\d+\\s+месяц[ае]в?\\s+размещени|satom\\.ru|tracking\\.satom\\.ru", weight: 7, notes: "Marketplace placement promo" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "news@m\\.demis\\.ru|demis\\s+group", weight: 7, notes: "Demis Group marketing" },
+  { scope: "subject", classifier: "spam", matchType: "regex", pattern: "я\\.карт|ретейл\\s+медиа|комисси[ию]\\s+на\\s+я\\.карт", weight: 6, notes: "Yandex marketplace promo" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "info@laserzz\\.ru|laserzz\\.ru", weight: 8, notes: "Laserzz grey-import newsletter" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "@getnet\\.pro|конференци[июя]\\s+getnet", weight: 7, notes: "GetNet IT conference outreach" },
+  { scope: "subject", classifier: "spam", matchType: "regex", pattern: "тестовое\\s+сообщение\\s+microsoft\\s+outlook", weight: 8, notes: "Outlook test autogen" },
+  { scope: "body", classifier: "spam", matchType: "regex", pattern: "заявка\\s+с\\s+формы\\s+обратной\\s+связи.{0,120}(?:имя:\\s*тест\\d*|телефон:\\s*\\+7\\s*\\(899\\)\\s*999|999-99-99)", weight: 8, notes: "WordPress test-form submission" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "предложени\\w+\\s+вэд\\s+(?:от|для)\\s+\\S*банк|подразделение\\s+вэд\\s+.{0,40}банк", weight: 7, notes: "Bank VED cold pitch" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "приют[а]?\\s+(?:зел[её]ный|детск)|благодарим\\s+за\\s+всю\\s+ту\\s+помощ|дет(?:ей|ям)\\s+.{0,40}приют", weight: 7, notes: "Charity donation request" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "invite\\.viber\\.com|вступайте\\s+в\\s+сообщество\\s+в\\s+вайбере", weight: 6, notes: "Viber community invite" },
+  { scope: "subject", classifier: "spam", matchType: "regex", pattern: "you\\s+have\\s+been\\s+invited\\s+to\\s+siderus", weight: 8, notes: "Bitrix invite autoreply" },
+  { scope: "body", classifier: "spam", matchType: "regex", pattern: "bitrix\\.alev-trans\\.ru|alev-trans\\.ru/mail/mail2\\.html", weight: 7, notes: "Alev-trans Bitrix template" },
+  { scope: "subject", classifier: "spam", matchType: "regex", pattern: "^\\s*\\[?\\s*для\\s+отдела\\s+(?:логистики|снабжения|рекламы|маркетинга|вэд|бухгалтерии)", weight: 6, notes: "Cold dept-intro subject" },
+  { scope: "subject", classifier: "spam", matchType: "regex", pattern: "(?:приглашение|предложение)\\s+к\\s+сотрудничеств", weight: 5, notes: "Generic cooperation invitation" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "заработ\\w*\\s+от\\s+\\d{2,}\\s*000\\s*(?:₽|руб)|определите\\s+свой\\s+вектор\\s+развития|доход[а-я]*\\s+от\\s+\\d{2,}\\s*000\\s*(?:₽|руб)", weight: 7, notes: "Earn-income course" },
+  { scope: "all", classifier: "spam", matchType: "regex", pattern: "@(?:towthecarrb|teplyikamen|spravkaplus|rusege-oleneva|solaries-forum|shellden|shoradeshelper|sguzhvinskaya|sergbelor|salon-foresight|alpharoad|inneloo)\\.ru", weight: 8, notes: "DGA throwaway sender domains" },
+
+  // --- Vendor rules (F2) ---
+  { scope: "body", classifier: "vendor", matchType: "regex", pattern: "we\\s+are\\s+(?:a\\s+|the\\s+)?(?:professional\\s+|leading\\s+|chinese\\s+)?(?:manufacturer|supplier|factory)\\s+of|we\\s+mainly\\s+(?:produce|manufacture)|most\\s+of\\s+standard\\s+size\\s+we\\s+have\\s+in\\s+stock", weight: 7, notes: "Chinese factory cold pitch" },
+  { scope: "all", classifier: "vendor", matchType: "regex", pattern: "@[\\w.-]+\\.cn(?:$|\\s|>)", weight: 6, notes: ".cn sender TLD" },
+  { scope: "all", classifier: "vendor", matchType: "regex", pattern: "поставщик\\s+из\\s+китая|представляю\\s+китайск(?:ую|ой)|китайск(?:ую|ой)\\s+торгов\\w+\\s+компани|специализируемся\\s+на\\s+поставках\\s+(?:оригинальн\\w+\\s+)?промышленн", weight: 7, notes: "Russian-lang Chinese trader intro" },
+  { scope: "all", classifier: "vendor", matchType: "regex", pattern: "международны[еи]\\s+перевозк|таможенн\\w+\\s+оформлени\\s+груз|закупка\\s+товаров\\s+у\\s+европейских\\s+поставщиков|работаем\\s+через\\s+ес[‑\\-]?компани|выкуп\\s+с\\s+комиссией\\s+\\d+%", weight: 7, notes: "Logistics/cross-border service" },
+  { scope: "subject", classifier: "vendor", matchType: "regex", pattern: "предложение\\s+о\\s+сотрудничестве|коммерческое\\s+предложение\\s+(?:для|от)\\s+.{0,40}(?:логистик|вэд|перевоз|типограф|металл)", weight: 6, notes: "Cold KP subject" },
+  { scope: "subject", classifier: "vendor", matchType: "regex", pattern: "из\\s+типограф[ияи][ияе]|типограф\\w+\\s+.{0,40}(?:сотрудничеств|предложени|noprint)", weight: 7, notes: "Typography vendor pitch" },
+  { scope: "body", classifier: "vendor", matchType: "regex", pattern: "реализуем\\s+(?:все\\s+)?вид[ыо]в?\\s+металлопроката|\\d{2,}\\s*000\\s+товарных\\s+позиций.{0,80}металлопрокат|гибкие\\s+финансовые\\s+услови.{0,120}металл", weight: 7, notes: "Metal-rolling vendor pitch" },
+  { scope: "all", classifier: "vendor", matchType: "regex", pattern: "booth\\s+number\\s+(?:changed|is)|our\\s+(?:booth|stand)\\s+(?:at|in|number)|expo\\s+electronica|come\\s+and\\s+find\\s+us\\s+there", weight: 6, notes: "Expo booth invite" },
+  { scope: "body", classifier: "vendor", matchType: "regex", pattern: "вышлю\\s+вам\\s+каталог\\s+продукции|send\\s+you\\s+(?:our\\s+)?catalog|предложу\\s+(?:вам\\s+)?оптовые\\s+цены", weight: 5, notes: "Catalog offer" },
+  { scope: "subject", classifier: "vendor", matchType: "regex", pattern: "прямые\\s+поставки\\s+электротехническ\\w+\\s+оборудовани|обновленная\\s+номенклатура", weight: 6, notes: "Belarus electrotech direct supply" }
 ];
 
 const DEFAULT_BRAND_ALIASES = [
@@ -549,7 +588,15 @@ class DetectionKnowledgeBase {
   seedOwnBrands() {
     const defaults = [
       "siderus", "сидерус", "klvrt", "коловрат",
-      "ersab2b", "ersa b2b", "ersa"
+      "ersab2b", "ersa b2b", "ersa",
+      // 2026-04-18: known non-brands from spam/vendor senders (drop from detected brands)
+      "laserzz", "demis group", "getnet", "гипер днц", "днс гипер", "dns гипер",
+      "noprint", "алев-транс", "alev-trans", "касвэд", "kasved", "quattro logistics",
+      "нта-пром", "nta-prom", "satom", "satom.ru", "estp.ru", "первоуральскбанк",
+      "tilda", "esg montpellier", "union metal", "eay global", "kingtech", "abn",
+      "эйбиэн", "asteel", "4logs", "sro-regions", "лаборатория дохода",
+      "стратегия дохода", "т-стратегия дохода", "центр финансовой помощи",
+      "пособие с нуля", "браслет-сервис", "bs group", "peterial"
     ];
     const insert = this.db.prepare(`
       INSERT INTO own_brands (name) SELECT ?

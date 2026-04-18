@@ -1,0 +1,106 @@
+{
+  "few_shot_examples": [
+    {
+      "scenario": "Клиент представляется как компания перед запросом цены (не vendor_offer)",
+      "input_subject": "5411 SAGINOMIYA",
+      "input_body": "Добрый день. Меня зовут Лариса Хандогина, менеджер по закупкам компании Астранова. Подскажите, пожалуйста, по ценам, срокам поставки до вашего склада и весу нетто для моделей ниже? ACB-2UB136 SAGINOMIYA 1 pc sensor. Реквизиты нашей компании...",
+      "expected_label": "Клиент",
+      "expected_confidence": 0.93,
+      "expected_reasoning": "Покупатель представляется и сразу запрашивает цены на конкретный артикул"
+    },
+    {
+      "scenario": "OOO автоответ — Не определено",
+      "input_subject": "Re: You have been invited to Siderus",
+      "input_body": "Добрый день! С 30.03.26 по 12.03.26 нахожусь в отпуске.",
+      "expected_label": "Не определено",
+      "expected_confidence": 0.88,
+      "expected_reasoning": "Автоответ об отпуске без запроса"
+    },
+    {
+      "scenario": "Chinese vendor на ломаном русском с длинным перечнем брендов — не Клиент",
+      "input_subject": "Вопрос об импорте промышленных электронных запасных частей",
+      "input_body": "Наша компания Huizhou Token Trading Co осуществляет поставки в Россию. Мы поставим IFM, SICK, E+H, PILZ, SEW, SMC, FESTO, SIEMENS...",
+      "expected_label": "Поставщик услуг",
+      "expected_confidence": 0.93,
+      "expected_reasoning": "Китайская компания предлагает себя как поставщика + перечень брендов без артикулов"
+    },
+    {
+      "scenario": "Индийский/китайский английский vendor",
+      "input_subject": "Thread Ring & Plug gauge supplier recommended",
+      "input_body": "Dear, We are the supplier of measuring gauge, thread gauge, smooth gauge...",
+      "expected_label": "Поставщик услуг",
+      "expected_confidence": 0.94,
+      "expected_reasoning": "Английский vendor outreach 'we are supplier of' с каталогом"
+    },
+    {
+      "scenario": "Приглашение на форум/выставку/вебинар — СПАМ",
+      "input_subject": "Программа онлайн-форума по инженерному оборудованию",
+      "input_body": "18-20 марта, 57 докладов, пять заседаний. НП АВОК приглашает принять участие в онлайн-форуме. Регистрация по ссылке.",
+      "expected_label": "СПАМ",
+      "expected_confidence": 0.93,
+      "expected_reasoning": "Массовая рассылка приглашения на отраслевой форум"
+    },
+    {
+      "scenario": "Банк с предложением ВЭД — Поставщик услуг",
+      "input_subject": "Предложение ВЭД от Первоуральскбанка",
+      "input_body": "Представляю подразделение ВЭД Первоуральскбанка. Пишу с предложением о сотрудничестве в части расчетов по импортным контрактам в иностранной валюте для компании ООО КОЛОВРАТ...",
+      "expected_label": "Поставщик услуг",
+      "expected_confidence": 0.94,
+      "expected_reasoning": "Банк предлагает свои услуги ВЭД — vendor outreach"
+    },
+    {
+      "scenario": "Fwd с оригинальным запросом внутри — остаётся Клиентом",
+      "input_subject": "Fwd: Заполнена форма Товар под заказ",
+      "input_body": "Пересылаемое сообщение от info@siderus.ru. Оригинал клиента: прошу КП на артикул XYZ, 5 шт",
+      "expected_label": "Клиент",
+      "expected_confidence": 0.88,
+      "expected_reasoning": "Классифицируем по оригиналу, не по forwarder header"
+    },
+    {
+      "scenario": "Реквизиты в продолжение сделки — Клиент info_request",
+      "input_subject": "Re: ZGA05MV005 Тормоз двигателя FRENO",
+      "input_body": "Добрый день. Карточка предприятия во вложении. Dmitri Iusupov, OOO Serioplast",
+      "expected_label": "Клиент",
+      "expected_confidence": 0.82,
+      "expected_reasoning": "Ответ с реквизитами по активной сделке"
+    },
+    {
+      "scenario": "Срочный короткий запрос с артикулом — Клиент",
+      "input_subject": "Срочная необходимость — клапан ARON",
+      "input_body": "Добрый день, можете поставить клапан qcv 32GQ11RFB85 aron? Срочная необходимость! Главный механик ООО РПРЗ",
+      "expected_label": "Клиент",
+      "expected_confidence": 0.95,
+      "expected_reasoning": "Короткий срочный запрос с артикулом от механика завода"
+    },
+    {
+      "scenario": "Тендер от реального заказчика — Клиент, не СПАМ",
+      "input_subject": "Приглашение на закупку электродвигателей PERSKE",
+      "input_body": "ООО УК ВОЛМА объявляет открытый запрос предложений на поставку электродвигателей PERSKE для ВОЛМА-Воскресенск в 2026 году. Приглашаю Вашу компанию принять участие согласно ТЗ.",
+      "expected_label": "Клиент",
+      "expected_confidence": 0.92,
+      "expected_reasoning": "Открытый тендер на конкретный бренд с ТЗ"
+    }
+  ],
+  "extraction_prompt_additions": [
+    {
+      "rule_id": "R13_bank_ved_offer",
+      "description": "Банки с предложением ВЭД/валютного контроля/импортных расчётов = vendor_offer. Маркеры: 'подразделение ВЭД', 'валютный контроль', 'SWIFT', 'расчёты по импортным контрактам'. company = банк-отправитель, не ООО КОЛОВРАТ из тела."
+    },
+    {
+      "rule_id": "R14_brand_comma_chain_is_vendor",
+      "description": "5+ промбрендов через запятую без артикулов и количеств = каталог поставщика. brands=[], label=Поставщик услуг."
+    },
+    {
+      "rule_id": "R15_requisites_only_reply",
+      "description": "Короткий ответ 'Карточка/реквизиты во вложении' = info_request. Это продолжение активной сделки, company/INN/phone из подписи."
+    },
+    {
+      "rule_id": "R16_fwd_classify_by_original",
+      "description": "Fwd:/FW:/Пересылаемое сообщение — извлекать поля из ОРИГИНАЛА внутри цитаты, а не forwarder header. Если верхний header от info@siderus.ru/robot@siderus.ru, company из оригинала."
+    },
+    {
+      "rule_id": "R17_invitation_vs_tender",
+      "description": "Тендер (Клиент): 'открытый запрос предложений', 'поставка для ООО X', 'согласно ТЗ', 'процедура №'. СПАМ: 'конференция', 'форум', 'вебинар', 'регистрация по ссылке'."
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "spam_rules": [
+    {"id":"spam_tilda_activation_code","scope":"subject","pattern":"(?i)Tilda:\\s*Код\\s+активации","weight":8},
+    {"id":"spam_chatgpt_payment_phish","scope":"any","pattern":"(?i)ChatGPT\\s+Plus\\s*-?\\s*Payment\\s+Error|Update\\s+(?:required|payment\\s+method)\\s+.{0,40}ChatGPT\\s+Plus","weight":8},
+    {"id":"spam_dns_hyper_promo","scope":"any","pattern":"(?i)(?:ДНС|DNS)\\s*Гипер|Гипер[- ]выгода|50%\\s+на\\s+всё\\s+DNS","weight":7},
+    {"id":"spam_loan_closure_offer","scope":"any","pattern":"(?i)(?:закрой(?:те)?|избав(?:иться|ь))\\s+(?:все\\s+)?(?:долги|кредит)|жизн[ьи]\\s+без\\s+кредит|выход\\s+из\\s+долг","weight":7},
+    {"id":"spam_income_strategy_course","scope":"any","pattern":"(?i)путь\\s+к\\s+стабильной\\s+доходност|стабильн(?:ый|ой)\\s+заработ(?:ок|ком)|Время\\s+зарабатывать\\s+больше|Активируйте\\s+финансов(?:ый\\s+поток|ую)|Пособие\\s+с\\s+нуля","weight":7},
+    {"id":"spam_activate_benefit_promo","scope":"subject","pattern":"(?i)Активируйте\\s+(?:выгод|купон|финансов)","weight":6},
+    {"id":"spam_webinar_conference_invite","scope":"any","pattern":"(?i)Приглашени[ея]\\s+на\\s+(?:бесплатн\\w+\\s+)?(?:вебинар|конференци|онлайн[-\\s]встреч)|приглаша(?:ем|ю)\\s+Ва(?:с|ших)\\s+(?:специалистов\\s+)?на\\s+(?:вебинар|конференци)","weight":6},
+    {"id":"spam_exhibition_promo","scope":"any","pattern":"(?i)принять\\s+участие\\s+в\\s+(?:специализированн\\w+\\s+|международн\\w+\\s+)?выставк|Итоги\\s+(?:выставки\\s+)?НЕФТЕГАЗ|выставк\\w+\\s+.{0,40}как\\s+это\\s+было|Pharmtech\\s*(?:&amp;|and)\\s*Ingredients","weight":6},
+    {"id":"spam_sro_membership_offer","scope":"any","pattern":"(?i)Вступлени[ея]\\s+в\\s+саморегулируем|Лицензи[ия]\\s+МЧС.{0,20}Минкульт|СРО.{0,40}вступлени","weight":7},
+    {"id":"spam_marketplace_free_placement","scope":"any","pattern":"(?i)Дарим\\s+\\d+\\s+месяц[ае]в?\\s+размещени|satom\\.ru|tracking\\.satom\\.ru","weight":7},
+    {"id":"spam_demis_marketing","scope":"any","pattern":"(?i)news@m\\.demis\\.ru|Demis\\s+Group","weight":7},
+    {"id":"spam_ya_cart_retail_media_promo","scope":"subject","pattern":"(?i)Я\\.Карт|Ретейл\\s+Медиа|комисси[ию]\\s+на\\s+Я\\.Карт","weight":6},
+    {"id":"spam_laserzz_supplier_newsletter","scope":"any","pattern":"(?i)info@laserzz\\.ru|\\[Agilent\\s+Technologies[^\\]]*\\]\\[Emerson\\]\\[WIKA\\]\\[Endress\\+Hauser\\]","weight":8},
+    {"id":"spam_getnet_it_outreach","scope":"any","pattern":"(?i)@getnet\\.pro|конференци[июя]\\s+GetNet","weight":7},
+    {"id":"spam_outlook_test_message","scope":"subject","pattern":"(?i)Тестовое\\s+сообщение\\s+Microsoft\\s+Outlook","weight":8},
+    {"id":"spam_wordpress_test_form","scope":"body","pattern":"(?i)Заявка\\s+с\\s+формы\\s+обратной\\s+связи.{0,120}(?:Имя:\\s*тест\\d*|Телефон:\\s*\\+7\\s*\\(899\\)\\s*999|999-99-99)","weight":8},
+    {"id":"spam_bank_ved_cold_offer","scope":"any","pattern":"(?i)предложени\\w+\\s+ВЭД\\s+(?:от|для)\\s+\\S*банк|подразделение\\s+ВЭД\\s+.{0,40}банк","weight":7},
+    {"id":"spam_charity_donation_request","scope":"any","pattern":"(?i)приют[а]?\\s+(?:Зел[её]ный|детск)|Благодарим\\s+за\\s+всю\\s+ту\\s+помощ|дет(?:ей|ям)\\s+.{0,40}приют","weight":7},
+    {"id":"spam_viber_community_invite","scope":"any","pattern":"(?i)invite\\.viber\\.com|Вступайте\\s+в\\s+сообщество\\s+в\\s+Вайбере","weight":6},
+    {"id":"spam_siderus_invite_autoreply","scope":"subject","pattern":"(?i)You\\s+have\\s+been\\s+invited\\s+to\\s+Siderus","weight":8},
+    {"id":"spam_alev_trans_bitrix","scope":"body","pattern":"(?i)bitrix\\.alev-trans\\.ru|alev-trans\\.ru/mail/mail2\\.html","weight":7},
+    {"id":"spam_cold_dept_intro_subject","scope":"subject","pattern":"(?i)^\\s*\\[?\\s*для\\s+отдела\\s+(?:логистики|снабжения|рекламы|маркетинга|ВЭД|бухгалтерии)","weight":6},
+    {"id":"spam_cooperation_invitation_subj","scope":"subject","pattern":"(?i)(?:Приглашение|Предложение)\\s+к\\s+сотрудничеств","weight":5},
+    {"id":"spam_earn_income_course","scope":"any","pattern":"(?i)заработ\\w*\\s+от\\s+\\d{2,}\\s*000\\s*(?:₽|руб)|определите\\s+свой\\s+вектор\\s+развития|доход[а-я]*\\s+от\\s+\\d{2,}\\s*000\\s*(?:₽|руб)","weight":7},
+    {"id":"spam_throwaway_ru_domain_promo","scope":"from","pattern":"(?i)@(?:towthecarrb|teplyikamen|spravkaplus|rusege-oleneva|solaries-forum|shellden|shoradeshelper|sguzhvinskaya|sergbelor|salon-foresight|alpharoad|inneloo)\\.ru","weight":8}
+  ],
+  "vendor_rules": [
+    {"id":"vendor_chinese_mfg_english","scope":"body","pattern":"(?i)we\\s+are\\s+(?:a\\s+|the\\s+)?(?:professional\\s+|leading\\s+|chinese\\s+)?(?:manufacturer|supplier|factory)\\s+of|we\\s+mainly\\s+(?:produce|manufacture)|most\\s+of\\s+standard\\s+size\\s+we\\s+have\\s+in\\s+stock","weight":7},
+    {"id":"vendor_cn_email_domain","scope":"from","pattern":"(?i)@[\\w.-]+\\.cn(?:>|$|\\s)","weight":6},
+    {"id":"vendor_ru_supplier_from_china","scope":"any","pattern":"(?i)Поставщик\\s+из\\s+Китая|представляю\\s+китайск(?:ую|ой)|китайск(?:ую|ой)\\s+торгов\\w+\\s+компани|специализируемся\\s+на\\s+поставках\\s+(?:оригинальн\\w+\\s+)?промышленн","weight":7},
+    {"id":"vendor_logistics_service_offer","scope":"any","pattern":"(?i)международны[еи]\\s+перевозк|таможенн\\w+\\s+оформлени\\s+груз|Закупка\\s+товаров\\s+у\\s+европейских\\s+поставщиков|работаем\\s+через\\s+ЕС[‑\\-]?компани|Выкуп\\s+с\\s+комиссией\\s+\\d+%","weight":7},
+    {"id":"vendor_cold_coop_subj","scope":"subject","pattern":"(?i)предложение\\s+о\\s+сотрудничестве|Коммерческое\\s+предложение\\s+(?:для|от)\\s+.{0,40}(?:логистик|ВЭД|перевоз|типограф|металл)","weight":6},
+    {"id":"vendor_typography_cold_offer","scope":"subject","pattern":"(?i)из\\s+типограф[ияи][ияе]|типограф\\w+\\s+.{0,40}(?:сотрудничеств|предложени|NoPrint)","weight":7},
+    {"id":"vendor_metal_rolling_offer","scope":"body","pattern":"(?i)Реализуем\\s+(?:все\\s+)?вид[ыо]в?\\s+металлопроката|\\d{2,}\\s*000\\s+товарных\\s+позиций.{0,80}металлопрокат|Гибкие\\s+финансовые\\s+услови.{0,120}металл","weight":7},
+    {"id":"vendor_expo_booth_english","scope":"any","pattern":"(?i)Booth\\s+number\\s+(?:changed|is)|our\\s+(?:booth|stand)\\s+(?:at|in|number)|Expo\\s+Electronica|come\\s+and\\s+find\\s+us\\s+there","weight":6},
+    {"id":"vendor_send_catalog_offer","scope":"body","pattern":"(?i)вышлю\\s+Вам\\s+каталог\\s+продукции|send\\s+you\\s+(?:our\\s+)?catalog|предложу\\s+(?:Вам\\s+)?оптовые\\s+цены","weight":5},
+    {"id":"vendor_electrotech_direct_supply","scope":"subject","pattern":"(?i)прямые\\s+поставки\\s+Электротехническ\\w+\\s+оборудовани|Обновленная\\s+номенклатура","weight":6}
+  ],
+  "brand_negative_aliases": ["Laserzz","Demis Group","GetNet","ГИПЕР ДНЦ","ДНС Гипер","DNS Гипер","NoPrint","АЛЕВ-ТРАНС","Alev-trans","КАСВЭД","KASVED","Quattro Logistics","НТА-Пром","NTA-Prom","Satom","Satom.ru","ESTP.RU","Первоуральскбанк","Tilda","ESG Montpellier","UNION METAL","EAY Global","Kingtech","ABN","ЭйБиЭн","Asteel","4logs","Sro-regions","Лаборатория дохода","Стратегия дохода","Т-Стратегия дохода","Центр финансовой помощи","Пособие с нуля","Браслет-Сервис","BS Group","Peterial"]
+}
