@@ -4567,7 +4567,7 @@ function isLikelyArticle(code, forbiddenDigits = new Set(), sourceLine = "") {
   return true;
 }
 
-function isObviousArticleNoise(code, sourceLine = "") {
+export function isObviousArticleNoise(code, sourceLine = "") {
   const normalized = normalizeArticleCode(code);
   const line = String(sourceLine || "");
   const compactLine = line.replace(/\s+/g, "");
@@ -4583,6 +4583,10 @@ function isObviousArticleNoise(code, sourceLine = "") {
   // phone extensions ("дoб.216"), form names ("TOPГ-12"), position labels ("поз.76.7").
   // Inner real articles (IRFD9024, 78-40-4, 6EP1961-3BA21) are already extracted separately.
   if (/[a-zA-Z]/.test(normalized) && /[а-яёА-ЯЁ]/.test(normalized)) return true;
+  // Pure Cyrillic word without any digits: product category name mistakenly extracted
+  // as article ("Конический", "Диафрагменный", "Метчики", "кол-ве", "Ручки-барашки").
+  // Real Cyrillic article codes contain digits (08Х18Н10Т, 01X16H15M3) — those pass.
+  if (/^[А-Яа-яЁё][А-Яа-яЁё\-\s]*$/u.test(normalized) && !/\d/.test(normalized)) return true;
   // DESC: synthetic slug articles (freetext positions without real article code)
   if (/^DESC:/i.test(normalized)) return true;
   // mailto: links mistaken for articles
@@ -4615,6 +4619,10 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/^\d{2}-(?:19|20)\d{2}$/.test(normalized)) return true;
   // Full dates: dd.mm.yyyy or dd/mm/yyyy (from company card attachments)
   if (/^\d{1,2}[./]\d{1,2}[./]\d{4}$/.test(normalized)) return true;
+  // Standalone 4-digit year (19XX/20XX) from quoted email headers: "Sent: ..., April 16, 2026".
+  // Safe path: only reject when there is no strong article context ("артикул", "p/n", "mpn" etc.)
+  // in the same line, so a real 4-digit catalog code remains extractable when explicitly labeled.
+  if (/^(?:19|20)\d{2}$/.test(normalized) && !hasStrongArticleContext) return true;
   // UUID and UUID fragments: hex chars + dashes, 3+ segments, must contain at least one A-F letter
   // Pure-digit codes like 1114-160-318 are excluded (no hex letters)
   if (/^[0-9A-F-]+$/i.test(normalized) && /[A-Fa-f]/.test(normalized) && !/[G-Zg-z]/.test(normalized)) {
