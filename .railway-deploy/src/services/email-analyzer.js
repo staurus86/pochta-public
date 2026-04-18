@@ -328,14 +328,20 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   // Country/region aliases — appear in postal addresses ("123610, Россия, Москва")
   "россия", "russia", "rossiya", "moscow", "москва",
 ]);
-// Batch D / P13: aliases whose FIRST token is a common generic word — when such an alias has ≥2
-// tokens (e.g. "Alfa Electric", "Power Innovation"), disallow the 1-filler variant in matchesBrand.
-// Fixes Alfa Laval → "ALFA ELECTRIC; ALFA MECCANICA; Alfa Valvole" cascade.
+// Batch D / P13 + Batch E / P17: aliases whose FIRST token is a common generic word — when such
+// an alias has ≥2 tokens (e.g. "Alfa Electric", "Power Innovation", "High Perfection Tech",
+// "Pressure Tech", "Check Point", "Select Automation"), disallow the 1-filler variant in
+// matchesBrand. Fixes ghost "High Perfection Tech / PRESSURE TECH / Check Point / Check-All
+// Valve / Select Automation / Fisher Controls / Micro Motion" cascades on bodies that only
+// mention unrelated phrases sharing those first tokens.
 const BRAND_FIRST_TOKEN_CONFLICT = new Set([
   "alfa", "power", "robot", "tele", "micro", "pace", "link", "fisher", "high", "check",
   "stem", "kipp", "ross", "lang", "meta", "and", "digi", "true", "bar", "onda", "liquid",
   "simrit", "waldner", "ital", "belt", "radio", "thermal", "transfer", "motor", "norma",
-  "standard", "global", "control", "process", "electronic", "data", "ultra"
+  "standard", "global", "control", "process", "electronic", "data", "ultra",
+  // Batch E / P17 additions
+  "pressure", "select", "standa", "able", "electro", "sensor", "rota", "kimo", "contact",
+  "hydraulic", "tool", "seat", "index"
 ]);
 // Aliases that must match as whole words (word boundary) to avoid substring false positives
 // "foss" → prevent matching inside "danfoss"
@@ -914,6 +920,75 @@ export function analyzeEmail(project, payload) {
   }
 
   enrichLeadFromKnowledgeBase(lead, classification, project, [subjectForExtraction, bodyForExtraction, attachmentContent].filter(Boolean).join("\n\n"));
+
+  // Batch E / P15: body-grounding gate for classification.detectedBrands.
+  // detectBrands scans subject+body+attachment, so a brand alias mentioned only in the
+  // subject ("Отправка заявки с сайта schischek") or inside an auto-form domain ignored
+  // by us (wordpress@schischek.laskovaa.be) can leak into classification.detectedBrands
+  // with ZERO body overlap (e.g. body is the WordPress test form with "<b>Заявка с формы
+  // обратной связи</b><p>Имя: тест2</p>"). Same-spirit as P14's gate inside
+  // enrichLeadFromKnowledgeBase but at the classification-merge seam.
+  // Keeps mailbox-fallback (project3-runner mailbox→brand) intact because that runs AFTER
+  // analyzeEmail returns.
+  if ((classification.detectedBrands || []).length > 0) {
+    const groundingText = [bodyForExtraction, attachmentContent].filter(Boolean).join("\n\n");
+    const groundedLower = String(groundingText || "").toLowerCase();
+    const groundedNormalized = normalizeComparableText(groundingText);
+    let kbAliases = null;
+    const isBrandGrounded = (brand) => {
+      const b = String(brand || "").trim();
+      if (!b) return false;
+      if (matchesBrand(groundedNormalized, b)) return true;
+      // For multi-token brands, require a multi-token alias to appear verbatim — single-token
+      // KB aliases like "pressure"→"Pressure Tech", "high"→"High Perfection Tech",
+      // "check"→"Check Point" match too loosely against generic bodies ("pressure sensor",
+      // "high quality tech", "check valve") and defeat the grounding gate.
+      const brandTokens = b.toLowerCase().split(/\s+/).filter(Boolean);
+      const isMultiToken = brandTokens.length >= 2;
+      try {
+        if (!kbAliases) {
+          kbAliases = new Map();
+          for (const entry of (detectionKb.getBrandAliases() || [])) {
+            const key = String(entry.canonical_brand || "").toLowerCase();
+            if (!key) continue;
+            if (!kbAliases.has(key)) kbAliases.set(key, []);
+            kbAliases.get(key).push(String(entry.alias || "").toLowerCase());
+          }
+        }
+        const aliases = kbAliases.get(b.toLowerCase()) || [];
+        for (const alias of aliases) {
+          if (!alias || alias.length < 3) continue;
+          // For multi-token canonical brands, only trust multi-token aliases.
+          if (isMultiToken && !/\s/.test(alias)) continue;
+          if (new RegExp(`\\b${escapeRegExp(alias)}\\b`, "i").test(groundedLower)) return true;
+        }
+      } catch (_) { /* noop — optional KB access */ }
+      // Article-based tie: if a lineItem article resolves to this brand, keep it.
+      try {
+        const bl = b.toLowerCase();
+        for (const li of (lead.lineItems || [])) {
+          const art = String(li?.article || "").trim();
+          if (!art || /^DESC:/i.test(art)) continue;
+          const hit = detectionKb.findNomenclatureByArticle ? detectionKb.findNomenclatureByArticle(art) : null;
+          if (hit && String(hit.brand || "").toLowerCase() === bl) return true;
+        }
+      } catch (_) { /* noop */ }
+      return false;
+    };
+    const groundedBrands = (classification.detectedBrands || []).filter(isBrandGrounded);
+    if (groundedBrands.length !== classification.detectedBrands.length) {
+      const dropped = (classification.detectedBrands || []).filter((b) => !groundedBrands.includes(b));
+      if (dropped.length > 0) {
+        classification.sources = classification.sources || {};
+        classification.sources.droppedBrands_noBodyOverlap = uniqueBrands([
+          ...(classification.sources.droppedBrands_noBodyOverlap || []),
+          ...dropped
+        ]);
+      }
+      classification.detectedBrands = groundedBrands;
+    }
+  }
+
   if (!lead.detectedBrands?.length && classification.detectedBrands?.length) {
     lead.detectedBrands = deduplicateByAbsorption([...classification.detectedBrands], "keep-shortest");
   } else if (classification.detectedBrands?.length) {
@@ -940,6 +1015,35 @@ export function analyzeEmail(project, payload) {
   hydrateRecognitionSummary(lead, sender);
   hydrateRecognitionDiagnostics(lead, sender, attachmentAnalysis, classification);
   hydrateRecognitionDecision(lead, sender, attachmentAnalysis, classification);
+
+  // Batch E / P16: final sanitize pass — some paths (form-article injection, tabular
+  // fallback) push articles without consulting isObviousArticleNoise. Russian
+  // product-category words from robot@siderus.ru forms ("Диафрагменный", "Конический",
+  // "Счетчик", "Шаровые", "Зажимной", "Метчики", "Ручки-барашки") slip through.
+  // Narrow filter: only strip pure-Cyrillic-no-digit tokens to avoid pruning legitimate
+  // numeric articles (6213, 340442, 122571) whose source-line context is not preserved
+  // on productNames/lineItems downstream artifacts.
+  if (lead && (Array.isArray(lead.articles) || Array.isArray(lead.lineItems) || Array.isArray(lead.productNames))) {
+    const isRussianCategoryNoise = (code) => {
+      const c = String(code || "").trim();
+      if (!c || /^DESC:/i.test(c)) return false;
+      const normalized = normalizeArticleCode(c);
+      if (!normalized) return false;
+      return /^[А-Яа-яЁё][А-Яа-яЁё\-\s]*$/u.test(normalized) && !/\d/.test(normalized);
+    };
+    if (Array.isArray(lead.articles)) {
+      lead.articles = lead.articles.filter((a) => !isRussianCategoryNoise(a));
+    }
+    if (Array.isArray(lead.lineItems)) {
+      lead.lineItems = lead.lineItems.filter((li) => !isRussianCategoryNoise(li?.article));
+    }
+    if (Array.isArray(lead.productNames)) {
+      lead.productNames = lead.productNames.filter((p) => !isRussianCategoryNoise(p?.article));
+    }
+    if (Array.isArray(lead.lineItems) && Array.isArray(lead.articles)) {
+      lead.totalPositions = Math.max(lead.lineItems.length, lead.articles.length);
+    }
+  }
 
   // Post-correction: if classification couldn't decide but lead has articles → likely a client
   if (classification.label === "Не определено" && lead.articles?.length > 0) {
@@ -5032,12 +5136,29 @@ function detectBrands(text, brands) {
   }
 
   for (const entry of aliases) {
+    // Batch E / P17: for multi-token canonicals whose first token is a conflict-prone generic
+    // word ("Pressure Tech", "High Perfection Tech", "Check Point", "Select Automation", ...)
+    // reject single-token aliases ("pressure", "high", "check", "select"). These match too
+    // loosely against generic body phrases ("pressure sensor", "high quality tech",
+    // "check valve") and cannot be distinguished from the canonical. Only multi-token aliases
+    // (or matchesBrand on the canonical itself) may promote such brands.
+    const aliasLower = String(entry.alias || "").toLowerCase();
+    const canonicalLower = String(entry.canonical_brand || "").toLowerCase();
+    const canonicalTokens = canonicalLower.split(/\s+/).filter(Boolean);
+    const firstCanonicalToken = canonicalTokens[0] || "";
+    if (
+      canonicalTokens.length >= 2 &&
+      BRAND_FIRST_TOKEN_CONFLICT.has(firstCanonicalToken) &&
+      !/\s/.test(aliasLower)
+    ) {
+      continue;
+    }
     if (matchesBrand(normalizedText, entry.alias)) {
       const canonical = preferProjectBrandCase(entry.canonical_brand, brands);
       matched.add(canonical);
       const key = String(canonical).toLowerCase();
       if (!canonicalAliasHits.has(key)) canonicalAliasHits.set(key, new Set());
-      canonicalAliasHits.get(key).add(String(entry.alias || "").toLowerCase());
+      canonicalAliasHits.get(key).add(aliasLower);
     }
   }
 

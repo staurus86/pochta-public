@@ -23,6 +23,20 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
 // "puls" — prevent matching inside "vegapuls"; "foss" — prevent matching inside "danfoss"
 const BRAND_WORD_BOUNDARY_ALIASES = new Set(["puls", "foss"]);
 
+// Batch E / P17: mirror of email-analyzer's BRAND_FIRST_TOKEN_CONFLICT — when a canonical
+// brand has ≥2 tokens and the first token is a conflict-prone generic word, reject matches
+// that rely on a single-token alias ("pressure", "high", "check", "select", ...). Those
+// single-token aliases exist in the KB but match too loosely against generic body phrases
+// ("pressure sensor", "high quality tech", "check valve").
+const BRAND_MULTI_FIRST_TOKEN_CONFLICT = new Set([
+  "alfa", "power", "robot", "tele", "micro", "pace", "link", "fisher", "high", "check",
+  "stem", "kipp", "ross", "lang", "meta", "and", "digi", "true", "bar", "onda", "liquid",
+  "simrit", "waldner", "ital", "belt", "radio", "thermal", "transfer", "motor", "norma",
+  "standard", "global", "control", "process", "electronic", "data", "ultra",
+  "pressure", "select", "standa", "able", "electro", "sensor", "rota", "kimo", "contact",
+  "hydraulic", "tool", "seat", "index"
+]);
+
 // Marker for "brand capability list" in signatures:
 // "Бренды, по которым мы работаем" — Siderus employees include a 70+ brand catalog
 // in their email signature. This gets re-quoted in every reply and pollutes brand
@@ -1746,6 +1760,17 @@ class DetectionKnowledgeBase {
       .filter((entry) => {
         const alias = entry.alias.toLowerCase();
         if (BRAND_FALSE_POSITIVE_ALIASES.has(alias)) {
+          return false;
+        }
+        // Batch E / P17: reject single-token aliases for multi-token canonicals whose first
+        // token is conflict-prone. See BRAND_MULTI_FIRST_TOKEN_CONFLICT above.
+        const canonicalLower = String(entry.canonical_brand || "").toLowerCase();
+        const canonicalTokens = canonicalLower.split(/\s+/).filter(Boolean);
+        if (
+          canonicalTokens.length >= 2 &&
+          BRAND_MULTI_FIRST_TOKEN_CONFLICT.has(canonicalTokens[0]) &&
+          !/\s/.test(alias)
+        ) {
           return false;
         }
         // Single-word aliases ALWAYS require word boundary — prevent substring hits like
