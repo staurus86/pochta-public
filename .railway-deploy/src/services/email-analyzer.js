@@ -629,6 +629,23 @@ export function analyzeEmail(project, payload) {
     }
   }
 
+  // Internal sender override — emails from own-domain mailboxes (106@siderus.ru, 138@siderus.ru, etc.)
+  // are internal correspondence/forwards, not external client requests. Mark for manager review.
+  // Exclude form senders (robot@, tilda noreply) which are handled above.
+  const fromDomainForInternal = (fromEmail || "").split("@")[1]?.toLowerCase() || "";
+  const isInternalSender =
+    !robotFormData && !tildaFormData && !quotedRobotFormData &&
+    fromDomainForInternal && OWN_DOMAINS.has(fromDomainForInternal) &&
+    fromEmail !== "robot@siderus.ru";
+  if (isInternalSender) {
+    classification.signals = classification.signals || {};
+    classification.signals.internalSender = true;
+    classification.signals.matchedRules = [
+      ...(classification.signals.matchedRules || []),
+      { id: "internal_sender", classifier: "review", scope: "from", pattern: "own_domain_non_form", weight: 6 }
+    ];
+  }
+
   // Filter own brands (Siderus, Коловрат, etc.) from classification results
   classification.detectedBrands = detectionKb.filterOwnBrands(classification.detectedBrands);
 
@@ -935,7 +952,7 @@ export function analyzeEmail(project, payload) {
     lead,
     crm,
     detectedBrands: uniqueBrands(detectionKb.filterOwnBrands(lead.detectedBrands)).slice(0, 50),
-    intakeFlow: buildIntakeFlow(classification.label, crm, lead, { isMassRequest, sender }),
+    intakeFlow: buildIntakeFlow(classification.label, crm, lead, { isMassRequest, sender, internalSender: classification.signals?.internalSender }),
     suggestedReply,
     rawInput: {
       subject,
@@ -1221,7 +1238,7 @@ function enrichLeadFromKnowledgeBase(lead, classification, project, searchText =
   for (const query of queries) {
     const semanticMatches = [
       ...detectionKb.findNomenclatureCandidates({ text: query, limit: 5 }),
-      ...findSemanticNomenclatureMatches(query)
+      ...findSemanticNomenclatureMatches(query, cleanedSearchText)
     ];
     for (const match of semanticMatches) {
       const brand = cleanup(match?.brand || "");
@@ -1246,7 +1263,7 @@ function enrichLeadFromKnowledgeBase(lead, classification, project, searchText =
   }
 }
 
-function findSemanticNomenclatureMatches(query) {
+function findSemanticNomenclatureMatches(query, bodyText = "") {
   const cleaned = cleanup(query);
   if (!cleaned) return [];
 
@@ -1267,6 +1284,7 @@ function findSemanticNomenclatureMatches(query) {
   // Known brand aliases are already covered by detectBrands() via alias matching.
 
   const loweredQuery = cleaned.toLowerCase();
+  const loweredBody = String(bodyText || "").toLowerCase();
   const queryTokenSet = new Set(
     loweredQuery
       .split(/[^a-zа-яё0-9]+/)
@@ -1276,15 +1294,43 @@ function findSemanticNomenclatureMatches(query) {
   for (const tokenQuery of tokenQueries) {
     for (const item of detectionKb.searchNomenclature(tokenQuery, { limit: 3 })) {
       if (matches.some((existing) => existing.article_normalized === item.article_normalized)) continue;
-      // Validate match quality: SQLite FTS returns any row sharing common words with the
+      // Body-presence gate: reject candidate unless either the brand primary name OR the
+      // article code OR the full product_name phrase (≥12 chars) appears verbatim in the
+      // full email body. Without this, SQLite FTS over catalog descriptions returned 100+
+      // false brands per inbox — any industrial email with generic tokens like "power",
+      // "control", "electrical" matched multi-token catalog descriptions (Elec-Con, PACE
+      // Worldwide, Tele Radio, Micro*× 5, IREM, etc.) despite those brands never being
+      // mentioned. Semantic match is a fallback for emails with zero detected brands —
+      // require at least one grounded token.
+      const brandFull = String(item.brand || "").toLowerCase().trim();
+      const articleLower = String(item.article || "").toLowerCase().trim();
+      const articleNormLower = String(item.article_normalized || "").toLowerCase().trim();
+      const productNameLower = String(item.product_name || "").toLowerCase().trim();
+      // Word-boundary match for brand/article: single-word English brands like "Power",
+      // "Safe", "Able" must not match as substrings of unrelated words
+      // (power ⊂ "power options", safe ⊂ "safety", able ⊂ "reliable").
+      const hasWordBoundary = (needle) => {
+        if (!needle) return false;
+        const re = new RegExp(`(?:^|[^a-zа-яё0-9])${escapeRegExp(needle)}(?:[^a-zа-яё0-9]|$)`, "i");
+        return re.test(loweredBody);
+      };
+      const groundedInBody =
+        (brandFull.length >= 3 && hasWordBoundary(brandFull)) ||
+        (articleLower.length >= 4 && hasWordBoundary(articleLower)) ||
+        (articleNormLower.length >= 4 && hasWordBoundary(articleNormLower)) ||
+        // Full product_name phrase ≥12 chars appearing verbatim in body is a strong
+        // semantic grounding signal (e.g. "санитайзер роторный пищевой" → Frontmatec).
+        // ≥12 chars excludes generic short names like "LED Light", "Cable", "Motor".
+        (productNameLower.length >= 12 && loweredBody.includes(productNameLower));
+      if (!groundedInBody) continue;
+
+      // Secondary quality filter: SQLite FTS returns any row sharing common words with the
       // query ("сроки недель" → HYDAC whose description has "Сроки ... 17-20 недель").
       // Accept a candidate only if EITHER:
       //   (a) its brand name tokens appear in the query (direct brand mention), OR
       //   (b) it shares ≥3 non-stopword tokens with the query description fields
       //       (semantic description match like "санитайзер пищевой линия" → Frontmatec).
-      // Without this filter, semantic fallback injected ~100 false brands per inbox.
-      const brandTokens = String(item.brand || "")
-        .toLowerCase()
+      const brandTokens = brandFull
         .split(/[^a-zа-яё0-9]+/)
         .filter((tok) => tok.length >= 3);
       const brandInQuery = brandTokens.length > 0 && brandTokens.every((tok) => loweredQuery.includes(tok));
@@ -1565,6 +1611,14 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
       }
     }
     allArticles = allArticles.filter((a) => /\s/.test(String(a)) || !subTokens.has(String(a).toLowerCase()));
+  }
+  // Context-aware filter: N.N.N list numbering (1.3.1, 1.3.2, 1.3.3 — sequential outline markers).
+  // If ≥3 такие токены с малыми сегментами (каждый ≤30) — это нумерация пунктов, не артикулы.
+  // Реальные артикулы типа Festo 504.186.202 имеют 3-значные сегменты и встречаются одиночно.
+  const nnnTokens = allArticles.filter((a) => /^\d{1,2}\.\d{1,2}\.\d{1,2}$/.test(String(a)));
+  if (nnnTokens.length >= 3) {
+    const nnnSet = new Set(nnnTokens.map((t) => String(t)));
+    allArticles = allArticles.filter((a) => !nnnSet.has(String(a)));
   }
   const attachmentsText = attachments.join(" ");
   const hasNameplatePhotos = /шильд|nameplate/i.test(attachmentsText);
@@ -2602,10 +2656,14 @@ function buildIntakeFlow(classification, crm, lead, meta = {}) {
     }
   }
 
-  const needsReview = requiresReview || qualityGateTriggered;
+  // Internal sender (own-domain mailbox) — always review, never auto-sync
+  const internalSenderReview = Boolean(meta.internalSender);
+
+  const needsReview = requiresReview || qualityGateTriggered || internalSenderReview;
   const flags = [];
   if (meta.isMassRequest) flags.push("mass_request");
   if (qualityGateTriggered) flags.push("quality_gate");
+  if (internalSenderReview) flags.push("internal_sender");
 
   return {
     parseToFields: !isSpam,
@@ -2618,7 +2676,7 @@ function buildIntakeFlow(classification, crm, lead, meta = {}) {
     // New fields
     requiresReview: needsReview,
     reviewReason: needsReview
-      ? (qualityGateTriggered ? "quality_gate" : blockingConflicts.length > 0 ? "detection_conflicts" : "low_completeness")
+      ? (internalSenderReview ? "internal_sender" : qualityGateTriggered ? "quality_gate" : blockingConflicts.length > 0 ? "detection_conflicts" : "low_completeness")
       : null,
     isVendorInquiry: isVendor,
     skipCrmSync: isSpam || isVendor,
@@ -4640,6 +4698,21 @@ function isObviousArticleNoise(code, sourceLine = "") {
   if (/Пpocmotp$/i.test(normalized)) return true;
   if (/^(?:8|7)?-?800(?:-\d{1,4}){1,}$/.test(normalized)) return true;
   if (/^[a-z]+(?:\.[a-z0-9]+){2,}$/i.test(normalized)) return true;
+  // RTF/Word control words leaking into articles from Word/Outlook RTF preamble when
+  // attachment/body RTF isn't fully stripped (N=103 in 2026-04-18 inbox: 61 such tokens
+  // in one email — RTF1, FCHARSET204, PAPERW11906, NOFWORDS62, VIEWKIND1, RSID146116,
+  // PNSECLVL1, SBASEDON10, etc.). All are fixed-prefix RTF control words + digits.
+  if (/^(?:RTF|FCHARSET|PAPERW|DEFTAB|VIEWKIND|LSDSTIMAX|NOFPAGES|NOFWORDS|NOFCHARS|NOFCHARSWS|EDMINS|VERN|SBASEDON|OUTLINELEVEL|PNSECLVL|PNSTART|PNSEC|RSID|TRFTS[A-Z]{0,10})\d+$/i.test(normalized)) return true;
+  // POS.N / pos.N — list position marker, not a product article code (61 hits in N=1264)
+  if (/^pos\.\d+$/i.test(normalized)) return true;
+  // Electrical unit parameters: 1200V, 75A, 380W, 60HZ — параметр, не артикул (99 токенов в inbox).
+  // Digits-only prefix + known unit suffix. Реальные артикулы обычно имеют буквенный префикс
+  // (6EP1961-3BA21) или разделители — чистый digits+unit это параметр.
+  if (/^\d{1,4}(?:V|A|W|HZ|VA|VAR|VDC|VAC|KW|KV|MA|KHZ|MHZ|MW|NM|KG|BAR|PSI|RPM)$/i.test(normalized)) return true;
+  // Ranges with units: 100-240V, 4-20MA, 6-48VDC — это диапазон параметров, не артикул (42 токена).
+  if (/^\d{1,4}-\d{1,4}(?:V|A|W|HZ|VA|VAR|VDC|VAC|KW|KV|MA|KHZ|MHZ|MW)$/i.test(normalized)) return true;
+  // DN NN — nominal diameter (DN 65/65, DN32) — не артикул (8 токенов).
+  if (/^DN\s*\d{1,4}(?:\/\d{1,4})?$/i.test(normalized)) return true;
   // CamelCase-CamelCase без цифр — торговое наименование, не артикул (Ultra-Clean, Super-Flow)
   if (/^[A-ZА-ЯЁ][a-zа-яё]{2,}-[A-ZА-ЯЁ][a-zа-яё]{2,}$/.test(normalized)) return true;
   // URL paths with domain-like segments: ns.adobe.com/xap/1.0, purl.org/dc/elements/1.1
