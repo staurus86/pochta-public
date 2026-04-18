@@ -1,17 +1,47 @@
 /**
- * Optional AI-powered email classification using Claude API.
- * Activated by AI_ENABLED=true + AI_API_KEY env vars.
- * Falls back to rule-based classification on failure.
+ * Optional AI-powered email classification via OpenAI-compatible API.
+ * Second opinion on top of rules-based classifier (detection-kb).
+ *
+ * Env vars:
+ *   AI_ENABLED=true              — enable
+ *   AI_API_KEY                   — API key (fallback: LLM_EXTRACT_API_KEY)
+ *   AI_BASE_URL                  — base URL (fallback: LLM_EXTRACT_BASE_URL or https://api.artemox.com/v1)
+ *   AI_MODEL                     — default: gpt-4.1-mini
+ *   AI_CONFIDENCE_THRESHOLD      — default: 0.75 (rules below this → ask AI)
+ *   AI_TIMEOUT_MS                — default: 15000
  */
 
-const AI_ENABLED = process.env.AI_ENABLED === "true";
-const AI_API_KEY = process.env.AI_API_KEY || "";
-const AI_MODEL = process.env.AI_MODEL || "claude-sonnet-4-20250514";
-const AI_BASE_URL = process.env.AI_BASE_URL || "https://api.anthropic.com";
-const AI_CONFIDENCE_THRESHOLD = Number(process.env.AI_CONFIDENCE_THRESHOLD || 0.75);
-const AI_TIMEOUT_MS = Number(process.env.AI_TIMEOUT_MS || 15000);
+function cfg() {
+    const apiKey = process.env.AI_API_KEY || process.env.LLM_EXTRACT_API_KEY || "";
+    const baseUrl = process.env.AI_BASE_URL
+        || process.env.LLM_EXTRACT_BASE_URL
+        || "https://api.artemox.com/v1";
+    return {
+        enabled: process.env.AI_ENABLED === "true",
+        apiKey,
+        baseUrl,
+        model: process.env.AI_MODEL || "gpt-4.1-mini",
+        confidenceThreshold: Number(process.env.AI_CONFIDENCE_THRESHOLD || 0.75),
+        timeoutMs: Number(process.env.AI_TIMEOUT_MS || 15000)
+    };
+}
 
-const CLASSIFICATION_PROMPT = `Ты — классификатор входящих писем для B2B дистрибьютора промышленного оборудования (Siderus / Коловрат). Распредели письмо РОВНО в одну из четырёх категорий.
+export function isAiEnabled() {
+    const c = cfg();
+    return c.enabled && c.apiKey.length > 0;
+}
+
+export function getAiConfig() {
+    const c = cfg();
+    return {
+        enabled: c.enabled && c.apiKey.length > 0,
+        model: c.model,
+        baseUrl: c.baseUrl,
+        confidenceThreshold: c.confidenceThreshold
+    };
+}
+
+const SYSTEM_PROMPT = `Ты — классификатор входящих писем для B2B дистрибьютора промышленного оборудования (Siderus / Коловрат). Распредели письмо РОВНО в одну из четырёх категорий.
 
 КАТЕГОРИИ:
 • "Клиент" — внешний покупатель просит цену / КП / счёт / прайс / техспецификации / аналоги на промышленное оборудование, либо размещает заказ. Обычно: русскоязычный текст, обращение по делу, артикулы или описание позиций, упоминание сроков/тендера/объекта.
@@ -64,139 +94,118 @@ confidence:
 Вход: "Сообщение не доставлено получателю info@example.com. Mail Delivery Subsystem."
 Выход: {"label":"Не определено","confidence":0.80,"detected_brands":[],"reasoning":"Служебное уведомление о недоставке почты"}`;
 
-export function isAiEnabled() {
-  return AI_ENABLED && AI_API_KEY.length > 0;
-}
-
-export function getAiConfig() {
-  return {
-    enabled: isAiEnabled(),
-    model: AI_MODEL,
-    confidenceThreshold: AI_CONFIDENCE_THRESHOLD
-  };
-}
-
-/**
- * Classify email using AI if rules-based confidence is below threshold.
- * Returns enhanced classification or null if AI is disabled/fails.
- */
 export async function aiClassify({ subject, body, fromEmail, attachments = [] }) {
-  if (!isAiEnabled()) return null;
+    if (!isAiEnabled()) return null;
 
-  const emailContent = [
-    `From: ${fromEmail}`,
-    `Subject: ${subject}`,
-    `Attachments: ${attachments.join(", ") || "none"}`,
-    "",
-    body.slice(0, 3000) // Limit body to save tokens
-  ].join("\n");
+    const { apiKey, baseUrl, model, timeoutMs } = cfg();
 
-  try {
-    const controller = new AbortController();
-    const timeout = setTimeout(() => controller.abort(), AI_TIMEOUT_MS);
+    const emailContent = [
+        `From: ${fromEmail || ""}`,
+        `Subject: ${subject || ""}`,
+        `Attachments: ${attachments.join(", ") || "none"}`,
+        "",
+        String(body || "").slice(0, 3000)
+    ].join("\n");
 
-    const response = await fetch(`${AI_BASE_URL}/v1/messages`, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-api-key": AI_API_KEY,
-        "anthropic-version": "2023-06-01"
-      },
-      body: JSON.stringify({
-        model: AI_MODEL,
-        max_tokens: 256,
-        messages: [
-          {
-            role: "user",
-            content: `${CLASSIFICATION_PROMPT}\n\n---\n${emailContent}`
-          }
-        ]
-      }),
-      signal: controller.signal
-    });
+    try {
+        const controller = new AbortController();
+        const timeout = setTimeout(() => controller.abort(), timeoutMs);
 
-    clearTimeout(timeout);
+        const response = await fetch(`${baseUrl}/chat/completions`, {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${apiKey}`
+            },
+            body: JSON.stringify({
+                model,
+                max_tokens: 300,
+                temperature: 0,
+                response_format: { type: "json_object" },
+                messages: [
+                    { role: "system", content: SYSTEM_PROMPT },
+                    { role: "user", content: emailContent }
+                ]
+            }),
+            signal: controller.signal
+        });
 
-    if (!response.ok) {
-      console.warn(`AI classification HTTP ${response.status}`);
-      return null;
+        clearTimeout(timeout);
+
+        if (!response.ok) {
+            const errorText = await response.text().catch(() => "");
+            console.warn(`AI classification HTTP ${response.status}: ${errorText.slice(0, 200)}`);
+            return null;
+        }
+
+        const data = await response.json();
+        const text = data.choices?.[0]?.message?.content || "";
+
+        const jsonMatch = text.match(/\{[\s\S]*\}/);
+        if (!jsonMatch) return null;
+
+        const parsed = JSON.parse(jsonMatch[0]);
+
+        const validLabels = ["Клиент", "СПАМ", "Поставщик услуг", "Не определено"];
+        if (!validLabels.includes(parsed.label)) return null;
+
+        return {
+            label: parsed.label,
+            confidence: Math.min(0.99, Math.max(0, Number(parsed.confidence) || 0.5)),
+            detectedBrands: Array.isArray(parsed.detected_brands) ? parsed.detected_brands : [],
+            reasoning: String(parsed.reasoning || ""),
+            source: "ai"
+        };
+    } catch (error) {
+        if (error.name === "AbortError") {
+            console.warn("AI classification timed out");
+        } else {
+            console.warn("AI classification error:", error.message);
+        }
+        return null;
     }
-
-    const data = await response.json();
-    const text = data.content?.[0]?.text || "";
-
-    // Extract JSON from response (handle markdown code blocks)
-    const jsonMatch = text.match(/\{[\s\S]*\}/);
-    if (!jsonMatch) return null;
-
-    const parsed = JSON.parse(jsonMatch[0]);
-
-    // Validate response
-    const validLabels = ["Клиент", "СПАМ", "Поставщик услуг", "Не определено"];
-    if (!validLabels.includes(parsed.label)) return null;
-
-    return {
-      label: parsed.label,
-      confidence: Math.min(0.99, Math.max(0, Number(parsed.confidence) || 0.5)),
-      detectedBrands: Array.isArray(parsed.detected_brands) ? parsed.detected_brands : [],
-      reasoning: String(parsed.reasoning || ""),
-      source: "ai"
-    };
-  } catch (error) {
-    if (error.name === "AbortError") {
-      console.warn("AI classification timed out");
-    } else {
-      console.warn("AI classification error:", error.message);
-    }
-    return null;
-  }
 }
 
 /**
  * Hybrid classification: use rules first, fallback to AI for uncertain cases.
- * @param {object} rulesResult - Result from detection-kb classifyMessage
- * @param {object} emailData - { subject, body, fromEmail, attachments }
- * @returns {object} Enhanced classification
  */
 export async function hybridClassify(rulesResult, emailData) {
-  if (!isAiEnabled()) {
-    return { ...rulesResult, source: "rules" };
-  }
+    if (!isAiEnabled()) {
+        return { ...rulesResult, source: "rules" };
+    }
 
-  // If rules are confident enough, use them directly
-  if (rulesResult.confidence >= AI_CONFIDENCE_THRESHOLD) {
-    return { ...rulesResult, source: "rules" };
-  }
+    const { confidenceThreshold } = cfg();
 
-  // Try AI for low-confidence cases
-  const aiResult = await aiClassify(emailData);
-  if (!aiResult) {
-    return { ...rulesResult, source: "rules" };
-  }
+    if (rulesResult.confidence >= confidenceThreshold) {
+        return { ...rulesResult, source: "rules" };
+    }
 
-  // If both agree, boost confidence
-  if (rulesResult.label === aiResult.label) {
-    return {
-      ...rulesResult,
-      confidence: Math.min(0.99, (rulesResult.confidence + aiResult.confidence) / 2 + 0.15),
-      detectedBrands: [...new Set([...rulesResult.detectedBrands, ...aiResult.detectedBrands])],
-      source: "hybrid",
-      aiReasoning: aiResult.reasoning
-    };
-  }
+    const aiResult = await aiClassify(emailData);
+    if (!aiResult) {
+        return { ...rulesResult, source: "rules" };
+    }
 
-  // If they disagree, pick the more confident one
-  if (aiResult.confidence > rulesResult.confidence + 0.1) {
-    return {
-      label: aiResult.label,
-      confidence: aiResult.confidence,
-      scores: rulesResult.scores,
-      matchedRules: rulesResult.matchedRules,
-      detectedBrands: [...new Set([...rulesResult.detectedBrands, ...aiResult.detectedBrands])],
-      source: "ai",
-      aiReasoning: aiResult.reasoning
-    };
-  }
+    if (rulesResult.label === aiResult.label) {
+        return {
+            ...rulesResult,
+            confidence: Math.min(0.99, (rulesResult.confidence + aiResult.confidence) / 2 + 0.15),
+            detectedBrands: [...new Set([...(rulesResult.detectedBrands || []), ...aiResult.detectedBrands])],
+            source: "hybrid",
+            aiReasoning: aiResult.reasoning
+        };
+    }
 
-  return { ...rulesResult, source: "rules", aiReasoning: aiResult.reasoning };
+    if (aiResult.confidence > rulesResult.confidence + 0.1) {
+        return {
+            label: aiResult.label,
+            confidence: aiResult.confidence,
+            scores: rulesResult.scores,
+            matchedRules: rulesResult.matchedRules,
+            detectedBrands: [...new Set([...(rulesResult.detectedBrands || []), ...aiResult.detectedBrands])],
+            source: "ai",
+            aiReasoning: aiResult.reasoning
+        };
+    }
+
+    return { ...rulesResult, source: "rules", aiReasoning: aiResult.reasoning };
 }
