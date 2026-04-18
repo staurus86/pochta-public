@@ -328,6 +328,15 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   // Country/region aliases — appear in postal addresses ("123610, Россия, Москва")
   "россия", "russia", "rossiya", "moscow", "москва",
 ]);
+// Batch D / P13: aliases whose FIRST token is a common generic word — when such an alias has ≥2
+// tokens (e.g. "Alfa Electric", "Power Innovation"), disallow the 1-filler variant in matchesBrand.
+// Fixes Alfa Laval → "ALFA ELECTRIC; ALFA MECCANICA; Alfa Valvole" cascade.
+const BRAND_FIRST_TOKEN_CONFLICT = new Set([
+  "alfa", "power", "robot", "tele", "micro", "pace", "link", "fisher", "high", "check",
+  "stem", "kipp", "ross", "lang", "meta", "and", "digi", "true", "bar", "onda", "liquid",
+  "simrit", "waldner", "ital", "belt", "radio", "thermal", "transfer", "motor", "norma",
+  "standard", "global", "control", "process", "electronic", "data", "ultra"
+]);
 // Aliases that must match as whole words (word boundary) to avoid substring false positives
 // "foss" → prevent matching inside "danfoss"
 const BRAND_WORD_BOUNDARY_LOCAL = new Set(["foss"]);
@@ -889,6 +898,21 @@ export function analyzeEmail(project, payload) {
     }
   }
 
+  // Batch D / P12: strip articles that equal sender's email local part before KB lookup
+  // (prevents ghost-brand cascade: snab-2@... → article "snab-2" → SMW-AUTOBLOK).
+  const fromLocalCtx = { fromLocal: String(fromEmail || "").split("@")[0].toLowerCase() };
+  if (fromLocalCtx.fromLocal && fromLocalCtx.fromLocal.length >= 3) {
+    const bad = fromLocalCtx.fromLocal;
+    const badNormalized = normalizeArticleCode(bad).toLowerCase();
+    const isBad = (code) => {
+      const n = normalizeArticleCode(code || "").toLowerCase();
+      return n && (n === bad || n === badNormalized);
+    };
+    if (Array.isArray(lead.articles)) lead.articles = lead.articles.filter((a) => !isBad(a));
+    if (Array.isArray(lead.lineItems)) lead.lineItems = lead.lineItems.filter((li) => !isBad(li?.article));
+    if (Array.isArray(lead.productNames)) lead.productNames = lead.productNames.filter((p) => !isBad(p?.article));
+  }
+
   enrichLeadFromKnowledgeBase(lead, classification, project, [subjectForExtraction, bodyForExtraction, attachmentContent].filter(Boolean).join("\n\n"));
   if (!lead.detectedBrands?.length && classification.detectedBrands?.length) {
     lead.detectedBrands = deduplicateByAbsorption([...classification.detectedBrands], "keep-shortest");
@@ -1243,6 +1267,8 @@ function enrichLeadFromKnowledgeBase(lead, classification, project, searchText =
     .filter((value) => !/^(?:ооо|ао|оао|зао|пао|ип)\b/i.test(value))
     .slice(0, 12);
 
+  // Batch D / P14: track matched product_names per brand for body-overlap grounding check.
+  const brandProductNames = new Map();
   for (const query of queries) {
     const semanticMatches = [
       ...detectionKb.findNomenclatureCandidates({ text: query, limit: 5 }),
@@ -1255,6 +1281,12 @@ function enrichLeadFromKnowledgeBase(lead, classification, project, searchText =
       current.matches += 1;
       current.score += (/semantic/.test(String(match.match_type || "")) ? 2 : 1) + Math.min(Number(match.source_rows || 0), 5);
       brandCandidates.set(brand, current);
+      const pn = String(match?.product_name || "").toLowerCase().trim();
+      if (pn) {
+        const key = brand.toLowerCase();
+        if (!brandProductNames.has(key)) brandProductNames.set(key, new Set());
+        brandProductNames.get(key).add(pn);
+      }
     }
   }
 
@@ -1264,9 +1296,60 @@ function enrichLeadFromKnowledgeBase(lead, classification, project, searchText =
       .map(([brand]) => brand);
     const topBrand = rankedBrands[0];
     if (topBrand) {
-      lead.detectedBrands = detectionKb.filterOwnBrands(uniqueBrands([...(lead.detectedBrands || []), topBrand]));
-      classification.detectedBrands = detectionKb.filterOwnBrands(uniqueBrands([...(classification.detectedBrands || []), topBrand]));
-      lead.sources.brands = summarizeSourceList([...(lead.sources.brands || []), "nomenclature_semantic"], true);
+      // Batch D / P14: body-overlap gate — promote KB-inferred topBrand to detectedBrands only
+      // when either (a) the brand name or one of its aliases appears verbatim in the body, OR
+      // (b) a lineItem article ties to this brand via KB nomenclature, OR
+      // (c) the matched catalog product_name phrase (≥12 chars) appears verbatim in body
+      //     (preserves existing semantic-description fallback for entries like Frontmatec).
+      // Prevents cascade of "High Perfection Tech / PRESSURE TECH / Check Point / Corteco"
+      // on bodies that never mention any of them (brand leaked from catalog description
+      // via semantic tokens).
+      const brandLower = String(topBrand).toLowerCase();
+      const bodyLower = String(cleanedSearchText || "").toLowerCase();
+      let grounded = matchesBrand(normalizeComparableText(cleanedSearchText), topBrand);
+      if (!grounded) {
+        try {
+          const aliases = (detectionKb.getBrandAliases() || [])
+            .filter((e) => String(e.canonical_brand || "").toLowerCase() === brandLower)
+            .map((e) => String(e.alias || "").toLowerCase());
+          for (const alias of aliases) {
+            if (alias.length >= 3 && new RegExp(`\\b${escapeRegExp(alias)}\\b`, "i").test(bodyLower)) {
+              grounded = true;
+              break;
+            }
+          }
+        } catch (_) { /* noop — detectionKb may not expose getBrandAliases in tests */ }
+      }
+      if (!grounded) {
+        for (const li of (lead.lineItems || [])) {
+          const art = String(li?.article || "").trim();
+          if (!art || art.startsWith("DESC:")) continue;
+          try {
+            const hit = detectionKb.findNomenclatureByArticle(art);
+            if (hit && String(hit.brand || "").toLowerCase() === brandLower) {
+              grounded = true;
+              break;
+            }
+          } catch (_) { /* noop */ }
+        }
+      }
+      // (c) full catalog product_name phrase (≥12 chars) verbatim in body
+      if (!grounded) {
+        const pns = brandProductNames.get(brandLower);
+        if (pns) {
+          for (const pn of pns) {
+            if (pn.length >= 12 && bodyLower.includes(pn)) { grounded = true; break; }
+          }
+        }
+      }
+      if (grounded) {
+        lead.detectedBrands = detectionKb.filterOwnBrands(uniqueBrands([...(lead.detectedBrands || []), topBrand]));
+        classification.detectedBrands = detectionKb.filterOwnBrands(uniqueBrands([...(classification.detectedBrands || []), topBrand]));
+        lead.sources.brands = summarizeSourceList([...(lead.sources.brands || []), "nomenclature_semantic"], true);
+      } else {
+        // Keep trace — expose as kb_inferred source metadata but DO NOT promote into detectedBrands.
+        lead.sources.kb_inferred_brands = uniqueBrands([...(lead.sources.kb_inferred_brands || []), topBrand]);
+      }
     }
   }
 }
@@ -4589,9 +4672,13 @@ function isLikelyArticle(code, forbiddenDigits = new Set(), sourceLine = "") {
   return true;
 }
 
-export function isObviousArticleNoise(code, sourceLine = "") {
+export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   const normalized = normalizeArticleCode(code);
   const line = String(sourceLine || "");
+  // Batch D / P12: reject articles that equal the sender's email local part
+  // (e.g. from=snab-2@stroy-komplex.com → article="snab-2" → ghost SMW-AUTOBLOK via KB lookup).
+  const fromLocal = ctx && typeof ctx.fromLocal === "string" ? ctx.fromLocal.toLowerCase() : "";
+  if (fromLocal && fromLocal.length >= 3 && normalized && normalized.toLowerCase() === fromLocal) return true;
   const compactLine = line.replace(/\s+/g, "");
   const compactNormalized = normalized.replace(/\s+/g, "");
   const hasStrongArticleContext = STRONG_ARTICLE_CONTEXT_PATTERN.test(line);
@@ -4933,6 +5020,10 @@ function detectBrands(text, brands) {
   ]);
   const normalizedText = normalizeComparableText(sourceText);
   const matched = new Set();
+  // Batch D / P13: track per-canonical which aliases matched — so a shared generic single-token
+  // alias ("alfa" → Alfa Laval/Electric/Meccanica/Valvole) gets dropped for siblings when a
+  // more specific multi-token alias ("alfa laval") also matched.
+  const canonicalAliasHits = new Map();
 
   for (const brand of knownBrands) {
     if (matchesBrand(normalizedText, brand)) {
@@ -4942,14 +5033,50 @@ function detectBrands(text, brands) {
 
   for (const entry of aliases) {
     if (matchesBrand(normalizedText, entry.alias)) {
-      matched.add(preferProjectBrandCase(entry.canonical_brand, brands));
+      const canonical = preferProjectBrandCase(entry.canonical_brand, brands);
+      matched.add(canonical);
+      const key = String(canonical).toLowerCase();
+      if (!canonicalAliasHits.has(key)) canonicalAliasHits.set(key, new Set());
+      canonicalAliasHits.get(key).add(String(entry.alias || "").toLowerCase());
     }
   }
 
   const projectMatches = (brands || []).filter((brand) => matchesBrand(normalizedText, brand));
-  const combined = projectMatches.length > 0
+  let combined = projectMatches.length > 0
     ? dedupeCaseInsensitive(projectMatches)
     : dedupeCaseInsensitive([...matched]);
+
+  // Batch D / P13: shared-generic-alias post-filter (mirror of detection-kb.detectBrands).
+  if (canonicalAliasHits.size > 1) {
+    const perAliasCanonicals = new Map();
+    for (const [canonical, hitSet] of canonicalAliasHits) {
+      for (const alias of hitSet) {
+        if (/\s/.test(alias)) continue;
+        if (!perAliasCanonicals.has(alias)) perAliasCanonicals.set(alias, new Set());
+        perAliasCanonicals.get(alias).add(canonical);
+      }
+    }
+    const sharedGenericAliases = new Set();
+    for (const [alias, canonicals] of perAliasCanonicals) {
+      if (canonicals.size >= 2) sharedGenericAliases.add(alias);
+    }
+    if (sharedGenericAliases.size > 0) {
+      const specificMatched = new Set();
+      for (const [canonical, hitSet] of canonicalAliasHits) {
+        for (const alias of hitSet) {
+          if (/\s/.test(alias)) specificMatched.add(canonical);
+        }
+      }
+      combined = combined.filter((brand) => {
+        const key = String(brand).toLowerCase();
+        const hitSet = canonicalAliasHits.get(key);
+        if (!hitSet) return true;
+        const onlyShared = [...hitSet].every((a) => sharedGenericAliases.has(a));
+        if (!onlyShared) return true;
+        return specificMatched.size === 0;
+      });
+    }
+  }
 
   if (combined.length < 10 || !detectionKb.filterSignatureBrandCluster) return combined;
   return detectionKb.filterSignatureBrandCluster(combined, normalizedText.toLowerCase(), aliases);
@@ -5325,11 +5452,12 @@ function matchesBrand(normalizedText, candidate) {
 
   const parts = candidateWords.filter((item) => item.length >= 3 && !BRAND_FALSE_POSITIVE_ALIASES.has(item));
   if (parts.length < 2) return false;
-  // Require contiguous match: allow up to 1 intervening short word (<=12 chars) between parts
-  const re = new RegExp(
-    "\\b" + parts.map(escapeRegExp).join("(?:\\s+\\S{1,12}){0,1}\\s+") + "\\b",
-    "i"
-  );
+  // Batch D / P13: when the first token is a conflict-prone generic word, disallow filler
+  // between parts — require strict "\s+" between all tokens. Prevents "Alfa Laval" from
+  // matching "ALFA ELECTRIC" / "ALFA MECCANICA" / "Alfa Valvole" via the 1-filler slot.
+  const strictJoin = BRAND_FIRST_TOKEN_CONFLICT.has(parts[0]);
+  const joiner = strictJoin ? "\\s+" : "(?:\\s+\\S{1,12}){0,1}\\s+";
+  const re = new RegExp("\\b" + parts.map(escapeRegExp).join(joiner) + "\\b", "i");
   return re.test(normalizedText);
 }
 

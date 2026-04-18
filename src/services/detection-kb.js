@@ -1739,6 +1739,9 @@ class DetectionKnowledgeBase {
     const lowered = stripped.toLowerCase();
     const padded = ` ${lowered} `;
     const aliases = this.getBrandAliases();
+    // Batch D / P13: track per-canonical which aliases hit — to drop canonicals matched
+    // ONLY via a shared generic single-token alias when a more specific sibling matched.
+    const canonicalAliasHits = new Map();
     const matched = aliases
       .filter((entry) => {
         const alias = entry.alias.toLowerCase();
@@ -1748,9 +1751,21 @@ class DetectionKnowledgeBase {
         // Single-word aliases ALWAYS require word boundary — prevent substring hits like
         // "digi" inside "digital", "ital" inside "digital", "robot" inside "robot-mail-...".
         if (!/\s/.test(alias) || alias.length < 4 || BRAND_WORD_BOUNDARY_ALIASES.has(alias)) {
-          return new RegExp(`\\b${escapeRegex(alias)}\\b`, "i").test(lowered);
+          const ok = new RegExp(`\\b${escapeRegex(alias)}\\b`, "i").test(lowered);
+          if (ok) {
+            const key = String(entry.canonical_brand || "").toLowerCase();
+            if (!canonicalAliasHits.has(key)) canonicalAliasHits.set(key, new Set());
+            canonicalAliasHits.get(key).add(alias);
+          }
+          return ok;
         }
-        return padded.includes(alias);
+        const ok = padded.includes(alias);
+        if (ok) {
+          const key = String(entry.canonical_brand || "").toLowerCase();
+          if (!canonicalAliasHits.has(key)) canonicalAliasHits.set(key, new Set());
+          canonicalAliasHits.get(key).add(alias);
+        }
+        return ok;
       })
       .map((entry) => preferProjectBrandCase(entry.canonical_brand, projectBrands));
 
@@ -1766,9 +1781,48 @@ class DetectionKnowledgeBase {
       return padded.includes(b);
     });
 
-    const combined = projectMatched.length > 0
+    let combined = projectMatched.length > 0
       ? dedupeCaseInsensitive(projectMatched)
       : dedupeCaseInsensitive([...matched, ...projectMatched]);
+
+    // Batch D / P13: drop canonicals that matched ONLY via a generic single-token alias
+    // shared across multiple siblings (e.g. "alfa" → 4 canonicals), when a sibling matched
+    // via a more specific multi-token alias. "Alfa Laval" mention must not emit "Alfa Electric".
+    if (canonicalAliasHits.size > 1) {
+      const sharedGenericAliases = new Set();
+      const perAliasCanonicals = new Map();
+      for (const [canonical, hitSet] of canonicalAliasHits) {
+        for (const alias of hitSet) {
+          if (/\s/.test(alias)) continue;
+          if (!perAliasCanonicals.has(alias)) perAliasCanonicals.set(alias, new Set());
+          perAliasCanonicals.get(alias).add(canonical);
+        }
+      }
+      for (const [alias, canonicals] of perAliasCanonicals) {
+        if (canonicals.size >= 2) sharedGenericAliases.add(alias);
+      }
+      if (sharedGenericAliases.size > 0) {
+        const specificMatched = new Set();
+        for (const [canonical, hitSet] of canonicalAliasHits) {
+          for (const alias of hitSet) {
+            if (/\s/.test(alias) || !sharedGenericAliases.has(alias.split(/\s+/)[0])) {
+              // canonical has a multi-token alias hit — definitely specific
+              if (/\s/.test(alias)) specificMatched.add(canonical);
+            }
+          }
+        }
+        combined = combined.filter((brand) => {
+          const key = String(brand).toLowerCase();
+          const hitSet = canonicalAliasHits.get(key);
+          if (!hitSet) return true;
+          const onlyShared = [...hitSet].every((a) => sharedGenericAliases.has(a));
+          if (!onlyShared) return true;
+          // Canonical's only match path was a shared generic alias — keep ONLY if no sibling
+          // has a specific (multi-token) match for the same shared prefix.
+          return specificMatched.size === 0;
+        });
+      }
+    }
 
     if (combined.length < 10) return combined;
 
