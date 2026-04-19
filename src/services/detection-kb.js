@@ -36,6 +36,14 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   "micro", "corteco", "simrit", "seat", "rota", "tool", "index", "itec", "nito", "irem",
   "able", "kimo", "roller", "ross", "fisher", "ital", "helical", "bar", "check", "select",
   "robot", "pressure", "high", "contact", "elektro",
+  // Phase-2 brand audit — materials, standards, units, stopwords leaking as brands.
+  // User-reported: NBR, ISO, VAC, item, Single, P.A.
+  "nbr", "epdm", "ptfe", "fkm", "viton", "hnbr", "silicone",
+  "iso", "din", "iec", "gost", "ansi", "astm", "atex", "rohs", "reach",
+  "vac", "vdc", "hz", "khz", "mhz", "kw", "kva",
+  "item", "items", "single", "double", "p.a.", "qty", "part", "parts",
+  "pcs", "piece", "pieces", "set", "kit", "pack",
+  "model", "type", "series", "version", "standard",
 ]);
 // Aliases that must match as whole words only (prevent substring false positives)
 // "puls" — prevent matching inside "vegapuls"; "foss" — prevent matching inside "danfoss"

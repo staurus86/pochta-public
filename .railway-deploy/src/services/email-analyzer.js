@@ -11,6 +11,7 @@ import { applyRequestTypeFallback } from "./request-type-rules.js";
 import { reconcileMissingForProcessing } from "./field-enums.js";
 import { annotateQualityGate } from "./quality-gate.js";
 import { isHtmlWordMetadata, isFilenameLike, isDateTime } from "./article-filters.js";
+import { sanitizeBrands } from "./brand-extractor.js";
 
 // Product types database for request type detection and entity extraction
 const __analyzerDir = path.dirname(fileURLToPath(import.meta.url));
@@ -786,6 +787,17 @@ export function analyzeEmail(project, payload) {
   // Filter own brands (Siderus, Коловрат, etc.) from classification results
   classification.detectedBrands = detectionKb.filterOwnBrands(classification.detectedBrands);
 
+  // Phase-2 brand audit: sanitize classification brands through the new pipeline —
+  // split alias bundles ("Buerkert / Burkert / Bürkert"), strip materials/standards/units/
+  // stopwords (NBR, ISO, VAC, item, Single, P.A.), dedup surface-form variants, annotate
+  // brandContext (normal/warning/suspicious/catalog) for mass-brand guard.
+  const _classifySanitized = sanitizeBrands(classification.detectedBrands);
+  classification.detectedBrands = _classifySanitized.brands;
+  classification.brandContext = _classifySanitized.context;
+  if (_classifySanitized.massBrand) {
+    classification.brandMassFlag = true;
+  }
+
   // SPAM EARLY EXIT — skip attachment file reading and lead extraction
   // Still run extractSender so auto-reply senders (clients with OOO) are identified correctly
   if (classification.label === "СПАМ") {
@@ -1172,6 +1184,19 @@ export function analyzeEmail(project, payload) {
       uniqueBrands([...lead.detectedBrands, ...classification.detectedBrands]),
       "keep-shortest"
     );
+  }
+
+  // Phase-2 brand audit: final sanitization on lead.detectedBrands — strips any
+  // residual non-brand tokens (NBR/ISO/VAC/item/Single/P.A.) that slipped past
+  // the classification-level sanitize (e.g. from extractLead's own detectBrands
+  // call on different scopes), splits alias bundles, collapses surface-form dupes.
+  if (lead.detectedBrands?.length) {
+    const _leadSanitized = sanitizeBrands(lead.detectedBrands);
+    lead.detectedBrands = _leadSanitized.brands;
+    lead.brandContext = _leadSanitized.context;
+    if (_leadSanitized.massBrand) {
+      lead.brandMassFlag = true;
+    }
   }
 
   // Batch F / P18: mirror P15 gate on lead.detectedBrands. extractLead's own detectBrands
