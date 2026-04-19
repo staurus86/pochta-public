@@ -1704,11 +1704,11 @@ function exportInboxXlsx() {
     return;
   }
 
-  const headers = ['№', 'Дата', 'От', 'Ящик', 'Тема', 'Тело письма', 'Статус', 'Категория', 'Confidence', 'ФИО', 'Должность', 'Компания', 'ИНН', 'Телефон', 'Бренды', 'Артикулы', 'LLM Тип запроса', 'LLM Срочно', 'LLM Не хватает'];
+  const headers = ['№', 'Дата', 'От', 'Ящик', 'Тема', 'Тело письма', 'Статус', 'Категория', 'Confidence', 'ФИО', 'Должность', 'Компания', 'ИНН', 'Телефон', 'Бренды', 'Артикулы', 'Название товара', 'LLM Тип запроса', 'LLM Срочно', 'LLM Не хватает'];
   const colWidths = [
     { wch: 5 }, { wch: 20 }, { wch: 25 }, { wch: 25 }, { wch: 40 }, { wch: 60 },
     { wch: 16 }, { wch: 14 }, { wch: 10 }, { wch: 22 }, { wch: 22 }, { wch: 25 },
-    { wch: 14 }, { wch: 18 }, { wch: 25 }, { wch: 30 }, { wch: 18 }, { wch: 10 }, { wch: 30 }
+    { wch: 14 }, { wch: 18 }, { wch: 25 }, { wch: 30 }, { wch: 40 }, { wch: 18 }, { wch: 10 }, { wch: 30 }
   ];
   const toRow = (m, idx) => {
     const a = m.analysis || {};
@@ -1723,6 +1723,7 @@ function exportInboxXlsx() {
       s.fullName || '', s.position || '',
       s.companyName || '', String(s.inn || ''), s.cityPhone || s.mobilePhone || '',
       (a.detectedBrands || []).join('; '), (l.articles || []).join('; '),
+      getLeadProductNameList(l).join('; '),
       llm.requestType || '', llm.isUrgent ? 'Да' : '', (llm.missingForProcessing || []).join('; ')
     ];
   };
