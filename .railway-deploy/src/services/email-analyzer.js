@@ -413,7 +413,7 @@ const PDF_INTERNAL_TEXT_NOISE_PATTERNS = [
   /^\d+\/[A-Z]{4,}/i
 ];
 // CSS tokens: font-size:17px, padding:16px, max-width:480px, line-height:165, mso-line-height-alt:24
-const CSS_STYLE_TOKEN_PATTERN = /^(?:FONT|LINE|LETTER|WORD|TEXT|MARGIN|PADDING|BORDER|BACKGROUND|COLOR|WIDTH|HEIGHT|TOP|LEFT|RIGHT|BOTTOM|DISPLAY|POSITION|MIN|MAX|MSO)(?:-[A-Z]+)*:\S+$/i;
+const CSS_STYLE_TOKEN_PATTERN = /^(?:FONT|LINE|LETTER|WORD|TEXT|MARGIN|PADDING|BORDER|BACKGROUND|COLOR|WIDTH|HEIGHT|TOP|LEFT|RIGHT|BOTTOM|DISPLAY|POSITION|MIN|MAX|MSO|SIZE|WEIGHT|STYLE|FAMILY|FILL|STROKE|OPACITY|OVERFLOW|Z-INDEX|FLEX|GRID|PADDING-TOP|PADDING-LEFT|MARGIN-TOP|MARGIN-LEFT)(?:-[A-Z]+)*:\S*$/i;
 // Word internal style list codes: WW8Num1z0, WRD0000-WRD0003 (higher WRD#### can be real product codes)
 const WORD_INTERNAL_TOKEN_PATTERN = /^(?:WW8[A-Z0-9]+|WRD000[0-3])$/i;
 const WORD_STYLE_TOKEN_PATTERN = /^(?:WW-[A-Za-z0-9-]+|\d+ROMAN(?:\/[A-Z]+)?|V\d+)$/i;
@@ -1197,6 +1197,13 @@ export function analyzeEmail(project, payload) {
     if (!t) return false;
     if (/^>/.test(t)) return true;
     if (/^(?:>\s*)?сообщение\s*[:：]/i.test(t)) return true;
+    // Batch I / I6: CSS rule / HTML attribute leak as product name
+    //   "color:# ;", "size:612.0pt", "font-family:Calibri", "style=mso-..."
+    if (/^(?:color|size|font|background|margin|padding|border|width|height|style|mso|text|line|letter|word|display|position|top|left|right|bottom|min|max|flex|grid|opacity|overflow|z-index|fill|stroke)\s*[:=]/i.test(t)) return true;
+    // Standalone hex color fragment: "#", "#FFF", "#FFFFFF;"
+    if (/^#[0-9a-f]{0,6};?$/i.test(t)) return true;
+    // "Накладная №" / document label leak (has no real product name)
+    if (/^(?:Накладная|Счет|Заявка|Приложение|Документ|Пункт)\s*№\s*\.?$/i.test(t)) return true;
     return false;
   };
   if (lead) {
@@ -5120,6 +5127,17 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
       && (normalized.match(/-/g) || []).length >= 2) {
     return true;
   }
+  // Batch I / I1: explicit uuid: scheme prefix (PDF metadata leak — "uuid:f1433557-0453-11dc-9364")
+  if (/^uuid:/i.test(normalized)) return true;
+  // Batch I / I2: User-Agent strings leaking from HTML-source email bodies
+  if (/^mozilla\//i.test(normalized)) return true;
+  // Batch I / I3: CSS color tokens: RED0, GREEN255, BLUE128, RGB128, CYAN50 — не артикул
+  if (/^(?:RED|GREEN|BLUE|CYAN|MAGENTA|YELLOW|BLACK|WHITE|GRAY|GREY|RGB|RGBA|HSL|HSLA)\d{1,3}$/i.test(normalized)) return true;
+  // Batch I / I4: font-family names with weight/style suffix
+  //   NotoSansSymbols2-Regular, CalibriLight-Bold, Arial-BoldMT, Times-Italic
+  if (/^[A-Z][A-Za-z0-9]+-(?:Regular|Bold|Light|Italic|Medium|Thin|Heavy|Black|SemiBold|ExtraBold|BoldItalic|LightItalic|Oblique|Roman|Condensed)(?:MT|Pro|PS|Std)?$/.test(normalized)) return true;
+  // Batch I / I5: bare font family names commonly leaked from PDF metadata
+  if (/^(?:NotoSans|NotoSerif|CalibriLight|ArialMT|TimesNewRoman|HelveticaNeue|CourierNew|LucidaConsole|ComicSans|Roboto|OpenSans|Lato|Montserrat|PTSans|PTSerif|DejaVu[A-Za-z]+|Liberation[A-Za-z]+)\d*(?:-[A-Za-z]+)?$/.test(normalized)) return true;
   // Batch H / H3: pure-hex-with-hyphens token, total hex chars ≥12 — catches any remaining
   // hex/dash fragments (partial cid/UUID/checksum leaks).
   if (/^[0-9a-f-]+$/i.test(normalized) && normalized.includes("-")) {
