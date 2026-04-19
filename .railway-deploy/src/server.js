@@ -3,7 +3,7 @@ import { readFile } from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { ProjectsStore } from "./storage/projects-store.js";
-import { analyzeEmail, analyzeEmailAsync } from "./services/email-analyzer.js";
+import { analyzeEmail, analyzeEmailAsync, applyPostProcessing } from "./services/email-analyzer.js";
 import { isAiEnabled, getAiConfig } from "./services/ai-classifier.js";
 import { getLlmExtractConfig, isLlmExtractEnabled } from "./services/llm-extractor.js";
 import { getCrmConfig, syncProjectToCrm } from "./services/crm-sync.js";
@@ -1211,6 +1211,9 @@ async function handleApi(req, res, url) {
             const savedLlm = msg.analysis?.llmExtraction || readLlmCache(msg.messageKey || msg.id);
             if (savedLlm) newAnalysis.llmExtraction = savedLlm;
             if (msg.analysis?.llmConfig) newAnalysis.llmConfig = msg.analysis.llmConfig;
+            // J4: re-run post-processing after LLM cache restore so request-type fallback,
+            // missing-enum normalization, and quality gate reflect the merged state.
+            applyPostProcessing(newAnalysis);
             msg.analysis = newAnalysis;
             msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
             const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
