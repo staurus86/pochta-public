@@ -10,6 +10,7 @@ import { isLlmExtractEnabled, llmExtract, mergeLlmExtraction, buildRulesFoundSum
 import { applyRequestTypeFallback } from "./request-type-rules.js";
 import { reconcileMissingForProcessing } from "./field-enums.js";
 import { annotateQualityGate } from "./quality-gate.js";
+import { isHtmlWordMetadata, isFilenameLike, isDateTime } from "./article-filters.js";
 
 // Product types database for request type detection and entity extraction
 const __analyzerDir = path.dirname(fileURLToPath(import.meta.url));
@@ -2250,6 +2251,17 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     const nnnSet = new Set(nnnTokens.map((t) => String(t)));
     allArticles = allArticles.filter((a) => !nnnSet.has(String(a)));
   }
+  // TZ Phase-1 structural post-filter: strip WordSection/XMP/filename/datetime leaks only.
+  // Heuristic filters (tech-spec / OCR-noise / descriptor-slug) intentionally skipped —
+  // they would reject legitimate mixed-case SKUs the existing pipeline handles correctly.
+  allArticles = allArticles.filter((a) => {
+    const s = String(a).trim();
+    if (!s) return false;
+    if (isHtmlWordMetadata(s)) return false;
+    if (isFilenameLike(s)) return false;
+    if (isDateTime(s)) return false;
+    return true;
+  });
   const attachmentsText = attachments.join(" ");
   const hasNameplatePhotos = /шильд|nameplate/i.test(attachmentsText);
   const hasArticlePhotos = /артик|sku|label/i.test(attachmentsText);
