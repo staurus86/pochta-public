@@ -1587,15 +1587,24 @@ runTest("applies sender profile hints to company and brands on future emails", (
   });
 
   try {
-    const result = analyzeEmail(project, {
+    // H1: company_hint применяется всегда, brand_hint — только если бренд упоминается в теле.
+    const grounded = analyzeEmail(project, {
+      fromEmail: senderEmail,
+      subject: "Нужен счёт",
+      body: "Добрый день. Прошу КП на ABB S201-C16 — 5 шт."
+    });
+    assert.equal(grounded.sender.companyName, "ООО Повторный клиент");
+    assert.ok(grounded.detectedBrands.includes("ABB"));
+
+    // H1: если бренда нет в теле — hint НЕ применяется (анти-regression TACHTROL/jaksa/HOMA).
+    const ungrounded = analyzeEmail(project, {
       fromEmail: senderEmail,
       subject: "Нужен счёт",
       body: "Добрый день. Прошу подготовить КП без явного бренда в тексте."
     });
-
-    assert.equal(result.sender.companyName, "ООО Повторный клиент");
-    assert.ok(result.detectedBrands.includes("ABB"));
-    assert.ok(result.detectedBrands.includes("Siemens"));
+    assert.equal(ungrounded.sender.companyName, "ООО Повторный клиент");
+    assert.ok(!ungrounded.detectedBrands.includes("ABB"));
+    assert.ok(!ungrounded.detectedBrands.includes("Siemens"));
   } finally {
     if (profile?.id) detectionKb.deactivateSenderProfile(profile.id);
   }

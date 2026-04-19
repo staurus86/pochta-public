@@ -27,6 +27,15 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   // Batch F / P20 (verify scan fallout): "power" (rs-power.ru domain leak), "sensors"
   // (plural "Sensors NORIS & NOVOTECHNIK").
   "power", "sensors",
+  // Batch H / H2: single-generic-word aliases from KB causing massive false positives.
+  // KB has 59 single-word aliases like 'first'→First Sensor, 'time'→Time Mark,
+  // 'value'→Value, 'mobil'→Mobil, 'binding'→Binding Union, 'inform'→INFORM ELEKTRONIK.
+  // Set.add dedupes against entries above.
+  "first", "time", "value", "mobil", "binding", "inform", "sensor", "general", "link",
+  "tele", "motor", "standa", "stem", "digi", "true", "liquid", "onda", "power", "pace",
+  "micro", "corteco", "simrit", "seat", "rota", "tool", "index", "itec", "nito", "irem",
+  "able", "kimo", "roller", "ross", "fisher", "ital", "helical", "bar", "check", "select",
+  "robot", "pressure", "high", "contact", "elektro",
 ]);
 // Aliases that must match as whole words only (prevent substring false positives)
 // "puls" — prevent matching inside "vegapuls"; "foss" — prevent matching inside "danfoss"

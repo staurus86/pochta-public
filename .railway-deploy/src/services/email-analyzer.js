@@ -336,6 +336,15 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   // dedup when hyphen-split first-token filter newly removes their multi-word siblings.
   // "power" (domain rs-power.ru), "sensors" (plural "Sensors NORIS & NOVOTECHNIK").
   "power", "sensors",
+  // Batch H / H2: single-generic-word aliases from KB causing massive false positives.
+  // KB has 59 single-word aliases like 'first'→First Sensor, 'time'→Time Mark,
+  // 'value'→Value, 'mobil'→Mobil, 'binding'→Binding Union, 'inform'→INFORM ELEKTRONIK.
+  // Set.add dedupes against entries above.
+  "first", "time", "value", "mobil", "binding", "inform", "sensor", "general", "link",
+  "tele", "motor", "standa", "stem", "digi", "true", "liquid", "onda", "power", "pace",
+  "micro", "corteco", "simrit", "seat", "rota", "tool", "index", "itec", "nito", "irem",
+  "able", "kimo", "roller", "ross", "fisher", "ital", "helical", "bar", "check", "select",
+  "robot", "pressure", "high", "contact", "elektro",
 ]);
 // Batch D / P13 + Batch E / P17: aliases whose FIRST token is a common generic word — when such
 // an alias has ≥2 tokens (e.g. "Alfa Electric", "Power Innovation", "High Perfection Tech",
@@ -690,7 +699,8 @@ export function analyzeEmail(project, payload) {
   if (classification.label === "СПАМ") {
     const spamAttachmentCount = (payload.attachmentFiles || []).length;
     const spamSender = extractSender(fromName, fromEmail, bodyForSender, attachments, signature);
-    applySenderProfileHints(spamSender, classification, fromEmail);
+    const spamEvidence = `${String(subject || "")}\n${String(primaryBody || "")}\n${String(body || "")}`.toLowerCase();
+    applySenderProfileHints(spamSender, classification, fromEmail, spamEvidence, null);
     applyCompanyDirectoryHints(spamSender, fromEmail);
     // Batch F / P18: body-grounding gate for SPAM — SPAM emails (WordPress auto-forms
     // wordpress@endress-hauser.pro with body "<b>Заявка с формы обратной связи</b>
@@ -838,7 +848,18 @@ export function analyzeEmail(project, payload) {
     sender.inn = normalizeInn(formInn);
     sender.sources.inn = activeFormData === tildaFormData ? "tilda_form" : "robot_form";
   }
-  applySenderProfileHints(sender, classification, fromEmail);
+  // Batch H / H1: pass concatenated subject+body+attachment text as evidence for
+  // body-grounding gate on profile.brand_hint. Stale sender-profile brand hints
+  // (set once from an old email) otherwise leak into every future email from the
+  // same sender → "ghost brand" cascade. Article-resolution grounding is handled
+  // by the downstream P15 gate on classification.detectedBrands.
+  const profileEvidence = [
+    String(subject || ""),
+    String(primaryBody || ""),
+    String(bodyForExtraction || ""),
+    String(attachmentContent || "")
+  ].filter(Boolean).join("\n").toLowerCase();
+  applySenderProfileHints(sender, classification, fromEmail, profileEvidence, null);
   applyCompanyDirectoryHints(sender, fromEmail);
   mergeAttachmentRequisites(sender, attachmentAnalysis);
   applyCompanyDirectoryHints(sender, fromEmail);
@@ -1165,6 +1186,67 @@ export function analyzeEmail(project, payload) {
     }
   }
 
+  // Batch H / H4: dedupe productNames + filter quoted-reply header leakage.
+  // (1) normalize each product name (trim + lowercase + collapse whitespace) and drop dups,
+  //     keeping the first occurrence. Mirror on lineItems.descriptionRu and articles.
+  // (2) filter out productNames that start with '>' (quoted-reply prefix) or equal/start
+  //     with 'Сообщение:' (Siderus form quoted-reply header leaking into products).
+  const normalizeNameKey = (s) => String(s || "").trim().toLowerCase().replace(/\s+/g, " ");
+  const isLeakedReplyHeader = (s) => {
+    const t = String(s || "").trim();
+    if (!t) return false;
+    if (/^>/.test(t)) return true;
+    if (/^(?:>\s*)?сообщение\s*[:：]/i.test(t)) return true;
+    return false;
+  };
+  if (lead) {
+    if (Array.isArray(lead.productNames)) {
+      const seen = new Set();
+      const filtered = [];
+      for (const entry of lead.productNames) {
+        const name = entry && entry.name ? String(entry.name) : "";
+        if (isLeakedReplyHeader(name)) continue;
+        const key = `${normalizeArticleCode(entry?.article || "").toLowerCase()}|${normalizeNameKey(name)}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        filtered.push(entry);
+      }
+      lead.productNames = filtered;
+    }
+    if (Array.isArray(lead.lineItems)) {
+      const seen = new Set();
+      const filtered = [];
+      for (const item of lead.lineItems) {
+        const name = item && item.descriptionRu ? String(item.descriptionRu) : "";
+        if (isLeakedReplyHeader(name)) continue;
+        const key = `${normalizeArticleCode(item?.article || "").toLowerCase()}|${normalizeNameKey(name)}`;
+        if (key === "|") {
+          filtered.push(item);
+          continue;
+        }
+        if (seen.has(key)) continue;
+        seen.add(key);
+        filtered.push(item);
+      }
+      lead.lineItems = filtered;
+    }
+    if (Array.isArray(lead.articles)) {
+      const seen = new Set();
+      const filtered = [];
+      for (const a of lead.articles) {
+        const key = normalizeArticleCode(a || "").toLowerCase();
+        if (!key) continue;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        filtered.push(a);
+      }
+      lead.articles = filtered;
+    }
+    if (Array.isArray(lead.lineItems) && Array.isArray(lead.articles)) {
+      lead.totalPositions = Math.max(lead.lineItems.length, lead.articles.length);
+    }
+  }
+
   // Post-correction: if classification couldn't decide but lead has articles → likely a client
   if (classification.label === "Не определено" && lead.articles?.length > 0) {
     classification.label = "Клиент";
@@ -1384,7 +1466,7 @@ function normalizeAttachments(attachments) {
   return [];
 }
 
-function applySenderProfileHints(sender, classification, fromEmail) {
+function applySenderProfileHints(sender, classification, fromEmail, evidenceText = "", leadContext = null) {
   const profile = detectionKb.matchSenderProfile(fromEmail);
   if (!profile) return;
   if (!sender.sources) sender.sources = {};
@@ -1402,10 +1484,65 @@ function applySenderProfileHints(sender, classification, fromEmail) {
       .map((item) => item.trim())
       .filter(Boolean)
   );
-  if (hintedBrands.length > 0) {
-    classification.detectedBrands = detectionKb.filterOwnBrands(unique([...(classification.detectedBrands || []), ...hintedBrands]));
-    classification.brandSources = unique([...(classification.brandSources || []), "sender_profile"]);
-  }
+  if (hintedBrands.length === 0) return;
+
+  // Batch H / H1: body-grounding gate. Only keep a hinted brand if:
+  //   (1) its name (lower) appears in evidenceText, OR
+  //   (2) one of its KB aliases of length ≥4 appears as a word in evidenceText, OR
+  //   (3) an article extracted for this email resolves to this brand in the nomenclature KB.
+  // Without this gate, a stale sender_profile brand hint (set once from an old email)
+  // leaks into every future email from the same sender → "ghost brand" cascade.
+  const evidenceLower = String(evidenceText || "").toLowerCase();
+  const articleBrandSet = new Set();
+  try {
+    const articles = [
+      ...((leadContext && leadContext.lineItems) || []).map((li) => li && li.article).filter(Boolean),
+      ...((leadContext && leadContext.articles) || [])
+    ];
+    for (const art of articles) {
+      const code = String(art || "").trim();
+      if (!code || /^DESC:/i.test(code)) continue;
+      const hit = detectionKb.findNomenclatureByArticle ? detectionKb.findNomenclatureByArticle(code) : null;
+      const brand = hit && hit.brand ? String(hit.brand).toLowerCase() : "";
+      if (brand) articleBrandSet.add(brand);
+    }
+  } catch (_) { /* noop — KB optional */ }
+
+  let kbAliasesByBrand = null;
+  const ensureAliases = () => {
+    if (kbAliasesByBrand) return kbAliasesByBrand;
+    kbAliasesByBrand = new Map();
+    try {
+      for (const entry of (detectionKb.getBrandAliases() || [])) {
+        const key = String(entry.canonical_brand || "").toLowerCase();
+        if (!key) continue;
+        if (!kbAliasesByBrand.has(key)) kbAliasesByBrand.set(key, []);
+        kbAliasesByBrand.get(key).push(String(entry.alias || "").toLowerCase());
+      }
+    } catch (_) { /* noop */ }
+    return kbAliasesByBrand;
+  };
+
+  const isGrounded = (brand) => {
+    const b = String(brand || "").trim().toLowerCase();
+    if (!b) return false;
+    if (evidenceLower && evidenceLower.includes(b)) return true;
+    if (articleBrandSet.has(b)) return true;
+    if (!evidenceLower) return false;
+    const aliases = ensureAliases().get(b) || [];
+    for (const alias of aliases) {
+      if (!alias || alias.length < 4) continue;
+      try {
+        if (new RegExp(`\\b${escapeRegExp(alias)}\\b`, "i").test(evidenceLower)) return true;
+      } catch (_) { /* noop */ }
+    }
+    return false;
+  };
+
+  const groundedHints = hintedBrands.filter(isGrounded);
+  if (groundedHints.length === 0) return;
+  classification.detectedBrands = detectionKb.filterOwnBrands(unique([...(classification.detectedBrands || []), ...groundedHints]));
+  classification.brandSources = unique([...(classification.brandSources || []), "sender_profile"]);
 }
 
 function applyCompanyDirectoryHints(sender, fromEmail) {
@@ -4974,6 +5111,20 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   if (/^[0-9A-F-]+$/i.test(normalized) && /[A-Fa-f]/.test(normalized) && !/[G-Zg-z]/.test(normalized)) {
     const uuidSegs = normalized.split("-");
     if (uuidSegs.length >= 3 && uuidSegs.every((s) => s.length >= 3 && s.length <= 12)) return true;
+  }
+  // Batch H / H3: tightened UUID-fragment filter. Truncated UUIDs like 658ba197-6c73-4fea-91
+  // (last segment only 2 chars) slipped past the ≥3-char/segment check above. Accept any
+  // string that starts with the canonical UUID prefix (8 hex + '-' + 4 hex) AND contains
+  // at least 2 hyphens, regardless of trailing-segment length.
+  if (/^[a-f0-9]{8}-[a-f0-9]{4}(?:-[a-f0-9]{2,})?/i.test(normalized)
+      && (normalized.match(/-/g) || []).length >= 2) {
+    return true;
+  }
+  // Batch H / H3: pure-hex-with-hyphens token, total hex chars ≥12 — catches any remaining
+  // hex/dash fragments (partial cid/UUID/checksum leaks).
+  if (/^[0-9a-f-]+$/i.test(normalized) && normalized.includes("-")) {
+    const hexCount = (normalized.match(/[0-9a-f]/gi) || []).length;
+    if (hexCount >= 12 && /[a-f]/i.test(normalized)) return true;
   }
   // Diadoc/EDO/PFR registration codes: 2BM-INN-TIMESTAMP, BM-INN, etc.
   if (/^[02]?[A-ZА-ЯЁ]{1,3}-\d{7,}(?:-\d+)*$/i.test(normalized)) return true;
