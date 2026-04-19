@@ -42,9 +42,18 @@ def has_broken_quotes(s):
 ARTICLE_NOISE_RE = re.compile(r'(?:^|\s)(?:mailto:|page:|WordSection\d*|^mail$|e-mail|^\s*mail)', re.I)
 ARTICLE_BAD_TOKENS = re.compile(r'^(?:page:|mailto:|WordSection|.*E-mail|.*@.*|.*\.com|.*\.ru)$', re.I)
 
-# Phone pattern in body
-PHONE_BODY_RE = re.compile(r'(?:\+7|8)[\s(.\-]*\d{3,4}[\s)\-.]*\d{2,4}[\s\-.]*\d{2,4}[\s\-.]*\d{2,4}|'
-                           r'\+\d{1,3}[\s(.\-]*\d{2,4}[\s)\-.]*\d{2,4}[\s\-.]*\d{2,4}')
+# Phone pattern in body — strict RU: +7/8 then exactly 10 more digits
+# (11-digit normalized total). Prevents 15-digit опросный-лист codes from matching.
+PHONE_BODY_RE = re.compile(
+    r'(?:\+7|8)[\s(.\-]*\d{3}[\s)\-.]*\d{3}[\s\-.]*\d{2}[\s\-.]*\d{2}'
+    r'|\+(?!7\b)\d{1,3}[\s(.\-]*\d{2,4}[\s)\-.]*\d{2,4}[\s\-.]*\d{2,4}(?:[\s\-.]*\d{2,4})?'
+)
+
+# SIDERUS own-contact fragments to strip before phone detection (quoted replies)
+OWN_CONTACT_RE = re.compile(
+    r'(?:info@siderus\.ru|ООО\s*«?КОЛОВРАТ»?|SIDERUS|Офис-менеджер|Екатерина\s+Попова)',
+    re.I | re.U
+)
 
 # Missing enum (target) — mirrors src/services/field-enums.js ALLOWED_MISSING
 ALLOWED_MISSING = {'contact_name', 'phone', 'company', 'inn', 'kpp', 'ogrn',
@@ -111,10 +120,13 @@ for m in client_msgs:
     if not req_type and RFQ_SIGNALS.search(full_src):
         empty_type_rfq.append(mid)
 
-    # #4 Phone missing but present
+    # #4 Phone missing but present — strip SIDERUS quoted-reply footer first
     phone = (s.get('mobilePhone') or s.get('cityPhone') or '').strip()
-    if not phone and status == READY and PHONE_BODY_RE.search(full_src):
-        phone_missing_present.append(mid)
+    if not phone and status == READY:
+        # Drop SIDERUS own-company signature block so its phones don't count
+        clean_src = OWN_CONTACT_RE.split(full_src)[0]
+        if PHONE_BODY_RE.search(clean_src):
+            phone_missing_present.append(mid)
 
     # #5 ФИО issues
     fio = s.get('fullName') or ''
