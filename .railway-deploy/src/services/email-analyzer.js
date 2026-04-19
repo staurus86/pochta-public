@@ -1335,7 +1335,7 @@ export function analyzeEmail(project, payload) {
 
   const suggestedReply = buildSuggestedReply(classification.label, sender, lead, crm);
 
-  return {
+  const result = {
     analysisId: randomUUID(),
     createdAt: new Date().toISOString(),
     mailbox: project.mailbox,
@@ -1348,7 +1348,8 @@ export function analyzeEmail(project, payload) {
     suggestedReply,
     rawInput: {
       subject,
-      attachments
+      attachments,
+      body
     },
     attachmentAnalysis,
     extractionMeta: {
@@ -1360,6 +1361,24 @@ export function analyzeEmail(project, payload) {
       attachmentsSkipped: attachmentAnalysis.meta.skippedCount
     }
   };
+
+  // J4: idempotent post-processing (request-type fallback, missing-enum,
+  // quality gate). Runs on sync path so /reanalyze also gets them.
+  // analyzeEmailAsync re-runs them after LLM merge — safe, all three are idempotent.
+  applyPostProcessing(result);
+
+  return result;
+}
+
+/**
+ * J4 post-processing pipeline. Idempotent — safe to call multiple times.
+ * Fills requestType from rules (if not set), reconciles missing-enum list,
+ * attaches quality gate verdict.
+ */
+export function applyPostProcessing(analysis) {
+  applyRequestTypeFallback(analysis);
+  reconcileMissingForProcessing(analysis);
+  annotateQualityGate(analysis);
 }
 
 /**
@@ -1416,12 +1435,9 @@ export async function analyzeEmailAsync(project, payload) {
     }
   }
 
-  // --- Step 3: Post-LLM normalization (runs regardless of LLM outcome) -----
-  // J4: fill requestType via rules if LLM didn't, normalize missing-enum list,
-  //     run quality gate and attach verdict.
-  applyRequestTypeFallback(result);
-  reconcileMissingForProcessing(result);
-  annotateQualityGate(result);
+  // J4: re-run idempotent post-processing after LLM merge (fills gaps LLM
+  // provided, reconciles enum, re-evaluates quality gate with new data).
+  applyPostProcessing(result);
 
   return result;
 }
