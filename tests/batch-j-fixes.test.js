@@ -317,3 +317,149 @@ test("phone J3: Kazakhstan +7(727) city code (Almaty) preserved", async () => {
     const phone = result.sender?.mobilePhone || result.sender?.cityPhone || "";
     assert.ok(/\+7\s*\(727\)\s*345-67-89/.test(phone), `expected KZ '+7 (727) 345-67-89' in '${phone}'`);
 });
+
+// --- Batch J5 product names: dedup + prefix/suffix/intro cleanup ---
+test("product-names J5: '1. desc - ARTICLE - N шт' line does not duplicate short productName", async () => {
+    const body = [
+        "Добрый день!",
+        "",
+        "1. 3-х ходовой_Bronze_1\"_подсоединение_Rc_тип WR- 2510GLW - 10 шт.",
+        "2. 2-х ходовой_Bronze_2\"_подсоединение_ Flange _тип МWR- 5020FLWH - 10 шт.",
+        "",
+        "С уважением,",
+        "Виталий К.",
+    ].join("\n");
+    const result = await analyzeEmail(mkProject(), {
+        subject: "Запрос КП на клапаны SAGINOMIYA",
+        body,
+        from: "vk@hhr.ru",
+    });
+    const pn = result.lead?.productNames || [];
+    // Exactly one productName per article — no extra dupes
+    const perArticle = new Map();
+    for (const p of pn) {
+        const a = String(p.article || "");
+        perArticle.set(a, (perArticle.get(a) || 0) + 1);
+    }
+    for (const [a, n] of perArticle) {
+        assert.equal(n, 1, `Article ${a} has ${n} productName entries, expected 1`);
+    }
+    // Stored names: no "1." row prefix, no trailing " - 10 шт.", no underscore clutter
+    for (const p of pn) {
+        const nm = String(p.name || "");
+        assert.ok(!/^\s*\d{1,3}\s*[.)\]]/.test(nm), `productName still has row-number prefix: "${nm}"`);
+        assert.ok(!/-\s*\d+\s*шт/i.test(nm), `productName still has qty tail: "${nm}"`);
+        assert.ok(!/_/.test(nm), `productName still has underscore clutter: "${nm}"`);
+    }
+});
+
+// --- Batch J3 phone (continued): bare-parens 4-digit city code + intl preserve ---
+test("phone J3: bare-parens 4-digit city code '(8635) 22-88-07' → +7 (8635) 22-88-07 (Novocherkassk)", async () => {
+    const result = await analyzeEmail(mkProject(), {
+        subject: "Запрос",
+        body: "Прошу КП.\n\nС уважением,\nИван\nООО БВС\nТел: (8635) 22-88-07\nИНН 6150012345",
+        from: "ivan@bvs.ru",
+    });
+    const phone = result.sender?.cityPhone || result.sender?.mobilePhone || "";
+    assert.ok(/\+7\s*\(8635\)\s*22-88-07/.test(phone), `expected '+7 (8635) 22-88-07' in '${phone}'`);
+});
+
+test("phone J3: Belarus intl +375 preserved (not dropped)", async () => {
+    const result = await analyzeEmail(mkProject(), {
+        subject: "Запрос",
+        body: "Добрый день.\nПрошу прайс.\n\nС уважением,\nАлесь\nООО Минсктест\nТел: +375 29 123 45 67\nИНН 7712345678",
+        from: "ales@minsktest.by",
+    });
+    const phone = result.sender?.cityPhone || result.sender?.mobilePhone || "";
+    assert.ok(/^\+375\s/.test(phone), `expected +375 intl phone, got '${phone}'`);
+});
+
+test("phone J3: China intl +86 preserved", async () => {
+    const result = await analyzeEmail(mkProject(), {
+        subject: "Request",
+        body: "Hello, please send quote.\n\nBest regards,\nLi Wei\nShenzhen Tech\nTel: +86 138 1234 5678\nИНН 7712345678",
+        from: "liwei@shenzhen.cn",
+    });
+    const phone = result.sender?.cityPhone || result.sender?.mobilePhone || "";
+    assert.ok(/^\+86\s/.test(phone), `expected +86 intl phone, got '${phone}'`);
+});
+
+test("phone J3: Azerbaijan intl +994 preserved", async () => {
+    const result = await analyzeEmail(mkProject(), {
+        subject: "Запрос",
+        body: "Прошу прайс.\n\nС уважением,\nАли\nООО Баку\nТел: +994 50 123 45 67\nИНН 7712345678",
+        from: "ali@baku.az",
+    });
+    const phone = result.sender?.cityPhone || result.sender?.mobilePhone || "";
+    assert.ok(/^\+994\s/.test(phone), `expected +994 intl phone, got '${phone}'`);
+});
+
+test("product-names J5: intro question 'У вас есть ...' is not stored as product name", async () => {
+    const body = [
+        "Здравствуйте,",
+        "",
+        "У вас есть в наличии или под заказ водорегулирующие клапаны SAGINOMIYA для",
+        "холодильных установок?",
+        "",
+        "С уважением, Иван",
+    ].join("\n");
+    const result = await analyzeEmail(mkProject(), {
+        subject: "Наличие SAGINOMIYA",
+        body,
+        from: "ivan@example.ru",
+    });
+    const pn = result.lead?.productNames || [];
+    const li = result.lead?.lineItems || [];
+    const allNames = [
+        ...pn.map((p) => String(p.name || "")),
+        ...li.map((i) => String(i.descriptionRu || "")),
+    ];
+    for (const n of allNames) {
+        assert.ok(!/^у\s+вас\s+есть\b/i.test(n), `intro question leaked as product name: "${n}"`);
+        if (n.length >= 20) {
+            assert.ok(!/\s(?:для|на|с|под)\s*$/iu.test(n),
+                `dangling-preposition line leaked as product name: "${n}"`);
+        }
+    }
+});
+
+// --- Batch J3 #5a: ФИО с юрлицом — ORG strip / segment fallback ---
+test("fullName-sanitize J3 #5a: 'Иванов И.И. ООО Ромашка' → 'Иванов И.И.' (ORG stripped)", async () => {
+    const result = await analyzeEmail(mkProject(), {
+        subject: "Запрос",
+        body: "Прошу КП.\n\nИванов И.И.\nООО Ромашка\nТел: +7 495 123-45-67",
+        fromEmail: "ivan@romashka.ru",
+        fromName: "Иванов И.И. ООО Ромашка",
+    });
+    const fn = result.sender?.fullName || "";
+    assert.ok(!/\b(?:ООО|ОАО|ЗАО|АО|LLC|Ltd|GmbH)\b/u.test(fn),
+        `fullName still contains org marker: "${fn}"`);
+    assert.equal(fn, "Иванов И.И.");
+});
+
+test("fullName-sanitize J3 #5a: comma-form 'Иванов Иван, ООО Ромашка' → 'Иванов Иван'", async () => {
+    const result = await analyzeEmail(mkProject(), {
+        subject: "Запрос",
+        body: "Прошу КП.\n\nС уважением,\nИванов Иван, ООО Ромашка\nТел: +7 495 111",
+        fromEmail: "ivan@r.ru",
+        fromName: "Иванов Иван, ООО Ромашка",
+    });
+    const fn = result.sender?.fullName || "";
+    assert.ok(!/ООО|ОАО|ЗАО|АО|ПАО|LLC/u.test(fn),
+        `comma-form fullName still contains org: "${fn}"`);
+    assert.equal(fn, "Иванов Иван");
+});
+
+test("fullName-sanitize J3 #5a: prefix-ORG 'ООО Ромашка Иванов Иван' → 'Иванов Иван'", async () => {
+    const result = await analyzeEmail(mkProject(), {
+        subject: "Запрос",
+        body: "Прошу КП.",
+        fromEmail: "ivan@r.ru",
+        fromName: "ООО Ромашка Иванов Иван",
+    });
+    const fn = result.sender?.fullName || "";
+    assert.ok(!/ООО|ОАО|ЗАО|АО|LLC/u.test(fn),
+        `prefix-ORG fullName still contains org: "${fn}"`);
+    assert.equal(fn, "Иванов Иван");
+});
+
