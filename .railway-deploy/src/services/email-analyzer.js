@@ -18,6 +18,7 @@ import { isBadProductName } from "./product-name-filters.js";
 import { extractQuantities } from "./quantity-extractor.js";
 import { isTechnicalSpec } from "./quantity-filters.js";
 import { normalizeQtyUnit } from "./quantity-normalizer.js";
+import { extractPersonName } from "./fio-extractor.js";
 
 // Product types database for request type detection and entity extraction
 const __analyzerDir = path.dirname(fileURLToPath(import.meta.url));
@@ -2290,9 +2291,28 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
     : null;
   const rawCompanyName = sanitizeCompanyName(extractedCompanyName || inferredCompanyName || domainCompanyName);
   const companyName = isOwnCompanyData("company", rawCompanyName) ? null : rawCompanyName;
-  const nameFromDisplay = isOrgUnitName(fromName) ? null : fromName;
-  const fullName = nameFromDisplay || extractFullNameFromBody(body) || inferNameFromEmail(fromEmail) || "Не определено";
-  const position = extractPosition(body) || null;
+  // Phase 5: source-priority cascade for person name extraction.
+  // Priority: signature > body contact-line > sender display > email-local.
+  // Filters reject company/alias/role/department/corporate-uppercase before acceptance.
+  const emailLocal = typeof fromEmail === "string" ? fromEmail.split("@")[0] : "";
+  // Pre-scan body with legacy heuristic (signature block, "С уважением" patterns)
+  // and inject as body candidate so the new extractor's filters clean it up.
+  const legacyBodyName = extractFullNameFromBody(body || signature || "") || null;
+  const fioResult = extractPersonName({
+    senderDisplay: fromName || "",
+    signature: signature || "",
+    body: legacyBodyName ? `Контактное лицо: ${legacyBodyName}\n${body || ""}` : (body || ""),
+    emailLocal,
+  });
+  const fullName = fioResult.primary || "Не определено";
+  const fullNameAlt = fioResult.alt || null;
+  const fullNameCompany = fioResult.company || null;
+  const fullNameRole = fioResult.role || null;
+  const fullNameSource = fioResult.source || null;
+  const fullNameConfidence = fioResult.confidence ?? 0;
+  const fullNameNeedsReview = !!fioResult.needsReview;
+  const fullNameRejected = Array.isArray(fioResult.rejected) ? fioResult.rejected.slice(0, 5) : [];
+  const position = fullNameRole || extractPosition(body) || null;
   const website = externalUrls[0] || inferWebsiteFromEmail(fromEmail);
   const { cityPhone, mobilePhone } = splitPhones(phones, body);
   const legalCardAttached = attachments.some((item) => /реквиз|card|details/i.test(item));
@@ -2300,6 +2320,13 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
   return {
     email: fromEmail,
     fullName,
+    fullNameAlt,
+    fullNameCompany,
+    fullNameRole,
+    fullNameSource,
+    fullNameConfidence,
+    fullNameNeedsReview,
+    fullNameRejected,
     position,
     companyName,
     website,
@@ -2315,7 +2342,8 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
       phone: cityPhone || mobilePhone ? "body" : null,
       inn: requisites.inn ? "body" : null,
       kpp: requisites.kpp ? "body" : null,
-      ogrn: requisites.ogrn ? "body" : null
+      ogrn: requisites.ogrn ? "body" : null,
+      fullName: fullNameSource
     }
   };
 }
