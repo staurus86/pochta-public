@@ -855,8 +855,11 @@ export function analyzeEmail(project, payload) {
     ? `${subject} ${activeFormData.product}`
     : subject;
 
-  // For form emails: use form section as sender body (avoids HTML template noise)
-  const senderBody = activeFormData
+  // For form emails: use form section as sender body (avoids HTML template noise).
+  // Exception (J3): when activeFormData is quotedRobotFormData (echoed Siderus form
+  // inside a client's reply thread), the form section is Siderus's own data —
+  // client's current-message signature is authoritative for contact fields.
+  const senderBody = activeFormData && activeFormData !== quotedRobotFormData
     ? activeFormData.formSection
     : bodyForSender;
   const sender = extractSender(fromName, fromEmail, senderBody, attachments, signature);

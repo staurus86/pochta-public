@@ -268,6 +268,46 @@ test("phone J3: Kazakhstan +7(701) mobile preserved (was filtered as '0167' pref
     assert.ok(/\+7\s*\(701\)\s*234-56-78/.test(phone), `expected KZ '+7 (701) 234-56-78' in '${phone}'`);
 });
 
+test("phone J3: quoted Siderus form echo does NOT override client's current-message signature", async () => {
+    // Reproduces prod case d8720861: client replies to Siderus's auto-reply which contains
+    // an echoed Siderus robot-form block. Before fix: quotedRobotFormData.formSection became
+    // senderBody, losing client's new-message phones. After fix: client's bodyForSender wins.
+    const body = [
+        "Какой будет срок ?",
+        "",
+        "С уважением, Александр Корнев",
+        "",
+        "Менеджер по работе с розничными предприятиями",
+        "РУССКИЙ СВЕТ",
+        "Адрес: ООО «РУССКИЙ СВЕТ» г. Петрозаводск ул. Повенецкая д.16.",
+        "Тел.: +7 (8142) 67-21-70 (доб. 212) | | Моб.: +7-921-455-56-60",
+        "",
+        ">",
+        "> От кого: SIDERUS",
+        "> Кому: rp3@petrzv.russvet.ru",
+        "> Дата: Четверг, 16 апреля 2026, 11:41 +03:00",
+        ">",
+        "> Добрый день, для обработки запроса прошу прислать реквизиты Вашей",
+        "> организации.",
+        ">",
+        "> Получен запрос \"Получить прайс\" от формы SIDERUS (8452)",
+        "> Тип оформления: Получить прайс",
+        "> Контакты:",
+        "> Email: rp3@petrzv.russvet.ru",
+        "> Запрос: Счетчик и устройство визуализации CM78N C02",
+        "> Количество: датчик Elap CM78N - 2 шт",
+    ].join("\n");
+    const result = await analyzeEmail(mkProject(), {
+        subject: "Re: FW: поставка",
+        body,
+        from: "rp3@petrzv.russvet.ru",
+    });
+    const mobile = result.sender?.mobilePhone || "";
+    const city = result.sender?.cityPhone || "";
+    assert.ok(/\+7\s*\(921\)\s*455-56-60/.test(mobile), `expected mobile '+7 (921) 455-56-60' in '${mobile}'`);
+    assert.ok(/\+7\s*\(814\)\s*267-21-70/.test(city), `expected city '+7 (814) 267-21-70' in '${city}'`);
+});
+
 test("phone J3: Kazakhstan +7(727) city code (Almaty) preserved", async () => {
     const result = await analyzeEmail(mkProject(), {
         subject: "Запрос",
