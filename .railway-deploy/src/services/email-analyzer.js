@@ -12,6 +12,9 @@ import { reconcileMissingForProcessing } from "./field-enums.js";
 import { annotateQualityGate } from "./quality-gate.js";
 import { isHtmlWordMetadata, isFilenameLike, isDateTime } from "./article-filters.js";
 import { sanitizeBrands } from "./brand-extractor.js";
+import { sanitizeProductNames } from "./product-name-extractor.js";
+import { normalizeProductName } from "./product-name-normalizer.js";
+import { isBadProductName } from "./product-name-filters.js";
 
 // Product types database for request type detection and entity extraction
 const __analyzerDir = path.dirname(fileURLToPath(import.meta.url));
@@ -1417,6 +1420,51 @@ export function analyzeEmail(project, payload) {
     }
     if (Array.isArray(lead.lineItems) && Array.isArray(lead.articles)) {
       lead.totalPositions = Math.max(lead.lineItems.length, lead.articles.length);
+    }
+
+    // Phase 3 — product name sanitization (business audit 2026-04-20):
+    // Strip phone/contact/doc/html/pdf/code-only noise from productNames[].name;
+    // produce productNamePrimary + productLineItems for XLSX/UI without mutating legacy shape.
+    {
+      const rawProductInputs = [
+        ...(lead.productNames || []).map((p) => p?.name).filter(Boolean),
+        ...(lead.lineItems || []).map((li) => li?.descriptionRu).filter(Boolean),
+      ];
+      const sanitized = sanitizeProductNames(rawProductInputs, {
+        subject: subject || "",
+        maxLen: 200,
+      });
+      lead.productNamePrimary = sanitized.primary || null;
+      lead.productLineItems = sanitized.items || [];
+      lead.productNamesClean = sanitized.names || [];
+      lead.productNamesRejected = Array.isArray(sanitized.rejected) ? sanitized.rejected.slice(0, 20) : [];
+
+      // In-place sanitize of lead.productNames[].name: normalize, cap, drop bad.
+      if (Array.isArray(lead.productNames)) {
+        lead.productNames = lead.productNames
+          .map((p) => {
+            if (!p || typeof p !== "object") return p;
+            const raw = p?.name;
+            if (!raw) return p;
+            const clean = normalizeProductName(raw, { maxLen: 200 });
+            if (!clean || isBadProductName(clean)) return { ...p, name: null };
+            return { ...p, name: clean };
+          });
+      }
+
+      // Also sanitize descriptionRu inside lineItems (used by UI + XLSX via getLeadProductNameList)
+      if (Array.isArray(lead.lineItems)) {
+        lead.lineItems = lead.lineItems.map((li) => {
+          if (!li || typeof li !== "object") return li;
+          const raw = li?.descriptionRu;
+          if (!raw) return li;
+          const clean = normalizeProductName(raw, { maxLen: 200 });
+          if (!clean || isBadProductName(clean)) {
+            return { ...li, descriptionRu: null };
+          }
+          return { ...li, descriptionRu: clean };
+        });
+      }
     }
   }
 
