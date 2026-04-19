@@ -246,3 +246,34 @@ test("quality-gate J4: low confidence + no requisites → blocks", () => {
     assert.equal(ok, false);
     assert.ok(errors.includes("low_confidence_no_requisites"));
 });
+
+// --- Batch J3: phone normalization (extension strip + Kazakhstan +7(7xx)) ---
+test("phone J3: extension 'доб. N' stripped so RU phone normalizes", async () => {
+    const result = await analyzeEmail(mkProject(), {
+        subject: "Запрос КП",
+        body: "Прошу выставить КП.\n\nС уважением,\nИванов Иван\nТел.: +7 (495) 363-90-38, доб. 72156\nООО Тест\nИНН 7712345678",
+        from: "ivanov@test.ru",
+    });
+    const phone = result.sender?.mobilePhone || result.sender?.cityPhone || "";
+    assert.ok(/\+7\s*\(495\)\s*363-90-38/.test(phone), `expected '+7 (495) 363-90-38' in '${phone}'`);
+});
+
+test("phone J3: Kazakhstan +7(701) mobile preserved (was filtered as '0167' prefix)", async () => {
+    const result = await analyzeEmail(mkProject(), {
+        subject: "Запрос",
+        body: "Прошу предоставить КП.\n\nС уважением,\nАсел Жанатовна\nТел: +7 (701) 234-56-78\nТОО Казахстан\nБИН 123456789012",
+        from: "asel@kz.example",
+    });
+    const phone = result.sender?.mobilePhone || result.sender?.cityPhone || "";
+    assert.ok(/\+7\s*\(701\)\s*234-56-78/.test(phone), `expected KZ '+7 (701) 234-56-78' in '${phone}'`);
+});
+
+test("phone J3: Kazakhstan +7(727) city code (Almaty) preserved", async () => {
+    const result = await analyzeEmail(mkProject(), {
+        subject: "Запрос",
+        body: "Прошу прайс-лист.\n\nС уважением,\nАйгуль\nТел: +7 (727) 345-67-89\nТОО Алматы\nИНН 7712345678",
+        from: "a@almaty.kz",
+    });
+    const phone = result.sender?.mobilePhone || result.sender?.cityPhone || "";
+    assert.ok(/\+7\s*\(727\)\s*345-67-89/.test(phone), `expected KZ '+7 (727) 345-67-89' in '${phone}'`);
+});

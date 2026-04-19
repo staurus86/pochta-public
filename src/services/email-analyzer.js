@@ -3609,27 +3609,31 @@ function extractPosition(body) {
 }
 
 function normalizePhoneNumber(raw) {
+  // Strip extension suffix ("доб. 72156", "ext 123") before digit counting,
+  // so PHONE_PATTERN matches like "+7 (495) 363-90-38, доб. 72156" normalize cleanly.
+  const withoutExt = String(raw).replace(/[,.\s]+(?:доб|ext|вн|внутр)\.?\s*\d{1,6}\s*$/i, "").trim();
+
   // Special case: explicit 4-digit area code in parentheses: 8(3349)22450, 8(4112)345678
   // These are valid Russian city numbers (Kogalym, Yakutsk, etc.)
-  const parenMatch = raw.match(/^8\s*\((\d{4,5})\)\s*(\d{4,7})$/);
+  const parenMatch = withoutExt.match(/^8\s*\((\d{4,5})\)\s*(\d{4,7})$/);
   if (parenMatch) {
     const areaCode = parenMatch[1];
     const local = parenMatch[2];
     return `+7 (${areaCode}) ${local}`;
   }
 
-  const digits = raw.replace(/\D/g, "");
+  const digits = withoutExt.replace(/\D/g, "");
   // Expect 11 digits starting with 7 or 8
   let d = digits;
   if (d.length === 11 && d.startsWith("8")) d = "7" + d.slice(1);
   if (d.length === 10) d = "7" + d;
   if (d.length !== 11 || !d.startsWith("7")) return null;
   const code = d.slice(1, 4);
-  // Valid Russian area/mobile codes:
-  // 2xx - some regions, 3xx - Siberia/Ural, 4xx - Central/Volga
-  // 5xx - some regions, 8xx - toll-free (800,8xx), 9xx - mobile
-  // Invalid: 0xx, 1xx, 6xx, 7xx
-  if (/^[0167]/.test(code)) return null;
+  // Valid codes within +7 shared country space (Russia + Kazakhstan):
+  //  2xx-5xx, 8xx, 9xx — Russian regions/mobile/toll-free
+  //  7xx — Kazakhstan (700-708, 770-779 mobile; 71x, 72x, 73x, 74x city)
+  // Invalid: 0xx, 1xx, 6xx
+  if (/^[016]/.test(code)) return null;
   return `+7 (${code}) ${d.slice(4, 7)}-${d.slice(7, 9)}-${d.slice(9, 11)}`;
 }
 
