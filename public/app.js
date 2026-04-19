@@ -1710,6 +1710,9 @@ function exportInboxXlsx() {
     { wch: 16 }, { wch: 14 }, { wch: 10 }, { wch: 22 }, { wch: 22 }, { wch: 25 },
     { wch: 14 }, { wch: 18 }, { wch: 25 }, { wch: 30 }, { wch: 40 }, { wch: 18 }, { wch: 10 }, { wch: 30 }
   ];
+  // Force text type for numeric-looking identifiers so SheetJS does not coerce
+  // digit-only strings to number (which produces ".0" artifact in Excel).
+  const txt = (v) => ({ t: 's', v: v == null ? '' : String(v) });
   const toRow = (m, idx) => {
     const a = m.analysis || {};
     const s = a.sender || {};
@@ -1721,7 +1724,7 @@ function exportInboxXlsx() {
       (m.bodyPreview || l.freeText || '').slice(0, 1000),
       m.pipelineStatus || '', a.classification?.label || '', a.classification?.confidence || '',
       s.fullName || '', s.position || '',
-      s.companyName || '', String(s.inn || ''), s.cityPhone || s.mobilePhone || '',
+      s.companyName || '', txt(s.inn), txt(s.cityPhone || s.mobilePhone),
       (a.detectedBrands || []).join('; '), (l.articles || []).join('; '),
       getLeadProductNameList(l).join('; '),
       llm.requestType || '', llm.isUrgent ? 'Да' : '', (llm.missingForProcessing || []).join('; ')
