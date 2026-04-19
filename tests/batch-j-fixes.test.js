@@ -1,6 +1,9 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { isObviousArticleNoise, analyzeEmail } from "../src/services/email-analyzer.js";
+import { classifyRequestType, applyRequestTypeFallback } from "../src/services/request-type-rules.js";
+import { normalizeMissingKey, normalizeMissingList, reconcileMissingForProcessing } from "../src/services/field-enums.js";
+import { validateBeforeCrm } from "../src/services/quality-gate.js";
 
 // --- Batch J2 article blacklist ---
 test("article-noise J2: page: / WordSection / 553E-mail / digit+mail", () => {
@@ -85,4 +88,161 @@ test("xlsx INN export J1: txt() helper wraps digit string as text cell object", 
     // null / undefined → empty string, still text
     assert.deepEqual(txt(null), { t: 's', v: '' });
     assert.deepEqual(txt(undefined), { t: 's', v: '' });
+});
+
+// --- Batch J4 request-type rule classifier -------------------------------
+test("request-type J4: 'Запрос КП на оборудование' → quotation", () => {
+    assert.equal(classifyRequestType({ subject: "Запрос КП на оборудование", body: "" }), "quotation");
+});
+
+test("request-type J4: 'Просим выставить счёт' → quotation", () => {
+    assert.equal(classifyRequestType({ subject: "", body: "Добрый день! Просим выставить счёт на поставку." }), "quotation");
+});
+
+test("request-type J4: 'Purchase order №123' → order", () => {
+    assert.equal(classifyRequestType({ subject: "Purchase order", body: "Наш заказ №12345 на поставку." }), "order");
+});
+
+test("request-type J4: 'Предлагаем сотрудничество' → vendor_offer", () => {
+    assert.equal(classifyRequestType({ subject: "Сотрудничество", body: "Здравствуйте. Наша компания предлагает сотрудничество по поставкам кабеля." }), "vendor_offer");
+});
+
+test("request-type J4: СПАМ label → 'spam' regardless of content", () => {
+    assert.equal(classifyRequestType({ subject: "Запрос КП", body: "", label: "СПАМ" }), "spam");
+});
+
+test("request-type J4: неопознанное → null (не навязывает)", () => {
+    assert.equal(classifyRequestType({ subject: "hi", body: "hello" }), null);
+});
+
+test("applyRequestTypeFallback J4: fills when LLM left null", () => {
+    const analysis = {
+        rawInput: { subject: "Запрос КП", body: "Прошу выставить КП" },
+        classification: { label: "Клиент" },
+        llmExtraction: { requestType: null, missingForProcessing: [] }
+    };
+    const changed = applyRequestTypeFallback(analysis);
+    assert.equal(changed, true);
+    assert.equal(analysis.llmExtraction.requestType, "quotation");
+    assert.equal(analysis.llmExtraction.requestTypeSource, "rules");
+});
+
+test("applyRequestTypeFallback J4: does NOT override existing LLM value", () => {
+    const analysis = {
+        rawInput: { subject: "Покупаем", body: "" },
+        classification: { label: "Клиент" },
+        llmExtraction: { requestType: "order" }
+    };
+    const changed = applyRequestTypeFallback(analysis);
+    assert.equal(changed, false);
+    assert.equal(analysis.llmExtraction.requestType, "order");
+});
+
+// --- Batch J4 missing-enum normalization ---------------------------------
+test("normalizeMissingKey J4: company_name → company", () => {
+    assert.equal(normalizeMissingKey("company_name"), "company");
+    assert.equal(normalizeMissingKey("companyName"), "company");
+});
+
+test("normalizeMissingKey J4: russian/english aliases mapped", () => {
+    assert.equal(normalizeMissingKey("ИНН"), "inn");
+    assert.equal(normalizeMissingKey("ФИО"), "contact_name");
+    assert.equal(normalizeMissingKey("sender_phone"), "phone");
+    assert.equal(normalizeMissingKey("tax_id"), "inn");
+    assert.equal(normalizeMissingKey("sku"), "article");
+});
+
+test("normalizeMissingKey J4: unknown key returns null", () => {
+    assert.equal(normalizeMissingKey("frobnicator"), null);
+    assert.equal(normalizeMissingKey(""), null);
+    assert.equal(normalizeMissingKey(null), null);
+});
+
+test("normalizeMissingList J4: dedupes and drops invalid", () => {
+    const out = normalizeMissingList(["company_name", "company", "ИНН", "frobnicator", "inn"]);
+    assert.deepEqual(out.sort(), ["company", "inn"]);
+});
+
+test("reconcileMissingForProcessing J4: drops fields that ARE present, adds rule-derived gaps", () => {
+    const analysis = {
+        sender: { companyName: "ООО Тест", inn: "7704784450", cityPhone: null, mobilePhone: null, fullName: null },
+        lead: { articles: [], lineItems: [] },
+        detectedBrands: [],
+        llmExtraction: { missingForProcessing: ["company_name"] }  // LLM insists company is missing
+    };
+    reconcileMissingForProcessing(analysis);
+    const missing = analysis.llmExtraction.missingForProcessing.sort();
+    // company removed (present), inn removed (present), + article/brand/phone/contact_name added
+    assert.ok(!missing.includes("company"));
+    assert.ok(!missing.includes("inn"));
+    assert.ok(missing.includes("phone"));
+    assert.ok(missing.includes("contact_name"));
+    assert.ok(missing.includes("article"));
+    assert.ok(missing.includes("brand"));
+});
+
+// --- Batch J4 quality gate -----------------------------------------------
+test("quality-gate J4: quotation without contact nor product → blocked", () => {
+    const analysis = {
+        sender: {},
+        lead: { articles: [], lineItems: [] },
+        detectedBrands: [],
+        classification: { confidence: 0.8 },
+        llmExtraction: { requestType: "quotation" }
+    };
+    const { ok, errors } = validateBeforeCrm(analysis);
+    assert.equal(ok, false);
+    assert.ok(errors.includes("no_contact_info"));
+    assert.ok(errors.includes("no_product_signal"));
+});
+
+test("quality-gate J4: quotation with company+brand → passes", () => {
+    const analysis = {
+        sender: { companyName: "ООО Тест", inn: "7704784450" },
+        lead: { articles: [], lineItems: [] },
+        detectedBrands: ["Siemens"],
+        classification: { confidence: 0.8 },
+        llmExtraction: { requestType: "quotation" }
+    };
+    const { ok } = validateBeforeCrm(analysis);
+    assert.equal(ok, true);
+});
+
+test("quality-gate J4: dirty company name (<>/mailto) blocks", () => {
+    const analysis = {
+        sender: { companyName: "ООО <test@example.ru>", inn: null },
+        lead: { articles: ["ART-1"] },
+        detectedBrands: [],
+        classification: { confidence: 0.8 },
+        llmExtraction: { requestType: "info_request" }
+    };
+    const { ok, errors } = validateBeforeCrm(analysis);
+    assert.equal(ok, false);
+    assert.ok(errors.includes("dirty_company_name"));
+});
+
+test("quality-gate J4: invalid INN format blocks", () => {
+    const analysis = {
+        sender: { companyName: "ООО Тест", inn: "123" },
+        lead: { articles: ["ART-1"] },
+        detectedBrands: [],
+        classification: { confidence: 0.8 },
+        llmExtraction: { requestType: "info_request" }
+    };
+    const { ok, errors } = validateBeforeCrm(analysis);
+    assert.equal(ok, false);
+    assert.ok(errors.includes("invalid_inn_format"));
+});
+
+test("quality-gate J4: low confidence + no requisites → blocks", () => {
+    const analysis = {
+        sender: {},
+        lead: { articles: ["X"] },
+        detectedBrands: ["Brand"],
+        classification: { confidence: 0.3 },
+        llmExtraction: { requestType: "info_request" }
+    };
+    const { ok, errors } = validateBeforeCrm(analysis);
+    assert.equal(ok, false);
+    assert.ok(errors.includes("low_confidence_no_requisites"));
 });

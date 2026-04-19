@@ -7,6 +7,9 @@ import { matchCompanyInCrm } from "./crm-matcher.js";
 import { detectionKb } from "./detection-kb.js";
 import { hybridClassify, isAiEnabled, getAiConfig } from "./ai-classifier.js";
 import { isLlmExtractEnabled, llmExtract, mergeLlmExtraction, buildRulesFoundSummary, getLlmExtractConfig } from "./llm-extractor.js";
+import { applyRequestTypeFallback } from "./request-type-rules.js";
+import { reconcileMissingForProcessing } from "./field-enums.js";
+import { annotateQualityGate } from "./quality-gate.js";
 
 // Product types database for request type detection and entity extraction
 const __analyzerDir = path.dirname(fileURLToPath(import.meta.url));
@@ -1412,6 +1415,13 @@ export async function analyzeEmailAsync(project, payload) {
       console.warn("LLM extraction step failed:", err.message);
     }
   }
+
+  // --- Step 3: Post-LLM normalization (runs regardless of LLM outcome) -----
+  // J4: fill requestType via rules if LLM didn't, normalize missing-enum list,
+  //     run quality gate and attach verdict.
+  applyRequestTypeFallback(result);
+  reconcileMissingForProcessing(result);
+  annotateQualityGate(result);
 
   return result;
 }

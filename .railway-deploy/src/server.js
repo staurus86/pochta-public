@@ -224,7 +224,13 @@ function computePipelineStatus(analysis) {
     const label = analysis.classification?.label;
     const requiresReview = analysis.intakeFlow?.requiresReview || analysis.classification?.llmDowngraded;
     if (label === "СПАМ") return "ignored_spam";
-    if (label === "Клиент") return requiresReview ? "review" : "ready_for_crm";
+    if (label === "Клиент") {
+        if (requiresReview) return "review";
+        // J4: quality gate blocks ready_for_crm if data is incomplete/dirty
+        const gate = analysis.qualityGate;
+        if (gate && gate.ok === false) return "review";
+        return "ready_for_crm";
+    }
     if (analysis.crm?.needsClarification) return "needs_clarification";
     return "review";
 }
