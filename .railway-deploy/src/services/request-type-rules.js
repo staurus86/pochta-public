@@ -89,7 +89,19 @@ const SERVICE_REQUEST_PATTERNS = [
 export function classifyRequestType({ subject = "", body = "", label = "" } = {}) {
     if (label === "СПАМ") return "spam";
 
-    const haystack = `${subject}\n${String(body || "").slice(0, 1500)}`;
+    // Strip reply/forward prefixes so "Re: Запрос" is treated like "Запрос"
+    const cleanSubject = String(subject)
+        .replace(/^\s*(?:(?:Re|RE|re|Fwd|FWD|fwd|Fw|FW|fw)\s*:\s*)+/g, "")
+        .trim();
+
+    const haystack = `${cleanSubject}\n${String(body || "").slice(0, 1500)}`;
+
+    // Bare-word subject check: "Запрос", "Заявка", "Заказ" as subject's sole content
+    // (even if body has nothing classifiable) — Russian business convention.
+    const bareSubj = cleanSubject.trim().toLowerCase();
+    if (/^запрос[\s:№\-.,!?]*(?:\d|$)/iu.test(bareSubj) ||
+        /^заявка[\s:№\-.,!?]*(?:\d|$)/iu.test(bareSubj)) return "quotation";
+    if (/^заказ[\s:№\-.,!?]*(?:\d|$)/iu.test(bareSubj)) return "order";
 
     if (RFQ_PATTERNS.some((p) => p.test(haystack))) return "quotation";
     if (ORDER_PATTERNS.some((p) => p.test(haystack))) return "order";
