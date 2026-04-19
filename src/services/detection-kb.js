@@ -43,7 +43,10 @@ const BRAND_MULTI_FIRST_TOKEN_CONFLICT = new Set([
   "simrit", "waldner", "ital", "belt", "radio", "thermal", "transfer", "motor", "norma",
   "standard", "global", "control", "process", "electronic", "data", "ultra",
   "pressure", "select", "standa", "able", "electro", "sensor", "rota", "kimo", "contact",
-  "hydraulic", "tool", "seat", "index"
+  "hydraulic", "tool", "seat", "index",
+  // Batch G / P21: "armaturen" (German "fittings") — multi-word ARMATUREN-ARNDT was
+  // leaking via "EBRO Armaturen" / "ARI-Armaturen" / bare "Armaturen" mentions.
+  "armaturen"
 ]);
 
 // Marker for "brand capability list" in signatures:

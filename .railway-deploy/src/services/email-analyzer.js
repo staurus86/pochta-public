@@ -350,7 +350,11 @@ const BRAND_FIRST_TOKEN_CONFLICT = new Set([
   "standard", "global", "control", "process", "electronic", "data", "ultra",
   // Batch E / P17 additions
   "pressure", "select", "standa", "able", "electro", "sensor", "rota", "kimo", "contact",
-  "hydraulic", "tool", "seat", "index"
+  "hydraulic", "tool", "seat", "index",
+  // Batch G / P21: "armaturen" — German generic for "fittings/valves". Multi-word
+  // canonical "ARMATUREN-ARNDT" was matching "EBRO Armaturen" / "ARI-Armaturen" /
+  // "указанных позиций (минимум 2)" via single-token filler on "armaturen".
+  "armaturen"
 ]);
 // Aliases that must match as whole words (word boundary) to avoid substring false positives
 // "foss" → prevent matching inside "danfoss"
@@ -1133,14 +1137,28 @@ export function analyzeEmail(project, payload) {
       if (!normalized) return false;
       return /^[А-Яа-яЁё][А-Яа-яЁё\-\s]*$/u.test(normalized) && !/\d/.test(normalized);
     };
+    // Batch G / P22: short-numeric article (1-4 digits) immediately followed in body by a
+    // voltage/dimension/unit suffix (В, V, А, A, kW, кВт, mm, мм, Hz, Гц, ×, x) is a
+    // parameter value, not an article. Examples: "380В", "230V", "178х216х16", "24А".
+    // Narrow: only applies to pure-numeric short codes with such unit-suffix context.
+    const isParamValueNoise = (code) => {
+      const c = String(code || "").trim();
+      if (!c || /^DESC:/i.test(c)) return false;
+      const normalized = normalizeArticleCode(c);
+      if (!normalized || !/^\d{1,4}$/.test(normalized)) return false;
+      const src = String(body || "");
+      if (!src) return false;
+      const re = new RegExp(`\\b${escapeRegExp(normalized)}(?=[ВвVvАаAa×xхХ*]|\\s*(?:кВт|kW|mA|мА|мм|mm|см|cm|Вт|\\bW\\b|Гц|Hz|VDC|VAC))`);
+      return re.test(src);
+    };
     if (Array.isArray(lead.articles)) {
-      lead.articles = lead.articles.filter((a) => !isRussianCategoryNoise(a));
+      lead.articles = lead.articles.filter((a) => !isRussianCategoryNoise(a) && !isParamValueNoise(a));
     }
     if (Array.isArray(lead.lineItems)) {
-      lead.lineItems = lead.lineItems.filter((li) => !isRussianCategoryNoise(li?.article));
+      lead.lineItems = lead.lineItems.filter((li) => !isRussianCategoryNoise(li?.article) && !isParamValueNoise(li?.article));
     }
     if (Array.isArray(lead.productNames)) {
-      lead.productNames = lead.productNames.filter((p) => !isRussianCategoryNoise(p?.article));
+      lead.productNames = lead.productNames.filter((p) => !isRussianCategoryNoise(p?.article) && !isParamValueNoise(p?.article));
     }
     if (Array.isArray(lead.lineItems) && Array.isArray(lead.articles)) {
       lead.totalPositions = Math.max(lead.lineItems.length, lead.articles.length);
@@ -4922,6 +4940,9 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   if (/^\d{1,2}(?:Bold|Italic|Roman|Normal|Light|Regular|Condensed|Medium|Black|Narrow)$/i.test(normalized)) return true;
   if (/^(?:https?|www|cid)$/i.test(normalized) || normalized.includes("@")) return true;
   if (/^cid:/i.test(normalized) || /^image\d+$/i.test(normalized)) return true;
+  // Batch G / P23: MIME content-id image filenames leaking from [cid:UUID.png] brackets
+  // in inline-image references. Hex+dashes, length ≥20, with image/doc extension.
+  if (/^[a-f0-9-]{20,}\.(?:png|jpe?g|gif|svg|webp|bmp|pdf|docx?|xlsx?)$/i.test(normalized)) return true;
   // Common expressions with numbers that are never product articles
   if (/^TOP-?\d+$/i.test(normalized) || /^COVID-?\d+$/i.test(normalized)) return true;
   // Image filenames: image001.jpg, image005.png
