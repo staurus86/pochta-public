@@ -15,6 +15,9 @@ import { sanitizeBrands } from "./brand-extractor.js";
 import { sanitizeProductNames } from "./product-name-extractor.js";
 import { normalizeProductName } from "./product-name-normalizer.js";
 import { isBadProductName } from "./product-name-filters.js";
+import { extractQuantities } from "./quantity-extractor.js";
+import { isTechnicalSpec } from "./quantity-filters.js";
+import { normalizeQtyUnit } from "./quantity-normalizer.js";
 
 // Product types database for request type detection and entity extraction
 const __analyzerDir = path.dirname(fileURLToPath(import.meta.url));
@@ -1463,6 +1466,67 @@ export function analyzeEmail(project, payload) {
             return { ...li, descriptionRu: null };
           }
           return { ...li, descriptionRu: clean };
+        });
+      }
+    }
+
+    // Phase 4 — quantity extraction (business audit 2026-04-20):
+    // Выделяем отдельные поля primaryQuantity/quantityUnit/totalQuantity
+    // и санируем уже существующие lineItems[].quantity от tech-spec шума
+    // (dimensions/power/voltage/phone/date). Не ломает legacy.
+    {
+      const articles = Array.isArray(lead.articles) ? [...lead.articles] : [];
+      const qtySourceTexts = [];
+      if (subject) qtySourceTexts.push(String(subject));
+      if (primaryBody) qtySourceTexts.push(String(primaryBody).slice(0, 10000));
+      // Also feed per-lineItem sourceLine if available
+      if (Array.isArray(lead.lineItems)) {
+        for (const li of lead.lineItems) {
+          if (li?.sourceLine) qtySourceTexts.push(String(li.sourceLine));
+          else if (li?.descriptionRu) qtySourceTexts.push(String(li.descriptionRu));
+        }
+      }
+      const combined = qtySourceTexts.filter(Boolean).join("\n");
+      const qtyResult = combined
+        ? extractQuantities(combined, { articles })
+        : { primary: null, items: [], rejected: [], needsReview: false };
+
+      lead.primaryQuantity = qtyResult.primary?.value ?? null;
+      lead.quantityUnit = qtyResult.primary?.unit ?? null;
+      lead.quantitiesClean = Array.isArray(qtyResult.items)
+        ? qtyResult.items.map((i) => ({ value: i.value, unit: i.unit, source: i.source }))
+        : [];
+      const totalCount = Array.isArray(qtyResult.items)
+        ? qtyResult.items.reduce((acc, it) => {
+            if (!it || !Number.isFinite(it.value)) return acc;
+            if (it.source === "pack" && Number.isFinite(it.totalCount)) return acc + it.totalCount;
+            return acc + it.value;
+          }, 0)
+        : 0;
+      lead.totalQuantity = Number.isFinite(totalCount) && totalCount > 0 ? totalCount : null;
+      lead.quantityNeedsReview = !!qtyResult.needsReview;
+      lead.quantitiesRejected = Array.isArray(qtyResult.rejected) ? qtyResult.rejected.slice(0, 20) : [];
+
+      // In-place sanitize lineItems[].quantity — canonicalize unit, range-check.
+      // Не применяем isTechnicalSpec(sourceLine) — sourceLine описывает позицию целиком
+      // (может содержать артикулы вида H0019-0008-28, которые ложно матчат PHONE_GROUPS_RE).
+      // Negative filters применяются только к «свободно плавающим» qty в body/subject
+      // через extractQuantities().
+      if (Array.isArray(lead.lineItems)) {
+        lead.lineItems = lead.lineItems.map((li) => {
+          if (!li || typeof li !== "object") return li;
+          const updated = { ...li };
+          if (updated.unit) {
+            const canonUnit = normalizeQtyUnit(updated.unit);
+            if (canonUnit) updated.unit = canonUnit;
+          }
+          if (updated.quantity != null) {
+            const qty = Number(updated.quantity);
+            if (!Number.isFinite(qty) || qty <= 0 || qty > 100000) {
+              updated.quantity = null;
+            }
+          }
+          return updated;
         });
       }
     }

@@ -1704,11 +1704,11 @@ function exportInboxXlsx() {
     return;
   }
 
-  const headers = ['№', 'Дата', 'От', 'Ящик', 'Тема', 'Тело письма', 'Статус', 'Категория', 'Confidence', 'ФИО', 'Должность', 'Компания', 'ИНН', 'Телефон', 'Бренды', 'Артикулы', 'Название товара', 'LLM Тип запроса', 'LLM Срочно', 'LLM Не хватает'];
+  const headers = ['№', 'Дата', 'От', 'Ящик', 'Тема', 'Тело письма', 'Статус', 'Категория', 'Confidence', 'ФИО', 'Должность', 'Компания', 'ИНН', 'Телефон', 'Бренды', 'Артикулы', 'Название товара', 'Количество', 'Ед.', 'LLM Тип запроса', 'LLM Срочно', 'LLM Не хватает'];
   const colWidths = [
     { wch: 5 }, { wch: 20 }, { wch: 25 }, { wch: 25 }, { wch: 40 }, { wch: 60 },
     { wch: 16 }, { wch: 14 }, { wch: 10 }, { wch: 22 }, { wch: 22 }, { wch: 25 },
-    { wch: 14 }, { wch: 18 }, { wch: 25 }, { wch: 30 }, { wch: 40 }, { wch: 18 }, { wch: 10 }, { wch: 30 }
+    { wch: 14 }, { wch: 18 }, { wch: 25 }, { wch: 30 }, { wch: 40 }, { wch: 12 }, { wch: 8 }, { wch: 18 }, { wch: 10 }, { wch: 30 }
   ];
   // Force text type for numeric-looking identifiers so SheetJS does not coerce
   // digit-only strings to number (which produces ".0" artifact in Excel).
@@ -1718,6 +1718,22 @@ function exportInboxXlsx() {
     const s = a.sender || {};
     const l = a.lead || {};
     const llm = a.llmExtraction || {};
+    // Phase 4 — количество: primary из lineItems > primaryQuantity из body
+    // Сумма qty из lineItems если они есть; иначе primaryQuantity/totalQuantity из body-сканера.
+    const liQtys = (l.lineItems || []).map((li) => Number(li?.quantity)).filter((v) => Number.isFinite(v) && v > 0);
+    let qtyCell = '';
+    let unitCell = '';
+    if (liQtys.length > 0) {
+      qtyCell = liQtys.reduce((acc, v) => acc + v, 0);
+      const units = [...new Set((l.lineItems || []).map((li) => li?.unit).filter(Boolean))];
+      unitCell = units.length === 1 ? units[0] : (units[0] || 'шт');
+    } else if (l.primaryQuantity != null) {
+      qtyCell = l.primaryQuantity;
+      unitCell = l.quantityUnit || 'шт';
+    } else if (l.totalQuantity != null) {
+      qtyCell = l.totalQuantity;
+      unitCell = l.quantityUnit || 'шт';
+    }
     return [
       idx + 1,
       m.createdAt || '', m.from || s.email || '', m.mailbox || '', m.subject || '',
@@ -1727,6 +1743,7 @@ function exportInboxXlsx() {
       s.companyName || '', txt(s.inn), txt(s.cityPhone || s.mobilePhone),
       (a.detectedBrands || []).join('; '), (l.articles || []).join('; '),
       getLeadProductNameList(l).join('; '),
+      qtyCell, unitCell,
       llm.requestType || '', llm.isUrgent ? 'Да' : '', (llm.missingForProcessing || []).join('; ')
     ];
   };
