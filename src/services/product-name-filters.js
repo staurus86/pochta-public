@@ -35,6 +35,11 @@ const HTML_TAG_RE = /<\/?[a-z][^>]*>/i;
 const HTML_ENTITY_RE = /&(?:[a-z]+|#\d+);/i;
 const WORD_META_RE = /\b(?:WordSection\d*|page:\s*\w+|XMP\.IID|o:p\s*\/?|mso-\w+|style=["'][^"']*["'])/i;
 
+// BUG-B01 — standalone CSS declarations that slipped past HTML stripper.
+const CSS_DECL_BARE_RE = /^(?:font-family|font-size|font-weight|font-style|background-color|text-decoration-color|text-decoration-style|text-indent|text-transform|white-space|word-spacing|letter-spacing|line-height|color|display|float|overflow|width|height|max-width|min-width|padding|margin|border)\s*:\s*[^;]+$/i;
+// Incomplete/orphan tag fragment: "<span style=\"…" with no closing ">"
+const PARTIAL_TAG_RE = /<\/?[a-z][^<>\n]{0,300}$/i;
+
 // Code-only: no letters in "word" form, or very short alnum with no Cyrillic
 // Allow things like "VK/A-02/20" but reject "4.5015-24" (no product noun letters)
 // A code is code-only if after stripping digits, dots, slashes, hyphens it leaves
@@ -107,6 +112,8 @@ export function isHtmlResidueLike(value) {
     if (HTML_TAG_RE.test(s)) return true;
     if (HTML_ENTITY_RE.test(s)) return true;
     if (WORD_META_RE.test(s)) return true;
+    if (CSS_DECL_BARE_RE.test(s.trim())) return true;
+    if (PARTIAL_TAG_RE.test(s)) return true;
     return false;
 }
 

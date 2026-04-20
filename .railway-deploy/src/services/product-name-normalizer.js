@@ -31,6 +31,37 @@ const PHONE_TAIL_RE = /\s*(?:tel|phone|mob|fax|тел|моб|факс)[:.\s]*\+?
 const PHONE_BARE_TAIL_RE = /\s*\+?\d[\d()\s\-]{8,}\s*$/;
 const REGARDS_TAIL_RE = /\s*с\s+уважением.*$/i;
 
+// BUG-B01 — CSS declarations that leak from HTML-to-text (<span style="…">
+// gets partially stripped, leaving "font-family:'times new roman'" fragments in title).
+const CSS_PROPERTY_NAMES = [
+    "font-family", "font-size", "font-weight", "font-style",
+    "background-color", "text-decoration-color", "text-decoration-style",
+    "text-indent", "text-transform", "word-spacing", "white-space",
+    "letter-spacing", "line-height", "margin-\\w+", "padding-\\w+",
+    "border-\\w+", "max-width", "min-width", "max-height", "min-height",
+    "display", "float", "clear", "position", "overflow",
+    "left", "right", "top", "bottom", "width", "height",
+    "color",
+].join("|");
+// Capture "prop: value" where value is quoted or runs up to ; " \n or end.
+// Two alternatives for value: quoted string OR unquoted run.
+const CSS_DECL_RE = new RegExp(
+    `\\b(?:${CSS_PROPERTY_NAMES})\\s*:\\s*(?:'[^'\\n]*'|"[^"\\n]*"|[^;"\\n]+?)\\s*(?:;|(?="|$|\\s{2,}))`,
+    "gi"
+);
+// HTML tag or its fragment. Also catches unclosed tags <span style="…
+const TAG_ANY_RE = /<\/?[a-z][^<\n]{0,400}?(?:>|$)/gi;
+// Dangling `">` / `"/>` residue after CSS strip
+const TAG_RESIDUE_RE = /["']?\s*\/?>/g;
+
+// BUG-B02 — URL / bracketed-URL / email anywhere in title.
+const URL_ANY_RE = /\(?\s*<?\s*https?:\/\/[^\s)>]+\s*>?\s*\)?/gi;
+const WWW_URL_RE = /\(?\s*<?\s*www\.[^\s)>]+\s*>?\s*\)?/gi;
+const EMAIL_ANY_RE = /\(?\s*<?\s*[\w.+\-]+@[\w.-]+\.[a-z]{2,}\s*>?\s*\)?/gi;
+
+// BUG-B03 — Quote marker prefix from reply quoting: ">>: ", ">> ", "> "
+const QUOTE_PREFIX_RE = /^\s*>+\s*[:>]?\s*/;
+
 // Terminal "… 5 шт", "… 10 штук", "… 3 pcs", "… 2 ea", allowing - – — prefix
 const QTY_TAIL_RE = /\s*[-–—]?\s*\d+(?:[.,]\d+)?\s*(?:шт|штук[аи]?|единиц[аы]?|компл|к-т|комплект(?:ов|а)?|пар[аы]?|pcs|pc|ea|each|units?)\.?\s*$/i;
 
@@ -51,6 +82,42 @@ export function stripHtmlResidue(value) {
     s = s.replace(HTML_NAMED_ENTITY_RE, " ");
     // Collapse any whitespace introduced by tag/entity removal (idempotent)
     return s.replace(/\s+/g, " ").trim();
+}
+
+export function stripCssTokens(value) {
+    let s = String(value || "");
+    if (!s) return "";
+    // Order: style="…" attribute first (before CSS_DECL_RE eats inner declarations
+    // and leaves dangling `"/>`), then CSS decls, then tag fragments, then residue.
+    s = s.replace(/\sstyle\s*=\s*["'][^"']*["']?/gi, " ");
+    s = s.replace(CSS_DECL_RE, " ");
+    s = s.replace(TAG_ANY_RE, " ");
+    s = s.replace(TAG_RESIDUE_RE, " ");
+    return s.replace(/\s+/g, " ").trim();
+}
+
+export function stripUrlTail(value) {
+    let s = String(value || "");
+    if (!s) return "";
+    s = s.replace(URL_ANY_RE, " ");
+    s = s.replace(WWW_URL_RE, " ");
+    s = s.replace(EMAIL_ANY_RE, " ");
+    // Leftover empty parens "( )"
+    s = s.replace(/\(\s*\)/g, " ");
+    return s.replace(/\s+/g, " ").trim();
+}
+
+export function stripQuoteMarker(value) {
+    let s = String(value || "");
+    if (!s) return "";
+    let prev;
+    do {
+        prev = s;
+        s = s.replace(QUOTE_PREFIX_RE, "");
+    } while (s !== prev);
+    // Forward/reply message separators: "-----Original Message-----", "---- Forwarded ----"
+    s = s.replace(/^[-=]{3,}\s*(?:Original\s+Message|Forwarded(?:\s+Message)?)\s*[-=]{3,}/i, "").trim();
+    return s;
 }
 
 export function stripPdfOps(value) {
@@ -128,8 +195,14 @@ export function normalizeProductName(value, options = {}) {
     const maxLen = options.maxLen ?? DEFAULT_MAX_LEN;
     let s = String(value || "");
     if (!s) return "";
+    // Quote markers must run before HTML/CSS strip: TAG_RESIDUE_RE eats bare `>`
+    // and would leave ">>: title" as ": title".
+    s = stripQuoteMarker(s);
     s = stripHtmlResidue(s);
+    s = stripCssTokens(s);
     s = stripPdfOps(s);
+    s = stripUrlTail(s);
+    s = stripQuoteMarker(s);
     s = stripContactTail(s);
     s = stripQuantityTail(s);
     s = collapseWhitespace(s);
