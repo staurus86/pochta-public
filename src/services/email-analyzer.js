@@ -21,6 +21,7 @@ import { normalizeQtyUnit } from "./quantity-normalizer.js";
 import { extractPersonName } from "./fio-extractor.js";
 import { extractCompany } from "./company-extractor.js";
 import { extractPosition as extractPositionV2 } from "./position-extractor.js";
+import { extractPhone as extractPhoneV2 } from "./phone-extractor.js";
 
 // Product types database for request type detection and entity extraction
 const __analyzerDir = path.dirname(fileURLToPath(import.meta.url));
@@ -2374,7 +2375,49 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
     ? positionResult.rejected.slice(0, 5)
     : [];
   const website = externalUrls[0] || inferWebsiteFromEmail(fromEmail);
-  const { cityPhone, mobilePhone } = splitPhones(phones, body);
+  // Phase 8: source-priority cascade for Phone extraction.
+  // Priority: form > signature > current_message > contact_lines > company_blob
+  //          (misplacement recovery) > quoted_thread > template_footer > sender.
+  // Negative filters reject INN/OGRN/KPP/bank-account/postal/article/date.
+  // Legacy splitPhones is kept as fallback for empty facade output.
+  const phoneResult = extractPhoneV2({
+    signature: signature || "",
+    body: strippedBody,
+    senderDisplay: fromName || "",
+    personHint: fioResult.primary || fullNameCompany || null,
+    companyHint: rawCompanyName || null,
+  });
+  let cityPhone = null;
+  let mobilePhone = null;
+  let phoneExt = phoneResult.ext || null;
+  let phoneType = phoneResult.type || "unknown";
+  let phoneCountry = phoneResult.country || "unknown";
+  let phoneSource = phoneResult.source || null;
+  let phoneConfidence = phoneResult.confidence ?? 0;
+  let phoneNeedsReview = !!phoneResult.needsReview;
+  const phoneRecoveredFromCompany = !!phoneResult.recoveredFromCompany;
+  const phoneRejected = Array.isArray(phoneResult.rejected)
+    ? phoneResult.rejected.slice(0, 5)
+    : [];
+  if (phoneResult.primary) {
+    if (phoneResult.isMobile) mobilePhone = phoneResult.primary;
+    else cityPhone = phoneResult.primary;
+    if (phoneResult.alt) {
+      // Alternate phone — place on the other slot if empty.
+      if (!mobilePhone && phoneResult.alt) mobilePhone = phoneResult.alt;
+      else if (!cityPhone && phoneResult.alt) cityPhone = phoneResult.alt;
+    }
+  } else {
+    // Fallback to legacy extraction.
+    const legacySplit = splitPhones(phones, body);
+    cityPhone = legacySplit.cityPhone || null;
+    mobilePhone = legacySplit.mobilePhone || null;
+    if (cityPhone || mobilePhone) {
+      phoneSource = "legacy";
+      phoneConfidence = 0.5;
+      phoneNeedsReview = true;
+    }
+  }
   const legalCardAttached = attachments.some((item) => /реквиз|card|details/i.test(item));
 
   return {
@@ -2403,6 +2446,14 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
     website,
     cityPhone,
     mobilePhone,
+    phoneExt,
+    phoneType,
+    phoneCountry,
+    phoneSource,
+    phoneConfidence,
+    phoneNeedsReview,
+    phoneRecoveredFromCompany,
+    phoneRejected,
     inn: normalizeInn(requisites.inn),
     kpp: requisites.kpp,
     ogrn: requisites.ogrn,
@@ -2410,7 +2461,7 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
     sources: {
       company: companyName ? (companySource || "body") : null,
       website: externalUrls[0] ? "body" : website ? "email_domain" : null,
-      phone: cityPhone || mobilePhone ? "body" : null,
+      phone: cityPhone || mobilePhone ? (phoneSource || "body") : null,
       inn: requisites.inn ? "body" : null,
       kpp: requisites.kpp ? "body" : null,
       ogrn: requisites.ogrn ? "body" : null,
@@ -3071,9 +3122,24 @@ function buildFieldDiagnostic(field, lead, sender) {
   if (field === "phone") {
     const source = sender.sources?.phone || null;
     const found = Boolean(sender.cityPhone || sender.mobilePhone);
+    // Phase 8: new source names emitted by extractPhone facade — map to
+    // confidence buckets consistent with legacy "body" scoring.
+    const SOURCE_CONF = {
+      form: 0.95,
+      signature: 0.9,
+      current_message: 0.9,
+      contact_lines: 0.85,
+      company_blob: 0.7,
+      quoted_thread: 0.7,
+      template_footer: 0.6,
+      sender_header: 0.55,
+      body: 0.9,
+      sender_profile: 0.8,
+      legacy: 0.7,
+    };
     return {
       found,
-      confidence: !found ? 0 : source === "body" ? 0.9 : source === "sender_profile" ? 0.8 : 0.72,
+      confidence: !found ? 0 : (SOURCE_CONF[source] ?? 0.72),
       source
     };
   }
