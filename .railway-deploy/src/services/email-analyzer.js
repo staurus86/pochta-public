@@ -20,6 +20,7 @@ import { isTechnicalSpec } from "./quantity-filters.js";
 import { normalizeQtyUnit } from "./quantity-normalizer.js";
 import { extractPersonName } from "./fio-extractor.js";
 import { extractCompany } from "./company-extractor.js";
+import { extractPosition as extractPositionV2 } from "./position-extractor.js";
 
 // Product types database for request type detection and entity extraction
 const __analyzerDir = path.dirname(fileURLToPath(import.meta.url));
@@ -2338,7 +2339,40 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
   const companyAlt = companyResult.alt || null;
   const companyNeedsReview = !!companyResult.needsReview || (!companyName);
   const companyRejected = Array.isArray(companyResult.rejected) ? companyResult.rejected.slice(0, 5) : [];
-  const position = fullNameRole || extractPosition(body) || null;
+  // Phase 7: source-priority cascade for Должность.
+  // Priority: form > signature > body > sender. Negative filters reject
+  // company/person/contact/department contamination. Legacy fullNameRole
+  // is used as fallback when facade finds nothing.
+  const strippedBody = stripQuotedReply(body || "");
+  const positionResult = extractPositionV2({
+    signature: signature || "",
+    body: strippedBody,
+    senderDisplay: fromName || "",
+    personHint: fioResult.primary || fullNameCompany || null,
+    companyHint: rawCompanyName || null,
+  });
+  let position = positionResult.primary || null;
+  let positionSource = positionResult.source || null;
+  let positionConfidence = positionResult.confidence ?? 0;
+  let positionAlt = positionResult.alt || null;
+  let departmentName = positionResult.department || null;
+  if (!position && fullNameRole) {
+    position = fullNameRole;
+    positionSource = "fio_composite";
+    positionConfidence = 0.7;
+  }
+  if (!position) {
+    const legacy = extractPosition(body);
+    if (legacy) {
+      position = legacy;
+      positionSource = "legacy";
+      positionConfidence = 0.55;
+    }
+  }
+  const positionNeedsReview = !!positionResult.needsReview && !position;
+  const positionRejected = Array.isArray(positionResult.rejected)
+    ? positionResult.rejected.slice(0, 5)
+    : [];
   const website = externalUrls[0] || inferWebsiteFromEmail(fromEmail);
   const { cityPhone, mobilePhone } = splitPhones(phones, body);
   const legalCardAttached = attachments.some((item) => /реквиз|card|details/i.test(item));
@@ -2354,6 +2388,12 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
     fullNameNeedsReview,
     fullNameRejected,
     position,
+    positionAlt,
+    departmentName,
+    positionSource,
+    positionConfidence,
+    positionNeedsReview,
+    positionRejected,
     companyName,
     companyAlt,
     companyNameSource: companySource || null,
@@ -2374,7 +2414,9 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
       inn: requisites.inn ? "body" : null,
       kpp: requisites.kpp ? "body" : null,
       ogrn: requisites.ogrn ? "body" : null,
-      fullName: fullNameSource
+      fullName: fullNameSource,
+      position: position ? positionSource : null,
+      department: departmentName ? "body" : null,
     }
   };
 }
