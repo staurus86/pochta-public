@@ -96,14 +96,12 @@ export function normalizeProductName(rawLine) {
     return s.trim();
 }
 
-// Normalize key for dedup: uppercase, strip edge punctuation, collapse spaces
+// Normalize key for dedup: uppercase, strip all non-alnum punctuation/whitespace.
+// Treats space and hyphen as equivalent so "MD-025-6L" ≡ "MD 025-6L" ≡ "MD 025 6L".
 function dedupKey(s) {
     if (typeof s !== "string") return "";
     return s
-        .replace(/[^A-Za-zА-ЯЁа-яё0-9 \-/.]+/g, "")
-        .replace(/\s+/g, " ")
-        .replace(/^[.\-/\s]+|[.\-/\s]+$/g, "")
-        .trim()
+        .replace(/[^A-Za-zА-ЯЁа-яё0-9]+/g, "")
         .toUpperCase();
 }
 

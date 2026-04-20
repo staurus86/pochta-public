@@ -10,7 +10,10 @@ import { isLlmExtractEnabled, llmExtract, mergeLlmExtraction, buildRulesFoundSum
 import { applyRequestTypeFallback } from "./request-type-rules.js";
 import { reconcileMissingForProcessing } from "./field-enums.js";
 import { annotateQualityGate } from "./quality-gate.js";
-import { isHtmlWordMetadata, isFilenameLike, isDateTime, isRefrigerantCode } from "./article-filters.js";
+import {
+    isHtmlWordMetadata, isFilenameLike, isDateTime, isRefrigerantCode,
+    isInnLike, isHtmlStructureToken, isSizeTriple, isHoursRange, isPhoneFragment,
+} from "./article-filters.js";
 import { sanitizeBrands } from "./brand-extractor.js";
 import { sanitizeProductNames } from "./product-name-extractor.js";
 import { normalizeProductName } from "./product-name-normalizer.js";
@@ -6026,6 +6029,17 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   // Short PDF internal reference keys: Sohv3:X, vmf:i0, IgN:F5, 4U:K
   // Pattern: 1-8 alphanumeric chars, colon, 1-4 alphanumeric chars (no separators on right side)
   if (/^[A-Za-z0-9]{1,8}:[A-Za-z0-9]{1,4}$/.test(normalized)) return true;
+  // Cycle 2 — delegate narrow P0 predicates only (not the full rejectArticleCandidate,
+  // which includes tech_spec rules that would regress legacy article extraction).
+  // 12-digit INN is always rejected; 10-digit INN only without strong label context.
+  if (isInnLike(normalized)) {
+    if (normalized.length === 12) return true;
+    if (normalized.length === 10 && !hasStrongArticleContext) return true;
+  }
+  if (isHtmlStructureToken(normalized)) return true;
+  if (isSizeTriple(normalized)) return true;
+  if (isHoursRange(normalized)) return true;
+  if (isPhoneFragment(normalized)) return true;
   return false;
 }
 

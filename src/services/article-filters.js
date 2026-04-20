@@ -187,6 +187,83 @@ export function isOCRNoise(token) {
 const STRONG_LABEL_RE = /\b(?:part\s*number|manufacturer\s*part\s*number|mpn|p\/n|pn|арт\.?|артикул|каталож(?:ный|ного)\s+номер|код\s+товара)\b/i;
 const PURE_NUMERIC_RE = /^\d+$/;
 
+// BUG-A01 — 10 or 12-digit pure numeric = ИНН shape (юр.лицо / ИП).
+// 12-digit pure: never a product SKU (ИП INN only).
+// 10-digit pure: very rarely an SKU; accept only with strong label adjacent.
+const INN_LIKE_RE = /^\d{10}$|^\d{12}$/;
+
+export function isInnLike(token) {
+    if (typeof token !== "string" || !token) return false;
+    return INN_LIKE_RE.test(token.trim());
+}
+
+// BUG-A02 — HTML table structural tokens emitted by HTML-to-text of newsletter bodies.
+// Pattern: lowercase kebab prefix + dash + digits. Never a product SKU.
+const HTML_STRUCT_PREFIXES = [
+    "row", "column", "col", "block", "cell", "header", "footer",
+    "section", "group", "item", "wrapper", "container", "nav",
+    "aside", "main", "article", "hero", "banner", "card", "tile",
+];
+const HTML_STRUCT_RE = new RegExp(
+    `^(?:${HTML_STRUCT_PREFIXES.join("|")})-\\d+$`
+);
+
+export function isHtmlStructureToken(token) {
+    if (typeof token !== "string" || !token) return false;
+    return HTML_STRUCT_RE.test(token.trim());
+}
+
+// BUG-A03 — Size triple/pair: 80/95/70, 40×55×80, 40х55 — dimensions not SKU.
+// All segments are ≤3 digits, no letters, separator is / × x х (lat+cyr).
+const SIZE_TRIPLE_RE = /^\d{1,3}(?:[/×xXхХ*]\d{1,3}){1,2}$/;
+
+export function isSizeTriple(token) {
+    if (typeof token !== "string" || !token) return false;
+    return SIZE_TRIPLE_RE.test(token.trim());
+}
+
+// BUG-A04 — Hours/working-hours range: 00-18.00, 09-18.00, 8.30-17.30, 9:00-18:00.
+// First/second segments ≤24 (hours), trailing ≤59 (minutes).
+export function isHoursRange(token) {
+    if (typeof token !== "string" || !token) return false;
+    const t = token.trim();
+    // Pattern: HH[.:-]MM[.:-]HH[.:-]MM? or HH-HH.MM
+    const m = t.match(/^(\d{1,2})[.:\-](\d{1,2})(?:[.:\-](\d{1,2})(?:[.:\-](\d{1,2}))?)?$/);
+    if (!m) return false;
+    const [_, a, b, c, d] = m;
+    const na = parseInt(a, 10), nb = parseInt(b, 10);
+    const nc = c != null ? parseInt(c, 10) : null;
+    const nd = d != null ? parseInt(d, 10) : null;
+    // 2-segment (00-18) — too weak, might be range. Require 3-4 segments.
+    if (nc == null) return false;
+    // Hours ≤24, minutes ≤59
+    if (na > 24 || nc > 24) return false;
+    if (nb > 59) return false;
+    if (nd != null && nd > 59) return false;
+    return true;
+}
+
+// BUG-A05 — Phone fragment patterns: 915-506-04-96 (3-3-2-2), 495-123-45-67, 8-800-123-45-67.
+// Pure-digit segments with phone-shape groupings.
+const PHONE_FRAG_RES = [
+    /^\d{3}-\d{3}-\d{2}-\d{2}$/,               // 915-506-04-96
+    /^\d{3}-\d{2}-\d{2}-\d{3}$/,               // alt shape
+    /^[78]-\d{3}-\d{3}-\d{2}-\d{2}$/,          // 8-800-555-35-35
+    /^\+?7[\s\-()]*\d{3}[\s\-()]*\d{3}[\s\-]*\d{2}[\s\-]*\d{2}$/, // +7 495 555 ...
+    /^\+?\d{1,3}\s\d{3}\s\d{3}\s\d{2}\s\d{2}$/, // "+7 915 506 04 96"
+];
+
+export function isPhoneFragment(token) {
+    if (typeof token !== "string" || !token) return false;
+    const t = token.trim();
+    // Has letter → not a phone
+    if (/[A-Za-zА-ЯЁа-яё]/.test(t)) return false;
+    for (const re of PHONE_FRAG_RES) {
+        if (re.test(t)) return true;
+    }
+    return false;
+}
+
 // Aggregate reject. Returns { rejected: bool, reason: string }.
 // Context: { hasLabel?: bool, sectionCount?: number, sourceLine?: string }
 export function rejectArticleCandidate(token, context = {}) {
@@ -195,8 +272,22 @@ export function rejectArticleCandidate(token, context = {}) {
     }
 
     if (isHtmlWordMetadata(token)) return { rejected: true, reason: "html_word_meta" };
+    if (isHtmlStructureToken(token)) return { rejected: true, reason: "html_structure_token" };
     if (isFilenameLike(token)) return { rejected: true, reason: "filename" };
     if (isDateTime(token)) return { rejected: true, reason: "datetime" };
+    if (isHoursRange(token)) return { rejected: true, reason: "hours_range" };
+    if (isSizeTriple(token)) return { rejected: true, reason: "size_triple" };
+    if (isPhoneFragment(token)) return { rejected: true, reason: "phone_fragment" };
+    if (isInnLike(token)) {
+        // 10-digit with strong inline label is occasionally a legit long numeric SKU —
+        // allow only when sourceLine has strict "Арт.:" / "Part Number:" adjacency.
+        const t = token.trim();
+        const strictLabel = context.sourceLine && /(?:^|[\s;,])(?:арт(?:икул)?\.?\s*[:#№]|part\s*number\s*[:#]|p\/?n\s*[:#]|mpn\s*[:#])\s*[\d]/i.test(context.sourceLine);
+        // 12-digit always rejected; 10-digit allowed only with strict label
+        if (t.length === 12 || !strictLabel) {
+            return { rejected: true, reason: "inn_like" };
+        }
+    }
     if (isTechSpec(token)) return { rejected: true, reason: "tech_spec" };
     if (isRefrigerantCode(token)) return { rejected: true, reason: "refrigerant" };
     if (isSectionNumbering(token, context)) return { rejected: true, reason: "section_numbering" };
