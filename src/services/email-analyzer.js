@@ -19,6 +19,7 @@ import { extractQuantities } from "./quantity-extractor.js";
 import { isTechnicalSpec } from "./quantity-filters.js";
 import { normalizeQtyUnit } from "./quantity-normalizer.js";
 import { extractPersonName } from "./fio-extractor.js";
+import { extractCompany } from "./company-extractor.js";
 
 // Product types database for request type detection and entity extraction
 const __analyzerDir = path.dirname(fileURLToPath(import.meta.url));
@@ -2283,18 +2284,11 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
     if ([...OWN_DOMAINS].some((od) => domain.endsWith("." + od))) return false;
     return true;
   });
-  const extractedCompanyName = extractCompanyName(body, signature);
-  const inferredCompanyName = inferCompanyNameFromEmail(fromEmail);
-  // Domain fallback: last resort if nothing found in body/signature
-  const domainCompanyName = (!extractedCompanyName && !inferredCompanyName)
-    ? inferCompanyFromDomain(fromEmail)
-    : null;
-  const rawCompanyName = sanitizeCompanyName(extractedCompanyName || inferredCompanyName || domainCompanyName);
-  const companyName = isOwnCompanyData("company", rawCompanyName) ? null : rawCompanyName;
   // Phase 5: source-priority cascade for person name extraction.
   // Priority: signature > body contact-line > sender display > email-local.
   // Filters reject company/alias/role/department/corporate-uppercase before acceptance.
   const emailLocal = typeof fromEmail === "string" ? fromEmail.split("@")[0] : "";
+  const emailDomain = typeof fromEmail === "string" ? (fromEmail.split("@")[1] || "").toLowerCase() : "";
   // Pre-scan body with legacy heuristic (signature block, "С уважением" patterns)
   // and inject as body candidate so the new extractor's filters clean it up.
   const legacyBodyName = extractFullNameFromBody(body || signature || "") || null;
@@ -2312,6 +2306,38 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
   const fullNameConfidence = fioResult.confidence ?? 0;
   const fullNameNeedsReview = !!fioResult.needsReview;
   const fullNameRejected = Array.isArray(fioResult.rejected) ? fioResult.rejected.slice(0, 5) : [];
+
+  // Phase 6: source-priority cascade for company name.
+  // Priority: form (handled upstream) > signature > body > sender display > email_domain (weak).
+  // Filters reject generic providers, person-like labels, departments, roles, overcapture blobs.
+  // Legacy extractCompanyName is kept as pre-scan fallback so label-based ("Организация: X")
+  // and sender-profile patterns continue to feed the body candidate.
+  const legacyBodyCompany = extractCompanyName(body, signature);
+  const bodyForCompany = legacyBodyCompany
+    ? `Компания: ${legacyBodyCompany}\n${body || ""}`
+    : (body || "");
+  const companyResult = extractCompany({
+    senderDisplay: fromName || "",
+    signature: signature || "",
+    body: bodyForCompany,
+    emailDomain,
+    personHint: fioResult.primary || fullNameCompany || null,
+  });
+  // Prefer fullNameCompany (extracted from composite ФИО строка) over facade primary when
+  // facade lacks high confidence — it's a strong hint from a clearly-labeled composite.
+  let companyPrimary = companyResult.primary;
+  let companySource = companyResult.source;
+  let companyConfidence = companyResult.confidence ?? 0;
+  if (!companyPrimary && fullNameCompany) {
+    companyPrimary = fullNameCompany;
+    companySource = "fio_composite";
+    companyConfidence = 0.7;
+  }
+  const rawCompanyName = companyPrimary ? sanitizeCompanyName(companyPrimary) : null;
+  const companyName = isOwnCompanyData("company", rawCompanyName) ? null : rawCompanyName;
+  const companyAlt = companyResult.alt || null;
+  const companyNeedsReview = !!companyResult.needsReview || (!companyName);
+  const companyRejected = Array.isArray(companyResult.rejected) ? companyResult.rejected.slice(0, 5) : [];
   const position = fullNameRole || extractPosition(body) || null;
   const website = externalUrls[0] || inferWebsiteFromEmail(fromEmail);
   const { cityPhone, mobilePhone } = splitPhones(phones, body);
@@ -2329,6 +2355,11 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
     fullNameRejected,
     position,
     companyName,
+    companyAlt,
+    companyNameSource: companySource || null,
+    companyNameConfidence: companyConfidence,
+    companyNameNeedsReview: companyNeedsReview,
+    companyNameRejected: companyRejected,
     website,
     cityPhone,
     mobilePhone,
@@ -2337,7 +2368,7 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
     ogrn: requisites.ogrn,
     legalCardAttached,
     sources: {
-      company: extractedCompanyName ? "body" : (inferredCompanyName || domainCompanyName) ? "email_domain" : null,
+      company: companyName ? (companySource || "body") : null,
       website: externalUrls[0] ? "body" : website ? "email_domain" : null,
       phone: cityPhone || mobilePhone ? "body" : null,
       inn: requisites.inn ? "body" : null,

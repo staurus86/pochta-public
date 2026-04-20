@@ -100,7 +100,7 @@ runTest("analyzes client email and matches known company", () => {
   });
 
   assert.equal(analysis.classification.label, "Клиент");
-  assert.equal(analysis.sender.companyName, 'ООО "ПромСнаб"');
+  assert.equal(analysis.sender.companyName, 'ООО «ПромСнаб»');
   assert.equal(analysis.crm.isExistingCompany, true);
   assert.equal(analysis.crm.curatorMop, "Иван Колесов");
   assert.equal(analysis.lead.requestType, "Монобрендовая");
@@ -720,7 +720,7 @@ Velcom: +375296156910`
   // Should have multiple line items (at least 2)
   assert.ok(analysis.lead.lineItems.length >= 2 || analysis.lead.articles.length >= 2, `Should have >= 2 items, got ${analysis.lead.lineItems.length} items, ${analysis.lead.articles.length} articles`);
   // Should detect sender company
-  assert.equal(analysis.sender.companyName, 'ООО "Ноксан групп"');
+  assert.equal(analysis.sender.companyName, 'ООО «Ноксан групп»');
 });
 
 // ═══ Letter 2: Joystick dust cover GESSMANN VV64:KMD 66 ═══
