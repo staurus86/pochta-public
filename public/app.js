@@ -282,6 +282,23 @@ function isDashboardTopArticleNoise(article) {
   if (/^(?:0000|0001)(?:-\d+)+$/.test(value)) return true;
   if (/^TOP[А-ЯA-Z0-9-]+$/i.test(value)) return true;
   if (/^[A-ZА-Я]{1,4}-\d{1,2}$/.test(value)) return true;
+  // Electrical/physical units — параметр, не артикул (60HZ, 50HZ, 380V, 75A, 1200W)
+  if (/^\d{1,4}(?:HZ|V|VA|VDC|VAC|A|W|KW|KV|MA|KHZ|MHZ|MW|NM|KG|BAR|PSI|RPM)$/i.test(value)) return true;
+  // Ranges with units: 100-240V, 4-20MA, 6-48VDC
+  if (/^\d{1,4}-\d{1,4}(?:HZ|V|VA|VDC|VAC|A|W|KW|KV|MA|KHZ|MHZ|MW)$/i.test(value)) return true;
+  // Steel grades: 316L, 304H, 321S, 12X18H10T — характеристика материала
+  if (/^\d{3}[LHST]$/.test(value)) return true;
+  // MAX./MIN. prefix — "максимум 5" из текста, не артикул
+  if (/^(?:MAX|MIN)\.?\d+$/i.test(value)) return true;
+  // Thread sizes: 8X16/21, 10X20/30 — размер резьбы
+  if (/^\d{1,3}[Xх*]\d{1,3}\/\d{1,3}$/i.test(value)) return true;
+  // Size ranges: 40-55/22-285, 10-20/5-30 — габаритный диапазон
+  if (/^\d{1,4}-\d{1,4}\/\d{1,4}-\d{1,4}$/.test(value)) return true;
+  // Brand/family + size/version: MSF 2.0, TG 40-55/22, MSF-2.0
+  if (/^[A-ZА-Я]{2,5}[- ]\d{1,3}\.\d{1,3}$/i.test(value)) return true;
+  if (/^[A-ZА-Я]{2,5}\s+\d{1,3}-\d{1,3}\/\d{1,3}$/i.test(value)) return true;
+  // Material-class: AL-A4, CU-A2 (алюминий/медь + класс прочности)
+  if (/^(?:AL|CU|FE|ZN|NI|TI)-[A-Z]\d{1,2}$/i.test(value)) return true;
   return false;
 }
 

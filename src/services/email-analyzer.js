@@ -1311,14 +1311,40 @@ export function analyzeEmail(project, payload) {
       const re = new RegExp(`\\b${escapeRegExp(normalized)}(?=[ВвVvАаAa×xхХ*]|\\s*(?:кВт|kW|mA|мА|мм|mm|см|cm|Вт|\\bW\\b|Гц|Hz|VDC|VAC))`);
       return re.test(src);
     };
+    // Physical-spec noise (unit-params, steel grades, size ranges, model-versions) —
+    // applied via standalone regex list so productNames/lineItems all get filtered
+    // without pulling in full isObviousArticleNoise (which requires sourceLine context).
+    const isSpecNoise = (code) => {
+      const c = String(code || "").trim();
+      if (!c || /^DESC:/i.test(c)) return false;
+      const n = normalizeArticleCode(c);
+      if (!n) return false;
+      // Units: 60HZ, 50HZ, 380V, 75A, 1200W
+      if (/^\d{1,4}(?:HZ|V|VA|VDC|VAC|A|W|KW|KV|MA|KHZ|MHZ|MW|NM|KG|BAR|PSI|RPM)$/i.test(n)) return true;
+      if (/^\d{1,4}-\d{1,4}(?:HZ|V|VA|VDC|VAC|A|W|KW|KV|MA|KHZ|MHZ|MW)$/i.test(n)) return true;
+      // Steel grades: 316L, 304H, 321S, 310S
+      if (/^\d{3}[LHST]$/.test(n)) return true;
+      // MAX./MIN. prefix
+      if (/^(?:MAX|MIN)\.?\d+$/i.test(n)) return true;
+      // Thread sizes: 8X16/21
+      if (/^\d{1,3}[Xх*]\d{1,3}\/\d{1,3}$/i.test(n)) return true;
+      // Size ranges: 40-55/22-285
+      if (/^\d{1,4}-\d{1,4}\/\d{1,4}-\d{1,4}$/.test(n)) return true;
+      // Model-family versions: "MSF 2.0", "MSF-2.0", "TG 40-55/22"
+      if (/^[A-ZА-ЯЁ]{2,5}[- ]\d{1,3}\.\d{1,3}$/i.test(n)) return true;
+      if (/^[A-ZА-ЯЁ]{2,5}\s+\d{1,3}-\d{1,3}\/\d{1,3}$/i.test(n)) return true;
+      // Material-class: AL-A4, CU-A2
+      if (/^(?:AL|CU|FE|ZN|NI|TI)-[A-Z]\d{1,2}$/i.test(n)) return true;
+      return false;
+    };
     if (Array.isArray(lead.articles)) {
-      lead.articles = lead.articles.filter((a) => !isRussianCategoryNoise(a) && !isParamValueNoise(a));
+      lead.articles = lead.articles.filter((a) => !isRussianCategoryNoise(a) && !isParamValueNoise(a) && !isSpecNoise(a));
     }
     if (Array.isArray(lead.lineItems)) {
-      lead.lineItems = lead.lineItems.filter((li) => !isRussianCategoryNoise(li?.article) && !isParamValueNoise(li?.article));
+      lead.lineItems = lead.lineItems.filter((li) => !isRussianCategoryNoise(li?.article) && !isParamValueNoise(li?.article) && !isSpecNoise(li?.article));
     }
     if (Array.isArray(lead.productNames)) {
-      lead.productNames = lead.productNames.filter((p) => !isRussianCategoryNoise(p?.article) && !isParamValueNoise(p?.article));
+      lead.productNames = lead.productNames.filter((p) => !isRussianCategoryNoise(p?.article) && !isParamValueNoise(p?.article) && !isSpecNoise(p?.article));
     }
     if (Array.isArray(lead.lineItems) && Array.isArray(lead.articles)) {
       lead.totalPositions = Math.max(lead.lineItems.length, lead.articles.length);
@@ -5887,6 +5913,19 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   if (/^\d{1,4}-\d{1,4}(?:V|A|W|HZ|VA|VAR|VDC|VAC|KW|KV|MA|KHZ|MHZ|MW)$/i.test(normalized)) return true;
   // DN NN — nominal diameter (DN 65/65, DN32) — не артикул (8 токенов).
   if (/^DN\s*\d{1,4}(?:\/\d{1,4})?$/i.test(normalized)) return true;
+  // Steel grades: 316L, 304H, 321S, 310S — marka stali AISI, характеристика не артикул
+  if (/^\d{3}[LHST]$/.test(normalized)) return true;
+  // MAX./MIN. prefix — "максимум 5 шт", не артикул
+  if (/^(?:MAX|MIN)\.?\d+$/i.test(normalized)) return true;
+  // Thread sizes: 8X16/21, 10X20/30 — размер резьбы (шаг/диаметр)
+  if (/^\d{1,3}[Xх*]\d{1,3}\/\d{1,3}$/i.test(normalized)) return true;
+  // Size ranges: 40-55/22-285, 10-20/5-30 — габаритный диапазон
+  if (/^\d{1,4}-\d{1,4}\/\d{1,4}-\d{1,4}$/.test(normalized)) return true;
+  // Brand-family + size/version: "MSF 2.0", "TG 40-55/22", "MSF-2.0" — не артикул, а модель/версия
+  if (/^[A-ZА-ЯЁ]{2,5}[- ]\d{1,3}\.\d{1,3}$/i.test(normalized)) return true;
+  if (/^[A-ZА-ЯЁ]{2,5}\s+\d{1,3}-\d{1,3}\/\d{1,3}$/i.test(normalized)) return true;
+  // Material-class: AL-A4, CU-A2 (алюминий/медь + класс прочности крепежа)
+  if (/^(?:AL|CU|FE|ZN|NI|TI)-[A-Z]\d{1,2}$/i.test(normalized)) return true;
   // CamelCase-CamelCase без цифр — торговое наименование, не артикул (Ultra-Clean, Super-Flow)
   if (/^[A-ZА-ЯЁ][a-zа-яё]{2,}-[A-ZА-ЯЁ][a-zа-яё]{2,}$/.test(normalized)) return true;
   // URL paths with domain-like segments: ns.adobe.com/xap/1.0, purl.org/dc/elements/1.1
