@@ -131,6 +131,23 @@ R17. Различай приглашение на мероприятие vs те
     • Тендер (request_type="quotation", извлекай brand/article из ТЗ): маркеры «открытый запрос предложений», «процедура №», «согласно ТЗ», «поставка ... для ООО X в 2026», «направить предложение».
     • СПАМ-рассылка (request_type="other", articles=[], brands=[]): маркеры «конференция», «форум», «вебинар», «регистрация по ссылке», «программа мероприятия», «спикеры», «докладов».
 
+R18. Follow-up / сверка / уточнение по активной сделке без нового RFQ → request_type="info_request", НЕ "other". Маркеры: «уточните», «напомните», «по какой заявке», «прошу выслать ещё раз», «когда будет отгрузка», «Re:/Fwd: на свою переписку», «сверка по заказу №», «подтвердите получение», «акт сверки», «статус по заявке». Пустое письмо на Re: — это тоже "info_request" (продолжение треда), не "other".
+
+R19. sender_phone — извлекай ЛЮБЫЕ международные номера из подписи/тела, не только +7:
+    • +86 1XX XXXX XXXX (Китай, 11 национальных цифр)
+    • +375 XX XXX-XX-XX (Беларусь)
+    • +994 XX XXX XX XX (Азербайджан)
+    • +380/+998/+374/+996/+992/+993 и аналогичные
+    Не путай 13-значный ОГРН без «+» с телефоном. Признак телефона: явный «+», пробелы/скобки/дефисы как в номере, контекст («тел.», «моб.», «WhatsApp», «Teams»).
+
+R20. sender_name — если header_from_name = ТОЛЬКО компания («ООО Ромашка», «Festo GmbH», «sales», «info», «robot»), НЕ сдавайся — ищи ФИО в порядке:
+    1) блок подписи («С уважением, Иван Петров»),
+    2) в теле («Меня Лариса зовут», «обращается менеджер Сидоров И.И.»),
+    3) вложения (карточка с ФИО директора).
+    Верни null ТОЛЬКО если нигде нет личного имени. «Отдел продаж», «Менеджер» — это position, не name.
+
+R21. company_name — сохраняй ВЛОЖЕННЫЕ кавычки дословно. АО «Концерн «Моринсис-Агат»» → верни как есть (не обрезай до «АО Концерн» после первой «»). ASCII "Concern "Name"" — считай парность: если кавычек нечётное число и они явно обрамляют вложенное название — верни оригинал без добавления фантомной закрывающей кавычки.
+
 === ПРИМЕРЫ ===
 
 Пример 1 — клиент с артикулами:
@@ -334,13 +351,9 @@ export function mergeLlmExtraction(result, llmData, messageKey = "") {
     }
     if (!sender.cityPhone && !sender.mobilePhone && llmData.sender_phone) {
         const phone = llmData.sender_phone;
-        // Classify as mobile (9XX) vs city
-        const isMobile = /(?:\+7|8)[\s(.-]*9/.test(phone);
-        if (isMobile) {
-            sender.mobilePhone = phone;
-        } else {
-            sender.cityPhone = phone;
-        }
+        const bucket = classifyLlmPhone(phone);
+        if (bucket === "mobile") sender.mobilePhone = phone;
+        else sender.cityPhone = phone;
         sender.sources.phone = "llm";
     }
     if (!sender.companyName && llmData.company_name) {
@@ -376,11 +389,23 @@ export function mergeLlmExtraction(result, llmData, messageKey = "") {
                 result.classification.llmRequestType = rt;
             }
         } else if (rt === "other" && (label === "Клиент" || label === "Поставщик услуг")) {
-            // Downgrade: LLM says this is not a real request → "Не определено" (review)
-            result.classification.label = "Не определено";
-            result.classification.llmRequestType = rt;
-            result.classification.llmDowngraded = true;
-            result.classification.needsReview = true;
+            // Downgrade guard: keep rules label when there's hard evidence
+            // (articles/brands) OR rules classifier was highly confident.
+            // LLM routinely mislabels short follow-ups/requisites-only as "other".
+            const hasArticles = (result.lead?.articles || []).length > 0;
+            const hasBrands = (result.detectedBrands || []).length > 0;
+            const rulesConf = Number(result.classification?.confidence ?? 0);
+            const rulesHighConf = rulesConf >= 0.85;
+            if (!hasArticles && !hasBrands && !rulesHighConf) {
+                result.classification.label = "Не определено";
+                result.classification.llmRequestType = rt;
+                result.classification.llmDowngraded = true;
+                result.classification.needsReview = true;
+            } else {
+                // Keep rules label — mark disagreement for audit log
+                result.classification.llmRequestType = rt;
+                result.classification.llmDisagreed = true;
+            }
         } else if (rt === "vendor_offer" && label === "Клиент") {
             // Misclassified vendor outreach → flip to supplier
             result.classification.label = "Поставщик услуг";
@@ -486,4 +511,47 @@ function writeSuggestionsLog(entry) {
     } catch (err) {
         console.warn("LLM suggestions log write error:", err.message);
     }
+}
+
+// ---------------------------------------------------------------------------
+// Phone bucket classifier — country-aware
+// ---------------------------------------------------------------------------
+
+/**
+ * Classify a phone string as "mobile" or "city".
+ * - RU +7 / 8:  9XX → mobile; other national prefixes → city
+ * - KZ +7 7XX:  77X mobile codes (701-778) → mobile; else city
+ * - Any other international (+N where N≠7): default to mobile
+ *   (personal signature phones in intl contacts are almost always mobile)
+ * - Unknown / local formats: default to city (conservative)
+ *
+ * @param {string} phone
+ * @returns {"mobile" | "city"}
+ */
+export function classifyLlmPhone(phone) {
+    const raw = String(phone || "").trim();
+    if (!raw) return "city";
+    const digits = raw.replace(/[^\d+]/g, "");
+    if (!digits) return "city";
+
+    // Normalize leading 8 → +7 for RU
+    let normalized = digits;
+    if (/^8\d{10}$/.test(normalized)) normalized = "+7" + normalized.slice(1);
+    if (/^7\d{10}$/.test(normalized) && !normalized.startsWith("+")) normalized = "+" + normalized;
+
+    // RU/KZ shared +7 space
+    if (/^\+7\d{10}$/.test(normalized)) {
+        const nat = normalized.slice(2); // 10 digits
+        // RU mobile: 9XX
+        if (/^9\d{9}$/.test(nat)) return "mobile";
+        // KZ mobile: 70X, 71X, 72X, 73X, 74X, 75X, 76X, 77X, 78X (701-778 range)
+        if (/^7[0-8]\d{8}$/.test(nat)) return "mobile";
+        return "city";
+    }
+
+    // Any international +N where N is not 7
+    if (/^\+[1-9]\d{6,14}$/.test(normalized)) return "mobile";
+
+    // Unknown → conservative default
+    return "city";
 }

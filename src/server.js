@@ -1274,16 +1274,48 @@ async function handleApi(req, res, url) {
     }
 
     const job = createTypedBackgroundJob(project.id, "llm-reanalyze");
-    // Build queue: non-spam messages without llmExtraction
+    // Parse audit filters from body (optional). When filters provided, includes
+    // already-LLM-processed messages that still have gaps in targeted fields.
+    const reqBody = await parseRequestJson(req).catch(() => ({}));
+    const filters = Array.isArray(reqBody?.filters) ? reqBody.filters : [];
+    const isAuditMode = filters.length > 0;
+    job.progress = { total: 0, processed: 0, skipped: 0, errors: 0, currentSubject: null, mode: isAuditMode ? "audit" : "backlog", filters };
+
+    // Build queue: non-spam messages matching backlog or audit filter
     const queue = (project.recentMessages || []).filter((msg) => {
       if (!msg.analysis) return false;
       if (msg.pipelineStatus === "ignored_spam" || msg.pipelineStatus === "ignored_duplicate") return false;
       const label = msg.analysis.classification?.label || "";
       if (label === "СПАМ") return false;
-      return !msg.analysis.llmExtraction?.processedAt;
+
+      const hasLlm = Boolean(msg.analysis.llmExtraction?.processedAt);
+      if (!isAuditMode) return !hasLlm;
+
+      // Audit mode: include if any filter matches a known gap
+      const a = msg.analysis;
+      return filters.some((f) => {
+        if (f === "empty_request_type") return !a.llmExtraction?.requestType;
+        if (f === "empty_company") return !a.sender?.companyName;
+        if (f === "empty_fio") return !a.sender?.fullName;
+        if (f === "empty_phone") return !a.sender?.mobilePhone && !a.sender?.cityPhone;
+        if (f === "empty_inn") return !a.sender?.inn;
+        if (f === "no_llm") return !hasLlm;
+        return false;
+      });
     });
 
-    job.progress = { total: queue.length, processed: 0, skipped: 0, errors: 0, currentSubject: null };
+    // In audit mode, clear old llmExtraction so analyzeEmailAsync re-calls LLM
+    // (without this, the fresh analysis has no prior state so LLM fires anyway,
+    // but being explicit guards against future changes)
+    if (isAuditMode) {
+      for (const msg of queue) {
+        if (msg.analysis?.llmExtraction) {
+          msg.analysis.llmExtraction.processedAt = null;
+        }
+      }
+    }
+
+    job.progress.total = queue.length;
 
     // Run async in background with bounded concurrency pool
     (async () => {
@@ -1377,12 +1409,22 @@ async function handleApi(req, res, url) {
             retroclassified++;
           }
         } else if (rt === "other" && (currentLabel === "Клиент" || currentLabel === "Поставщик услуг")) {
-          msg.analysis.classification.label = "Не определено";
-          msg.analysis.classification.llmRequestType = rt;
-          msg.analysis.classification.llmDowngraded = true;
-          msg.analysis.classification.needsReview = true;
-          msg.pipelineStatus = "review";
-          retroclassified++;
+          // Downgrade guard: keep rules label when hard evidence or high rules confidence
+          const hasArticles = (msg.analysis.lead?.articles || []).length > 0;
+          const hasBrands = (msg.analysis.detectedBrands || []).length > 0;
+          const rulesConf = Number(msg.analysis.classification?.confidence ?? 0);
+          const rulesHighConf = rulesConf >= 0.85;
+          if (!hasArticles && !hasBrands && !rulesHighConf) {
+            msg.analysis.classification.label = "Не определено";
+            msg.analysis.classification.llmRequestType = rt;
+            msg.analysis.classification.llmDowngraded = true;
+            msg.analysis.classification.needsReview = true;
+            msg.pipelineStatus = "review";
+            retroclassified++;
+          } else {
+            msg.analysis.classification.llmRequestType = rt;
+            msg.analysis.classification.llmDisagreed = true;
+          }
         } else if (rt === "vendor_offer" && currentLabel === "Клиент") {
           msg.analysis.classification.label = "Поставщик услуг";
           msg.analysis.classification.llmRequestType = rt;
@@ -1415,7 +1457,11 @@ async function handleApi(req, res, url) {
     return sendJson(res, 202, {
       jobId: job.id,
       total: queue.length,
-      message: `LLM-анализ запущен для ${queue.length} писем.`
+      mode: isAuditMode ? "audit" : "backlog",
+      filters,
+      message: isAuditMode
+        ? `LLM-аудит запущен для ${queue.length} писем с пропусками в полях: ${filters.join(", ")}.`
+        : `LLM-анализ запущен для ${queue.length} писем.`
     });
   }
 
