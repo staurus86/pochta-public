@@ -22,6 +22,8 @@ import { extractPersonName } from "./fio-extractor.js";
 import { extractCompany } from "./company-extractor.js";
 import { extractPosition as extractPositionV2 } from "./position-extractor.js";
 import { extractPhone as extractPhoneV2 } from "./phone-extractor.js";
+import { extractEmail as extractEmailV2 } from "./email-extractor.js";
+import { parseSenderHeader } from "./email-normalizer.js";
 
 // Product types database for request type detection and entity extraction
 const __analyzerDir = path.dirname(fileURLToPath(import.meta.url));
@@ -609,13 +611,18 @@ export function analyzeEmail(project, payload) {
   let rawFrom = String(payload.fromEmail || "").trim();
   let fromEmail = rawFrom.toLowerCase();
   let fromName = String(payload.fromName || "").trim();
-  // Parse "Name <email>" format
-  const chevronMatch = rawFrom.match(/<?([^\s<>]+@[^\s<>]+)>?/);
-  if (chevronMatch) {
-    fromEmail = chevronMatch[1].toLowerCase();
-    if (!fromName) {
-      const nameMatch = rawFrom.match(/^(.+?)\s*</);
-      if (nameMatch) fromName = nameMatch[1].replace(/["']/g, "").trim();
+  // Phase 9: structured sender-header parse (dedup + quoted display handled).
+  const senderParsed = parseSenderHeader(rawFrom);
+  if (senderParsed.email) {
+    fromEmail = senderParsed.email;
+    if (!fromName && senderParsed.displayName && !senderParsed.deduplicated) {
+      fromName = senderParsed.displayName;
+    }
+    // If fromName duplicates the email, drop it — downstream FIO extractor must
+    // not treat an email as a person name.
+    if (fromName) {
+      const fnLower = fromName.toLowerCase();
+      if (fnLower === fromEmail || fnLower.includes(fromEmail)) fromName = "";
     }
   }
   const attachments = normalizeAttachments(payload.attachments);
@@ -2276,6 +2283,15 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
   if (isOwnCompanyData("inn", requisites?.inn)) requisites.inn = null;
   if (isOwnCompanyData("kpp", requisites?.kpp)) requisites.kpp = null;
   if (isOwnCompanyData("ogrn", requisites?.ogrn)) requisites.ogrn = null;
+
+  // Phase 9: email entity extraction.
+  const emailResult = extractEmailV2({
+    rawFrom: fromEmail || "",
+    fromEmail: fromEmail || "",
+    fromName: fromName || "",
+    body: body || "",
+    signature: signature || "",
+  });
   // Filter out own URLs from detected links (including subdomains like crm.siderus.online)
   const externalUrls = urls.filter((u) => {
     const domain = extractDomainFromUrl(u);
@@ -2422,6 +2438,19 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
 
   return {
     email: fromEmail,
+    emailPrimary: emailResult.primary || fromEmail || null,
+    emailDisplayName: emailResult.displayName || null,
+    emailLocal: emailResult.localPart || null,
+    emailDomain: emailResult.domain || null,
+    emailType: emailResult.type || "unknown",
+    emailDomainType: emailResult.domainType || "unknown",
+    emailSource: emailResult.source || null,
+    emailConfidence: emailResult.confidence ?? 0,
+    emailNeedsReview: !!emailResult.needsReview,
+    emailDeduplicated: !!emailResult.deduplicated,
+    emailCanDefinePerson: !!emailResult.canDefinePerson,
+    emailCanDefineCompany: !!emailResult.canDefineCompany,
+    emailRejected: Array.isArray(emailResult.rejected) ? emailResult.rejected.slice(0, 5) : [],
     fullName,
     fullNameAlt,
     fullNameCompany,
