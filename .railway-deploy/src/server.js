@@ -1304,18 +1304,23 @@ async function handleApi(req, res, url) {
       });
     });
 
-    // In audit mode, clear old llmExtraction so analyzeEmailAsync re-calls LLM
-    // (without this, the fresh analysis has no prior state so LLM fires anyway,
-    // but being explicit guards against future changes)
+    // In audit mode, save a snapshot of each message's prior llmExtraction and
+    // clear processedAt so analyzeEmailAsync re-calls LLM. If the new LLM call
+    // returns null (API error/timeout), we restore the snapshot so we never lose
+    // previously-extracted data.
+    const priorLlmSnapshot = new Map();
     if (isAuditMode) {
       for (const msg of queue) {
-        if (msg.analysis?.llmExtraction) {
+        const key = msg.messageKey || msg.id;
+        if (msg.analysis?.llmExtraction?.processedAt) {
+          priorLlmSnapshot.set(key, { ...msg.analysis.llmExtraction });
           msg.analysis.llmExtraction.processedAt = null;
         }
       }
     }
 
     job.progress.total = queue.length;
+    job.progress.llmFailed = 0;
 
     // Run async in background with bounded concurrency pool
     (async () => {
@@ -1359,6 +1364,19 @@ async function handleApi(req, res, url) {
               attachmentFiles: (msg.attachmentFiles || []).map((a) => typeof a === "string" ? { filename: a } : a)
             });
             newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
+
+            // Audit-mode LLM-failure guard: if fresh call returned no llmExtraction
+            // (silent API failure/timeout — llmExtract returns null on non-2xx),
+            // restore the prior snapshot so we don't regress on previously-filled fields.
+            if (isAuditMode && !newAnalysis.llmExtraction?.processedAt) {
+              const key = msg.messageKey || msg.id;
+              const prior = priorLlmSnapshot.get(key);
+              if (prior) {
+                newAnalysis.llmExtraction = prior;
+                job.progress.llmFailed++;
+              }
+            }
+
             msg.analysis = newAnalysis;
             msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
             const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
