@@ -38,6 +38,7 @@ import {
 } from "./services/integration-api.js";
 import { LegacyWebhookDispatcher } from "./services/webhook-dispatcher.js";
 import { readLlmCache } from "./services/llm-cache.js";
+import { mergeLlmExtraction } from "./services/llm-extractor.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -1205,11 +1206,33 @@ async function handleApi(req, res, url) {
               attachmentFiles: (msg.attachmentFiles || []).map((a) => typeof a === "string" ? { filename: a } : a)
             });
             newAnalysis.analysisId = msg.analysis?.analysisId || newAnalysis.analysisId;
-            // Preserve LLM extraction results — reanalysis uses sync analyzeEmail which
-            // doesn't call the LLM API; wiping llmExtraction would reset llm_pending state.
-            // Priority: existing in-memory llmExtraction → durable llm-cache → nothing.
-            const savedLlm = msg.analysis?.llmExtraction || readLlmCache(msg.messageKey || msg.id);
-            if (savedLlm) newAnalysis.llmExtraction = savedLlm;
+            // Preserve LLM data — reanalysis uses sync analyzeEmail (rules only).
+            // Durable cache has the full LLM payload (contact, requestType, etc.);
+            // in-memory llmExtraction stores only metadata. Prefer cache as source of truth.
+            const cachedLlm = readLlmCache(msg.messageKey || msg.id);
+            if (cachedLlm && cachedLlm.contact) {
+              // Re-merge LLM sender fields (gap-only) so rules' empty company/fio/phone
+              // get filled from LLM-extracted values. Skip articles/brands — fresh rules own those.
+              mergeLlmExtraction(newAnalysis, {
+                sender_name: cachedLlm.contact.name || null,
+                company_name: cachedLlm.contact.company || null,
+                sender_phone: cachedLlm.contact.phone || null,
+                inn: cachedLlm.contact.inn || null,
+                request_type: cachedLlm.requestType || null,
+                is_urgent: Boolean(cachedLlm.isUrgent)
+              }, msg.messageKey || msg.id || "");
+            }
+            // Restore llmExtraction metadata: prefer live, fall back to cache.
+            const savedLlmMeta = msg.analysis?.llmExtraction || (cachedLlm && cachedLlm.processedAt ? {
+              processedAt: cachedLlm.processedAt,
+              model: cachedLlm.model,
+              requestType: cachedLlm.requestType,
+              isUrgent: cachedLlm.isUrgent,
+              missingForProcessing: cachedLlm.missingForProcessing || [],
+              newArticlesAdded: cachedLlm.newArticlesAdded || 0,
+              fromCache: true
+            } : null);
+            if (savedLlmMeta) newAnalysis.llmExtraction = savedLlmMeta;
             if (msg.analysis?.llmConfig) newAnalysis.llmConfig = msg.analysis.llmConfig;
             // J4: re-run post-processing after LLM cache restore so request-type fallback,
             // missing-enum normalization, and quality gate reflect the merged state.
