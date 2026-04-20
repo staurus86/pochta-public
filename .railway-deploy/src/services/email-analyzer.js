@@ -4405,17 +4405,19 @@ function sanitizeCompanyName(value) {
   // Stray "@domain" still present means email fragment leaked in
   if (/@[\w.-]+\.[a-z]{2,}/i.test(text)) return null;
 
-  // Audit fix: balance quotes so nested-quote companies don't render with
-  // mismatched brackets ("АО «Совхоз «Тепличный»" → "АО «Совхоз «Тепличный»»").
-  text = balanceQuotes(text);
+  // Audit fix: balance guillemet quotes so nested-quote companies don't render
+  // with mismatched brackets ("АО «Совхоз «Тепличный»" → "АО «Совхоз «Тепличный»»").
+  // Leave ASCII " alone — Russian company names with nested quotes legitimately
+  // have odd parity ("АО \"Концерн \"Моринсис-Агат\"") and truncation upstream
+  // is not the business of this balancer.
+  text = balanceGuillemets(text);
 
   return text;
 }
 
-// Close/open unbalanced quotes. Only handles guillemets («») and ASCII ("),
-// the two quote families seen in Russian company names. Curly quotes (" ") are
-// handled by normalizing to ASCII earlier in the pipeline.
-function balanceQuotes(s) {
+// Close/open unbalanced guillemets only. Russian company names with nested
+// ASCII quotes legitimately have odd parity, so we don't touch ASCII " here.
+function balanceGuillemets(s) {
   if (!s) return s;
   let out = s;
   const open = (out.match(/«/g) || []).length;
@@ -4423,13 +4425,10 @@ function balanceQuotes(s) {
   if (open > close) {
     out = out + "»".repeat(open - close);
   } else if (close > open) {
-    // drop leading extra closers (they imply the opener was cut off upstream)
+    // drop trailing extra closers (they imply the opener was cut off upstream)
     let extra = close - open;
     out = out.replace(/»/g, (m) => (extra-- > 0 ? "" : m));
   }
-  // ASCII " has no distinct close — use parity and append.
-  const asc = (out.match(/"/g) || []).length;
-  if (asc % 2 === 1) out = out + '"';
   return out.replace(/\s{2,}/g, " ").trim();
 }
 

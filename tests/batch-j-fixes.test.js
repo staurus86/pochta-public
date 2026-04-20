@@ -476,21 +476,3 @@ test("company-sanitize: balance unmatched guillemets (nested-quote company)", as
     assert.equal(op, cl, `Guillemets unbalanced in "${company}"`);
 });
 
-test("company-sanitize: balance unmatched ASCII double-quotes (truncated close)", async () => {
-    const result = await analyzeEmail(mkProject(), {
-        subject: "Запрос",
-        body: "Прошу КП.\n\nС уважением,\nАО \"Интер РАО\nИНН 7712345678",
-        fromEmail: "a@interrao.ru",
-    });
-    const company = result.sender?.companyName || "";
-    if (company) {
-        const count = (company.match(/["«»]/g) || []).length;
-        // If any quote chars present, count must be even (balanced).
-        if (count > 0) {
-            const op = (company.match(/«/g) || []).length + Math.floor((company.match(/"/g) || []).length / 2);
-            const cl = (company.match(/»/g) || []).length + Math.ceil((company.match(/"/g) || []).length / 2);
-            assert.equal(op, cl, `Quotes unbalanced in "${company}"`);
-        }
-    }
-});
-
