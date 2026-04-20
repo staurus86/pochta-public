@@ -1348,14 +1348,46 @@ export function analyzeEmail(project, payload) {
       if (/^\d{1,3}[XХxх][A-ZА-Яa-zа-я]{1,4}-[A-ZА-Яa-zа-я]{2,10}$/.test(n)) return true;
       return false;
     };
+    // Cycle 3 — final P0 safety net: catches tokens leaking through form-parser,
+    // LLM-extractor, attachment-parser paths that bypass isObviousArticleNoise.
+    // Uses narrow predicates from article-filters.js (already imported at top).
+    // Strict-label escape: if body has "Арт.: <token>" / "Part Number: <token>"
+    // directly adjacent, we keep the token (it was explicitly labeled as an article).
+    const bodyForP0 = String(body || "");
+    const hasStrictArticleLabel = (token) => {
+      if (!token || !bodyForP0) return false;
+      const t = escapeRegExp(token);
+      // Same-line: "Арт.: 9510451992"
+      if (new RegExp(`(?:^|[\\s;,])(?:арт(?:икул)?\\.?\\s*[:#№]|part\\s*number\\s*[:#]|p\\/?n\\s*[:#]|mpn\\s*[:#])\\s*${t}(?:[\\s.,;]|$)`, "im").test(bodyForP0)) return true;
+      // Adjacent lines: "Арт.:\n9510451992" (vertical form)
+      if (new RegExp(`(?:арт(?:икул)?\\.?\\s*[:#№]|part\\s*number\\s*[:#]|p\\/?n\\s*[:#]|mpn\\s*[:#])\\s*\\n\\s*${t}(?:\\s|$)`, "i").test(bodyForP0)) return true;
+      return false;
+    };
+    const isP0FinalNoise = (code) => {
+      const s = typeof code === "string" ? code.trim() : "";
+      if (!s || /^DESC:/i.test(s)) return false;
+      if (isSizeTriple(s)) return true;              // 58x98x14, 27x40, 300x620 — never a SKU
+      if (isPhoneFragment(s)) return true;           // 495-123-45-67, +7 495 ...
+      if (isHoursRange(s)) return true;              // 09:00-18:00
+      if (isHtmlStructureToken(s)) return true;      // row-3, column-1
+      // 12-digit pure numeric ≡ ИП INN, never a SKU
+      if (/^\d{12}$/.test(s)) return true;
+      // 10-digit pure numeric ≡ legal-entity ИНН unless strict-label adjacent
+      if (/^\d{10}$/.test(s) && !hasStrictArticleLabel(s)) return true;
+      // Pure 1-3 digit pure-numeric: almost always qty/index/truncation noise
+      // ("810" from "810.00.00.026", "270" from "270 шт."). Preserve only
+      // when explicitly labeled as an article in body.
+      if (/^\d{1,3}$/.test(s) && !hasStrictArticleLabel(s)) return true;
+      return false;
+    };
     if (Array.isArray(lead.articles)) {
-      lead.articles = lead.articles.filter((a) => !isRussianCategoryNoise(a) && !isParamValueNoise(a) && !isSpecNoise(a));
+      lead.articles = lead.articles.filter((a) => !isRussianCategoryNoise(a) && !isParamValueNoise(a) && !isSpecNoise(a) && !isP0FinalNoise(a));
     }
     if (Array.isArray(lead.lineItems)) {
-      lead.lineItems = lead.lineItems.filter((li) => !isRussianCategoryNoise(li?.article) && !isParamValueNoise(li?.article) && !isSpecNoise(li?.article));
+      lead.lineItems = lead.lineItems.filter((li) => !isRussianCategoryNoise(li?.article) && !isParamValueNoise(li?.article) && !isSpecNoise(li?.article) && !isP0FinalNoise(li?.article));
     }
     if (Array.isArray(lead.productNames)) {
-      lead.productNames = lead.productNames.filter((p) => !isRussianCategoryNoise(p?.article) && !isParamValueNoise(p?.article) && !isSpecNoise(p?.article));
+      lead.productNames = lead.productNames.filter((p) => !isRussianCategoryNoise(p?.article) && !isParamValueNoise(p?.article) && !isSpecNoise(p?.article) && !isP0FinalNoise(p?.article));
     }
     if (Array.isArray(lead.lineItems) && Array.isArray(lead.articles)) {
       lead.totalPositions = Math.max(lead.lineItems.length, lead.articles.length);
