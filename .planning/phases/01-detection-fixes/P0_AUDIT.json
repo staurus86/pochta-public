@@ -1,0 +1,656 @@
+{
+  "A1_year_as_article": {
+    "msgs": 0,
+    "instances": 0,
+    "examples": []
+  },
+  "A2_phone_as_article": {
+    "msgs": 9,
+    "instances": 9,
+    "examples": [
+      [
+        "6f551792-cbc0-4739-8760-e52c0c8ca790",
+        "2101262828"
+      ],
+      [
+        "f0e3eaa3-84d8-452e-a7f9-5f61f08d3d49",
+        "2101262828"
+      ],
+      [
+        "8d4f2b7f-5e2b-4a18-8476-68b34409821b",
+        "081509-0643"
+      ],
+      [
+        "79c41967-b817-4e6a-b4e4-0a421156dfb6",
+        "9510451992"
+      ],
+      [
+        "93e4ec84-ebfa-49e7-912d-03ff25bf5d74",
+        "915-506-04-96"
+      ],
+      [
+        "9d55e942-20d7-41b7-bdbb-490af012f4c6",
+        "915-506-04-96"
+      ],
+      [
+        "92744ef7-8df1-4547-9d8f-2ae141f89996",
+        "00411019070"
+      ],
+      [
+        "873be6d1-cbba-47dd-983e-69d0ce38b7b3",
+        "00411019070"
+      ]
+    ]
+  },
+  "A3_inn_as_article": {
+    "msgs": 7,
+    "instances": 7,
+    "examples": [
+      [
+        "6f551792-cbc0-4739-8760-e52c0c8ca790",
+        "2101262828"
+      ],
+      [
+        "f0e3eaa3-84d8-452e-a7f9-5f61f08d3d49",
+        "2101262828"
+      ],
+      [
+        "026b91eb-057c-425c-87e9-a0471e58f85f",
+        "194000145952"
+      ],
+      [
+        "cb4b0b61-a073-474f-9503-7ced07c83c47",
+        "194000145952"
+      ],
+      [
+        "2e1582e6-917c-4d43-8a27-1d8eac191271",
+        "194000145952"
+      ],
+      [
+        "5f7a69c7-de13-48f5-b7e9-8321f2f9d9f4",
+        "194000145952"
+      ],
+      [
+        "79c41967-b817-4e6a-b4e4-0a421156dfb6",
+        "9510451992"
+      ]
+    ]
+  },
+  "A4_date_as_article": {
+    "msgs": 3,
+    "instances": 3,
+    "examples": [
+      [
+        "eefa81c1-e410-4956-bdf5-d885127b7d9f",
+        "80/95/70"
+      ],
+      [
+        "628d4deb-175a-4858-8fee-92a39f1fb923",
+        "00-18.00"
+      ],
+      [
+        "22f7d57a-92ad-42e8-99fa-4709b0580af3",
+        "49-65-90"
+      ]
+    ]
+  },
+  "A5_tiny_digit_article": {
+    "msgs": 5,
+    "instances": 6,
+    "examples": [
+      [
+        "89f21e03-b658-48b7-a597-779f26a5f619",
+        "270"
+      ],
+      [
+        "cb295c81-1818-4b1d-9f68-85ed8560c804",
+        "281"
+      ],
+      [
+        "cb295c81-1818-4b1d-9f68-85ed8560c804",
+        "282"
+      ],
+      [
+        "2201950f-64bc-4e9c-a808-4ec041f010fc",
+        "230"
+      ],
+      [
+        "f9a3031a-132a-4ed4-8a0a-c0736bcf5755",
+        "304"
+      ],
+      [
+        "ec96a38b-31e4-4ff5-b075-f7e23fdd7e4c",
+        "810"
+      ]
+    ]
+  },
+  "A6_decimal_as_article": {
+    "msgs": 1,
+    "instances": 1,
+    "examples": [
+      [
+        "2a92d376-44fd-463d-ae65-848d4af45802",
+        "15.012024"
+      ]
+    ]
+  },
+  "A7_gost_as_article": {
+    "msgs": 0,
+    "instances": 0,
+    "examples": []
+  },
+  "A8_short_cyr_article": {
+    "msgs": 0,
+    "instances": 0,
+    "examples": []
+  },
+  "A9_html_css_article": {
+    "msgs": 0,
+    "instances": 0,
+    "examples": []
+  },
+  "A10_pagemail_article": {
+    "msgs": 3,
+    "instances": 3,
+    "examples": [
+      [
+        "8983eca7-b618-41a1-9975-a588551b0406",
+        "TR 30"
+      ],
+      [
+        "5b5130db-3f2c-424c-bb27-708606cb05ef",
+        "CLASS 800"
+      ],
+      [
+        "237c2676-b2a8-4016-9005-6966926c7b34",
+        "CLASS 800"
+      ]
+    ]
+  },
+  "A11_address_as_article": {
+    "msgs": 1,
+    "instances": 1,
+    "examples": [
+      [
+        "8983eca7-b618-41a1-9975-a588551b0406",
+        "Д226Б"
+      ]
+    ]
+  },
+  "A12_duplicate_articles": {
+    "msgs": 9,
+    "instances": 9,
+    "examples": [
+      [
+        "00fa1add-29a8-4b7c-b6c5-df4fad0e4503",
+        {
+          "count": 1,
+          "items": [
+            "md0256l"
+          ]
+        }
+      ],
+      [
+        "6672b50f-8b1e-48e6-8818-e1c8ae173525",
+        {
+          "count": 1,
+          "items": [
+            "md0256l"
+          ]
+        }
+      ],
+      [
+        "573a27cf-f568-410c-aef4-06a941e54a28",
+        {
+          "count": 1,
+          "items": [
+            "adc75"
+          ]
+        }
+      ],
+      [
+        "b6cceee7-42c9-4064-9f9e-570a5631840d",
+        {
+          "count": 1,
+          "items": [
+            "dwa702"
+          ]
+        }
+      ],
+      [
+        "b6446a3e-dbc8-49fa-970b-7b8a323cd272",
+        {
+          "count": 1,
+          "items": [
+            "tbmr200"
+          ]
+        }
+      ],
+      [
+        "79c3900f-f0f5-4359-9bac-0a0e62b290c3",
+        {
+          "count": 1,
+          "items": [
+            "aq535l"
+          ]
+        }
+      ],
+      [
+        "aa876225-0d4b-43d4-8550-890200d121d5",
+        {
+          "count": 2,
+          "items": [
+            "emnlb18180",
+            "emnlq14160"
+          ]
+        }
+      ],
+      [
+        "94e746d2-0247-41ee-acd9-6f9c8302184e",
+        {
+          "count": 1,
+          "items": [
+            "gc700"
+          ]
+        }
+      ]
+    ]
+  },
+  "A13_over_extraction_articles": {
+    "msgs": 6,
+    "instances": 6,
+    "examples": [
+      [
+        "98a495b7-ee7c-4194-87b0-0fd013f95fd8",
+        {
+          "count": 38,
+          "sample": [
+            "M7N/43-08",
+            "BUK01",
+            "GA704",
+            "GA712",
+            "ID11211607",
+            "CC483K-GC"
+          ]
+        }
+      ],
+      [
+        "8983eca7-b618-41a1-9975-a588551b0406",
+        {
+          "count": 83,
+          "sample": [
+            "BYG21M-E3/TR",
+            "FES8GT",
+            "HER508",
+            "RHRG75120",
+            "STTA12",
+            "MBR20100CT"
+          ]
+        }
+      ],
+      [
+        "a02c96b1-651f-4cf2-b537-972318c98525",
+        {
+          "count": 22,
+          "sample": [
+            "SNMX1205ANN-F57",
+            "WKP25S",
+            "CPGT050204-X15",
+            "WAK15",
+            "P4840P-3R-E67",
+            "WKP35S"
+          ]
+        }
+      ],
+      [
+        "cce3edfc-fd86-4fa8-bf59-3dff84b81971",
+        {
+          "count": 22,
+          "sample": [
+            "row-19",
+            "column-1",
+            "block-3",
+            "row-14",
+            "block-1",
+            "row-3"
+          ]
+        }
+      ],
+      [
+        "aa876225-0d4b-43d4-8550-890200d121d5",
+        {
+          "count": 21,
+          "sample": [
+            "DQY18-180BJ",
+            "DQ18-200BJ",
+            "ZQ360J",
+            "DQ11-110AJ",
+            "DQ14-140BJ",
+            "DQ35-375BJ"
+          ]
+        }
+      ],
+      [
+        "20895432-5245-48ae-a6f8-d405b0136bed",
+        {
+          "count": 39,
+          "sample": [
+            "CXS-06",
+            "TH150VM-6215R",
+            "DVJNL3225P16",
+            "KGDR2525M-4T25",
+            "RF123H13-2525BM",
+            "S25S-WWLNR08-28E"
+          ]
+        }
+      ]
+    ]
+  },
+  "B1_html_in_title": {
+    "msgs": 2,
+    "instances": 7,
+    "examples": [
+      [
+        "deb1d871-a104-41fa-ace9-1e5ea6b26fdf",
+        "Возможно ли получить ТКП на <Тензодатчик Jud ELS-KMA-20-10,20 кН,IP67> ?"
+      ],
+      [
+        "9cb21c0a-14b5-4019-9705-e0d90a3ba751",
+        "K0311 Фиксаторы пружинные со шлицем и шариком, пластик М6 К0311.06 - 50 шт. <span style=\"background-"
+      ],
+      [
+        "9cb21c0a-14b5-4019-9705-e0d90a3ba751",
+        "color:#000000"
+      ],
+      [
+        "9cb21c0a-14b5-4019-9705-e0d90a3ba751",
+        "font-family:'times new roman'"
+      ],
+      [
+        "9cb21c0a-14b5-4019-9705-e0d90a3ba751",
+        "font-size:medium"
+      ],
+      [
+        "9cb21c0a-14b5-4019-9705-e0d90a3ba751",
+        "font-style:normal"
+      ],
+      [
+        "9cb21c0a-14b5-4019-9705-e0d90a3ba751",
+        "font-weight:400"
+      ]
+    ]
+  },
+  "B2_email_url_in_title": {
+    "msgs": 13,
+    "instances": 16,
+    "examples": [
+      [
+        "6672b50f-8b1e-48e6-8818-e1c8ae173525",
+        "SEEPEX ( https://siderus.ru/brands/seepex/ )"
+      ],
+      [
+        "936b9c11-41f8-48a8-819e-5ff4f9283909",
+        "www.huntsman-nmg.com"
+      ],
+      [
+        "48bfb57d-e87d-4128-8e61-877ffa40b27d",
+        "Бренд Mato ( https://siderus.ru/brands/mato/ ).Артикул Р3С/785. Кол-во"
+      ],
+      [
+        "170b2c45-e994-4b7a-be03-942cc30fc94e",
+        "<https://tender.lot-online.ru/etp/app/OfferCard/page?OfferCard.offerUUID=Sco"
+      ],
+      [
+        "5c7328e0-baa4-4e9a-a941-bbd1901ff6e8",
+        "Страница отправки: https://siderus.ru/orders/processed/070811-ez-torq-iii-50i/?ysclid=mn4e3rimm"
+      ],
+      [
+        "f689f7d4-d3c3-4513-9f9e-c22fd744c65d",
+        "Ссылка на товар в интернете для понимая что это: https://www.gmnbt.com/products/s-seal-m-130-150-15/"
+      ],
+      [
+        "f5b9d2c6-3a21-43f1-85a2-53931d284475",
+        "Ссылка на товар в интернете для понимая что это: https://www.gmnbt.com/products/s-seal-m-130-150-15/"
+      ],
+      [
+        "31a0a41d-8736-471d-a240-fc9e2f5d8e78",
+        "Подробнее о ценностях СИБУРа https://www.sibur.ru/ru/about/mission/"
+      ]
+    ]
+  },
+  "B3_tiny_title": {
+    "msgs": 2,
+    "instances": 2,
+    "examples": [
+      [
+        "1ec04549-ef78-4d6f-8466-2b48572cd8c1",
+        "IBH"
+      ],
+      [
+        "9acf4f47-cd14-4b39-a822-53fa4b80cf71",
+        "Тел"
+      ]
+    ]
+  },
+  "B4_looks_like_article_only": {
+    "msgs": 16,
+    "instances": 17,
+    "examples": [
+      [
+        "1fb354f9-6a51-49ea-b86d-e166d7d314db",
+        "FESTO"
+      ],
+      [
+        "dc04064f-7c84-438e-8b2f-26d3783979cc",
+        "ASA-RT"
+      ],
+      [
+        "1ec04549-ef78-4d6f-8466-2b48572cd8c1",
+        "IBH"
+      ],
+      [
+        "67f27562-8f05-4ada-bcc6-9bae8a6f0517",
+        "DRIVE"
+      ],
+      [
+        "0e4f18ef-58a7-46ae-98f6-e3913748e09d",
+        "KWANGWOO"
+      ],
+      [
+        "5b5130db-3f2c-424c-bb27-708606cb05ef",
+        "TYPE"
+      ],
+      [
+        "237c2676-b2a8-4016-9005-6966926c7b34",
+        "TYPE"
+      ],
+      [
+        "237c2676-b2a8-4016-9005-6966926c7b34",
+        "KVXW-A5-AKB-B11"
+      ]
+    ]
+  },
+  "B5_quoted_marker_title": {
+    "msgs": 2,
+    "instances": 2,
+    "examples": [
+      [
+        "72bde21d-419b-4ac3-8963-f691a3710f3b",
+        ">>: ГПС Запрос Rolls-Royce Marine AS - 2026 (заявка № 2)"
+      ],
+      [
+        "fc52cca0-0b39-420d-95d3-2ba78dd305b4",
+        ">>: ГПС Запрос Rolls-Royce Marine AS - 2026 (заявка № 2)"
+      ]
+    ]
+  },
+  "B6_capability_list_title": {
+    "msgs": 0,
+    "instances": 0,
+    "examples": []
+  },
+  "B7_blob_title": {
+    "msgs": 0,
+    "instances": 0,
+    "examples": []
+  },
+  "B8_duplicate_titles": {
+    "msgs": 0,
+    "instances": 0,
+    "examples": []
+  },
+  "B9_over_extraction_titles": {
+    "msgs": 1,
+    "instances": 1,
+    "examples": [
+      [
+        "2201950f-64bc-4e9c-a808-4ec041f010fc",
+        {
+          "count": 39
+        }
+      ]
+    ]
+  },
+  "C1_duplicate_line_items": {
+    "msgs": 0,
+    "instances": 0,
+    "examples": []
+  },
+  "D1_ghost_brand": {
+    "msgs": 0,
+    "instances": 0,
+    "examples": []
+  },
+  "D2_html_css_brand": {
+    "msgs": 0,
+    "instances": 0,
+    "examples": []
+  },
+  "D3_short_cyr_brand": {
+    "msgs": 0,
+    "instances": 0,
+    "examples": []
+  },
+  "D4_country_as_brand": {
+    "msgs": 0,
+    "instances": 0,
+    "examples": []
+  },
+  "D5_over_extraction_brands": {
+    "msgs": 2,
+    "instances": 2,
+    "examples": [
+      [
+        "686d98cc-cc75-4fbb-905e-ba3b28225be5",
+        {
+          "count": 14,
+          "sample": [
+            "BALLUFF",
+            "BOSCH REXROTH",
+            "Euchner",
+            "FESTO",
+            "HMI",
+            "IFM"
+          ]
+        }
+      ],
+      [
+        "7e45e37c-5c79-4639-978c-4f0c0b4dfb11",
+        {
+          "count": 21,
+          "sample": [
+            "Autonics",
+            "BROEN",
+            "CAMOZZI",
+            "CIB Unigas",
+            "CNP",
+            "DANFOSS"
+          ]
+        }
+      ]
+    ]
+  },
+  "E1_article_equals_brand": {
+    "msgs": 0,
+    "instances": 0,
+    "examples": []
+  },
+  "E2_title_is_article": {
+    "msgs": 168,
+    "instances": 168,
+    "examples": [
+      [
+        "327c8394-4c58-4fde-935f-a45217a3874e",
+        {
+          "title": "Heine RES0068E Resistor 1.3 Ohms",
+          "art": [
+            "RES0068E"
+          ]
+        }
+      ],
+      [
+        "0b35f8bc-8f88-42e9-a4e8-e923bb5b9dda",
+        {
+          "title": "запрос на Вент.MN502 0,37/2900 MORO",
+          "art": [
+            "MN502"
+          ]
+        }
+      ],
+      [
+        "5adaa719-02cc-4e5a-816d-65d2f1e1eb59",
+        {
+          "title": "Датчик Пирани APG200-XM-NW16",
+          "art": [
+            "APG200-XM-NW16"
+          ]
+        }
+      ],
+      [
+        "1fb354f9-6a51-49ea-b86d-e166d7d314db",
+        {
+          "title": "ремкомплекты FESTO DNC-80-PPV-A и",
+          "art": [
+            "DNC-80-PPV-A"
+          ]
+        }
+      ],
+      [
+        "c00d4584-d0d4-44b2-b4fd-dca521c3f813",
+        {
+          "title": "онасос CASAPPA PLP20.11,2",
+          "art": [
+            "PLP20.11"
+          ]
+        }
+      ],
+      [
+        "d6fedc40-18ee-427a-aab8-6a504ee6ee37",
+        {
+          "title": "Вентилятор осевой R09R-3530HA-4T-4250",
+          "art": [
+            "R09R-3530HA-4T-4250"
+          ]
+        }
+      ],
+      [
+        "cdfd305e-18ba-48e1-8946-3457791ffb76",
+        {
+          "title": "Seagate Skyhawk ST4000VX016, 4ТБ",
+          "art": [
+            "ST4000VX016"
+          ]
+        }
+      ],
+      [
+        "48597f55-1d1a-487c-bf1c-bbcced3c6cc8",
+        {
+          "title": "05MV Ø25 Vdc 103UL Nm 26",
+          "art": [
+            "103UL"
+          ]
+        }
+      ]
+    ]
+  }
+}

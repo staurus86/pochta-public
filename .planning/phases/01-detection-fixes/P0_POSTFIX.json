@@ -1,0 +1,120 @@
+{
+  "clients": 1657,
+  "rows": {
+    "A1_year_as_article": {
+      "baseline": 0,
+      "postfix": 0,
+      "delta": 0
+    },
+    "A2_phone_as_article": {
+      "baseline": 9,
+      "postfix": 0,
+      "delta": -9
+    },
+    "A3_inn_as_article": {
+      "baseline": 4,
+      "postfix": 0,
+      "delta": -4
+    },
+    "A4_date_as_article": {
+      "baseline": 3,
+      "postfix": 0,
+      "delta": -3
+    },
+    "A5_tiny_digit_article": {
+      "baseline": 6,
+      "postfix": 0,
+      "delta": -6
+    },
+    "A6_decimal_as_article": {
+      "baseline": 1,
+      "postfix": 1,
+      "delta": 0
+    },
+    "A7_gost_as_article": {
+      "baseline": 0,
+      "postfix": 0,
+      "delta": 0
+    },
+    "A8_short_cyr_article": {
+      "baseline": 0,
+      "postfix": 0,
+      "delta": 0
+    },
+    "A9_html_css_article": {
+      "baseline": 0,
+      "postfix": 0,
+      "delta": 0
+    },
+    "A10_pagemail_article": {
+      "baseline": 3,
+      "postfix": 3,
+      "delta": 0
+    },
+    "A11_address_as_article": {
+      "baseline": 0,
+      "postfix": 0,
+      "delta": 0
+    },
+    "A12_duplicate_articles": {
+      "baseline": 9,
+      "postfix": 9,
+      "delta": 0
+    },
+    "A13_over_extraction_articles": {
+      "baseline": 6,
+      "postfix": 3,
+      "delta": -3
+    },
+    "B1_html_in_title": {
+      "baseline": 7,
+      "postfix": 0,
+      "delta": -7
+    },
+    "B2_email_url_in_title": {
+      "baseline": 16,
+      "postfix": 1,
+      "delta": -15
+    },
+    "B3_tiny_title": {
+      "baseline": 2,
+      "postfix": 2,
+      "delta": 0
+    },
+    "B4_looks_like_article_only": {
+      "baseline": 16,
+      "postfix": 17,
+      "delta": 1
+    },
+    "B5_quoted_marker_title": {
+      "baseline": 2,
+      "postfix": 0,
+      "delta": -2
+    },
+    "B6_capability_list_title": {
+      "baseline": 0,
+      "postfix": 0,
+      "delta": 0
+    },
+    "B7_blob_title": {
+      "baseline": 0,
+      "postfix": 0,
+      "delta": 0
+    },
+    "B8_duplicate_titles": {
+      "baseline": 0,
+      "postfix": 2,
+      "delta": 2
+    },
+    "B9_over_extraction_titles": {
+      "baseline": 1,
+      "postfix": 1,
+      "delta": 0
+    },
+    "E2_title_is_article": {
+      "baseline": 168,
+      "postfix": 121,
+      "delta": -47
+    }
+  }
+}
