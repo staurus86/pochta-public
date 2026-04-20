@@ -1330,11 +1330,19 @@ export function analyzeEmail(project, payload) {
       if (/^\d{1,3}[Xх*]\d{1,3}\/\d{1,3}$/i.test(n)) return true;
       // Size ranges: 40-55/22-285
       if (/^\d{1,4}-\d{1,4}\/\d{1,4}-\d{1,4}$/.test(n)) return true;
+      // Single-slash size: 40-55/22
+      if (/^\d{1,4}-\d{1,4}\/\d{1,4}$/.test(n)) return true;
       // Model-family versions: "MSF 2.0", "MSF-2.0", "TG 40-55/22"
       if (/^[A-ZА-ЯЁ]{2,5}[- ]\d{1,3}\.\d{1,3}$/i.test(n)) return true;
       if (/^[A-ZА-ЯЁ]{2,5}\s+\d{1,3}-\d{1,3}\/\d{1,3}$/i.test(n)) return true;
       // Material-class: AL-A4, CU-A2
       if (/^(?:AL|CU|FE|ZN|NI|TI)-[A-Z]\d{1,2}$/i.test(n)) return true;
+      // Long string with spaces — фрагмент описания попал в артикулы
+      if (n.length > 30 && /\s/.test(n)) return true;
+      // "2-X", "3-X" — кусок количества "2 шт × X"
+      if (/^\d{1,3}-[XХxх]$/.test(n)) return true;
+      // "2XO-RING" — "2× O-Ring" количество + деталь
+      if (/^\d{1,3}[XХxх][A-ZА-Яa-zа-я]{1,4}-[A-ZА-Яa-zа-я]{2,10}$/.test(n)) return true;
       return false;
     };
     if (Array.isArray(lead.articles)) {

@@ -294,6 +294,14 @@ function isDashboardTopArticleNoise(article) {
   if (/^\d{1,3}[Xх*]\d{1,3}\/\d{1,3}$/i.test(value)) return true;
   // Size ranges: 40-55/22-285, 10-20/5-30 — габаритный диапазон
   if (/^\d{1,4}-\d{1,4}\/\d{1,4}-\d{1,4}$/.test(value)) return true;
+  // Single-slash size: 40-55/22 — одиночный диапазон с делителем (размер/шаг)
+  if (/^\d{1,4}-\d{1,4}\/\d{1,4}$/.test(value)) return true;
+  // Long string (>30 chars with space and non-article words) — фрагмент описания
+  if (value.length > 30 && /\s/.test(value)) return true;
+  // "2-X", "3-X", etc — кусок "2 шт × X", не артикул
+  if (/^\d{1,3}-[XХ]$/i.test(value)) return true;
+  // "2XO-RING", "3XO-RING" — "2× O-Ring" количество + название детали
+  if (/^\d{1,3}[XХ][A-ZА-Я]{1,4}-[A-ZА-Я]{2,10}$/i.test(value)) return true;
   // Brand/family + size/version: MSF 2.0, TG 40-55/22, MSF-2.0
   if (/^[A-ZА-Я]{2,5}[- ]\d{1,3}\.\d{1,3}$/i.test(value)) return true;
   if (/^[A-ZА-Я]{2,5}\s+\d{1,3}-\d{1,3}\/\d{1,3}$/i.test(value)) return true;
