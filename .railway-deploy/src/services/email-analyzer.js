@@ -10,7 +10,7 @@ import { isLlmExtractEnabled, llmExtract, mergeLlmExtraction, buildRulesFoundSum
 import { applyRequestTypeFallback } from "./request-type-rules.js";
 import { reconcileMissingForProcessing } from "./field-enums.js";
 import { annotateQualityGate } from "./quality-gate.js";
-import { isHtmlWordMetadata, isFilenameLike, isDateTime } from "./article-filters.js";
+import { isHtmlWordMetadata, isFilenameLike, isDateTime, isRefrigerantCode } from "./article-filters.js";
 import { sanitizeBrands } from "./brand-extractor.js";
 import { sanitizeProductNames } from "./product-name-extractor.js";
 import { normalizeProductName } from "./product-name-normalizer.js";
@@ -2580,6 +2580,7 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
     if (isHtmlWordMetadata(s)) return false;
     if (isFilenameLike(s)) return false;
     if (isDateTime(s)) return false;
+    if (isRefrigerantCode(s)) return false;
     return true;
   });
   const attachmentsText = attachments.join(" ");
@@ -2587,6 +2588,7 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const hasArticlePhotos = /артик|sku|label/i.test(attachmentsText);
   const lineItemsRaw = extractLineItems(bodyNoUrls).filter((item) => {
     if (!item.article) return false;
+    if (isRefrigerantCode(String(item.article).trim())) return false;
     const context = [item.sourceLine, item.descriptionRu, item.source].filter(Boolean).join(" ");
     return !isObviousArticleNoise(item.article, context || bodyNoUrls) && (item.explicitArticle || isLikelyArticle(item.article, forbiddenDigits, context || bodyNoUrls));
   }).map((item) => ({ ...item, source: item.source || "body" }));

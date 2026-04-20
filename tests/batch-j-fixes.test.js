@@ -476,3 +476,30 @@ test("company-sanitize: balance unmatched guillemets (nested-quote company)", as
     assert.equal(op, cl, `Guillemets unbalanced in "${company}"`);
 });
 
+// --- Audit fix: refrigerant codes (R407C/R404A) don't become articles ---
+test("article-filter: refrigerant codes R407C/R404A are not extracted as articles", async () => {
+    const result = await analyzeEmail(mkProject(), {
+        fromName: "Виталий Косинский",
+        fromEmail: "vkosinsky@hhr.works",
+        subject: "FW: Запрос",
+        body: `Добрый день.
+
+У вас есть в наличии водорегулирующие клапаны SAGINOMIYA для морской воды и применением фреона R407C, R404A:
+
+1. 3-х ходовой_Bronze_1"_подсоединение_Rc_тип WR- 2510GLW - 10 шт.
+2. 2-х ходовой_Bronze_2"_подсоединение_ Flange _тип МWR- 5020FLWH - 10 шт.
+
+С уважением,
+Виталий Косинский`,
+    });
+    const articles = result.lead?.articles || [];
+    assert.ok(!articles.includes("R407C"), `R407C should not be an article, got: ${JSON.stringify(articles)}`);
+    assert.ok(!articles.includes("R404A"), `R404A should not be an article, got: ${JSON.stringify(articles)}`);
+    // Real SKUs still present
+    assert.ok(articles.includes("2510GLW"), `2510GLW missing: ${JSON.stringify(articles)}`);
+    assert.ok(articles.includes("5020FLWH"), `5020FLWH missing: ${JSON.stringify(articles)}`);
+    // lineItems don't have refrigerant-derived entries
+    const lineArticles = (result.lead?.lineItems || []).map((i) => i.article);
+    assert.ok(!lineArticles.includes("R407C"), `R407C in lineItems: ${JSON.stringify(lineArticles)}`);
+    assert.ok(!lineArticles.includes("R404A"), `R404A in lineItems: ${JSON.stringify(lineArticles)}`);
+});
