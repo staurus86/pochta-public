@@ -267,7 +267,9 @@ const FULLNAME_STOPLIST = /^(?:письмо\s+(?:сгенерировано|от
 // Batch J2: job-title stop-words — these phrases mean the value is a position label, not a person name.
 // Matches ТЗ list: менеджер/директор/руководитель/специалист/начальник/генеральный/коммерческий
 // plus common English equivalents.
-const JOB_TITLE_STOPLIST = /\b(?:менеджер|директор|руководитель|специалист|начальник|главный|инженер|бухгалтер|генеральный|коммерческий|исполнительный|технический|отдел\s+(?:продаж|закупок|снабжения|сбыта|логистики)|manager|director|sales|purchasing|engineer|head\s+of|chief)\b/iu;
+// JS `\b` does not fire at Cyrillic boundaries (only ASCII word-chars count).
+// Use explicit non-letter lookarounds so Cyrillic job titles are caught.
+const JOB_TITLE_STOPLIST = /(?<![A-Za-zА-Яа-яЁё])(?:менеджер|директор|руководитель|специалист|начальник|главный|ведущий|старший|механик|энергетик|бухгалтер|инженер|генеральный|коммерческий|исполнительный|технический|отдел\s+(?:продаж|закупок|снабжения|сбыта|логистики)|manager|director|sales|purchasing|engineer|head\s+of|chief)(?![A-Za-zА-Яа-яЁё])/iu;
 
 // Batch J2: sanitizePersonName — validates a raw fullName candidate.
 // Returns null if the value looks like a legal entity, job title, or multi-line signature block.
@@ -4403,7 +4405,32 @@ function sanitizeCompanyName(value) {
   // Stray "@domain" still present means email fragment leaked in
   if (/@[\w.-]+\.[a-z]{2,}/i.test(text)) return null;
 
+  // Audit fix: balance quotes so nested-quote companies don't render with
+  // mismatched brackets ("АО «Совхоз «Тепличный»" → "АО «Совхоз «Тепличный»»").
+  text = balanceQuotes(text);
+
   return text;
+}
+
+// Close/open unbalanced quotes. Only handles guillemets («») and ASCII ("),
+// the two quote families seen in Russian company names. Curly quotes (" ") are
+// handled by normalizing to ASCII earlier in the pipeline.
+function balanceQuotes(s) {
+  if (!s) return s;
+  let out = s;
+  const open = (out.match(/«/g) || []).length;
+  const close = (out.match(/»/g) || []).length;
+  if (open > close) {
+    out = out + "»".repeat(open - close);
+  } else if (close > open) {
+    // drop leading extra closers (they imply the opener was cut off upstream)
+    let extra = close - open;
+    out = out.replace(/»/g, (m) => (extra-- > 0 ? "" : m));
+  }
+  // ASCII " has no distinct close — use parity and append.
+  const asc = (out.match(/"/g) || []).length;
+  if (asc % 2 === 1) out = out + '"';
+  return out.replace(/\s{2,}/g, " ").trim();
 }
 
 function isValidPhone(raw) {

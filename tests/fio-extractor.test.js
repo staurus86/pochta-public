@@ -20,6 +20,7 @@ import {
     splitBilingualName,
     stripHonorific,
     stripRoleTail,
+    stripRolePrefix,
     normalizePersonName,
 } from "../src/services/fio-normalizer.js";
 
@@ -336,4 +337,145 @@ test("extractPersonName: email-local as last-resort fallback only", () => {
     assert.ok(r.primary);
     assert.equal(r.source, "email_local");
     assert.ok(r.confidence < 0.5);
+});
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Post-audit 2026-04-20: role compound rejection + role-prefix strip (81 cases)
+// ─────────────────────────────────────────────────────────────────────────────
+
+test("isRoleOnly: adjective+noun role compounds rejected", () => {
+    assert.ok(isRoleOnly("Главный Механик"));
+    assert.ok(isRoleOnly("Главный Энергетик"));
+    assert.ok(isRoleOnly("Ведущий Менеджер"));
+    assert.ok(isRoleOnly("Коммерческий Директор"));
+    assert.ok(isRoleOnly("Генеральный директор"));
+    assert.ok(isRoleOnly("Старший Специалист"));
+    assert.ok(isRoleOnly("Менеджер По Закупкам"));
+    assert.ok(isRoleOnly("Инженер По Продажам"));
+    assert.ok(isRoleOnly("Менеджер по снабжению"));
+    assert.ok(isRoleOnly("Head of Sales"));
+    assert.ok(isRoleOnly("Chief Engineer"));
+    // Pure adjective without noun is NOT a role
+    assert.ok(!isRoleOnly("Главный"));
+    assert.ok(!isRoleOnly("Senior"));
+    // Real names not flagged
+    assert.ok(!isRoleOnly("Иван Петров"));
+    assert.ok(!isRoleOnly("Петрова Анна"));
+});
+
+test("isBadPersonName: rejects role compound strings", () => {
+    assert.ok(isBadPersonName("Главный Механик"));
+    assert.ok(isBadPersonName("Менеджер По Закупкам"));
+    assert.ok(isBadPersonName("Ведущий Менеджер По Снабжению"));
+    assert.ok(isBadPersonName("Коммерческий Директор"));
+    // Real name still valid
+    assert.ok(!isBadPersonName("Иван Петров"));
+});
+
+test("stripRolePrefix: 'Менеджер По Закупкам Жарихин Н.в.' → 'Жарихин Н.в.'", () => {
+    assert.equal(
+        stripRolePrefix("Менеджер По Закупкам Жарихин Н.в."),
+        "Жарихин Н.в.",
+    );
+    assert.equal(
+        stripRolePrefix("Менеджер Петрова Анна Игоревна"),
+        "Петрова Анна Игоревна",
+    );
+    assert.equal(
+        stripRolePrefix("Главный Механик"),
+        "", // pure role compound → empty
+    );
+    assert.equal(
+        stripRolePrefix("Инженер По Оборудованию,"),
+        "",
+    );
+    // No role prefix: return as-is
+    assert.equal(
+        stripRolePrefix("Иван Петров"),
+        "Иван Петров",
+    );
+    // Empty input
+    assert.equal(stripRolePrefix(""), "");
+    // Only adjective (no role noun) → keep unchanged
+    assert.equal(
+        stripRolePrefix("Старший Иванов Иван"),
+        "Старший Иванов Иван",
+    );
+});
+
+test("extractPersonName: role-prefix stripped from signature leak", () => {
+    const r = extractPersonName({
+        senderDisplay: "",
+        signature: "Менеджер По Закупкам Жарихин Н.в.\n+7 (495) 123-45-67",
+        body: "",
+        emailLocal: "",
+    });
+    // Expected: role prefix stripped → "Жарихин Н.в."
+    assert.ok(r.primary, "expected primary to be extracted");
+    assert.match(r.primary, /Жарихин/);
+    assert.ok(!r.primary.toLowerCase().includes("менеджер"));
+});
+
+test("extractPersonName: pure role compound 'Главный Механик' rejected", () => {
+    const r = extractPersonName({
+        senderDisplay: "Главный Механик",
+        signature: "",
+        body: "",
+        emailLocal: "",
+    });
+    // Should fall through to null because this is role-only
+    assert.equal(r.primary, null);
+    assert.ok(r.needsReview);
+});
+
+test("extractPersonName: '(Менеджер Петрова Анна Игоревна)' accepts real name", () => {
+    const r = extractPersonName({
+        senderDisplay: "",
+        signature: "Менеджер Петрова Анна Игоревна\n+7 (495) 555",
+        body: "",
+        emailLocal: "",
+    });
+    assert.ok(r.primary);
+    assert.match(r.primary, /Петрова/);
+});
+
+test("extractPersonName: trailing Cyrillic role tail stripped ('Дордаль Артем Инженер')", () => {
+    const r = extractPersonName({
+        senderDisplay: "",
+        signature: "Дордаль Артем Инженер",
+        body: "",
+        emailLocal: "",
+    });
+    assert.equal(r.primary, "Дордаль Артем");
+    assert.equal(r.role, "инженер");
+});
+
+test("extractPersonName: role with punctuation ('Инженер-Механик +phone')", () => {
+    const r = extractPersonName({
+        senderDisplay: "",
+        signature: "Дордаль Артем Инженер-Механик +375 (33) 367-70-23",
+        body: "",
+        emailLocal: "",
+    });
+    assert.equal(r.primary, "Дордаль Артем");
+});
+
+test("extractPersonName: compound role tail ('Генеральный Директор')", () => {
+    const r = extractPersonName({
+        senderDisplay: "",
+        signature: "Вусал Аллахвердиев / Генеральный Директор",
+        body: "",
+        emailLocal: "",
+    });
+    assert.equal(r.primary, "Вусал Аллахвердиев");
+});
+
+test("extractPersonName: compound role with connector ('Специалист По Закупкам')", () => {
+    const r = extractPersonName({
+        senderDisplay: "",
+        signature: "Шаталова Ольга, Специалист По Закупкам",
+        body: "",
+        emailLocal: "",
+    });
+    assert.equal(r.primary, "Шаталова Ольга");
 });

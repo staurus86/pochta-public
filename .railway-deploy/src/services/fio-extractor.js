@@ -17,6 +17,7 @@ import {
     splitBilingualName,
     stripHonorific,
     stripRoleTail,
+    stripRolePrefix,
     normalizePersonName,
 } from "./fio-normalizer.js";
 
@@ -144,12 +145,23 @@ function postProcess(rawCandidate) {
     const bil = splitBilingualName(personCandidate);
 
     // 4. Extract role tail before normalizing.
+    // JS `\b` does NOT fire at Cyrillic boundaries — use Unicode-safe lookarounds.
     let primary = bil.primary;
     let role = null;
-    const roleMatch = primary.match(/[\s,;/]+(manager|director|engineer|specialist|менеджер|директор|инженер|специалист)\b.*$/i);
+    const roleMatch = primary.match(/[\s,;/]+(manager|director|engineer|specialist|менеджер|директор|инженер|специалист|механик|энергетик|бухгалтер|начальник|руководитель|коммерции|закупкам|продажам|снабжению)(?![A-Za-zА-Яа-яЁё]).*$/iu);
     if (roleMatch) {
         role = roleMatch[1].toLowerCase();
         primary = stripRoleTail(primary);
+    }
+
+    // 4b. Strip leading role prefix: "Менеджер По Закупкам Жарихин Н.в." → "Жарихин Н.в."
+    const withoutRolePrefix = stripRolePrefix(primary);
+    if (withoutRolePrefix && withoutRolePrefix !== primary) {
+        // Only accept the strip if remainder still looks like a name (≥1 letter token).
+        if (/[A-Za-zА-Яа-яЁё]/.test(withoutRolePrefix)) {
+            const wordCount = withoutRolePrefix.split(/\s+/).filter(Boolean).length;
+            if (wordCount >= 1) primary = withoutRolePrefix;
+        }
     }
 
     // 5. Normalize.

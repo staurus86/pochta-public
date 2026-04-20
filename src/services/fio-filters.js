@@ -112,8 +112,8 @@ const ALIAS_SET = new Set([
     "com",
 ]);
 
-// Role words standalone — if the entire string is one of these, it's a role, not a name.
-const ROLE_SET = new Set([
+// Role nouns standalone — base concrete job titles.
+const ROLE_NOUN_SET = new Set([
     "менеджер",
     "менеджеры",
     "директор",
@@ -121,9 +121,11 @@ const ROLE_SET = new Set([
     "гендиректор",
     "руководитель",
     "начальник",
+    "заместитель",
     "инженер",
     "специалист",
     "мастер",
+    "механик",
     "бухгалтер",
     "секретарь",
     "оператор",
@@ -132,6 +134,16 @@ const ROLE_SET = new Set([
     "кладовщик",
     "снабженец",
     "закупщик",
+    "монтажник",
+    "координатор",
+    "помощник",
+    "ассистент",
+    "логист",
+    "энергетик",
+    "экономист",
+    "юрист",
+    "администратор",
+    "аналитик",
     "manager",
     "director",
     "engineer",
@@ -146,6 +158,87 @@ const ROLE_SET = new Set([
     "procurement",
     "buyer",
     "purchaser",
+    "coordinator",
+    "analyst",
+    "chief",
+    "head",
+    "lead",
+    "ceo",
+    "cto",
+    "coo",
+    "cfo",
+    "president",
+    "vp",
+]);
+
+// Role adjectives / modifiers — qualify a role noun but don't stand alone.
+const ROLE_ADJECTIVE_SET = new Set([
+    "главный",
+    "главная",
+    "ведущий",
+    "ведущая",
+    "старший",
+    "старшая",
+    "младший",
+    "младшая",
+    "зам",
+    "заместитель",
+    "генеральный",
+    "генеральная",
+    "коммерческий",
+    "коммерческая",
+    "технический",
+    "техническая",
+    "финансовый",
+    "финансовая",
+    "исполнительный",
+    "исполнительная",
+    "научный",
+    "научная",
+    "ответственный",
+    "ответственная",
+    "senior",
+    "junior",
+    "deputy",
+    "sales",
+    "marketing",
+    "finance",
+    "technical",
+    "commercial",
+    "financial",
+    "logistics",
+    "sourcing",
+    "supply",
+    "quality",
+    "operations",
+    "production",
+    "maintenance",
+    "project",
+]);
+
+// Connectors — prepositions and linking words that appear in role compounds
+// like "менеджер по закупкам", "head of sales". Skipped during role-only check.
+const ROLE_CONNECTOR_SET = new Set([
+    "по",
+    "для",
+    "в",
+    "во",
+    "на",
+    "при",
+    "и",
+    "of",
+    "for",
+    "in",
+    "at",
+    "the",
+    "and",
+    "&",
+]);
+
+const ROLE_SET = new Set([
+    ...ROLE_NOUN_SET,
+    ...ROLE_ADJECTIVE_SET,
+    ...ROLE_CONNECTOR_SET,
 ]);
 
 // Stem-based — matches any inflection (отдел/отдела/отделом/подразделение/...).
@@ -211,14 +304,41 @@ export function isAliasLike(value) {
     return false;
 }
 
+// Name-tail regex: surname+initials ("Жарихин Н.в.") or 2-3 TitleCase words
+// anchored at end of string. Detects real names embedded in role-prefixed text.
+// Requires either initial-dots ("Н.в.") or ≥3 consecutive TitleCase words to
+// avoid matching role-compound TitleCase sequences like "Менеджер По Закупкам".
+const NAME_TAIL_IN_STRING_RE =
+    /(?:[А-ЯЁ][а-яё]{2,}\s+[А-ЯЁ]\.\s*[А-ЯЁа-яё]?\.?|[А-ЯЁ][а-яё]{2,}\s+[А-ЯЁ][а-яё]{2,}\s+[А-ЯЁ][а-яё]{2,})\s*[,.]?\s*$/u;
+const NAME_TAIL_IN_STRING_LAT_RE =
+    /(?:[A-Z][a-z]{2,}\s+[A-Z]\.|[A-Z][a-z]{2,}\s+[A-Z][a-z]{2,}\s+[A-Z][a-z]{2,})\s*[,.]?\s*$/;
+
 export function isRoleOnly(value) {
-    const s = safeString(value).toLowerCase();
+    const s = safeString(value);
     if (!s) return false;
-    const cleaned = s.replace(/[.,;:!?]/g, " ").replace(/\s+/g, " ").trim();
+    const lower = s.toLowerCase();
+    const cleaned = lower.replace(/[.,;:!?]/g, " ").replace(/\s+/g, " ").trim();
     const tokens = cleaned.split(/\s+/).filter(Boolean);
     if (tokens.length === 0) return false;
-    // If every token is a role word, it's role-only.
-    return tokens.every((t) => ROLE_SET.has(t));
+
+    const hasRoleNoun = tokens.some((t) => ROLE_NOUN_SET.has(t));
+    if (!hasRoleNoun) return false;
+
+    // Strategy 1: every token is a recognized role word.
+    if (tokens.every((t) => ROLE_SET.has(t))) return true;
+
+    // Strategy 2: role-compound with unrecognized object token(s)
+    // ("менеджер по закупкам", "инженер по оборудованию"). Accept as role-only
+    // when the string contains NO proper name-tail pattern.
+    const firstToken = tokens[0];
+    const startsWithRole =
+        ROLE_NOUN_SET.has(firstToken) || ROLE_ADJECTIVE_SET.has(firstToken);
+    if (!startsWithRole) return false;
+    // If the string contains a clear name pattern (surname+initials or two
+    // Title-case words preceded by ≥1 lowercase tokens), it's NOT role-only.
+    if (NAME_TAIL_IN_STRING_RE.test(s)) return false;
+    if (NAME_TAIL_IN_STRING_LAT_RE.test(s)) return false;
+    return true;
 }
 
 export function isCorporateUppercase(value) {
@@ -255,6 +375,13 @@ export function isDepartmentLike(value) {
     }
     return false;
 }
+
+export const _roleSets = {
+    ROLE_NOUN_SET,
+    ROLE_ADJECTIVE_SET,
+    ROLE_CONNECTOR_SET,
+    ROLE_SET,
+};
 
 export function isBadPersonName(value) {
     const s = safeString(value);
