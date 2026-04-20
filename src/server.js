@@ -1304,17 +1304,37 @@ async function handleApi(req, res, url) {
       });
     });
 
-    // In audit mode, save a snapshot of each message's prior llmExtraction and
-    // clear processedAt so analyzeEmailAsync re-calls LLM. If the new LLM call
-    // returns null (API error/timeout), we restore the snapshot so we never lose
-    // previously-extracted data.
+    // In audit mode, save a snapshot of each message's prior llmExtraction (or
+    // fall back to durable llm-cache.json to heal messages regressed by prior
+    // audit runs that had silent LLM failures). Then clear processedAt so
+    // analyzeEmailAsync re-calls LLM. If the new call returns null, we restore
+    // the snapshot so we never lose previously-extracted data.
     const priorLlmSnapshot = new Map();
     if (isAuditMode) {
       for (const msg of queue) {
         const key = msg.messageKey || msg.id;
+        let priorLlm = null;
         if (msg.analysis?.llmExtraction?.processedAt) {
-          priorLlmSnapshot.set(key, { ...msg.analysis.llmExtraction });
-          msg.analysis.llmExtraction.processedAt = null;
+          priorLlm = { ...msg.analysis.llmExtraction };
+        } else {
+          const cached = readLlmCache(key);
+          if (cached && cached.processedAt) {
+            priorLlm = {
+              processedAt: cached.processedAt,
+              model: cached.model,
+              requestType: cached.requestType,
+              isUrgent: cached.isUrgent,
+              missingForProcessing: cached.missingForProcessing || [],
+              newArticlesAdded: cached.newArticlesAdded || 0,
+              fromCache: true
+            };
+          }
+        }
+        if (priorLlm) {
+          priorLlmSnapshot.set(key, priorLlm);
+          if (msg.analysis?.llmExtraction) {
+            msg.analysis.llmExtraction.processedAt = null;
+          }
         }
       }
     }
