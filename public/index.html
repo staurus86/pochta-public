@@ -746,30 +746,30 @@ https://promsnab.ru</textarea>
   </div>
 
   <!-- ═══════ LOGIN OVERLAY ═══════ -->
-  <div id="login-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg-primary,#0f1117);align-items:center;justify-content:center;">
+  <div id="login-overlay" style="display:none;position:fixed;inset:0;z-index:9999;background:var(--bg);align-items:center;justify-content:center;">
     <div style="width:100%;max-width:380px;padding:0 16px;">
-      <div style="background:var(--bg-card,#1a1d27);border:1px solid var(--border-color,#2a2d3e);border-radius:12px;padding:40px 36px;">
+      <div style="background:var(--surface-0);border:1px solid var(--border);border-radius:var(--radius);padding:40px 36px;box-shadow:var(--shadow-lg);">
         <div style="text-align:center;margin-bottom:32px;">
-          <div style="font-size:40px;margin-bottom:12px;">📧</div>
-          <h1 style="font-size:22px;font-weight:700;color:var(--text-primary,#e2e8f0);margin:0 0 4px;">Pochta</h1>
-          <div style="font-size:13px;color:var(--text-muted,#718096);">CRM Mail Module</div>
+          <div style="width:56px;height:56px;margin:0 auto 14px;border-radius:14px;background:linear-gradient(135deg,#3b82f6,#2563eb);box-shadow:var(--shadow-md);display:flex;align-items:center;justify-content:center;color:#fff;font-size:26px;">📧</div>
+          <h1 style="font-size:22px;font-weight:700;color:var(--text);margin:0 0 4px;">Pochta</h1>
+          <div style="font-size:13px;color:var(--text-muted);">CRM Mail Module</div>
         </div>
         <form id="login-form" autocomplete="on">
           <div style="margin-bottom:16px;">
-            <label style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary,#a0aec0);margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase;">Логин</label>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase;">Логин</label>
             <input id="login-input" type="text" name="username" autocomplete="username"
-              style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg-primary,#0f1117);border:1px solid var(--border-color,#2a2d3e);border-radius:8px;color:var(--text-primary,#e2e8f0);font-size:14px;outline:none;"
+              style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;outline:none;"
               placeholder="admin" />
           </div>
           <div style="margin-bottom:24px;">
-            <label style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary,#a0aec0);margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase;">Пароль</label>
+            <label style="display:block;font-size:12px;font-weight:600;color:var(--text-secondary);margin-bottom:6px;letter-spacing:.05em;text-transform:uppercase;">Пароль</label>
             <input id="password-input" type="password" name="current-password" autocomplete="current-password"
-              style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--bg-primary,#0f1117);border:1px solid var(--border-color,#2a2d3e);border-radius:8px;color:var(--text-primary,#e2e8f0);font-size:14px;outline:none;"
+              style="width:100%;box-sizing:border-box;padding:10px 14px;background:var(--surface-2);border:1px solid var(--border);border-radius:var(--radius-sm);color:var(--text);font-size:14px;outline:none;"
               placeholder="••••••••" />
           </div>
-          <div id="login-error" style="display:none;margin-bottom:16px;padding:10px 14px;background:rgba(245,101,101,.12);border:1px solid rgba(245,101,101,.3);border-radius:8px;font-size:13px;color:#fc8181;"></div>
+          <div id="login-error" style="display:none;margin-bottom:16px;padding:10px 14px;background:var(--rose-dim);border:1px solid var(--rose);border-radius:var(--radius-sm);font-size:13px;color:var(--rose);"></div>
           <button type="submit" id="login-btn"
-            style="width:100%;padding:11px;background:var(--accent-primary,#6366f1);border:none;border-radius:8px;color:#fff;font-size:14px;font-weight:600;cursor:pointer;transition:opacity .15s;">
+            style="width:100%;padding:11px;background:var(--accent);border:none;border-radius:var(--radius-sm);color:#fff;font-size:14px;font-weight:600;cursor:pointer;box-shadow:var(--shadow-sm);transition:background .15s;">
             Войти
           </button>
         </form>
