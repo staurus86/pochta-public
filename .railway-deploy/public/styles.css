@@ -149,9 +149,13 @@ body {
   padding: 24px 20px 20px;
   border-bottom: 1px solid var(--border);
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
+  row-gap: 4px;
 }
+
+.sidebar-brand .version { flex: 0 0 100%; }
 
 .sidebar-brand h1 {
   font-size: 16px;
