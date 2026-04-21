@@ -2223,6 +2223,13 @@ function findSemanticNomenclatureMatches(query, bodyText = "") {
 
 function hydrateRecognitionSummary(lead, sender) {
   if (!lead.recognitionSummary) lead.recognitionSummary = {};
+  // Recompute article/brand/name from the CURRENT lead state — buildLead's initial
+  // summary runs before the form-parser, KB enrichment and sanitize passes mutate
+  // lead.articles / lead.detectedBrands / productNames, so the stale summary would
+  // report "нет артикула" on emails whose articles were injected by activeFormData.
+  lead.recognitionSummary.article = (lead.articles || []).length > 0;
+  lead.recognitionSummary.brand = (lead.detectedBrands || []).length > 0;
+  lead.recognitionSummary.name = getResolvedProductNameCount(lead) > 0;
   lead.recognitionSummary.phone = Boolean(sender.cityPhone || sender.mobilePhone);
   lead.recognitionSummary.company = Boolean(sender.companyName);
   lead.recognitionSummary.inn = Boolean(sender.inn);

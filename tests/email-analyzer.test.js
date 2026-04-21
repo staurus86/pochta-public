@@ -3186,3 +3186,32 @@ runTest("productNamesClean: голая база + вариант с артику
   assert.equal(klapanCount, 1,
     `"Клапан Norgren" должен схлопнуться до 1 записи: ${JSON.stringify(names)}`);
 });
+
+runTest("recognitionSummary.article отражает актуальный lead.articles после form-parser / KB enrichment", () => {
+  // Bug: hydrateRecognitionSummary не пересчитывал .article/.brand/.name — summary оставался
+  // устаревшим от buildLead, и UI-фильтр "нет артикула" возвращал письма у которых артикул
+  // был добавлен позже (form-parser, enrichLeadFromKnowledgeBase).
+  // Контрольный кейс: письмо с robot@siderus формой где артикул в productFullName.
+  const analysis = analyzeEmail(project, {
+    fromName: "robot@siderus.ru",
+    fromEmail: "robot@siderus.ru",
+    subject: 'Заполнена форма "Товар под заказ" на сайте SIDERUS',
+    attachments: "",
+    body: [
+      "Данные заявки",
+      "Товар: 3C0600002",
+      "Полное наименование: 3C0600002 Датчик давления",
+      "Количество: 1 шт",
+      "Телефон: +7 999 123-45-67",
+      "Компания: ООО Ромашка",
+      "ИНН: 7701234567"
+    ].join("\n")
+  });
+  const arts = analysis.lead.articles || [];
+  const summary = analysis.lead.recognitionSummary || {};
+  assert.ok(arts.length > 0, `lead.articles должен быть непустой: ${JSON.stringify(arts)}`);
+  assert.equal(summary.article, true,
+    `recognitionSummary.article должен быть true когда lead.articles=${JSON.stringify(arts)}; summary=${JSON.stringify(summary)}`);
+  assert.ok(!(summary.missing || []).includes("article"),
+    `summary.missing не должен содержать "article" когда articles есть: ${JSON.stringify(summary.missing)}`);
+});
