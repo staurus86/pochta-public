@@ -75,8 +75,10 @@ const CYRILLIC_MIXED_CODE_PATTERN = /(?:^|[\s,;:(])([А-ЯЁа-яё]{1,5}[0-9][A
 // Reverse: digits first then Cyrillic (100А13/1.5Т220)
 const DIGITS_CYRILLIC_CODE_PATTERN = /(?:^|[\s,;:(])(\d{1,5}[А-ЯЁа-яё][A-Za-zА-ЯЁа-яё0-9/.-]{2,20})/gm;
 const DIGITS_CYRILLIC_HYPHEN_CODE_PATTERN = /(?:^|[\s,;:(])(\d+[А-ЯЁа-яё]+[-/.][A-Za-zА-ЯЁа-яё0-9/.-]{2,20})/gm;
-// Series + model: "CR 10-3", "WDU 2.5", "EV220B 032U1240" — letter code + space + number/code
-const SERIES_MODEL_PATTERN = /\b([A-Z]{2,6})\s+(\d{1,3}(?:[-/.]\d{1,4})?(?:[-/][A-Z0-9]+)?)\b/g;
+// Series + model: "CR 10-3", "WDU 2.5", "EV220B 032U1240" — letter code + space + number/code.
+// Require 2+ digits OR digit+separator+digits: reject noise like "BT 3", "TO 3", "GS 1", "PK 2"
+// where a 1-digit number after a letter bigram is almost always a quantity/dimension, not a model.
+const SERIES_MODEL_PATTERN = /\b([A-Z]{2,6})\s+(\d{2,3}(?:[-/.]\d{1,4})?(?:[-/][A-Z0-9]+)?|\d[-/.]\d{1,4}(?:[-/][A-Z0-9]+)?)\b/g;
 // Numbered list item: "1. Description ARTICLE" or "1) Description ARTICLE"
 const NUMBERED_ITEM_PATTERN = /^\s*\d{1,3}[.)]\s+/;
 // Product line with quantity: "Description - N шт" or "Description - N.NN шт"
@@ -5794,6 +5796,15 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   if (/^(?:ns\d+|crs|xmp|rdf|dc|pdf|sha|md5|tiff|exif|photoshop|illustrator|stRef|stEvt|stMfs|aux|gpano|lr|mwg|aux|iptc|plus|drone|acdsee)[:/]/i.test(normalized)) return true;
   // PDF font style tokens: 20Italic, 14Bold, 12Regular, 8Normal
   if (/^\d{1,2}(?:Bold|Italic|Roman|Normal|Light|Regular|Condensed|Medium|Black|Narrow)$/i.test(normalized)) return true;
+  // PDF font descriptor values leaking from attachmentContent: "/Flags 262148", "/XHeight 547",
+  // "/Leading 0", "/MissingWidth 540", "/FirstChar 32", "/LastChar 255", "/Ascent 905", etc.
+  // These are integer metadata values that qualify as brand-adjacent (the descriptor key is a
+  // letter word) and bypass the generic /^\d{1,6}$/ noise rule. Match only when sourceLine shows
+  // the descriptor key directly before the digits.
+  if (/^\d{1,7}$/.test(normalized) && line) {
+    const pdfDescRe = new RegExp(`\\/?\\b(?:Flags|XHeight|Leading|MissingWidth|FirstChar|LastChar|Widths|AvgWidth|MaxWidth|StemV|StemH|ItalicAngle|Ascent|Descent|CapHeight|FontWeight|FontStretch|FontBBox|FontMatrix|DW|DW2|Supplement|Length1|Length2|Length3|BitsPerComponent|ColorSpace)\\s+${escapeRegExp(normalized)}\\b`, "i");
+    if (pdfDescRe.test(line)) return true;
+  }
   if (/^(?:https?|www|cid)$/i.test(normalized) || normalized.includes("@")) return true;
   if (/^cid:/i.test(normalized) || /^image\d+$/i.test(normalized)) return true;
   // Batch G / P23: MIME content-id image filenames leaking from [cid:UUID.png] brackets

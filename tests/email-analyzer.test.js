@@ -2994,3 +2994,69 @@ runTest("mixed-script: pure ASCII и pure Cyrillic артикулы НЕ фил�
   assert.ok(arts.some((a) => /S201/i.test(a)), `S201-C16: ${arts.join("; ")}`);
   assert.ok(arts.some((a) => /XMLB010A2S11/i.test(a)), `XMLB010A2S11: ${arts.join("; ")}`);
 });
+
+runTest("article-noise: SERIES_MODEL не матчит 1-значные номера без сепаратора (BT 3, TO 3, GS 1)", () => {
+  // Регрессия (prod dashboard top-articles 21.04.2026): 'BT 3' стабильно попадал в топ
+  // ложных артикулов из-за SERIES_MODEL_PATTERN допускавшего \d{1,3} без сепаратора —
+  // "Проверка BT 3 шт", "TO 3 позиции", "GS 1 единица" давали ghost-articles.
+  // Fix: требуется 2+ цифры ИЛИ цифра с сепаратором (CR 10-3, WDU 2.5).
+  const analysis = analyzeEmail(project, {
+    fromName: "Клиент",
+    fromEmail: "client@example.ru",
+    subject: "Запрос",
+    attachments: "",
+    body: [
+      "Добрый день,",
+      "",
+      "Прошу КП на позиции:",
+      "1. Кабельный ввод BT 3 шт",
+      "2. Муфта TO 3 штук",
+      "3. Переходник GS 1 штука",
+      "4. Труба PK 2 компл",
+      "",
+      "Легитимные артикулы (должны остаться):",
+      "5. Grundfos CR 10-3 насос — 2 шт",
+      "",
+      "С уважением"
+    ].join("\n")
+  });
+  const arts = (analysis.lead.articles || []).map((a) => String(a).toUpperCase());
+  for (const noise of ["BT 3", "TO 3", "GS 1", "PK 2"]) {
+    assert.ok(!arts.includes(noise), `"${noise}" не должен попадать в артикулы, получено: ${arts.join("; ")}`);
+  }
+  assert.ok(arts.some((a) => /CR\s*10-3/i.test(a)), `CR 10-3 должен остаться: ${arts.join("; ")}`);
+});
+
+runTest("article-noise: PDF font descriptor values (/Flags 262148, /XHeight 547) не попадают в артикулы", () => {
+  // Регрессия (prod dashboard top-articles 21.04.2026): '262148' стабильно попадал в топ-10
+  // из-за PDF font descriptor утечки "/Flags 262148" в attachmentContent → bodyForExtraction.
+  // "Flags" (5 letters) проходил hasBrandAdjacentNumericContext gate, и bridge-logic пушил
+  // 262148 в lineItems как {explicitArticle:false, source:"body"}.
+  // Fix: проверка сорс-строки на предшествующий PDF descriptor-ключ.
+  const analysis = analyzeEmail(project, {
+    fromName: "Клиент",
+    fromEmail: "client@example.ru",
+    subject: "КП с PDF вложением",
+    attachments: "",
+    body: [
+      "Добрый день, прошу КП на артикул Danfoss 100865 — 2 шт.",
+      "",
+      "Ниже метаданные приложенного PDF (утечка):",
+      "/Type /FontDescriptor",
+      "/Flags 262148",
+      "/XHeight 547",
+      "/Leading 0",
+      "/MissingWidth 540",
+      "/FirstChar 32",
+      "/LastChar 255",
+      "/Ascent 905",
+      "/Descent 212"
+    ].join("\n")
+  });
+  const arts = (analysis.lead.articles || []).map((a) => String(a));
+  for (const noise of ["262148", "547", "540", "905", "212"]) {
+    assert.ok(!arts.includes(noise), `PDF descriptor value "${noise}" не должен попадать в артикулы, получено: ${arts.join("; ")}`);
+  }
+  // Легитимный 6-значный артикул бренда должен остаться
+  assert.ok(arts.some((a) => /100865/.test(a)), `Danfoss 100865 должен остаться: ${arts.join("; ")}`);
+});
