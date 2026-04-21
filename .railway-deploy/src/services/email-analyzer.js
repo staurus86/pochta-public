@@ -3594,6 +3594,11 @@ function getResolvedProductNames(lead) {
 
   const byCanon = new Map();
   for (const entry of entries) {
+    // Form-parser edge case: descriptionRu may equal article exactly (e.g.
+    // "SKU #00200 Safety Cutter" in both fields). canonicalize strips article,
+    // leaving empty canon → entry is dropped and UI-visible name is lost.
+    // Fallback: use the name itself (lowercased, collapsed) as canon.
+    if (!entry.canon) entry.canon = String(entry.name || "").toLowerCase().replace(/\s+/g, " ").trim();
     if (!entry.canon) continue;
     const existing = byCanon.get(entry.canon);
     if (!existing) {
