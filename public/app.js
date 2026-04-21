@@ -2654,9 +2654,15 @@ function renderInbox() {
     const ageHours = getMessageAgeHours(m);
     const overdue = isSlaOverdue(m);
     const indentStyle = indent ? 'padding-left:24px;border-left:2px solid var(--border);' : '';
-    return `<div class="message-item-wrap ${active}" data-mid="${esc(id)}" style="${indentStyle}">
+    const rowPid = m._projectId || (typeof P3_ID !== 'undefined' ? P3_ID : '');
+    const rowStatus = m.pipelineStatus || '';
+    const rowSubject = esc(m.subject || '');
+    const rowFrom = esc(m.from || a.sender?.email || '');
+    const rowBrands = esc((a.lead?.brands || []).slice(0, 4).map((b) => b.name || b).join(', '));
+    const rowArticles = esc((a.lead?.allArticles || a.lead?.articles || []).slice(0, 4).map((x) => x.code || x).join(', '));
+    return `<div class="message-item-wrap ${active}" data-mid="${esc(id)}" data-pid="${esc(rowPid)}" style="${indentStyle}">
       <label class="msg-checkbox" onclick="event.stopPropagation()"><input type="checkbox" ${checked} data-check-mid="${esc(id)}" /></label>
-      <button class="message-item ${active}" data-mid="${esc(id)}">
+      <button class="message-item ${active}" data-mid="${esc(id)}" data-pid="${esc(rowPid)}" data-pipeline-status="${esc(rowStatus)}" data-subject="${rowSubject}" data-from="${rowFrom}" data-brands="${rowBrands}" data-articles="${rowArticles}">
         <div class="message-from">
           <span style="${isRead ? '' : 'font-weight:700;color:var(--text);'}">${!isRead ? '<span style="display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--accent);margin-right:6px;"></span>' : ''}${esc(m.from || a.sender?.email || 'Неизвестный')}</span>
           <span class="message-time">${fmtDate(m.createdAt)}</span>
