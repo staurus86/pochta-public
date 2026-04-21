@@ -2276,7 +2276,7 @@ function renderRequestAnalytics() {
     const color = typeColors[type] || 'var(--text-secondary)';
     return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
       <span style="width:110px;font-size:11px;color:var(--text-secondary);text-align:right;">${esc(type)}</span>
-      <div style="flex:1;height:22px;background:var(--surface-0);border-radius:4px;overflow:hidden;">
+      <div style="flex:1;height:22px;background:var(--surface-2);border-radius:4px;overflow:hidden;">
         <div style="height:100%;width:${pct}%;background:${color};border-radius:4px;min-width:${count > 0 ? '2px' : '0'};display:flex;align-items:center;justify-content:flex-end;padding-right:6px;">
           ${pct > 20 ? `<span style="font-size:10px;font-weight:700;color:#fff;">${count}</span>` : ''}
         </div>
