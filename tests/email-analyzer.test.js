@@ -4,6 +4,7 @@ import { mkdirSync, rmSync, statSync, writeFileSync } from "node:fs";
 import path from "node:path";
 import { analyzeEmail } from "../src/services/email-analyzer.js";
 import { detectionKb } from "../src/services/detection-kb.js";
+import { normalizeProductName } from "../src/services/product-name-normalizer.js";
 
 const project = {
   mailbox: "inbox@example.com",
@@ -3109,4 +3110,79 @@ runTest("productNamesClean: numbered list (1.АВВ OT... / 2. Клапан Norg
   // Итоговое число — строго 2 (было 3 до фикса).
   assert.equal(names.length, 2,
     `productNamesClean должно содержать ровно 2 записи (Клапан Norgren, АВВ OT...), получено ${names.length}: ${JSON.stringify(names)}`);
+});
+
+runTest("productNamesClean: distinct trailing articles НЕ схлопываются в голую базу", () => {
+  // Регрессия (prod reanalysis 21.04.2026): 94 писем потеряли varianты товаров с разными
+  // артикулами. Пример: "Фильтры SERFILCO SF10u20" + "Фильтры SERFILCO SF20u20" — 2 разных
+  // товара — после canon-strip схлопывались в единственный "Фильтры SERFILCO".
+  // Причина: dedup применял trailing-article-strip даже когда НЕТ "голой" записи-базы.
+  // Fix: 2-проходный dedup — strip артикула применяется только если baseCanon той же формы
+  //      уже существует в списке как отдельная запись.
+  const analysis = analyzeEmail(project, {
+    fromName: "Клиент",
+    fromEmail: "buyer@example.ru",
+    subject: "Запрос фильтров SERFILCO",
+    attachments: "",
+    body: [
+      "Добрый день!",
+      "Прошу КП:",
+      "Фильтры SERFILCO SF10u20 — 5 шт",
+      "Фильтры SERFILCO SF20u20 — 3 шт",
+      "",
+      "С уважением"
+    ].join("\n")
+  });
+
+  const names = Array.isArray(analysis.lead.productNamesClean)
+    ? analysis.lead.productNamesClean
+    : [];
+
+  // Оба варианта с разными артикулами должны сохраниться
+  const sf10 = names.some((n) => /SF10u20/i.test(String(n)));
+  const sf20 = names.some((n) => /SF20u20/i.test(String(n)));
+  assert.ok(sf10, `"Фильтры SERFILCO SF10u20" должен сохраниться: ${JSON.stringify(names)}`);
+  assert.ok(sf20, `"Фильтры SERFILCO SF20u20" должен сохраниться: ${JSON.stringify(names)}`);
+});
+
+runTest("productNamesClean: дата DD.MM. в начале темы НЕ срезается как list-prefix", () => {
+  // Регрессия (prod reanalysis 21.04.2026): тема "21.01. Заявка: ЗИП STAHL" → productNamesClean
+  // получал "Заявка: ЗИП STAHL" вместо "21.01. Заявка: ЗИП STAHL" из-за слишком жадного
+  // LIST_NUM_PREFIX_RE ловившего 2-уровневую нумерацию \d.\d. — которая совпадает с DD.MM.
+  // Fix: regex срезает только single-level "N. " / "N) " / "N]" без поддержки "N.N.".
+  const out1 = normalizeProductName("21.01. Заявка: ЗИП STAHL");
+  assert.ok(/21\.01/.test(out1), `Дата 21.01. должна сохраниться: "${out1}"`);
+  const out2 = normalizeProductName("15.03. Срочный запрос");
+  assert.ok(/15\.03/.test(out2), `Дата 15.03. должна сохраниться: "${out2}"`);
+  // Контроль: single-level префикс всё ещё срезается
+  const out3 = normalizeProductName("1. Насос химический Х150");
+  assert.ok(!/^1\./.test(out3), `"1. " должен срезаться: "${out3}"`);
+  const out4 = normalizeProductName("2) Клапан Norgren");
+  assert.ok(!/^2\)/.test(out4), `"2) " должен срезаться: "${out4}"`);
+});
+
+runTest("productNamesClean: голая база + вариант с артикулом схлопываются в одну запись", () => {
+  // Контрольный тест — обратный к предыдущему.
+  // Если есть И "Клапан Norgren" (без артикула), И "2. Клапан Norgren V04A486l-Q116A" — обязательно
+  // схлопываются в одну запись (исходно-сообщённый баг пользователя).
+  const analysis = analyzeEmail(project, {
+    fromName: "Клиент",
+    fromEmail: "buyer@example.ru",
+    subject: "Norgren клапан",
+    attachments: "",
+    body: [
+      "Прошу КП:",
+      "Клапан Norgren",
+      "2. Клапан Norgren V04A486l-Q116A — 2 шт",
+      "",
+      "С уважением"
+    ].join("\n")
+  });
+
+  const names = Array.isArray(analysis.lead.productNamesClean)
+    ? analysis.lead.productNamesClean
+    : [];
+  const klapanCount = names.filter((n) => /клапан\s+norgren/i.test(String(n))).length;
+  assert.equal(klapanCount, 1,
+    `"Клапан Norgren" должен схлопнуться до 1 записи: ${JSON.stringify(names)}`);
 });

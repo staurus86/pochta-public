@@ -1513,8 +1513,26 @@ export function analyzeEmail(project, payload) {
     // Strip phone/contact/doc/html/pdf/code-only noise from productNames[].name;
     // produce productNamePrimary + productLineItems for XLSX/UI without mutating legacy shape.
     {
+      // Skip productNames[].name entries whose article is already represented by
+      // a lineItems[].descriptionRu (full form including article). Otherwise the
+      // partial "brand-stripped" productNames.name becomes a dedup anchor for
+      // distinct descriptionRu variants (regression: SERFILCO SF10u20/SF20u20
+      // would both collapse onto bare "Фильтры SERFILCO").
+      const lineItemArticles = new Set();
+      for (const li of lead.lineItems || []) {
+        if (!li || typeof li.descriptionRu !== "string" || !li.descriptionRu.trim()) continue;
+        const art = String(li.article || "").trim().toLowerCase();
+        if (art) lineItemArticles.add(art);
+      }
       const rawProductInputs = [
-        ...(lead.productNames || []).map((p) => p?.name).filter(Boolean),
+        ...(lead.productNames || [])
+          .filter((p) => {
+            if (!p?.name) return false;
+            const art = String(p?.article || "").trim().toLowerCase();
+            if (art && lineItemArticles.has(art)) return false;
+            return true;
+          })
+          .map((p) => p.name),
         ...(lead.lineItems || []).map((li) => li?.descriptionRu).filter(Boolean),
       ];
       const sanitized = sanitizeProductNames(rawProductInputs, {

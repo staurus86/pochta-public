@@ -71,63 +71,80 @@ function countMeaningfulTokens(s) {
     return (String(s || "").match(/[A-Za-zА-Яа-яЁё]{2,}/g) || []).length;
 }
 
-// Build a canonical dedup key for a product name:
-//  1) strip leading list-num prefix ("1. ", "2) ", glued "1.АВВ")
-//  2) strip trailing qty ("- 5 шт")
-//  3) homoglyph-fold (CYR→LAT) + lowercase + collapse whitespace
-//  4) if any article is at the tail (optionally with "+SPEC+SPEC" chain), strip it —
-//     but only when the remaining canon still has ≥2 meaningful word tokens
-//     (prevents collapsing distinct "АВВ ОТ400U03" / "АВВ ОТ200U03" → bare "abb").
-function canonicalNameKey(value, articles = []) {
+// Two canonical keys per entry:
+//   baseKey     — list-num prefix + qty stripped, homoglyph-folded, lowercased
+//                 (does NOT strip trailing article — keeps distinct variants distinct)
+//   strippedKey — same, plus trailing article stripped (with optional "+SPEC+SPEC" chain).
+//                 Used ONLY to collapse "N. Клапан Norgren V04A486l-Q116A" onto bare
+//                 "Клапан Norgren" when the bare base is present in the same list.
+function buildBaseCanon(value) {
     let s = collapseWhitespace(String(value || ""));
     if (!s) return "";
-    s = s.replace(/^\s*\d{1,3}(?:[.)\]]\s*\d{1,3})?\s*[.)\]]\s*(?=[A-Za-zА-ЯЁа-яё])/, "");
+    // Single-level list prefix only (see product-name-normalizer.js for rationale:
+    // two-level would mis-strip dates like "21.01. ").
+    s = s.replace(/^\s*\d{1,3}[.)\]]\s*(?=[A-Za-zА-ЯЁа-яё])/, "");
     s = s.replace(/\s*[-–—]?\s*\d+(?:[.,]\d+)?\s*(?:шт|штук[аи]?|единиц[аы]?|компл|к-т|комплект(?:ов|а)?|пар[аы]?|pcs|pc|ea|each|units?)\.?\s*$/i, "");
-    let base = homoglyphFold(s).toLowerCase().replace(/\s+/g, " ").trim();
-    if (!base) return "";
+    const base = homoglyphFold(s).toLowerCase().replace(/\s+/g, " ").trim();
+    return base.replace(/[\s.,:;!?"'«»\-–—_+]+$/, "").trim();
+}
 
+// Try to strip trailing article (with optional +SPEC chain) from baseCanon.
+// Returns the stripped canon, or null if no article matched / guard blocked strip.
+// Guard: require ≥2 word tokens remaining (prevents "abb ot400u03+…" → bare "abb").
+function tryStripArticle(baseCanon, articles) {
+    if (!baseCanon) return null;
     for (const art of articles) {
         if (!art) continue;
         const artFolded = homoglyphFold(String(art)).toLowerCase().trim();
         if (!artFolded || artFolded.length < 3) continue;
         const artEsc = reEscape(artFolded);
-        // Match "article" (optionally preceded by separator) optionally followed by
-        // "+SPEC" chain like "+600vac+400a", anchored at end.
         const re = new RegExp(`\\s*[-–—+]?\\s*${artEsc}(?:\\+[A-Za-z0-9.\\-]+)*\\s*$`, "i");
-        if (!re.test(base)) continue;
-        const candidate = base.replace(re, "").replace(/[\s.,:;!?"'«»\-–—_+]+$/, "").trim();
-        // Only commit the strip if meaningful content remains (≥2 word tokens).
-        if (countMeaningfulTokens(candidate) >= 2) {
-            base = candidate;
-            break;
-        }
+        if (!re.test(baseCanon)) continue;
+        const candidate = baseCanon.replace(re, "").replace(/[\s.,:;!?"'«»\-–—_+]+$/, "").trim();
+        if (countMeaningfulTokens(candidate) >= 2) return candidate;
     }
-    return base.replace(/[\s.,:;!?"'«»\-–—_+]+$/, "").trim();
+    return null;
 }
 
-// Canonical-key dedup: prefer first-seen; on collision prefer shorter original,
-// then prefer mixed-case original over all-lower.
+// 2-pass canonical dedup:
+//   Pass 1: collect all baseCanon keys present in the list ("base set").
+//           Records with distinct baseCanon are always preserved.
+//   Pass 2: if a record's trailing-article-stripped canon matches an entry in the
+//           base set (i.e. some OTHER record is the naked base), collapse onto it —
+//           prefer shorter original (the "naked" one) and mixed-case.
+// This keeps "Фильтры SERFILCO SF10u20" + "Фильтры SERFILCO SF20u20" distinct
+// (no naked "Фильтры SERFILCO" present), while still collapsing
+// "Клапан Norgren" + "2. Клапан Norgren V04A486l-Q116A" onto the first.
 function dedupByCanonical(arr, articles = []) {
-    const seen = new Map();
+    const entries = [];
+    const baseSet = new Set();
     for (const s of arr) {
         if (typeof s !== "string" || !s.trim()) continue;
-        const key = canonicalNameKey(s, articles);
-        if (!key) continue;
         const trimmed = s.trim();
-        const existing = seen.get(key);
-        if (!existing) {
-            seen.set(key, trimmed);
-            continue;
+        const base = buildBaseCanon(trimmed);
+        if (!base) continue;
+        entries.push({ trimmed, base });
+        baseSet.add(base);
+    }
+
+    const seen = new Map();
+    const pickBetter = (existing, incoming) => {
+        if (!existing) return incoming;
+        if (incoming.length < existing.length) return incoming;
+        if (incoming.length === existing.length) {
+            const incMixed = /[A-ZА-ЯЁ]/.test(incoming) && /[a-zа-яё]/.test(incoming);
+            const existMixed = /[A-ZА-ЯЁ]/.test(existing) && /[a-zа-яё]/.test(existing);
+            if (incMixed && !existMixed) return incoming;
         }
-        if (trimmed.length < existing.length) {
-            seen.set(key, trimmed);
-            continue;
-        }
-        if (trimmed.length === existing.length) {
-            const hasMixed = /[A-ZА-ЯЁ]/.test(trimmed) && /[a-zа-яё]/.test(trimmed);
-            const existingMixed = /[A-ZА-ЯЁ]/.test(existing) && /[a-zа-яё]/.test(existing);
-            if (hasMixed && !existingMixed) seen.set(key, trimmed);
-        }
+        return existing;
+    };
+
+    for (const { trimmed, base } of entries) {
+        const stripped = tryStripArticle(base, articles);
+        // Collapse onto stripped form ONLY if that stripped form exists in the base set
+        // (some other record is already the naked base).
+        const key = (stripped && baseSet.has(stripped)) ? stripped : base;
+        seen.set(key, pickBetter(seen.get(key), trimmed));
     }
     return [...seen.values()];
 }

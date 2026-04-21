@@ -65,9 +65,11 @@ const QUOTE_PREFIX_RE = /^\s*>+\s*[:>]?\s*/;
 // Terminal "… 5 шт", "… 10 штук", "… 3 pcs", "… 2 ea", allowing - – — prefix
 const QTY_TAIL_RE = /\s*[-–—]?\s*\d+(?:[.,]\d+)?\s*(?:шт|штук[аи]?|единиц[аы]?|компл|к-т|комплект(?:ов|а)?|пар[аы]?|pcs|pc|ea|each|units?)\.?\s*$/i;
 
-// Leading numbered-list prefix: "1. ", "1.", "2) ", "3] ", "1.1. ", glued "1.АВВ".
+// Leading numbered-list prefix: "1. ", "1.", "2) ", "3] ", glued "1.АВВ".
 // Require next char to be a letter (lookahead) — keeps dimensions like "1.5A Предохранитель" intact.
-const LIST_NUM_PREFIX_RE = /^\s*\d{1,3}(?:[.)\]]\s*\d{1,3})?\s*[.)\]]\s*(?=[A-Za-zА-ЯЁа-яё])/;
+// Do NOT consume two-level "N.N.": a date like "21.01. Заявка" would otherwise be mis-stripped
+// into "Заявка". Two-level numbered lists ("1.1. X") are rare enough to skip; dates are common.
+const LIST_NUM_PREFIX_RE = /^\s*\d{1,3}[.)\]]\s*(?=[A-Za-zА-ЯЁа-яё])/;
 
 export function stripHtmlResidue(value) {
     let s = String(value || "");
