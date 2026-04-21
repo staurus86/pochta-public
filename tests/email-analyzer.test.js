@@ -3060,3 +3060,53 @@ runTest("article-noise: PDF font descriptor values (/Flags 262148, /XHeight 547)
   // Легитимный 6-значный артикул бренда должен остаться
   assert.ok(arts.some((a) => /100865/.test(a)), `Danfoss 100865 должен остаться: ${arts.join("; ")}`);
 });
+
+runTest("productNamesClean: numbered list (1.АВВ OT... / 2. Клапан Norgren V04A...) схлопывается без дубликатов", () => {
+  // Регрессия (prod report 21.04.2026): письмо с двумя позициями списка давало 3 productNamesClean:
+  //   "Клапан Norgren", "1.АВВ ОТ400U03+600VAC+400A", "2. Клапан Norgren V04A486l-Q116A"
+  // Причина: (a) ведущий "1." / "2. " не срезался в normalizeProductName product-name пайплайна;
+  //           (b) "Клапан Norgren" и "2. Клапан Norgren V04A486l-Q116A" — разные строки, но canonical-key
+  //               после strip ведущей нумерации и trailing article V04A486l-Q116A должен совпасть.
+  // Fix: stripListNumberPrefix + canonicalNameKey (homoglyph-fold + trailing-article-strip при ≥2 word tokens).
+  const analysis = analyzeEmail(project, {
+    fromName: "Иван Петров",
+    fromEmail: "buyer@example.ru",
+    subject: "Запрос КП ABB и Norgren",
+    attachments: "",
+    body: [
+      "Добрый день!",
+      "",
+      "Прошу подготовить КП:",
+      "1.АВВ ОТ400U03+600VAC+400A-1 шт.",
+      "2. Клапан Norgren V04A486l-Q116A- 2 шт.",
+      "",
+      "С уважением"
+    ].join("\n")
+  });
+
+  const names = Array.isArray(analysis.lead.productNamesClean)
+    ? analysis.lead.productNamesClean
+    : [];
+
+  // Ни один productNameClean не должен начинаться с ведущей нумерации "1." / "2." / "3)".
+  for (const n of names) {
+    assert.ok(!/^\s*\d{1,3}\s*[.)\]]/.test(String(n)),
+      `Ведущая нумерация не должна оставаться: "${n}" в ${JSON.stringify(names)}`);
+  }
+
+  // Канонические ключи должны быть уникальны: нумерованная "2. Клапан Norgren V04A486l-Q116A"
+  // обязана схлопнуться с "Клапан Norgren" (и/или "Клапан Norgren V04A486l-Q116A") в одну запись.
+  const klapanCount = names.filter((n) => /клапан\s+norgren/i.test(String(n))).length;
+  assert.ok(klapanCount <= 1,
+    `"Клапан Norgren" должен встречаться не более 1 раза, получено ${klapanCount}: ${JSON.stringify(names)}`);
+
+  // АВВ/ABB позиция сохраняется как отдельная запись (≠ "Клапан Norgren") — разные canon-ключи,
+  // потому что article-strip не применяется, если без артикула остаётся <2 словных токенов.
+  const abbCount = names.filter((n) => /(^|\s)(авв|abb)(\s|$)/i.test(String(n))).length;
+  assert.ok(abbCount >= 1,
+    `АВВ/ABB позиция должна присутствовать, получено: ${JSON.stringify(names)}`);
+
+  // Итоговое число — строго 2 (было 3 до фикса).
+  assert.equal(names.length, 2,
+    `productNamesClean должно содержать ровно 2 записи (Клапан Norgren, АВВ OT...), получено ${names.length}: ${JSON.stringify(names)}`);
+});

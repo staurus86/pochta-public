@@ -1520,6 +1520,7 @@ export function analyzeEmail(project, payload) {
       const sanitized = sanitizeProductNames(rawProductInputs, {
         subject: subject || "",
         maxLen: 200,
+        articles: Array.isArray(lead.articles) ? lead.articles : [],
       });
       lead.productNamePrimary = sanitized.primary || null;
       lead.productLineItems = sanitized.items || [];

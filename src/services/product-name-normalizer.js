@@ -65,6 +65,10 @@ const QUOTE_PREFIX_RE = /^\s*>+\s*[:>]?\s*/;
 // Terminal "… 5 шт", "… 10 штук", "… 3 pcs", "… 2 ea", allowing - – — prefix
 const QTY_TAIL_RE = /\s*[-–—]?\s*\d+(?:[.,]\d+)?\s*(?:шт|штук[аи]?|единиц[аы]?|компл|к-т|комплект(?:ов|а)?|пар[аы]?|pcs|pc|ea|each|units?)\.?\s*$/i;
 
+// Leading numbered-list prefix: "1. ", "1.", "2) ", "3] ", "1.1. ", glued "1.АВВ".
+// Require next char to be a letter (lookahead) — keeps dimensions like "1.5A Предохранитель" intact.
+const LIST_NUM_PREFIX_RE = /^\s*\d{1,3}(?:[.)\]]\s*\d{1,3})?\s*[.)\]]\s*(?=[A-Za-zА-ЯЁа-яё])/;
+
 export function stripHtmlResidue(value) {
     let s = String(value || "");
     if (!s) return "";
@@ -159,6 +163,12 @@ export function stripQuantityTail(value) {
     return s.trim();
 }
 
+// Strip "1. ", "2) ", "3] " and glued "1.АВВ" / "2.Клапан" numbering.
+// Safe against "1.5A Предохранитель" and "24V Реле" (no list-prefix applied when next char is a digit).
+export function stripListNumberPrefix(value) {
+    return String(value || "").replace(LIST_NUM_PREFIX_RE, "").trim();
+}
+
 export function collapseWhitespace(value) {
     return String(value || "").replace(/\s+/g, " ").trim();
 }
@@ -205,6 +215,7 @@ export function normalizeProductName(value, options = {}) {
     s = stripQuoteMarker(s);
     s = stripContactTail(s);
     s = stripQuantityTail(s);
+    s = stripListNumberPrefix(s);
     s = collapseWhitespace(s);
     s = capLength(s, maxLen);
     // Trailing punctuation cleanup
