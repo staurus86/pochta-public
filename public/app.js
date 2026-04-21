@@ -1892,7 +1892,7 @@ function renderDashboard() {
   const nonSpamMsg = allRunnerMessages.filter((m) => !isIgnoredStatus(m.pipelineStatus)).length;
   const funnelData = [
     { label: 'Получено', value: totalMsg, color: 'var(--accent)' },
-    { label: 'Не спам', value: nonSpamMsg, color: 'var(--text)' },
+    { label: 'Не спам', value: nonSpamMsg, color: 'var(--purple)' },
     { label: 'Заявки', value: readyCount, color: 'var(--green)' },
     { label: 'Уточнение', value: clarifyCount, color: 'var(--amber)' },
     { label: 'Спам', value: spamCount, color: 'var(--rose)' }
@@ -1902,7 +1902,7 @@ function renderDashboard() {
     const pct = Math.round(f.value / funnelMax * 100);
     return `<div style="display:flex;align-items:center;gap:10px;margin-bottom:8px;">
       <span style="width:80px;font-size:11px;color:var(--text-secondary);text-align:right;">${f.label}</span>
-      <div style="flex:1;height:24px;background:var(--surface-0);border-radius:4px;overflow:hidden;">
+      <div style="flex:1;height:24px;background:var(--surface-2);border-radius:4px;overflow:hidden;">
         <div style="height:100%;width:${pct}%;background:${f.color};border-radius:4px;transition:width 0.3s;min-width:${f.value > 0 ? '2px' : '0'};display:flex;align-items:center;justify-content:flex-end;padding-right:6px;">
           ${pct > 15 ? `<span style="font-size:10px;font-weight:700;color:#fff;">${f.value}</span>` : ''}
         </div>
