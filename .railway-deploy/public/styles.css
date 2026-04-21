@@ -154,10 +154,11 @@ body {
 }
 
 .sidebar-brand h1 .logo-icon {
-  width: 32px;
-  height: 32px;
+  width: 36px;
+  height: 36px;
   border-radius: 10px;
-  background: linear-gradient(135deg, #4f8ff7, #7c5cfc);
+  background: linear-gradient(135deg, #3b82f6, #2563eb);
+  box-shadow: var(--shadow-md);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -218,12 +219,14 @@ body {
 .nav-item.active {
   background: var(--accent-dim);
   color: var(--accent);
+  box-shadow: inset 3px 0 0 var(--accent);
+  font-weight: 600;
 }
 
 .nav-item .nav-icon {
   width: 18px;
   height: 18px;
-  opacity: 0.7;
+  opacity: 0.85;
   flex-shrink: 0;
 }
 
@@ -250,12 +253,18 @@ body {
 
 .sidebar-footer .status-dot {
   display: inline-block;
-  width: 6px;
-  height: 6px;
+  width: 8px;
+  height: 8px;
   border-radius: 50%;
   background: var(--green);
   margin-right: 6px;
-  box-shadow: 0 0 6px var(--green);
+  box-shadow: 0 0 0 3px var(--green-dim);
+  animation: status-pulse 2s ease-in-out infinite;
+}
+
+@keyframes status-pulse {
+  0%, 100% { box-shadow: 0 0 0 3px var(--green-dim); }
+  50%      { box-shadow: 0 0 0 5px var(--green-dim); }
 }
 
 /* ═══════ MAIN ═══════ */
