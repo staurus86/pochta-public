@@ -204,6 +204,8 @@ function collectDashboardBrands(messages) {
   const counts = new Map();
   const labels = new Map();
   messages.forEach((message) => {
+    const status = message?.pipelineStatus;
+    if (status === "ignored_spam" || status === "ignored_duplicate") return;
     const brands = [
       ...(message?.analysis?.detectedBrands || []),
       ...(message?.analysis?.lead?.detectedBrands || [])
