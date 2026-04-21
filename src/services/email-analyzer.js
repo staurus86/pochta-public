@@ -1283,9 +1283,6 @@ export function analyzeEmail(project, payload) {
   }
   if (!lead.sources) lead.sources = {};
   lead.sources.brands = summarizeSourceList(classification.brandSources || [], (lead.detectedBrands || []).length > 0);
-  hydrateRecognitionSummary(lead, sender);
-  hydrateRecognitionDiagnostics(lead, sender, attachmentAnalysis, classification);
-  hydrateRecognitionDecision(lead, sender, attachmentAnalysis, classification);
 
   // Batch E / P16: final sanitize pass — some paths (form-article injection, tabular
   // fallback) push articles without consulting isObviousArticleNoise. Russian
@@ -1648,6 +1645,16 @@ export function analyzeEmail(project, payload) {
 
   // Post-validate sender fields: normalize INN, fix entity role errors
   const senderCorrections = validateSenderFields(sender);
+
+  // Final recognition summary / diagnostics / decision — recomputed from the FINAL
+  // lead/sender state. Must run AFTER noise filters (which can empty lead.articles /
+  // lineItems / productNames), classification post-correction (which can upgrade to
+  // "Клиент"), and validateSenderFields (which can null out company/fullName).
+  // Otherwise recognitionSummary.article/brand/name/company/inn desyncs from the
+  // actual payload and the UI filter "нет артикула" fires on emails that do have one.
+  hydrateRecognitionSummary(lead, sender);
+  hydrateRecognitionDiagnostics(lead, sender, attachmentAnalysis, classification);
+  hydrateRecognitionDecision(lead, sender, attachmentAnalysis, classification);
 
   // Multi-dimension confidence: classification × entity extraction quality
   // Entity confidence comes from overallConfidence of recognition diagnostics
