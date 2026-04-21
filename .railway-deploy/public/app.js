@@ -3158,19 +3158,19 @@ window.__showIntegrationJson = async (key) => {
   const backdrop = document.createElement('div');
   backdrop.style.cssText = 'position:fixed;inset:0;z-index:9998;background:rgba(0,0,0,0.65);display:flex;align-items:center;justify-content:center;padding:24px;';
   backdrop.innerHTML = `
-    <div style="background:var(--bg-secondary,#1a1d24);border:1px solid var(--border,#2a2e38);border-radius:8px;max-width:1100px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;">
-      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid var(--border,#2a2e38);">
+    <div style="background:#1e293b;border:1px solid #334155;border-radius:12px;max-width:1100px;width:100%;max-height:90vh;display:flex;flex-direction:column;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,0.5);">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 18px;border-bottom:1px solid #334155;background:#1e293b;color:#f1f5f9;">
         <div>
-          <div style="font-weight:600;font-size:14px;">Integration JSON</div>
-          <div style="font-size:11px;color:var(--text-muted);margin-top:2px;">Точный payload, уходящий во внешний API: <code style="font-family:'JetBrains Mono',monospace;color:var(--text-secondary);">GET /api/integration/projects/${esc(pid)}/messages/${esc(key)}</code></div>
+          <div style="font-weight:600;font-size:14px;color:#f8fafc;">Integration JSON</div>
+          <div style="font-size:11px;color:#cbd5e1;margin-top:2px;">Точный payload, уходящий во внешний API: <code style="font-family:'JetBrains Mono',monospace;color:#94a3b8;">GET /api/integration/projects/${esc(pid)}/messages/${esc(key)}</code></div>
         </div>
         <div style="display:flex;gap:8px;">
-          <button class="btn btn-sm" id="__json-copy-btn">Копировать</button>
-          <a class="btn btn-sm" href="${url}" target="_blank" rel="noopener" style="text-decoration:none;">Открыть RAW</a>
+          <button class="btn btn-sm" id="__json-copy-btn" style="background:#334155;color:#f1f5f9;border:1px solid #475569;">Копировать</button>
+          <a class="btn btn-sm" href="${url}" target="_blank" rel="noopener" style="text-decoration:none;background:#334155;color:#f1f5f9;border:1px solid #475569;">Открыть RAW</a>
           <button class="btn btn-sm btn-danger" id="__json-close-btn">Закрыть</button>
         </div>
       </div>
-      <pre id="__json-pre" style="margin:0;padding:16px 18px;overflow:auto;flex:1;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;color:var(--text-primary);background:var(--bg-primary,#0f1117);white-space:pre-wrap;word-break:break-word;"></pre>
+      <pre id="__json-pre" style="margin:0;padding:16px 18px;overflow:auto;flex:1;font-family:'JetBrains Mono',monospace;font-size:11px;line-height:1.5;color:#e2e8f0;background:#0f172a;white-space:pre-wrap;word-break:break-word;"></pre>
     </div>`;
   backdrop.querySelector('#__json-pre').textContent = jsonText;
   document.body.appendChild(backdrop);

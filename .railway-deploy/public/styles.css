@@ -651,7 +651,12 @@ body {
 }
 
 .message-item:hover { background: var(--surface-2); }
-.message-item.active { background: var(--accent-dim); border-left: 3px solid var(--accent); }
+.message-item.active {
+  background: var(--accent-dim);
+  border-left: 4px solid var(--accent);
+  padding-left: 14px;
+}
+.message-item.active .message-from { color: var(--accent-hover); }
 
 .message-from {
   font-size: 13px;
