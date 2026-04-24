@@ -37,6 +37,7 @@ import {
   summarizeIntegrationProblems
 } from "./services/integration-api.js";
 import { LegacyWebhookDispatcher } from "./services/webhook-dispatcher.js";
+import { createSiderusCrmSender } from "./services/siderus-crm-sender.js";
 import { readLlmCache } from "./services/llm-cache.js";
 import { mergeLlmExtraction } from "./services/llm-extractor.js";
 
@@ -150,6 +151,7 @@ const webhookDispatcher = new LegacyWebhookDispatcher({
   intervalMs: Number(process.env.LEGACY_WEBHOOK_INTERVAL_MS || 15000),
   timeoutMs: Number(process.env.LEGACY_WEBHOOK_TIMEOUT_MS || 10000)
 });
+const siderusCrmSender = createSiderusCrmSender(process.env);
 const scheduler = new ProjectScheduler({
   store,
   rootDir,
@@ -451,6 +453,9 @@ async function finalizeProjectRun(job, project, run) {
   }
   if (Array.isArray(run.newMessages) && run.newMessages.length > 0) {
     await webhookDispatcher.enqueueProjectMessages(project.id, run.newMessages);
+    siderusCrmSender?.sendNewMessages(project, run.newMessages).catch((err) =>
+      console.warn("[siderus-crm] batch send error:", err.message)
+    );
   }
   finishBackgroundJob(job, { status: "done", run });
   // SSE notification
