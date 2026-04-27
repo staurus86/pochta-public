@@ -25,12 +25,16 @@ function getQueryClient() {
 
 export function AppShell({ children }: { children: React.ReactNode }) {
   const queryClient = getQueryClient();
+  const [collapsed, setCollapsed] = useState(false);
 
   return (
     <QueryClientProvider client={queryClient}>
       <div className="flex min-h-screen">
-        <Sidebar />
-        <main className="flex-1 ml-56 min-h-screen bg-surface-primary">
+        <Sidebar collapsed={collapsed} onCollapse={setCollapsed} />
+        <main
+          className="flex-1 min-h-screen bg-surface-primary transition-all duration-200"
+          style={{ marginLeft: collapsed ? '4rem' : '14rem' }}
+        >
           <div className="p-6">{children}</div>
         </main>
       </div>

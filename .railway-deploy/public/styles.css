@@ -1252,6 +1252,11 @@ button.sidebar-stat.active {
   cursor: pointer;
 }
 
+/* ═══════ MOBILE FILTER TOGGLE ═══════ */
+@media (max-width: 959px) {
+  #inbox-filter-toggle { display: inline-flex !important; }
+}
+
 /* ═══════ RESPONSIVE ═══════ */
 
 /* 960–1279px: auto-collapse sidebar to icons */

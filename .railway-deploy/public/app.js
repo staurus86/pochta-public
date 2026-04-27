@@ -4144,4 +4144,19 @@ function initSidebarToggle() {
   if (backdrop) {
     backdrop.addEventListener('click', closeMobileSidebar);
   }
+
+  const filterToggleBtn = document.getElementById('inbox-filter-toggle');
+  if (filterToggleBtn) {
+    filterToggleBtn.addEventListener('click', () => {
+      const filtersRow = document.querySelector('.toolbar-filters');
+      if (!filtersRow) return;
+      filtersRow.classList.toggle('mobile-visible');
+      filterToggleBtn.style.background = filtersRow.classList.contains('mobile-visible')
+        ? 'var(--accent-dim)'
+        : '';
+      filterToggleBtn.style.color = filtersRow.classList.contains('mobile-visible')
+        ? 'var(--accent)'
+        : '';
+    });
+  }
 }

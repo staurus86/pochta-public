@@ -14,7 +14,6 @@ import {
   ChevronLeft,
   ChevronRight,
 } from 'lucide-react';
-import { useState } from 'react';
 
 const iconMap: Record<string, React.ElementType> = {
   LayoutDashboard,
@@ -24,9 +23,13 @@ const iconMap: Record<string, React.ElementType> = {
   Settings,
 };
 
-export function Sidebar() {
+interface SidebarProps {
+  collapsed: boolean;
+  onCollapse: (collapsed: boolean) => void;
+}
+
+export function Sidebar({ collapsed, onCollapse }: SidebarProps) {
   const pathname = usePathname();
-  const [collapsed, setCollapsed] = useState(false);
 
   const isActive = (href: string) => {
     if (href === '/') return pathname === '/';
@@ -81,7 +84,7 @@ export function Sidebar() {
       {/* Collapse toggle */}
       <div className="px-2 py-2 border-t border-steel-800 shrink-0">
         <button
-          onClick={() => setCollapsed(!collapsed)}
+          onClick={() => onCollapse(!collapsed)}
           className="steel-sidebar-item w-full justify-center"
         >
           {collapsed ? (

@@ -199,22 +199,22 @@
           </div>
 
           <div class="panel" style="margin-bottom:16px;">
-            <div class="panel-header"><h3>Покрытие Полей</h3></div>
+            <div class="panel-header"><h3>Покрытие полей</h3></div>
             <div class="panel-body" id="field-coverage" style="min-height:120px;"></div>
           </div>
 
           <div class="panel" style="margin-bottom:16px;">
-            <div class="panel-header"><h3>Очередь Проблемных Писем</h3></div>
+            <div class="panel-header"><h3>Очередь проблемных писем</h3></div>
             <div class="panel-body" id="problem-queue" style="min-height:120px;"></div>
           </div>
 
           <div class="panel" style="margin-bottom:16px;">
-            <div class="panel-header"><h3>SLA И Приоритет</h3></div>
+            <div class="panel-header"><h3>SLA и приоритет</h3></div>
             <div class="panel-body" id="sla-queue" style="min-height:120px;"></div>
           </div>
 
           <div class="panel" style="margin-bottom:16px;">
-            <div class="panel-header"><h3>Quality Audit</h3></div>
+            <div class="panel-header"><h3>Контроль качества</h3></div>
             <div class="panel-body no-pad">
               <table class="data-table">
                 <thead><tr><th>Проблема</th><th>Тема</th><th>Отправитель</th><th>Conf.</th><th>Вложения</th><th></th></tr></thead>
@@ -238,6 +238,10 @@
         <div class="page" id="page-inbox">
           <!-- Toolbar Row 1: Actions -->
           <div class="toolbar-actions" style="display:flex;align-items:center;gap:8px;margin-bottom:6px;flex-wrap:wrap;">
+            <button class="btn btn-ghost btn-sm" id="inbox-filter-toggle" title="Показать/скрыть фильтры" style="display:none;">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/></svg>
+              Фильтры
+            </button>
             <button class="btn btn-primary" id="inbox-fetch-btn">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
               Получить письма
@@ -423,7 +427,7 @@ https://promsnab.ru</textarea>
               </div>
             </div>
             <div class="panel">
-              <div class="panel-header"><h3>Runtime статус</h3><button class="btn btn-ghost btn-sm" id="p2-refresh-runtime">Обновить</button></div>
+              <div class="panel-header"><h3>Статус запуска</h3><button class="btn btn-ghost btn-sm" id="p2-refresh-runtime">Обновить</button></div>
               <div class="panel-body">
                 <pre id="p2-runtime-result" style="margin:0;padding:16px;background:var(--surface-0);border-radius:var(--radius-sm);color:var(--text-secondary);font-size:12px;font-family:'JetBrains Mono',monospace;overflow:auto;max-height:500px;white-space:pre-wrap;">Загрузка...</pre>
               </div>
@@ -470,7 +474,7 @@ https://promsnab.ru</textarea>
               </div>
             </div>
             <div class="panel">
-              <div class="panel-header"><h3>Runtime статус</h3><button class="btn btn-ghost btn-sm" id="p3-refresh-runtime">Обновить</button></div>
+              <div class="panel-header"><h3>Статус запуска</h3><button class="btn btn-ghost btn-sm" id="p3-refresh-runtime">Обновить</button></div>
               <div class="panel-body">
                 <pre id="p3-runtime-result" style="margin:0;padding:16px;background:var(--surface-0);border-radius:var(--radius-sm);color:var(--text-secondary);font-size:12px;font-family:'JetBrains Mono',monospace;overflow:auto;max-height:500px;white-space:pre-wrap;">Загрузка...</pre>
               </div>
@@ -515,7 +519,7 @@ https://promsnab.ru</textarea>
               </div>
             </div>
             <div class="panel">
-              <div class="panel-header"><h3>Runtime статус</h3><button class="btn btn-ghost btn-sm" id="p4-refresh-runtime">Обновить</button></div>
+              <div class="panel-header"><h3>Статус запуска</h3><button class="btn btn-ghost btn-sm" id="p4-refresh-runtime">Обновить</button></div>
               <div class="panel-body">
                 <pre id="p4-runtime-result" style="margin:0;padding:16px;background:var(--surface-0);border-radius:var(--radius-sm);color:var(--text-secondary);font-size:12px;font-family:'JetBrains Mono',monospace;overflow:auto;max-height:500px;white-space:pre-wrap;">Загрузка...</pre>
               </div>
@@ -534,8 +538,8 @@ https://promsnab.ru</textarea>
                   <div class="form-group"><label class="form-label">Почтовый ящик</label><input class="form-input" name="mailbox" placeholder="sales@company.ru" required /></div>
                   <div class="form-group"><label class="form-label">Бренды</label><input class="form-input" name="brands" placeholder="ABB, Schneider Electric" /></div>
                   <div class="form-row">
-                    <div class="form-group"><label class="form-label">МОП</label><input class="form-input" name="defaultMop" /></div>
-                    <div class="form-group"><label class="form-label">МОЗ</label><input class="form-input" name="defaultMoz" /></div>
+                    <div class="form-group"><label class="form-label" title="Менеджер по работе с поставщиками">МОП</label><input class="form-input" name="defaultMop" title="Менеджер по работе с поставщиками" /></div>
+                    <div class="form-group"><label class="form-label" title="Менеджер по работе с заказчиками">МОЗ</label><input class="form-input" name="defaultMoz" title="Менеджер по работе с заказчиками" /></div>
                   </div>
                   <div class="form-group"><label class="form-label">Описание</label><textarea class="form-textarea" name="description" rows="3"></textarea></div>
                   <button type="submit" class="btn btn-primary" style="width:100%">Создать проект</button>

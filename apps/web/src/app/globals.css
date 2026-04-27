@@ -88,7 +88,7 @@
   }
 
   .steel-sidebar-item {
-    @apply flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium
+    @apply relative flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium
            text-steel-400 transition-all duration-150 cursor-pointer
            hover:text-steel-100 hover:bg-steel-800;
   }

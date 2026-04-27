@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { EmailList } from '@/components/email/EmailList';
 import { SearchInput } from '@/components/ui/Input';
 import { Select } from '@/components/ui/Select';
@@ -132,8 +132,12 @@ export default function InboxPage() {
     });
   }, [statusFilter, classFilter, inboxFilter, search]);
 
-  const totalPages = Math.ceil(filtered.length / 20) || 1;
+  const PAGE_SIZE = 20;
+  const totalPages = Math.ceil(filtered.length / PAGE_SIZE) || 1;
+  const paged = filtered.slice((page - 1) * PAGE_SIZE, page * PAGE_SIZE);
   const hasSelection = selectedIds.size > 0;
+
+  useEffect(() => { setPage(1); }, [statusFilter, classFilter, inboxFilter, search]);
 
   return (
     <div className="space-y-4 animate-in">
@@ -240,7 +244,7 @@ export default function InboxPage() {
           />
         ) : (
           <EmailList
-            emails={filtered}
+            emails={paged}
             selectedIds={selectedIds}
             onSelectChange={setSelectedIds}
           />
@@ -251,7 +255,7 @@ export default function InboxPage() {
       {filtered.length > 0 && (
         <div className="flex items-center justify-between">
           <span className="text-xs text-steel-400">
-            Показано {Math.min(filtered.length, 20)} из {filtered.length}
+            Показано {(page - 1) * PAGE_SIZE + 1}–{Math.min(page * PAGE_SIZE, filtered.length)} из {filtered.length}
           </span>
           <div className="flex items-center gap-1">
             <Button
