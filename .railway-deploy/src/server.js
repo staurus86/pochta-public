@@ -37,7 +37,7 @@ import {
   summarizeIntegrationProblems
 } from "./services/integration-api.js";
 import { LegacyWebhookDispatcher } from "./services/webhook-dispatcher.js";
-import { createSiderusCrmSender } from "./services/siderus-crm-sender.js";
+import { createSiderusCrmSender, buildSiderusCrmPayload } from "./services/siderus-crm-sender.js";
 import { readLlmCache } from "./services/llm-cache.js";
 import { mergeLlmExtraction } from "./services/llm-extractor.js";
 
@@ -1708,6 +1708,55 @@ async function handleApi(req, res, url) {
 
     const result = await store.deleteMessage(project.id, decodeURIComponent(messageDeleteMatch[2]));
     return sendJson(res, 200, result);
+  }
+
+  // ── CRM single-send ──
+  const crmSendMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages\/([^/]+)\/crm-send$/);
+  if (req.method === "POST" && crmSendMatch) {
+    if (!siderusCrmSender?.isEnabled()) return sendJson(res, 503, { error: "CRM sender not configured." });
+    const project = await store.getProject(crmSendMatch[1]);
+    if (!project) return sendJson(res, 404, { error: "Project not found." });
+    const messageKey = decodeURIComponent(crmSendMatch[2]);
+    const message = (project.recentMessages || []).find((m) => (m.messageKey || m.id) === messageKey);
+    if (!message) return sendJson(res, 404, { error: "Message not found." });
+    if (message.pipelineStatus !== "ready_for_crm") {
+      return sendJson(res, 400, { error: "Message is not ready_for_crm." });
+    }
+    try {
+      const payload = buildSiderusCrmPayload(project, message);
+      await siderusCrmSender._post(payload);
+      const sentAt = new Date().toISOString();
+      await store.acknowledgeMessageExport(project.id, messageKey, { consumer: "siderus-crm", note: "manual send" });
+      return sendJson(res, 200, { ok: true, sentAt });
+    } catch (err) {
+      return sendJson(res, 502, { error: err.message });
+    }
+  }
+
+  // ── CRM bulk resend ──
+  const crmResendMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/crm-resend$/);
+  if (req.method === "POST" && crmResendMatch) {
+    if (!siderusCrmSender?.isEnabled()) return sendJson(res, 503, { error: "CRM sender not configured." });
+    const project = await store.getProject(crmResendMatch[1]);
+    if (!project) return sendJson(res, 404, { error: "Project not found." });
+    const eligible = (project.recentMessages || []).filter((m) => m.pipelineStatus === "ready_for_crm");
+    const toSend = eligible.filter((m) => !m.integrationExports?.["siderus-crm"]);
+    let sent = 0, skipped = eligible.length - toSend.length, failed = 0;
+    const errors = [];
+    for (const message of toSend) {
+      const key = message.messageKey || message.id;
+      try {
+        const payload = buildSiderusCrmPayload(project, message);
+        await siderusCrmSender._post(payload);
+        await store.acknowledgeMessageExport(project.id, key, { consumer: "siderus-crm", note: "bulk resend" });
+        sent++;
+      } catch (err) {
+        failed++;
+        errors.push({ key, error: err.message });
+      }
+      await new Promise((r) => setTimeout(r, 150));
+    }
+    return sendJson(res, 200, { sent, skipped, failed, total: eligible.length, errors });
   }
 
   const scheduleMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/schedule$/);

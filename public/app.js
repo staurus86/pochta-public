@@ -1021,6 +1021,42 @@ function setupForms() {
   // ═══ CSV Export ═══
   $('#inbox-export-csv-btn').addEventListener('click', exportInboxCsv);
   $('#inbox-export-xlsx-btn').addEventListener('click', exportInboxXlsx);
+
+  $('#inbox-crm-resend-btn').addEventListener('click', async () => {
+    const ready = allRunnerMessages.filter((m) => m.pipelineStatus === 'ready_for_crm');
+    const unsent = ready.filter((m) => !m.integrationExports?.['siderus-crm']);
+    if (unsent.length === 0) { showToast('Все готовые письма уже отправлены в CRM'); return; }
+    if (!confirm(`Отправить ${unsent.length} писем в CRM?\n(${ready.length - unsent.length} уже отправлено, пропустим)`)) return;
+
+    const btn = $('#inbox-crm-resend-btn');
+    btn.disabled = true;
+    btn.textContent = `Отправка…`;
+
+    // Send per project
+    const byProject = {};
+    unsent.forEach((m) => { const pid = m._projectId || P4_ID; (byProject[pid] = byProject[pid] || []).push(m); });
+    let totalSent = 0, totalFailed = 0;
+    for (const [pid, msgs] of Object.entries(byProject)) {
+      // Chunk: bulk resend endpoint handles rate limiting
+      const res = await apiFetch(`/api/projects/${pid}/crm-resend`, { method: 'POST' }).catch(() => null);
+      if (res?.ok) {
+        const data = await res.json();
+        totalSent += data.sent || 0;
+        totalFailed += data.failed || 0;
+        // Mark locally as sent
+        msgs.forEach((m) => {
+          if (!m.integrationExports) m.integrationExports = {};
+          m.integrationExports['siderus-crm'] = { acknowledgedAt: new Date().toISOString(), consumer: 'siderus-crm' };
+        });
+      } else {
+        totalFailed += msgs.length;
+      }
+    }
+    btn.disabled = false;
+    btn.innerHTML = `<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg> Отправить в CRM`;
+    showToast(totalFailed ? `Отправлено: ${totalSent}, ошибок: ${totalFailed}` : `Отправлено ${totalSent} писем в CRM ✓`);
+    renderInbox();
+  });
 }
 
 // ═══════════════════════════════════════════════════════
@@ -2932,6 +2968,7 @@ function renderEmailView(msg, viewEl, detailEl) {
         <div style="display:flex;gap:6px;flex-shrink:0;">
           <button class="btn btn-ghost btn-sm" onclick="window.__showIntegrationJson('${escAttr(msgKey)}')" title="Посмотреть JSON, который уходит в интеграционный API" style="font-family:'JetBrains Mono',monospace;">{ } JSON</button>
           ${msg.pipelineStatus === 'ignored_spam' ? `<button class="btn btn-unspam btn-sm" onclick="window.__unspamMsg('${escAttr(msgKey)}')" title="Перенести на проверку менеджера">↩ На проверку</button>` : ''}
+          ${msg.pipelineStatus === 'ready_for_crm' ? (msg.integrationExports?.['siderus-crm'] ? `<button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green);cursor:default;" disabled title="Отправлено ${msg.integrationExports['siderus-crm'].acknowledgedAt ? fmtDate(msg.integrationExports['siderus-crm'].acknowledgedAt) : ''}">✓ В CRM</button>` : `<button class="btn btn-sm" style="background:var(--green-dim);color:var(--green);border:1px solid var(--green);" onclick="window.__sendToCrm('${escAttr(msgKey)}')" title="Отправить в n8n CRM"><svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="vertical-align:-1px;margin-right:3px;"><path d="M22 2L11 13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/></svg>В CRM</button>`) : ''}
           <button class="btn btn-danger btn-sm" onclick="window.__deleteMsg('${escAttr(msgKey)}')" title="Удалить письмо">Удалить</button>
         </div>
       </div>
@@ -3198,6 +3235,28 @@ window.__showIntegrationJson = async (key) => {
   });
   const onKey = (ev) => { if (ev.key === 'Escape') { close(); document.removeEventListener('keydown', onKey); } };
   document.addEventListener('keydown', onKey);
+};
+
+// Send single message to Siderus CRM via n8n webhook
+window.__sendToCrm = async (key) => {
+  const msg = allRunnerMessages.find((m) => m.messageKey === key);
+  if (!msg) return;
+  const pid = msg._projectId || P4_ID;
+  try {
+    const res = await apiFetch(`/api/projects/${pid}/messages/${encodeURIComponent(key)}/crm-send`, { method: 'POST' });
+    if (!res.ok) {
+      const err = await res.json().catch(() => ({}));
+      showToast('Ошибка отправки: ' + (err.error || res.status), true);
+      return;
+    }
+    const data = await res.json();
+    if (!msg.integrationExports) msg.integrationExports = {};
+    msg.integrationExports['siderus-crm'] = { acknowledgedAt: data.sentAt, consumer: 'siderus-crm' };
+    showToast('Отправлено в CRM ✓');
+    renderInbox();
+  } catch (e) {
+    showToast('Ошибка: ' + e.message, true);
+  }
 };
 
 // ═══ TRAINING handlers ═══
