@@ -9,6 +9,24 @@ function resolveBody(message) {
         || "";
 }
 
+// Filters out measurement specs, size fractions, and transliterated Cyrillic
+// that slip through the analyzer but are not real article codes.
+function isPayloadArticleNoise(article) {
+    if (!article || article.length < 3) return true;
+    const a = article.trim();
+    // Pure measurement: "11mm", "0-500ppm" — digit(s) + short unit, no real code
+    if (/^\d[\d\s.\-]*[a-zA-Z]{1,4}$/.test(a) && !/[A-Z]{3,}/.test(a)) return true;
+    // Size fraction / thread: "5B/10A", "G1/4.1"
+    if (/^[A-Z]?\d+[A-Za-z]*\/\d+[A-Za-z.]*$/.test(a)) return true;
+    // Transliterated Cyrillic: first hyphen/space token is 5+ uppercase-only letters
+    // e.g. "HYTPOMEP HI 18-35-1", "TEPMOCTAT R5THV2", "PYKAB 72609.925.00.850"
+    const firstToken = a.split(/[\s-]/)[0];
+    if (/^[A-Z]{5,}$/.test(firstToken)) return true;
+    // Russian word fragment attached to digit: "16-ti"
+    if (/^\d+-[a-z]{2,}$/.test(a)) return true;
+    return false;
+}
+
 function buildOrderFromMail(lead) {
     const lineItems = lead.lineItems || [];
     const nomenclatureMatches = lead.nomenclatureMatches || [];
@@ -23,9 +41,9 @@ function buildOrderFromMail(lead) {
     }
 
     const structured = lineItems
-        .filter((item) => item.article && !item.article.startsWith("DESC:"))
+        .filter((item) => item.article && !item.article.startsWith("DESC:") && !isPayloadArticleNoise(item.article))
         .map((item) => ({
-            brand: articleBrandMap.get(normalizeArticleCode(item.article).toLowerCase()) || mainBrand,
+            brand: articleBrandMap.get(normalizeArticleCode(item.article).toLowerCase()) || null,
             desc: item.descriptionRu || null,
             item_number: item.article,
             quantity: item.quantity != null ? Number(item.quantity) : null
@@ -34,21 +52,25 @@ function buildOrderFromMail(lead) {
     if (structured.length > 0) return structured;
 
     if ((lead.productNames || []).length > 0) {
-        return lead.productNames.map((p) => ({
-            brand: mainBrand,
-            desc: p.name || null,
-            item_number: p.article,
-            quantity: null
-        }));
+        return lead.productNames
+            .filter((p) => !isPayloadArticleNoise(p.article))
+            .map((p) => ({
+                brand: mainBrand,
+                desc: p.name || null,
+                item_number: p.article,
+                quantity: null
+            }));
     }
 
     if ((lead.articles || []).length > 0) {
-        return lead.articles.map((a) => ({
-            brand: mainBrand,
-            desc: null,
-            item_number: a,
-            quantity: null
-        }));
+        return lead.articles
+            .filter((a) => !isPayloadArticleNoise(a))
+            .map((a) => ({
+                brand: mainBrand,
+                desc: null,
+                item_number: a,
+                quantity: null
+            }));
     }
 
     return [];
