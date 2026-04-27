@@ -14,10 +14,11 @@ function resolveBody(message) {
 function isPayloadArticleNoise(article) {
     if (!article || article.length < 3) return true;
     const a = article.trim();
-    // Pure measurement: "11mm", "0-500ppm" — digit(s) + short unit, no real code
-    if (/^\d[\d\s.\-]*[a-zA-Z]{1,4}$/.test(a) && !/[A-Z]{3,}/.test(a)) return true;
-    // Size fraction / thread: "5B/10A", "G1/4.1"
-    if (/^[A-Z]?\d+[A-Za-z]*\/\d+[A-Za-z.]*$/.test(a)) return true;
+    // Pure measurement: "11mm", "0-500ppm" — digit(s) + lowercase unit only
+    // Uppercase suffix (e.g. "121CT") means it's a real code, not a unit
+    if (/^\d[\d\s.\-]*[a-z]{1,4}$/.test(a)) return true;
+    // Size fraction / thread: "5B/10A", "G1/4.1" — digit ratio or thread size
+    if (/^[A-Z]?\d+[A-Za-z]*\/[\d.]+[A-Za-z]*$/.test(a)) return true;
     // Transliterated Cyrillic: first hyphen/space token is 5+ uppercase-only letters
     // e.g. "HYTPOMEP HI 18-35-1", "TEPMOCTAT R5THV2", "PYKAB 72609.925.00.850"
     const firstToken = a.split(/[\s-]/)[0];
