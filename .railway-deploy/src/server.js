@@ -52,6 +52,8 @@ const host = String(process.env.HOST || "0.0.0.0").trim() || "0.0.0.0";
 const port = Number(process.env.PORT || 3000);
 const jsonBodyLimitBytes = resolveJsonBodyLimit(process.env.LEGACY_MAX_JSON_BODY_BYTES, 64 * 1024);
 const backgroundRole = normalizeBackgroundRole(process.env.LEGACY_BACKGROUND_ROLE || "all");
+const IDLE_SHUTDOWN_MS = Number(process.env.IDLE_SHUTDOWN_MINUTES || 0) * 60_000;
+let lastRequestAt = Date.now();
 const envClients = loadIntegrationClients(process.env);
 const BACKGROUND_JOB_TTL_MS = Number(process.env.LEGACY_BACKGROUND_JOB_TTL_MS || 60 * 60 * 1000);
 
@@ -165,6 +167,17 @@ const scheduler = new ProjectScheduler({
 // Background job tracking for long-running tasks
 const backgroundJobs = new Map();
 setInterval(cleanupBackgroundJobs, 10 * 60 * 1000).unref();
+
+// Idle shutdown: exit(0) after IDLE_SHUTDOWN_MINUTES of no user traffic.
+// Railway restartPolicyType=ON_FAILURE will NOT restart on exit(0).
+if (IDLE_SHUTDOWN_MS > 0) {
+  setInterval(() => {
+    if (!isShuttingDown && Date.now() - lastRequestAt > IDLE_SHUTDOWN_MS) {
+      console.log(`[idle-shutdown] No requests for ${process.env.IDLE_SHUTDOWN_MINUTES} min, exiting.`);
+      process.exit(0);
+    }
+  }, 60_000).unref();
+}
 
 // LLM backlog scheduler: every 2 hours, auto-process old messages without llmExtraction
 // Runs only when LLM is enabled and there's no active llm-reanalyze job
@@ -281,6 +294,8 @@ const server = createServer(async (req, res) => {
       });
       return;
     }
+
+    lastRequestAt = Date.now();
 
     if (url.pathname.startsWith("/api/integration/")) {
       await handleIntegrationApi(req, res, url);
@@ -1731,6 +1746,16 @@ async function handleApi(req, res, url) {
     } catch (err) {
       return sendJson(res, 502, { error: err.message });
     }
+  }
+
+  // ── CRM ack-only (mark as sent without re-posting to n8n) ──
+  const crmAckMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages\/([^/]+)\/crm-ack$/);
+  if (req.method === "POST" && crmAckMatch) {
+    const project = await store.getProject(crmAckMatch[1]);
+    if (!project) return sendJson(res, 404, { error: "Project not found." });
+    const messageKey = decodeURIComponent(crmAckMatch[2]);
+    await store.acknowledgeMessageExport(project.id, messageKey, { consumer: "siderus-crm", note: "manual ack" });
+    return sendJson(res, 200, { ok: true, messageKey });
   }
 
   // ── CRM bulk resend ──

@@ -1,4 +1,5 @@
 import { normalizeArticleCode } from "./article-normalizer.js";
+import { Agent, fetch as undiciFetch } from "undici";
 
 function resolveBody(message) {
     const analysis = message.analysis || {};
@@ -114,6 +115,9 @@ export function buildSiderusCrmPayload(project, message) {
     };
 }
 
+// Reused per-instance; rejectUnauthorized:false is scoped only to n8n webhook calls.
+const insecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
+
 export class SiderusCrmSender {
     constructor({ url, authToken, timeoutMs = 10_000, logger = console } = {}) {
         this.url = url;
@@ -144,14 +148,15 @@ export class SiderusCrmSender {
 
     async _post(payload) {
         const body = JSON.stringify(payload);
-        const response = await fetch(this.url, {
+        const response = await undiciFetch(this.url, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json",
                 "Authorization": this.authToken
             },
             body,
-            signal: AbortSignal.timeout(this.timeoutMs)
+            signal: AbortSignal.timeout(this.timeoutMs),
+            dispatcher: insecureAgent
         });
 
         if (!response.ok) {

@@ -1748,6 +1748,16 @@ async function handleApi(req, res, url) {
     }
   }
 
+  // ── CRM ack-only (mark as sent without re-posting to n8n) ──
+  const crmAckMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/messages\/([^/]+)\/crm-ack$/);
+  if (req.method === "POST" && crmAckMatch) {
+    const project = await store.getProject(crmAckMatch[1]);
+    if (!project) return sendJson(res, 404, { error: "Project not found." });
+    const messageKey = decodeURIComponent(crmAckMatch[2]);
+    await store.acknowledgeMessageExport(project.id, messageKey, { consumer: "siderus-crm", note: "manual ack" });
+    return sendJson(res, 200, { ok: true, messageKey });
+  }
+
   // ── CRM bulk resend ──
   const crmResendMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/crm-resend$/);
   if (req.method === "POST" && crmResendMatch) {
