@@ -1,5 +1,8 @@
+import https from "node:https";
 import { normalizeArticleCode } from "./article-normalizer.js";
-import { Agent, fetch as undiciFetch } from "undici";
+
+// n8n test server uses a cert not in Node's bundle; scoped agent for webhook calls only.
+const insecureAgent = new https.Agent({ rejectUnauthorized: false });
 
 function resolveBody(message) {
     const analysis = message.analysis || {};
@@ -115,9 +118,6 @@ export function buildSiderusCrmPayload(project, message) {
     };
 }
 
-// Reused per-instance; rejectUnauthorized:false is scoped only to n8n webhook calls.
-const insecureAgent = new Agent({ connect: { rejectUnauthorized: false } });
-
 export class SiderusCrmSender {
     constructor({ url, authToken, timeoutMs = 10_000, logger = console } = {}) {
         this.url = url;
@@ -148,20 +148,41 @@ export class SiderusCrmSender {
 
     async _post(payload) {
         const body = JSON.stringify(payload);
-        const response = await undiciFetch(this.url, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": this.authToken
-            },
-            body,
-            signal: AbortSignal.timeout(this.timeoutMs),
-            dispatcher: insecureAgent
-        });
+        const parsed = new URL(this.url);
+        const timeoutMs = this.timeoutMs;
+        const authToken = this.authToken;
 
-        if (!response.ok) {
-            throw new Error(`HTTP ${response.status} ${response.statusText}`);
-        }
+        await new Promise((resolve, reject) => {
+            const req = https.request(
+                {
+                    hostname: parsed.hostname,
+                    port: parsed.port || 443,
+                    path: parsed.pathname + parsed.search,
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        Authorization: authToken,
+                        "Content-Length": Buffer.byteLength(body)
+                    },
+                    agent: insecureAgent,
+                    timeout: timeoutMs
+                },
+                (res) => {
+                    res.resume();
+                    res.on("end", () => {
+                        if (res.statusCode >= 200 && res.statusCode < 300) {
+                            resolve();
+                        } else {
+                            reject(new Error(`HTTP ${res.statusCode}`));
+                        }
+                    });
+                }
+            );
+            req.on("timeout", () => { req.destroy(); reject(new Error("Request timeout")); });
+            req.on("error", reject);
+            req.write(body);
+            req.end();
+        });
     }
 }
 
