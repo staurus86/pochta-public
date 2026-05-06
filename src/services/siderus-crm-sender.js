@@ -81,7 +81,25 @@ function buildOrderFromMail(lead) {
     return [];
 }
 
-export function buildSiderusCrmPayload(project, message) {
+function buildAttachmentsForPayload(message, baseUrl = "") {
+    const files = message.attachmentFiles || message.attachments || [];
+    const messageKey = message.messageKey || message.id || "";
+    return files.map((item) => {
+        const filename = typeof item === "string" ? item : (item.filename || item.name || "");
+        const safeName = typeof item === "string" ? item : (item.safeName || filename);
+        const relPath = safeName
+            ? `/api/attachments/${encodeURIComponent(messageKey)}/${encodeURIComponent(safeName)}`
+            : null;
+        return {
+            filename,
+            content_type: typeof item === "string" ? null : (item.contentType || null),
+            size: typeof item === "string" ? null : (item.size || null),
+            download_url: relPath ? `${baseUrl}${relPath}` : null
+        };
+    });
+}
+
+export function buildSiderusCrmPayload(project, message, baseUrl = "") {
     const analysis = message.analysis || {};
     const sender = analysis.sender || {};
     const lead = analysis.lead || {};
@@ -96,6 +114,7 @@ export function buildSiderusCrmPayload(project, message) {
         subject_email: message.subject || "",
         original_markdown: resolveBody(message),
         order_from_mail: buildOrderFromMail(lead),
+        attachments: buildAttachmentsForPayload(message, baseUrl),
 
         // Extended fields
         sender_email: sender.email || message.from || null,
@@ -119,15 +138,20 @@ export function buildSiderusCrmPayload(project, message) {
 }
 
 export class SiderusCrmSender {
-    constructor({ url, authToken, timeoutMs = 10_000, logger = console } = {}) {
+    constructor({ url, authToken, baseUrl = "", timeoutMs = 10_000, logger = console } = {}) {
         this.url = url;
         this.authToken = authToken;
+        this.baseUrl = baseUrl;
         this.timeoutMs = timeoutMs;
         this.logger = logger;
     }
 
     isEnabled() {
         return Boolean(this.url && this.authToken);
+    }
+
+    buildPayload(project, message) {
+        return buildSiderusCrmPayload(project, message, this.baseUrl);
     }
 
     async sendNewMessages(project, messages = []) {
@@ -137,7 +161,7 @@ export class SiderusCrmSender {
         for (const message of eligible) {
             const key = message.messageKey || message.id || "unknown";
             try {
-                const payload = buildSiderusCrmPayload(project, message);
+                const payload = this.buildPayload(project, message);
                 await this._post(payload);
                 this.logger.log(`[siderus-crm] sent ${key}`);
             } catch (err) {
@@ -190,5 +214,7 @@ export function createSiderusCrmSender(env = process.env) {
     const url = String(env.SIDERUS_CRM_WEBHOOK_URL || "").trim();
     const authToken = String(env.SIDERUS_CRM_AUTH_TOKEN || "").trim();
     if (!url || !authToken) return null;
-    return new SiderusCrmSender({ url, authToken });
+    const domain = String(env.RAILWAY_PUBLIC_DOMAIN || "").trim();
+    const baseUrl = domain ? `https://${domain}` : String(env.APP_BASE_URL || "").trim();
+    return new SiderusCrmSender({ url, authToken, baseUrl });
 }

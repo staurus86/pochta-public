@@ -1746,7 +1746,7 @@ async function handleApi(req, res, url) {
       return sendJson(res, 400, { error: "Message is not ready_for_crm." });
     }
     try {
-      const payload = buildSiderusCrmPayload(project, message);
+      const payload = siderusCrmSender.buildPayload(project, message);
       await siderusCrmSender._post(payload);
       const sentAt = new Date().toISOString();
       await store.acknowledgeMessageExport(project.id, messageKey, { consumer: "siderus-crm", note: "manual send" });
@@ -1779,7 +1779,7 @@ async function handleApi(req, res, url) {
     for (const message of toSend) {
       const key = message.messageKey || message.id;
       try {
-        const payload = buildSiderusCrmPayload(project, message);
+        const payload = siderusCrmSender.buildPayload(project, message);
         await siderusCrmSender._post(payload);
         await store.acknowledgeMessageExport(project.id, key, { consumer: "siderus-crm", note: "bulk resend" });
         sent++;
