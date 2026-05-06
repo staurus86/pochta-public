@@ -168,13 +168,13 @@ const scheduler = new ProjectScheduler({
 const backgroundJobs = new Map();
 setInterval(cleanupBackgroundJobs, 10 * 60 * 1000).unref();
 
-// Idle shutdown: exit(0) after IDLE_SHUTDOWN_MINUTES of no user traffic.
-// Railway restartPolicyType=ON_FAILURE will NOT restart on exit(0).
+// Idle shutdown: exit(1) after IDLE_SHUTDOWN_MINUTES of no user traffic.
+// exit(1) so Railway ON_FAILURE policy restarts the service automatically.
 if (IDLE_SHUTDOWN_MS > 0) {
   setInterval(() => {
     if (!isShuttingDown && Date.now() - lastRequestAt > IDLE_SHUTDOWN_MS) {
       console.log(`[idle-shutdown] No requests for ${process.env.IDLE_SHUTDOWN_MINUTES} min, exiting.`);
-      process.exit(0);
+      process.exit(1);
     }
   }, 60_000).unref();
 }
@@ -646,6 +646,14 @@ async function handleApi(req, res, url) {
 
   // ── Global auth gate — all /api/* routes below require a valid token ──
   requireAuth(req);
+
+  // ── Admin: stop outbound dispatching and clear webhook queue ──
+  if (req.method === "POST" && url.pathname === "/api/admin/outbound-flush") {
+    requireAuth(req, ["admin"]);
+    webhookDispatcher.stop();
+    const cleared = await store.clearAllWebhookDeliveries();
+    return sendJson(res, 200, { ok: true, cleared, dispatching: false });
+  }
 
   if (req.method === "GET" && url.pathname === "/api/auth/me") {
     const user = extractAuthUser(req);
