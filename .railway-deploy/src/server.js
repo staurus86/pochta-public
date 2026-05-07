@@ -154,6 +154,9 @@ const webhookDispatcher = new LegacyWebhookDispatcher({
   timeoutMs: Number(process.env.LEGACY_WEBHOOK_TIMEOUT_MS || 10000)
 });
 const siderusCrmSender = createSiderusCrmSender(process.env);
+if (siderusCrmSender) {
+    siderusCrmSender.attachmentToken = managerAuth.createServiceToken();
+}
 const scheduler = new ProjectScheduler({
   store,
   rootDir,

@@ -81,7 +81,7 @@ function buildOrderFromMail(lead) {
     return [];
 }
 
-function buildAttachmentsForPayload(message, baseUrl = "") {
+function buildAttachmentsForPayload(message, baseUrl = "", attachmentToken = "") {
     const files = message.attachmentFiles || message.attachments || [];
     const messageKey = message.messageKey || message.id || "";
     return files.map((item) => {
@@ -90,16 +90,17 @@ function buildAttachmentsForPayload(message, baseUrl = "") {
         const relPath = safeName
             ? `/api/attachments/${encodeURIComponent(messageKey)}/${encodeURIComponent(safeName)}`
             : null;
+        const tokenSuffix = attachmentToken ? `?token=${encodeURIComponent(attachmentToken)}` : "";
         return {
             filename,
             content_type: typeof item === "string" ? null : (item.contentType || null),
             size: typeof item === "string" ? null : (item.size || null),
-            download_url: relPath ? `${baseUrl}${relPath}` : null
+            download_url: relPath ? `${baseUrl}${relPath}${tokenSuffix}` : null
         };
     });
 }
 
-export function buildSiderusCrmPayload(project, message, baseUrl = "") {
+export function buildSiderusCrmPayload(project, message, baseUrl = "", attachmentToken = "") {
     const analysis = message.analysis || {};
     const sender = analysis.sender || {};
     const lead = analysis.lead || {};
@@ -114,7 +115,7 @@ export function buildSiderusCrmPayload(project, message, baseUrl = "") {
         subject_email: message.subject || "",
         original_markdown: resolveBody(message),
         order_from_mail: buildOrderFromMail(lead),
-        attachments: buildAttachmentsForPayload(message, baseUrl),
+        attachments: buildAttachmentsForPayload(message, baseUrl, attachmentToken),
 
         // Extended fields
         sender_email: sender.email || message.from || null,
@@ -138,16 +139,17 @@ export function buildSiderusCrmPayload(project, message, baseUrl = "") {
 }
 
 export class SiderusCrmSender {
-    constructor({ url, authToken, baseUrl = "", timeoutMs = 10_000, logger = console } = {}) {
+    constructor({ url, authToken, baseUrl = "", attachmentToken = "", timeoutMs = 10_000, logger = console } = {}) {
         this.url = url;
         this.authToken = authToken;
         this.baseUrl = baseUrl;
+        this.attachmentToken = attachmentToken;
         this.timeoutMs = timeoutMs;
         this.logger = logger;
     }
 
     buildPayload(project, message) {
-        return buildSiderusCrmPayload(project, message, this.baseUrl);
+        return buildSiderusCrmPayload(project, message, this.baseUrl, this.attachmentToken);
     }
 
     isEnabled() {
