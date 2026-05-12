@@ -217,6 +217,6 @@ export function createSiderusCrmSender(env = process.env) {
     const authToken = String(env.SIDERUS_CRM_AUTH_TOKEN || "").trim();
     if (!url || !authToken) return null;
     const domain = String(env.RAILWAY_PUBLIC_DOMAIN || "").trim();
-    const baseUrl = domain ? `https://${domain}` : String(env.APP_BASE_URL || "").trim();
+    const baseUrl = domain ? `https://${domain}` : String(env.APP_BASE_URL || "https://pochta-production.up.railway.app").trim();
     return new SiderusCrmSender({ url, authToken, baseUrl });
 }

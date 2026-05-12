@@ -1775,8 +1775,10 @@ async function handleApi(req, res, url) {
     if (!siderusCrmSender?.isEnabled()) return sendJson(res, 503, { error: "CRM sender not configured." });
     const project = await store.getProject(crmResendMatch[1]);
     if (!project) return sendJson(res, 404, { error: "Project not found." });
+    const reqBody = await parseRequestJson(req).catch(() => ({}));
+    const force = Boolean(reqBody?.force);
     const eligible = (project.recentMessages || []).filter((m) => m.pipelineStatus === "ready_for_crm");
-    const toSend = eligible.filter((m) => !m.integrationExports?.["siderus-crm"]);
+    const toSend = force ? eligible : eligible.filter((m) => !m.integrationExports?.["siderus-crm"]);
     let sent = 0, skipped = eligible.length - toSend.length, failed = 0;
     const errors = [];
     for (const message of toSend) {
