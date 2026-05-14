@@ -6611,7 +6611,7 @@ function parseTildaFormBody(body) {
   const company = isCompanyLabel(companyRaw) ? null : companyRaw;
   // INN from field OR regex fallback in formSection
   const innFieldRaw = fields["инн"] || fields["инн организации"] || fields["унп"] || null;
-  const innRegexMatch = !innFieldRaw ? formSection.match(/(?:ИНН|УНП|УНН)\s*[:#-]?\s*(\d{9,12})/i) : null;
+  const innRegexMatch = !innFieldRaw ? formSection.match(/(?:ИНН|УНП|УНН)\s*[:#-]?\s*(\d{1,6}(?:\s\d{1,6}){1,3}|\d{9,12})/i) : null;
   const innRaw = innFieldRaw || innRegexMatch?.[1] || null;
   const inn = (!innRaw || isOwnInn(innRaw)) ? null : normalizeInn(innRaw);
 
@@ -6677,7 +6677,7 @@ function parseRobotFormBody(subject, body) {
   const company = (isOwnCompanyData("company", companyRawRobot) || isCompanyLabel(companyRawRobot)) ? null : companyRawRobot;
   // INN: standard, combined ИНН/КПП, "ИНН организации", Беларусь УНП
   const innMatch =
-    formSection.match(/(?:ИНН\s+организации|ИНН\s+клиента|ИНН)(?:\/КПП)?\s*[:#-]?\s*(\d{9,12})/i) ||
+    formSection.match(/(?:ИНН\s+организации|ИНН\s+клиента|ИНН)(?:\/КПП)?\s*[:#-]?\s*(\d{1,6}(?:\s\d{1,6}){1,3}|\d{9,12})/i) ||
     formSection.match(/(?:УНП|УНН)\s*[:#-]?\s*(\d{9})/i);
   const inn = (!innMatch?.[1] || isOwnInn(innMatch[1])) ? null : normalizeInn(innMatch[1]);
 
