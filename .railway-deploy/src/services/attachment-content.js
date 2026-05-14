@@ -224,8 +224,8 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
         const compact = uniqueMatches(extractedText, INN_PATTERN)
           .filter((v) => v.length === 10 || v.length === 12)
           .filter((v) => !v.startsWith("00"));
-        // Also catch labeled INNs with spaces: "ИНН: 7723 388888" (4+6) or "5074 0874 5380" (4+4+4)
-        const INN_LABELED_SPACED = /(?:ИНН|инн|inn)\s*[:#-]?\s*(\d{4}\s\d{6}|\d{4}\s\d{4}\s\d{4})/gi;
+        // Labeled INNs with any spacing: 4+6, 3+3+2+2, 4+4+4, etc. — any 2-4 groups totaling 10 or 12 digits
+        const INN_LABELED_SPACED = /(?:ИНН|инн|inn)\s*[:#-]?\s*(\d{1,6}(?:\s\d{1,6}){1,3})(?!\d)/gi;
         const labeled = Array.from(extractedText.matchAll(INN_LABELED_SPACED))
           .map((m) => m[1].replace(/\s+/g, ""))
           .filter((v) => v.length === 10 || v.length === 12)

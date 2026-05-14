@@ -55,8 +55,8 @@ const PHONE_LIKE_PATTERN = /(?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[
 const PHONE_LABEL_PATTERN = /(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber)\s*[:#-]?\s*((?:\+7|8)[\s(.-]*\d{3,4}[\s).-]*\d{2,3}[\s.-]*\d{2}[\s.-]*\d{2}|\d{3,4}[\s(.-]*\d{2,3}[\s).-]*\d{2}[\s.-]*\d{2}(?!\d))/i;
 const CONTACT_CONTEXT_PATTERN = /\b(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber|email|e-mail|почта)\b/i;
 const IDENTIFIER_CONTEXT_PATTERN = /\b(?:инн|inn|кпп|kpp|огрн|ogrn|request\s*id|order\s*id|ticket\s*id|номер\s*заявки|идентификатор)\b/i;
-// Matches compact 9-12 digits, spaced 4+6 (7723 388888) or 4+4+4 (5074 0874 5380)
-const INN_PATTERN = /(?:ИНН|inn|УНП)(?:\/КПП)?\s*[:#-]?\s*(\d{4}\s\d{6}|\d{4}\s\d{4}\s\d{4}|\d{9,12})/i;
+// Compact 9-12 digits OR any 2-4 space-separated groups totaling 9, 10, or 12 digits
+const INN_PATTERN = /(?:ИНН|inn|УНП)(?:\/КПП)?\s*[:#-]?\s*(\d{1,6}(?:\s\d{1,6}){1,3}|\d{9,12})/i;
 const KPP_PATTERN = /(?:КПП|kpp)\s*[:#-]?\s*(\d{9})/i;
 const OGRN_PATTERN = /(?:ОГРН|ogrn)\s*[:#-]?\s*(\d{13,15})/i;
 const ARTICLE_PATTERN = /(?:арт(?:икул(?:а|у|ом|е|ы|ов|ам|ами|ах)?)?|sku)\s*[:#-]?\s*([A-Za-zА-Яа-яЁё0-9][A-Za-zА-Яа-яЁё0-9\-/_]{2,}(?:[ \t]+[A-Za-z][A-Za-z0-9]{1,15}){0,2})/gi;
