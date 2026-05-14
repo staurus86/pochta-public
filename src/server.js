@@ -154,8 +154,10 @@ const webhookDispatcher = new LegacyWebhookDispatcher({
   timeoutMs: Number(process.env.LEGACY_WEBHOOK_TIMEOUT_MS || 10000)
 });
 const siderusCrmSender = createSiderusCrmSender(process.env);
-if (siderusCrmSender) {
+if (siderusCrmSender && !siderusCrmSender.attachmentToken) {
+    // No ATTACHMENT_API_TOKEN env var → fall back to per-startup JWT service token
     siderusCrmSender.attachmentToken = managerAuth.createServiceToken();
+    console.warn("[crm] ATTACHMENT_API_TOKEN not set — using ephemeral JWT; set it in env for stable URLs");
 }
 const scheduler = new ProjectScheduler({
   store,
@@ -602,10 +604,13 @@ async function handleApi(req, res, url) {
   // cannot send Bearer headers when opening files in new tabs.
   const attachMatch = url.pathname.match(/^\/api\/attachments\/([^/]+)\/(.+)$/);
   if (req.method === "GET" && attachMatch) {
-    // auth: Bearer header OR ?token= query param
+    // auth: Bearer header OR ?token= query param (static ATTACHMENT_API_TOKEN or JWT)
     const attachUser = extractAuthUser(req) || (() => {
       const qt = url.searchParams.get("token");
-      return qt ? managerAuth.verifyToken(qt) : null;
+      if (!qt) return null;
+      const staticToken = process.env.ATTACHMENT_API_TOKEN;
+      if (staticToken && qt === staticToken) return { id: 0, login: "service", role: "service" };
+      return managerAuth.verifyToken(qt);
     })();
     if (!attachUser) return sendJson(res, 401, { error: "Authentication required" });
     const messageKey = decodeURIComponent(attachMatch[1]);

@@ -148,12 +148,12 @@ export class SiderusCrmSender {
         this.logger = logger;
     }
 
-    buildPayload(project, message) {
-        return buildSiderusCrmPayload(project, message, this.baseUrl, this.attachmentToken);
-    }
-
     isEnabled() {
         return Boolean(this.url && this.authToken);
+    }
+
+    buildPayload(project, message) {
+        return buildSiderusCrmPayload(project, message, this.baseUrl, this.attachmentToken);
     }
 
     async sendNewMessages(project, messages = []) {
@@ -218,5 +218,6 @@ export function createSiderusCrmSender(env = process.env) {
     if (!url || !authToken) return null;
     const domain = String(env.RAILWAY_PUBLIC_DOMAIN || "").trim();
     const baseUrl = domain ? `https://${domain}` : String(env.APP_BASE_URL || "https://pochta-production.up.railway.app").trim();
-    return new SiderusCrmSender({ url, authToken, baseUrl });
+    const attachmentToken = String(env.ATTACHMENT_API_TOKEN || "").trim();
+    return new SiderusCrmSender({ url, authToken, baseUrl, attachmentToken });
 }
