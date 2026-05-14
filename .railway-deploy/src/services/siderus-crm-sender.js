@@ -45,10 +45,18 @@ function buildOrderFromMail(lead) {
         }
     }
 
+    const brandFallback = detectedBrands.length === 1 ? mainBrand : null;
+    const seen = new Set();
     const structured = lineItems
         .filter((item) => item.article && !item.article.startsWith("DESC:") && !isPayloadArticleNoise(item.article))
+        .filter((item) => {
+            const key = normalizeArticleCode(item.article).toLowerCase();
+            if (seen.has(key)) return false;
+            seen.add(key);
+            return true;
+        })
         .map((item) => ({
-            brand: articleBrandMap.get(normalizeArticleCode(item.article).toLowerCase()) || null,
+            brand: articleBrandMap.get(normalizeArticleCode(item.article).toLowerCase()) || brandFallback,
             desc: item.descriptionRu || null,
             item_number: item.article,
             quantity: item.quantity != null ? Number(item.quantity) : null

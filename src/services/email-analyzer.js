@@ -82,9 +82,12 @@ const SERIES_MODEL_PATTERN = /\b([A-Z]{2,6})\s+(\d{2,3}(?:[-/.]\d{1,4})?(?:[-/][
 // Numbered list item: "1. Description ARTICLE" or "1) Description ARTICLE"
 const NUMBERED_ITEM_PATTERN = /^\s*\d{1,3}[.)]\s+/;
 // Product line with quantity: "Description - N шт" or "Description - N.NN шт"
-const PRODUCT_QTY_PATTERN = /[—–-]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)?\.?\s*$/i;
+// Plain hyphen (-) requires leading whitespace to avoid matching article-internal hyphens
+// e.g. "201B-6705" must NOT produce qty=6705; "Description - 10 шт" MUST match.
+// Em/en dash (—/–) and equals sign (=) are unambiguous separators and match without space.
+const PRODUCT_QTY_PATTERN = /(?:[—–=]|\s-)\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух|упаковк[аиу]|упаковок)?\.?\s*$/i;
 // Same but allows trailing closing words (Спасибо, Thanks, etc.)
-const PRODUCT_QTY_TRAILING_PATTERN = /[—–-]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\.?(?:\s+[А-Яа-яЁё!.]+)?$/i;
+const PRODUCT_QTY_TRAILING_PATTERN = /(?:[—–=]|\s-)\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух|упаковк[аиу]|упаковок)\.?(?:\s+[А-Яа-яЁё!.]+)?$/i;
 const BRAND_CONTEXT_PATTERN = /\b(?:бренд|brand|производител[ья]|manufacturer|vendor|марка)\b/i;
 const REQUISITES_CONTEXT_PATTERN = /(?:реквизит|карточк[аи]|company details|legal details|ОКПО|ОКТМО|ОКОГУ|ОКАТО|ОКОПФ|ОКФС|ОКВЭД|ИНН|КПП|ОГРН|УНП|УНН)/i;
 const EXTENDED_BRAND_WORD_RE = "A-Za-zÀ-ÿА-Яа-яЁё";
@@ -267,7 +270,7 @@ const ORG_LEGAL_FORM_RE = /(?<![A-Za-zА-Яа-яЁё])(?:ООО|ОАО|ЗАО|А
 
 // Post-validation: fix entity role errors (org in fullName, person in companyName)
 // Boilerplate / service phrases that must never be stored as fullName
-const FULLNAME_STOPLIST = /^(?:письмо\s+(?:сгенерировано|отправлено|создано)|настоящее\s+электронное|это\s+(?:письмо|сообщение|email)\s+(?:не|было|является|отправлено)|email\s+support\s*[\[(]|this\s+(?:email|message|letter|is\s+an?\s+auto)|disclaimer|confidential(?:ity)?|legal\s+notice|unsubscribe|если\s+вы\s+получили|данное\s+(?:письмо|сообщение)\s+является)/i;
+const FULLNAME_STOPLIST = /^(?:письмо\s+(?:сгенерировано|отправлено|создано)|настоящее\s+электронное|это\s+(?:письмо|сообщение|email)\s+(?:не|было|является|отправлено)|email\s+support\s*[\[(]|this\s+(?:email|message|letter|is\s+an?\s+auto)|disclaimer|confidential(?:ity)?|legal\s+notice|unsubscribe|если\s+вы\s+получили|данное\s+(?:письмо|сообщение)\s+является|к\s+вам\s+и\s+вашему|с\s+уважением\s+к\s+вам|всегда\s+рады\s+(?:помочь|вам)|ваш\s+(?:надежный\s+)?(?:партнер|поставщик)|наш\s+девиз)/i;
 
 // Batch J2: job-title stop-words — these phrases mean the value is a position label, not a person name.
 // Matches ТЗ list: менеджер/директор/руководитель/специалист/начальник/генеральный/коммерческий
@@ -5874,6 +5877,10 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   // Safe path: only reject when there is no strong article context ("артикул", "p/n", "mpn" etc.)
   // in the same line, so a real 4-digit catalog code remains extractable when explicitly labeled.
   if (/^(?:19|20)\d{2}$/.test(normalized) && !hasStrongArticleContext) return true;
+  // Hex-encoded text fragments: "01DCD0E7.798C8FB0", "455F6D61696C3A20" — MIME/Unicode byte encoding artifacts.
+  // Pure hex (0-9, A-F) with dot separators or long runs (≥12 hex chars) are never real article codes.
+  // Guard: real codes like "80.364.40.FHN" have non-hex letters (H, N) → won't match.
+  if (/^[0-9A-Fa-f]+(?:\.[0-9A-Fa-f]+)*$/.test(normalized) && normalized.replace(/\./g, "").length >= 12) return true;
   // UUID and UUID fragments: hex chars + dashes, 3+ segments, must contain at least one A-F letter
   // Pure-digit codes like 1114-160-318 are excluded (no hex letters)
   if (/^[0-9A-F-]+$/i.test(normalized) && /[A-Fa-f]/.test(normalized) && !/[G-Zg-z]/.test(normalized)) {

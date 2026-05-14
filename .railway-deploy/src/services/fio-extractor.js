@@ -25,6 +25,9 @@ import {
 // Skip: greeting ("С уважением"), company markers, role-only lines, emails, phones.
 const GREETING_PREFIX_RE = /^(?:с\s+уважением|best\s+regards|regards|thanks|kind\s+regards|sincerely|truly|yours|wbr|br)[,.!\s]*/i;
 const PHONE_LIKE_RE = /^\+?\d[\d\s\-().]{5,}$/;
+// Lines starting with phone-context labels: "Раб. 8(812)...", "Тел.: +7...", "Моб.: ...", "Доб. 123"
+// These are phone/contact lines that start with a word, not a name.
+const PHONE_LABEL_PREFIX_RE = /^(?:раб|тел|моб|факс|доб|mob|tel|fax|phone|direct|office)[\s.:]/i;
 
 function cleanSignatureLine(line) {
     let s = String(line || "").trim();
@@ -43,6 +46,7 @@ function extractNameFromSignature(signature) {
         .filter(Boolean);
     for (const line of lines) {
         if (PHONE_LIKE_RE.test(line)) continue;
+        if (PHONE_LABEL_PREFIX_RE.test(line)) continue;
         if (isEmailLike(line)) continue;
         if (isCompanyLike(line)) continue;
         if (isRoleOnly(line)) continue;
