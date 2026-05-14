@@ -220,9 +220,19 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
       // Requisites files: extract only sender fields (INN/KPP/OGRN). No articles, brands, or line items.
       result.detectedArticles = isRequisitesFile ? [] : detectAttachmentArticles(extractedText);
       result.detectedBrands = isRequisitesFile ? [] : detectionKb.detectBrands(brandScanText, []);
-      result.detectedInn = uniqueMatches(extractedText, INN_PATTERN)
-        .filter((value) => value.length === 10 || value.length === 12)
-        .filter((value) => !value.startsWith("00")); // Real Russian INN never starts with 00 (region code 01-92)
+      result.detectedInn = (() => {
+        const compact = uniqueMatches(extractedText, INN_PATTERN)
+          .filter((v) => v.length === 10 || v.length === 12)
+          .filter((v) => !v.startsWith("00"));
+        // Also catch labeled INNs with spaces: "ИНН: 7723 388888" (4+6) or "5074 0874 5380" (4+4+4)
+        const INN_LABELED_SPACED = /(?:ИНН|инн|inn)\s*[:#-]?\s*(\d{4}\s\d{6}|\d{4}\s\d{4}\s\d{4})/gi;
+        const labeled = Array.from(extractedText.matchAll(INN_LABELED_SPACED))
+          .map((m) => m[1].replace(/\s+/g, ""))
+          .filter((v) => v.length === 10 || v.length === 12)
+          .filter((v) => !v.startsWith("00"));
+        const merged = new Set([...compact, ...labeled]);
+        return [...merged];
+      })();
       result.detectedKpp = uniqueMatches(extractedText, KPP_PATTERN);
       result.detectedOgrn = uniqueMatches(extractedText, OGRN_PATTERN).filter((value) => value.length === 13 || value.length === 15);
       // For tabular files: extract from full text (no row limit) — xlsx can have 400+ positions
