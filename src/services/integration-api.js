@@ -44,6 +44,7 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
   const sender = analysis.sender || {};
   const lead = analysis.lead || {};
   const crm = analysis.crm || {};
+  const intakeFlow = analysis.intakeFlow || {};
   const messageKey = message.messageKey || message.id;
   const updatedAt = resolveMessageUpdatedAt(message);
   const exportState = resolveExportState(message, options.consumerId);
@@ -198,6 +199,20 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
             domain: crm.company.domain || null
           }
         : null
+    },
+    intake_flow: {
+      parse_to_fields: Boolean(intakeFlow.parseToFields),
+      create_client_in_crm: Boolean(intakeFlow.createClientInCrm),
+      create_request_in_crm: Boolean(intakeFlow.createRequestInCrm),
+      requires_review: Boolean(intakeFlow.requiresReview),
+      review_reason: intakeFlow.reviewReason || null,
+      skip_crm_sync: Boolean(intakeFlow.skipCrmSync),
+      is_vendor_inquiry: Boolean(intakeFlow.isVendorInquiry),
+      request_clarification: Boolean(intakeFlow.requestClarification),
+      assign_mop: intakeFlow.assignMop || null,
+      assign_moz: intakeFlow.assignMoz || null,
+      sync_priority: intakeFlow.syncPriority || "normal",
+      flags: intakeFlow.flags || []
     }
   };
 }
