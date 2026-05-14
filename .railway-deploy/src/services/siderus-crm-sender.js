@@ -81,16 +81,27 @@ function buildOrderFromMail(lead) {
     return [];
 }
 
+const DOCUMENT_EXTENSIONS = new Set(["pdf", "xlsx", "xls", "docx", "doc", "csv", "txt", "rtf", "odt", "ods", "pptx", "ppt", "zip", "rar", "7z"]);
+
+function isDocumentAttachment(filename) {
+    const ext = String(filename || "").split(".").pop().toLowerCase();
+    return DOCUMENT_EXTENSIONS.has(ext);
+}
+
 function buildAttachmentsForPayload(message, baseUrl = "", attachmentToken = "") {
-    const files = message.attachmentFiles || message.attachments || [];
+    const allFiles = message.attachmentFiles || message.attachments || [];
+    const files = allFiles.filter((item) => {
+        const filename = typeof item === "string" ? item : (item.filename || item.name || "");
+        return isDocumentAttachment(filename);
+    });
     const messageKey = message.messageKey || message.id || "";
+    const tokenSuffix = attachmentToken ? `?token=${encodeURIComponent(attachmentToken)}` : "";
     return files.map((item) => {
         const filename = typeof item === "string" ? item : (item.filename || item.name || "");
         const safeName = typeof item === "string" ? item : (item.safeName || filename);
         const relPath = safeName
             ? `/api/attachments/${encodeURIComponent(messageKey)}/${encodeURIComponent(safeName)}`
             : null;
-        const tokenSuffix = attachmentToken ? `?token=${encodeURIComponent(attachmentToken)}` : "";
         return {
             filename,
             content_type: typeof item === "string" ? null : (item.contentType || null),
