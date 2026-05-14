@@ -25,7 +25,7 @@ export function isHtmlWordMetadata(token) {
     return false;
 }
 
-const FILENAME_EXT_RE = /\.(?:jpe?g|png|gif|bmp|tiff?|pdf|docx?|xlsx?|pptx?|rtf|csv|txt|zip|rar|7z|html?|xml)(?:$|\.)/i;
+const FILENAME_EXT_RE = /\.(?:jpe?g|png|gif|bmp|tiff?|pdf|docx?|xlsx?|pptx?|rtf|csv|txt|zip|rar|7z|html?|xml|mp4|mov|avi|mkv|wmv|flv|webm|mp3|wav|ogg)(?:$|\.)/i;
 
 export function isFilenameLike(token) {
     if (typeof token !== "string" || !token) return false;
