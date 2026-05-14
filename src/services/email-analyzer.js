@@ -5673,7 +5673,7 @@ const SPEC_NOISE_PATTERNS = [
 // Pipe/thread size and engineering spec patterns — never valid articles
 // PN only matches short specs (PN1-PN999), not article codes like PN2271 (4+ digits)
 // Also covers measurement ranges: 0-16 (pressure), 0-120 (temperature), 0-100, etc.
-const ENGINEERING_SPEC_PATTERN = /^(?:G\s*\d+\/\d+|R\s*\d+\/\d+|Rc\s*\d+\/\d+|Rp\s*\d+\/\d+|DN\s*\d{1,4}|PN\s*\d{1,3}|NPS\s*\d+|ISO\s*[A-Z]?\d+|M\s*\d+(?:x\d+)?|NPT\s*\d*|BSP\s*\d*|0-\d+)$/i;
+const ENGINEERING_SPEC_PATTERN = /^(?:G\s*\d+\/\d+|R\s*\d+\/\d+|Rc\s*\d+\/\d+|Rp\s*\d+\/\d+|DN\s*\d{1,4}|PN\s*\d{1,3}|NPS\s*\d+|ISO\s*[A-Z]?\d+|M\s*\d+(?:x\d+)?|NPT\s*\d*(?:\/\d+)?|BSP\s*\d*(?:\/\d+)?|0-\d+)$/i;
 
 // Ticket/reference number patterns — never valid product articles
 const TICKET_NOISE_PATTERN = /^(?:TK|REQ|INC|SR|CASE|ORD|INV|REF|CHG|PRB|WO|CR|RQ|HD|SD)[-#]\d{3,}$/i;
@@ -5893,6 +5893,12 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   if (/^IP[-\s]?\d{2,3}(?:[-/]\d+)?$/i.test(normalized) && !hasStrongArticleContext) return true;
   // Signal range values: 4-20 (mA), 0-10 (V), 04-20 — technical parameter ranges, not article codes.
   if (/^0?4-20$|^0-10$/.test(normalized)) return true;
+  // Temperature class expressions: T3/T4/T6 — ATEX/IECEx temperature class (not a product article).
+  if (/^T\d+(?:\/T\d+){1,5}$/i.test(normalized)) return true;
+  // Cable gland thread sizes: PG7, PG9, PG11, PG13, PG16, PG21 — DIN 40430 standard connector sizes.
+  if (/^PG\d{1,2}$/.test(normalized)) return true;
+  // Conductivity unit expressions: 1cm-1, 10mCm/cm — measurement range tokens, not articles.
+  if (/^\d+[mkMKμ]?(?:cm|Cm|CM)[-/]\d+$/i.test(normalized)) return true;
   // Mixed-script noise: cyrillic + latin letters in same token after homoglyph transliteration.
   // Real article codes are either all-ASCII (6EP1961-3BA21) or all-Cyrillic (08Х18Н10Т).
   // Mixed = OCR/encoding corruption ("TPAHЗICTOP IRFD9024"), typo units ("1шtуka"),
