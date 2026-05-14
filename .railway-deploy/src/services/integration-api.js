@@ -116,15 +116,20 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
     },
     sender: {
       email: sender.email || null,
+      email_primary: sender.emailPrimary || sender.email || null,
       full_name: sender.fullName || null,
       position: sender.position || null,
+      department: sender.departmentName || null,
       company_name: sender.companyName || null,
       website: sender.website || null,
       city_phone: sender.cityPhone || null,
       mobile_phone: sender.mobilePhone || null,
+      phone_ext: sender.phoneExt || null,
       inn: sender.inn || null,
       kpp: sender.kpp || null,
-      ogrn: sender.ogrn || null
+      ogrn: sender.ogrn || null,
+      legal_card_attached: Boolean(sender.legalCardAttached),
+      inn_source: sender.sources?.inn || null
     },
     lead: {
       request_type: lead.requestType || null,

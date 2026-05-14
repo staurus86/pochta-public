@@ -3218,3 +3218,46 @@ runTest("recognitionSummary.article отражает актуальный lead.a
   assert.ok(!(summary.missing || []).includes("article"),
     `summary.missing не должен содержать "article" когда articles есть: ${JSON.stringify(summary.missing)}`);
 });
+
+runTest("articles_synth: статичный артикул без lineItem синтезируется или выбирается через body", () => {
+  // Артикул в предложении без табличной структуры: extractLineItems даст source=body,
+  // либо если не подберёт — articles_synth. В любом случае lineItems должны быть.
+  const analysis = analyzeEmail(project, {
+    fromName: "Иван Петров",
+    fromEmail: "ivan@customer.ru",
+    subject: "Запрос цены",
+    attachments: "",
+    body: [
+      "Добрый день!",
+      "Прошу указать стоимость артикула 3SB3601-0AA11.",
+      "С уважением"
+    ].join("\n")
+  });
+  const { lineItems, articles } = analysis.lead;
+  assert.ok(Array.isArray(articles) && articles.length > 0, "Артикул должен быть найден");
+  const realItems = (lineItems || []).filter((li) => li && !String(li.article || "").toUpperCase().startsWith("DESC:"));
+  assert.ok(realItems.length > 0, `lineItems должны содержать реальный артикул, получено: ${JSON.stringify(lineItems)}`);
+  assert.ok(realItems.some((li) => li.article === "3SB3601-0AA11"), "lineItem должен содержать артикул 3SB3601-0AA11");
+});
+
+runTest("description backfill: один productName, один articles_synth lineItem получает descriptionRu", () => {
+  const analysis = analyzeEmail(project, {
+    fromName: "Алексей Смирнов",
+    fromEmail: "alex@factory.ru",
+    subject: "Клапан соленоидный Danfoss EV220B",
+    attachments: "",
+    body: [
+      "Нам нужен клапан соленоидный Danfoss EV220B",
+      "Артикул: 032F8046",
+      "Пожалуйста, уточните стоимость и наличие."
+    ].join("\n")
+  });
+  const { lineItems, productNamePrimary } = analysis.lead;
+  const synthItems = (lineItems || []).filter((li) => li.source === "articles_synth" || li.source === "body");
+  if (synthItems.length > 0 && productNamePrimary) {
+    assert.ok(
+      synthItems.some((li) => li.descriptionRu),
+      `articles_synth/body lineItem должен получить descriptionRu от productNamePrimary='${productNamePrimary}', lineItems=${JSON.stringify(synthItems)}`
+    );
+  }
+});

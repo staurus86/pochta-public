@@ -3186,7 +3186,7 @@ function buildRecognitionDecision(lead, sender, attachmentAnalysis = {}, classif
     suggestion: summarizeDecisionSuggestion(lead, diagnostics),
     triggerSignals,
     pipeline: {
-      bodyArticles: (lead.lineItems || []).filter((item) => String(item.source || "") === "body" && item.article).length,
+      bodyArticles: (lead.lineItems || []).filter((item) => (String(item.source || "") === "body" || String(item.source || "") === "articles_synth") && item.article).length,
       attachmentArticles: (lead.lineItems || []).filter((item) => String(item.source || "").startsWith("attachment:") && item.article).length,
       matchedRuleCount: matchedRules.length,
       processedAttachments: attachmentFiles.filter((file) => file.status === "processed").length
