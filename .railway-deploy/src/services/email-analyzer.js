@@ -5887,6 +5887,12 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
     line && new RegExp(`\\b[${EXTENDED_BRAND_WORD_RE}][${EXTENDED_BRAND_WORD_RE}üöäÜÖÄ-]{2,20}\\s+${escapeRegExp(normalized)}\\b`, "i").test(line)
   );
   if (!normalized) return true;
+  // IP protection ratings: IP54, IP67, IP65-0, IP-65 — ingress protection class, never a product article.
+  // The suffix variant (IP65-0) and hyphen variant (IP-65) bypass STRICT_TECHNICAL_NOISE_PATTERN which
+  // only covers the clean IP\d{1,3} form; catching them here ensures all extraction paths reject them.
+  if (/^IP[-\s]?\d{2,3}(?:[-/]\d+)?$/i.test(normalized) && !hasStrongArticleContext) return true;
+  // Signal range values: 4-20 (mA), 0-10 (V), 04-20 — technical parameter ranges, not article codes.
+  if (/^0?4-20$|^0-10$/.test(normalized)) return true;
   // Mixed-script noise: cyrillic + latin letters in same token after homoglyph transliteration.
   // Real article codes are either all-ASCII (6EP1961-3BA21) or all-Cyrillic (08Х18Н10Т).
   // Mixed = OCR/encoding corruption ("TPAHЗICTOP IRFD9024"), typo units ("1шtуka"),
