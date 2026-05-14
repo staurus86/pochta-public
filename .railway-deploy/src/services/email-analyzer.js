@@ -1646,6 +1646,33 @@ export function analyzeEmail(project, payload) {
           return updated;
         });
       }
+
+      // Back-fill null-qty lineItems from quantitiesClean when possible:
+      // If all real lineItems lack qty but extractQuantities found valid counts,
+      // assign primaryQuantity to each item (covers "1 article with N qty" and
+      // "M articles with same qty" patterns common in industrial emails).
+      if (
+        Array.isArray(lead.lineItems) &&
+        Array.isArray(lead.quantitiesClean) &&
+        lead.quantitiesClean.length > 0 &&
+        lead.primaryQuantity != null
+      ) {
+        const nullQtyItems = lead.lineItems.filter(
+          (li) => li && !String(li.article || "").toUpperCase().startsWith("DESC:") && li.quantity == null
+        );
+        const hasAnyQty = lead.lineItems.some(
+          (li) => li && !String(li.article || "").toUpperCase().startsWith("DESC:") && li.quantity != null
+        );
+        // Only backfill when NO lineItem has a quantity yet (avoid overwriting partial data)
+        if (!hasAnyQty && nullQtyItems.length > 0 && nullQtyItems.length <= 15) {
+          const assignQty = lead.primaryQuantity;
+          const assignUnit = lead.quantityUnit || "шт";
+          lead.lineItems = lead.lineItems.map((li) => {
+            if (!li || String(li.article || "").toUpperCase().startsWith("DESC:") || li.quantity != null) return li;
+            return { ...li, quantity: assignQty, unit: li.unit || assignUnit };
+          });
+        }
+      }
     }
   }
 

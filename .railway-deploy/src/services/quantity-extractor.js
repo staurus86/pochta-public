@@ -196,8 +196,11 @@ export function extractQuantities(input, options = {}) {
     }
 
     // 2. Pre-filter: whole-text phone/date/hours check → reject entirely
+    // Only apply for short single-line inputs (e.g. a single quantity candidate string).
+    // Multi-line email bodies always pass — they are processed line-by-line in step 3.
     const trimmed = text.trim();
-    if (isPhoneLike(trimmed) || isDateLike(trimmed) || isHoursLike(trimmed)) {
+    if (!trimmed.includes("\n") && trimmed.length < 120 &&
+        (isPhoneLike(trimmed) || isDateLike(trimmed) || isHoursLike(trimmed))) {
         return {
             primary: null,
             items: [],
