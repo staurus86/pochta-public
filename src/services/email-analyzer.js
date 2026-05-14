@@ -1708,6 +1708,25 @@ export function analyzeEmail(project, payload) {
           lead.totalPositions = Math.max(lead.totalPositions || 0, synthItems.length);
         }
       }
+
+      // Backfill descriptions in body/articles_synth lineItems when there is exactly one
+      // product name — all articles in the request relate to the same product line.
+      // Avoids incorrect matching when multiple distinct products are listed.
+      if (
+        Array.isArray(lead.lineItems) &&
+        lead.productNamePrimary &&
+        Array.isArray(lead.productNamesClean) &&
+        lead.productNamesClean.length === 1
+      ) {
+        lead.lineItems = lead.lineItems.map((li) => {
+          if (!li || li.descriptionRu || String(li.article || "").toUpperCase().startsWith("DESC:")) return li;
+          const src = li.source || "";
+          if (src === "body" || src === "articles_synth") {
+            return { ...li, descriptionRu: lead.productNamePrimary };
+          }
+          return li;
+        });
+      }
     }
   }
 
