@@ -1673,6 +1673,40 @@ export function analyzeEmail(project, payload) {
           });
         }
       }
+
+      // Synthesize lineItems from articles when lineItems has no real article entries but
+      // articles array is populated. This handles the case where extractLead finds articles
+      // via body-scan patterns (ARTICLE_PATTERN/standalone codes) but extractLineItems did
+      // not find an explicit article+qty structured pair on the same line.
+      if (
+        Array.isArray(lead.articles) &&
+        Array.isArray(lead.lineItems)
+      ) {
+        const realLiCount = lead.lineItems.filter(
+          (li) => li && !String(li.article || "").toUpperCase().startsWith("DESC:")
+        ).length;
+        const realArticles = lead.articles.filter(
+          (a) => a && !String(a).toUpperCase().startsWith("DESC:")
+        );
+        if (realLiCount === 0 && realArticles.length > 0 && realArticles.length <= 20) {
+          const qty = lead.primaryQuantity;
+          const unit = lead.quantityUnit || "шт";
+          const synthItems = realArticles.map((article) => ({
+            article,
+            quantity: qty,
+            unit: unit,
+            descriptionRu: null,
+            source: "articles_synth",
+            explicitArticle: false,
+          }));
+          // Keep any DESC: items that were already there, append synth items
+          const descItems = lead.lineItems.filter(
+            (li) => li && String(li.article || "").toUpperCase().startsWith("DESC:")
+          );
+          lead.lineItems = [...synthItems, ...descItems];
+          lead.totalPositions = Math.max(lead.totalPositions || 0, synthItems.length);
+        }
+      }
     }
   }
 
