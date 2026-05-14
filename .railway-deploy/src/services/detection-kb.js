@@ -1817,7 +1817,10 @@ class DetectionKnowledgeBase {
           }
           return ok;
         }
-        const ok = padded.includes(alias);
+        // Also check against punctuation-normalized text so "phoenix contact" matches "phoenix-contact",
+        // "endress hauser" matches "endress+hauser", etc.
+        const paddedNormPunct = ` ${lowered.replace(/[-+_]/g, " ").replace(/\s+/g, " ")} `;
+        const ok = padded.includes(alias) || paddedNormPunct.includes(alias);
         if (ok) {
           const key = String(entry.canonical_brand || "").toLowerCase();
           if (!canonicalAliasHits.has(key)) canonicalAliasHits.set(key, new Set());

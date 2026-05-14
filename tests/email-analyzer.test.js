@@ -319,9 +319,12 @@ runTest("detects brand aliases with punctuation and mixed separators", () => {
     `
   });
 
-  assert.ok(analysis.lead.detectedBrands.includes("R. Stahl"));
-  assert.ok(analysis.lead.detectedBrands.includes("Phoenix Contact"));
-  assert.ok(analysis.lead.detectedBrands.includes("Endress & Hauser"));
+  // Case-insensitive: KB may return "R. Stahl" or "R. STAHL"
+  assert.ok(analysis.lead.detectedBrands.some(b => b.toLowerCase() === "r. stahl"), `R. Stahl not found in ${JSON.stringify(analysis.lead.detectedBrands)}`);
+  // Case-insensitive: KB may return "Phoenix Contact" or "PHOENIX CONTACT"
+  assert.ok(analysis.lead.detectedBrands.some(b => b.toLowerCase() === "phoenix contact"), `Phoenix Contact not found in ${JSON.stringify(analysis.lead.detectedBrands)}`);
+  // KB has both "Endress & Hauser" and "Endress+Hauser" as separate canonicals — accept either
+  assert.ok(analysis.lead.detectedBrands.some(b => /endress.*(hauser|&)/i.test(b) || /hauser.*endress/i.test(b)), `Endress+Hauser brand not found in ${JSON.stringify(analysis.lead.detectedBrands)}`);
 });
 
 runTest("extracts requisites and labeled phones without leaking them into articles", () => {

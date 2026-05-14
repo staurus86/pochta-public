@@ -1170,11 +1170,25 @@ export function analyzeEmail(project, payload) {
         const aliases = kbAliases.get(b.toLowerCase()) || [];
         for (const alias of aliases) {
           if (!alias || alias.length < 3) continue;
-          // For multi-token canonical brands, only trust multi-token aliases.
-          if (isMultiToken && !/\s/.test(alias)) continue;
-          if (new RegExp(`\\b${escapeRegExp(alias)}\\b`, "i").test(groundedLower)) return true;
+          // For multi-token canonical brands, only trust multi-token aliases (raw check).
+          if (!isMultiToken || /\s/.test(alias)) {
+            if (new RegExp(`\\b${escapeRegExp(alias)}\\b`, "i").test(groundedLower)) return true;
+          }
+          // Normalized alias check: handles "Phoenix-Contact" → alias "phoenix contact" via
+          // normalizeComparableText which converts hyphens/plus to spaces.
+          const normAlias = normalizeComparableText(alias).trim();
+          if (/\s/.test(normAlias) && matchesBrand(groundedNormalized, alias)) return true;
         }
       } catch (_) { /* noop — optional KB access */ }
+      // Concat-normalized check: strip punctuation from both canonical brand name and body,
+      // then word-boundary match. Handles RSTAHL→"R. Stahl", Phoenix-Contact→"Phoenix Contact".
+      try {
+        const canonicalConcat = b.toLowerCase().replace(/[-+&.:\s'*]/g, "");
+        if (canonicalConcat.length >= 4) {
+          const bodyConcat = groundedLower.replace(/[-+&.:'*]/g, "");
+          if (new RegExp(`(?:^|\\s)${escapeRegExp(canonicalConcat)}(?:\\s|$)`, "i").test(bodyConcat)) return true;
+        }
+      } catch (_) { /* noop */ }
       // Article-based tie: if a lineItem article resolves to this brand, keep it.
       try {
         const bl = b.toLowerCase();
@@ -6269,7 +6283,20 @@ function detectBrands(text, brands) {
     }
   }
 
-  const projectMatches = (brands || []).filter((brand) => matchesBrand(normalizedText, brand));
+  // Explicitly configured project brands bypass BRAND_FALSE_POSITIVE_ALIASES — the user
+  // deliberately selected these brands. Still require word boundary for single-token brands
+  // to prevent substring matches (e.g. "fisher" in "fishery").
+  const projectMatches = (brands || []).filter((brand) => {
+    const normed = normalizeComparableText(brand).trim();
+    if (!normed) return false;
+    const words = normed.split(/\s+/).filter(Boolean);
+    if (!normalizedText.includes(normed) && words.length > 1) return false;
+    if (words.length === 1) {
+      if (!normalizedText.includes(normed)) return false;
+      return new RegExp(`\\b${escapeRegExp(normed)}\\b`, "i").test(normalizedText);
+    }
+    return matchesBrand(normalizedText, brand);
+  });
   let combined = projectMatches.length > 0
     ? dedupeCaseInsensitive(projectMatches)
     : dedupeCaseInsensitive([...matched]);
