@@ -1732,6 +1732,25 @@ export function analyzeEmail(project, payload) {
           });
         }
       }
+
+      // Post-synthesis nomenclature backfill: articles_synth/body items without descriptions
+      // get their description from nomenclature KB matches when available.
+      // This runs after articles_synth synthesis so KB data reaches synthesized items.
+      if (Array.isArray(lead.lineItems) && Array.isArray(lead.nomenclatureMatches) && lead.nomenclatureMatches.length > 0) {
+        const nomByArticle = new Map(
+          lead.nomenclatureMatches
+            .filter((m) => m?.article)
+            .map((m) => [normalizeArticleCode(m.article), m])
+        );
+        lead.lineItems = lead.lineItems.map((li) => {
+          if (!li || li.descriptionRu) return li;
+          const src = li.source || "";
+          if (src !== "body" && src !== "articles_synth") return li;
+          const match = nomByArticle.get(normalizeArticleCode(li.article || ""));
+          const desc = match?.productName || match?.product_name || match?.description || null;
+          return desc ? { ...li, descriptionRu: desc } : li;
+        });
+      }
     }
   }
 
