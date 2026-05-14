@@ -853,6 +853,29 @@ export class ProjectsStore {
     return project.schedule;
   }
 
+  async listManagerValidations({ projectId, verdict, limit = 500 } = {}) {
+    await this.ensureLoaded();
+    const results = [];
+    for (const project of this.projects) {
+      if (projectId && project.id !== projectId) continue;
+      for (const msg of project.recentMessages || []) {
+        if (!msg.managerValidation) continue;
+        if (verdict && msg.managerValidation.verdict !== verdict) continue;
+        results.push({
+          project_id: project.id,
+          message_key: msg.messageKey || msg.id,
+          subject: msg.subject || "",
+          from: msg.from || "",
+          pipeline_status: msg.pipelineStatus || null,
+          manager_validation: msg.managerValidation
+        });
+        if (results.length >= limit) break;
+      }
+      if (results.length >= limit) break;
+    }
+    return results;
+  }
+
   generateProjectId(baseId) {
     const existing = new Set(this.projects.map((project) => project.id));
     let candidate = baseId || "project";

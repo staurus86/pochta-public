@@ -650,15 +650,19 @@ export class ProjectsStore {
       return null;
     }
 
-    const existingByKey = new Map((project.recentMessages || []).map((item) => [
-      item.messageKey || item.id,
-      {
-        integrationExport: item.integrationExport || null,
-        integrationExports: normalizeIntegrationExports(item)
-      }
-    ]));
+    const existingByKey = new Map((project.recentMessages || [])
+      .filter((item) => item.messageKey || item.id) // E1: skip null-key entries
+      .map((item) => [
+        item.messageKey || item.id,
+        {
+          integrationExport: item.integrationExport || null,
+          integrationExports: normalizeIntegrationExports(item)
+        }
+      ]));
 
-    project.recentMessages = (messages || []).slice(0, 5000).map((item) => {
+    project.recentMessages = (messages || [])
+      .filter((item) => item.messageKey || item.id) // E1: deduplicate — skip messages without key
+      .slice(0, 5000).map((item) => {
       const existing = existingByKey.get(item.messageKey || item.id);
       if (!existing) {
         return {
@@ -847,6 +851,29 @@ export class ProjectsStore {
 
     await this.persist();
     return project.schedule;
+  }
+
+  async listManagerValidations({ projectId, verdict, limit = 500 } = {}) {
+    await this.ensureLoaded();
+    const results = [];
+    for (const project of this.projects) {
+      if (projectId && project.id !== projectId) continue;
+      for (const msg of project.recentMessages || []) {
+        if (!msg.managerValidation) continue;
+        if (verdict && msg.managerValidation.verdict !== verdict) continue;
+        results.push({
+          project_id: project.id,
+          message_key: msg.messageKey || msg.id,
+          subject: msg.subject || "",
+          from: msg.from || "",
+          pipeline_status: msg.pipelineStatus || null,
+          manager_validation: msg.managerValidation
+        });
+        if (results.length >= limit) break;
+      }
+      if (results.length >= limit) break;
+    }
+    return results;
   }
 
   generateProjectId(baseId) {

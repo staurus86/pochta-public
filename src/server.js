@@ -40,6 +40,7 @@ import { LegacyWebhookDispatcher } from "./services/webhook-dispatcher.js";
 import { createSiderusCrmSender, buildSiderusCrmPayload } from "./services/siderus-crm-sender.js";
 import { readLlmCache } from "./services/llm-cache.js";
 import { mergeLlmExtraction } from "./services/llm-extractor.js";
+import { fetchValidationFeedback, normalizeValidationRecord, applyValidationFeedbackToStore, buildValidationStats } from "./services/validation-feedback-sync.js";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -661,6 +662,33 @@ async function handleApi(req, res, url) {
     webhookDispatcher.stop();
     const cleared = await store.clearAllWebhookDeliveries();
     return sendJson(res, 200, { ok: true, cleared, dispatching: false });
+  }
+
+  // ── Manager validation feedback sync ──
+  if (req.method === "POST" && url.pathname === "/api/admin/sync-validation-feedback") {
+    requireAuth(req, ["admin"]);
+    const webhookUrl = process.env.VALIDATION_FEEDBACK_URL || "";
+    const authHeader = process.env.VALIDATION_FEEDBACK_AUTH || "";
+    if (!webhookUrl) return sendJson(res, 503, { error: "VALIDATION_FEEDBACK_URL env not set." });
+    const rawRecords = await fetchValidationFeedback(webhookUrl, authHeader);
+    const records = rawRecords.map(normalizeValidationRecord);
+    const results = await applyValidationFeedbackToStore(store, records);
+    const stats = buildValidationStats(results);
+    return sendJson(res, 200, { ok: true, stats, results });
+  }
+
+  if (req.method === "GET" && url.pathname === "/api/admin/validation-feedback") {
+    requireAuth(req, ["admin"]);
+    const verdict = url.searchParams.get("verdict") || undefined;
+    const projectId = url.searchParams.get("project_id") || undefined;
+    const limit = Math.min(Number(url.searchParams.get("limit") || 200), 500);
+    const data = await store.listManagerValidations({ projectId, verdict, limit });
+    const byVerdict = {};
+    for (const item of data) {
+      const v = item.manager_validation?.verdict || "unknown";
+      byVerdict[v] = (byVerdict[v] || 0) + 1;
+    }
+    return sendJson(res, 200, { data, meta: { total: data.length, byVerdict } });
   }
 
   if (req.method === "GET" && url.pathname === "/api/auth/me") {
