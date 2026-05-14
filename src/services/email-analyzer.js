@@ -5900,6 +5900,9 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   if (/^PG\d{1,2}$/.test(normalized)) return true;
   // Conductivity unit expressions: 1cm-1, 10mCm/cm — measurement range tokens, not articles.
   if (/^\d+[mkMKμ]?(?:cm|Cm|CM)[-/]\d+$/i.test(normalized)) return true;
+  // Calendar dates in article-like formats: 2024.12.10, 2024-12-10, 10.12.2024, 10-12-2024.
+  if (/^20\d{2}[.\-](0[1-9]|1[0-2])[.\-](0[1-9]|[12]\d|3[01])$/.test(normalized)) return true;
+  if (/^(0[1-9]|[12]\d|3[01])[.\-](0[1-9]|1[0-2])[.\-]20\d{2}$/.test(normalized)) return true;
   // Mixed-script noise: cyrillic + latin letters in same token after homoglyph transliteration.
   // Real article codes are either all-ASCII (6EP1961-3BA21) or all-Cyrillic (08Х18Н10Т).
   // Mixed = OCR/encoding corruption ("TPAHЗICTOP IRFD9024"), typo units ("1шtуka"),
