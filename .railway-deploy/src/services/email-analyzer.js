@@ -1709,23 +1709,28 @@ export function analyzeEmail(project, payload) {
         }
       }
 
-      // Backfill descriptions in body/articles_synth lineItems when there is exactly one
-      // product name — all articles in the request relate to the same product line.
-      // Avoids incorrect matching when multiple distinct products are listed.
-      if (
-        Array.isArray(lead.lineItems) &&
-        lead.productNamePrimary &&
-        Array.isArray(lead.productNamesClean) &&
-        lead.productNamesClean.length === 1
-      ) {
-        lead.lineItems = lead.lineItems.map((li) => {
-          if (!li || li.descriptionRu || String(li.article || "").toUpperCase().startsWith("DESC:")) return li;
-          const src = li.source || "";
-          if (src === "body" || src === "articles_synth") {
-            return { ...li, descriptionRu: lead.productNamePrimary };
-          }
-          return li;
-        });
+      // Backfill descriptions in body/articles_synth lineItems from productNamePrimary.
+      // Two cases:
+      //   1. Exactly one clean product name → all undescribed body/synth lineItems get it.
+      //   2. Multiple clean names but only ONE real lineItem → safe to assign the primary.
+      // Multi-product+multi-item is skipped to avoid cross-product mismatches.
+      if (Array.isArray(lead.lineItems) && lead.productNamePrimary && Array.isArray(lead.productNamesClean)) {
+        const cleanCount = lead.productNamesClean.length;
+        const realItems = lead.lineItems.filter(
+          (li) => li && !String(li.article || "").toUpperCase().startsWith("DESC:")
+        );
+        const needsDesc = realItems.filter((li) => !li.descriptionRu && (li.source === "body" || li.source === "articles_synth"));
+        const shouldBackfill = cleanCount === 1 || (realItems.length === 1 && needsDesc.length === 1);
+        if (shouldBackfill && needsDesc.length > 0) {
+          lead.lineItems = lead.lineItems.map((li) => {
+            if (!li || li.descriptionRu || String(li.article || "").toUpperCase().startsWith("DESC:")) return li;
+            const src = li.source || "";
+            if (src === "body" || src === "articles_synth") {
+              return { ...li, descriptionRu: lead.productNamePrimary };
+            }
+            return li;
+          });
+        }
       }
     }
   }
