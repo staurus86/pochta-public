@@ -147,18 +147,26 @@ setInterval(() => {
 
 const integrationClients = getIntegrationClients();
 const store = new ProjectsStore({ dataDir });
+const appBaseUrl = (() => {
+  const domain = String(process.env.RAILWAY_PUBLIC_DOMAIN || "").trim();
+  return domain ? `https://${domain}` : String(process.env.APP_BASE_URL || "https://pochta-production.up.railway.app").trim();
+})();
+const appAttachmentToken = String(process.env.ATTACHMENT_API_TOKEN || "").trim() || managerAuth.createServiceToken();
+if (!process.env.ATTACHMENT_API_TOKEN) {
+  console.warn("[server] ATTACHMENT_API_TOKEN not set — using ephemeral JWT; set it in env for stable attachment URLs");
+}
 const webhookDispatcher = new LegacyWebhookDispatcher({
   store,
   integrationClients,
   logger: console,
+  baseUrl: appBaseUrl,
+  attachmentToken: appAttachmentToken,
   intervalMs: Number(process.env.LEGACY_WEBHOOK_INTERVAL_MS || 15000),
   timeoutMs: Number(process.env.LEGACY_WEBHOOK_TIMEOUT_MS || 10000)
 });
 const siderusCrmSender = createSiderusCrmSender(process.env);
 if (siderusCrmSender && !siderusCrmSender.attachmentToken) {
-    // No ATTACHMENT_API_TOKEN env var → fall back to per-startup JWT service token
-    siderusCrmSender.attachmentToken = managerAuth.createServiceToken();
-    console.warn("[crm] ATTACHMENT_API_TOKEN not set — using ephemeral JWT; set it in env for stable URLs");
+  siderusCrmSender.attachmentToken = appAttachmentToken;
 }
 const scheduler = new ProjectScheduler({
   store,
@@ -1810,9 +1818,11 @@ async function handleApi(req, res, url) {
     if (!project) return sendJson(res, 404, { error: "Project not found." });
     const reqBody = await parseRequestJson(req).catch(() => ({}));
     const force = Boolean(reqBody?.force);
+    const limitN = reqBody?.limit ? Math.max(1, Math.min(500, Number(reqBody.limit))) : null;
     const eligible = (project.recentMessages || []).filter((m) => m.pipelineStatus === "ready_for_crm");
-    const toSend = force ? eligible : eligible.filter((m) => !m.integrationExports?.["siderus-crm"]);
-    let sent = 0, skipped = eligible.length - toSend.length, failed = 0;
+    const candidates = force ? eligible : eligible.filter((m) => !m.integrationExports?.["siderus-crm"]);
+    const toSend = limitN ? candidates.slice(0, limitN) : candidates;
+    let sent = 0, skipped = eligible.length - candidates.length, failed = 0;
     const errors = [];
     for (const message of toSend) {
       const key = message.messageKey || message.id;
@@ -1968,15 +1978,14 @@ async function handleApi(req, res, url) {
 }
 
 async function handleIntegrationApi(req, res, url) {
+  const reqBaseUrl = `${req.headers["x-forwarded-proto"] || "https"}://${req.headers.host}`;
+
   if (req.method === "GET" && (url.pathname === "/api/integration/openapi.json" || url.pathname === "/api/integration/openapi.v1.json")) {
-    return sendJson(res, 200, buildLegacyIntegrationOpenApi({
-      baseUrl: `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`
-    }));
+    return sendJson(res, 200, buildLegacyIntegrationOpenApi({ baseUrl: reqBaseUrl }));
   }
 
   if (req.method === "GET" && (url.pathname === "/api/integration/changelog" || url.pathname === "/api/integration/changelog.v1.json")) {
-    const baseUrl = `${req.headers["x-forwarded-proto"] || "http"}://${req.headers.host}`;
-    return sendJson(res, 200, buildLegacyIntegrationChangelogDocument(baseUrl));
+    return sendJson(res, 200, buildLegacyIntegrationChangelogDocument(reqBaseUrl));
   }
 
   const activeClients = getIntegrationClients();
@@ -2139,7 +2148,9 @@ async function handleIntegrationApi(req, res, url) {
       include: url.searchParams.get("include")
     }, {
       consumerId: currentClient.id,
-      clientPresets: resolveScopedClientPresets(projectId)
+      clientPresets: resolveScopedClientPresets(projectId),
+      baseUrl: reqBaseUrl,
+      attachmentToken: appAttachmentToken
     }));
   }
 
@@ -2294,7 +2305,9 @@ async function handleIntegrationApi(req, res, url) {
       format: url.searchParams.get("format")
     }, {
       consumerId: currentClient.id,
-      clientPresets: resolveScopedClientPresets(projectId)
+      clientPresets: resolveScopedClientPresets(projectId),
+      baseUrl: reqBaseUrl,
+      attachmentToken: appAttachmentToken
     });
 
     return sendText(res, 200, exported.body, {
@@ -2440,7 +2453,9 @@ async function handleIntegrationApi(req, res, url) {
       include_messages: url.searchParams.get("include_messages")
     }, {
       consumerId: currentClient.id,
-      clientPresets: resolveScopedClientPresets(projectId)
+      clientPresets: resolveScopedClientPresets(projectId),
+      baseUrl: reqBaseUrl,
+      attachmentToken: appAttachmentToken
     }));
   }
 
@@ -2460,7 +2475,9 @@ async function handleIntegrationApi(req, res, url) {
       preset: url.searchParams.get("preset")
     }, {
       consumerId: currentClient.id,
-      clientPresets: resolveScopedClientPresets(projectId)
+      clientPresets: resolveScopedClientPresets(projectId),
+      baseUrl: reqBaseUrl,
+      attachmentToken: appAttachmentToken
     });
     if (!thread) {
       return sendJson(res, 404, { error: "Thread not found." });
@@ -2514,7 +2531,7 @@ async function handleIntegrationApi(req, res, url) {
     }
 
     const project = await store.getProject(projectId);
-    return sendJson(res, 200, { data: findIntegrationMessage(project, messageKey, { consumerId: currentClient.id }) });
+    return sendJson(res, 200, { data: findIntegrationMessage(project, messageKey, { consumerId: currentClient.id, baseUrl: reqBaseUrl, attachmentToken: appAttachmentToken }) });
   }
 
   const integrationDeliveriesMatch = url.pathname.match(/^\/api\/integration\/projects\/([^/]+)\/deliveries$/);
@@ -2595,7 +2612,9 @@ async function handleIntegrationApi(req, res, url) {
 
     const message = findIntegrationMessage(project, decodeURIComponent(integrationMessageMatch[2]), {
       consumerId: currentClient.id,
-      include: url.searchParams.get("include")
+      include: url.searchParams.get("include"),
+      baseUrl: reqBaseUrl,
+      attachmentToken: appAttachmentToken
     });
     if (!message) {
       return sendJson(res, 404, { error: "Message not found." });

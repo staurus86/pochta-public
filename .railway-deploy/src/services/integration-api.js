@@ -54,6 +54,9 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
   const recognitionRisk = resolveRecognitionRisk(lead);
   const hasConflicts = Boolean(lead.recognitionSummary?.hasConflicts || (lead.recognitionDiagnostics?.conflicts || []).length > 0);
   const confirmedAt = message.recognitionConfirmed?.at || null;
+  const baseUrl = String(options.baseUrl || "").trim();
+  const attachmentToken = String(options.attachmentToken || "").trim();
+  const tokenSuffix = attachmentToken ? `?token=${encodeURIComponent(attachmentToken)}` : "";
 
   return {
     project_id: project.id,
@@ -94,7 +97,7 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
       if (typeof item === "string") {
         return {
           filename: item,
-          download_url: `/api/attachments/${encodeURIComponent(messageKey)}/${encodeURIComponent(item)}`
+          download_url: `${baseUrl}/api/attachments/${encodeURIComponent(messageKey)}/${encodeURIComponent(item)}${tokenSuffix}`
         };
       }
 
@@ -106,7 +109,7 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
         size: item.size || null,
         safe_name: item.safeName || null,
         download_url: safeName
-          ? `/api/attachments/${encodeURIComponent(messageKey)}/${encodeURIComponent(safeName)}`
+          ? `${baseUrl}/api/attachments/${encodeURIComponent(messageKey)}/${encodeURIComponent(safeName)}${tokenSuffix}`
           : null
       };
     }),
