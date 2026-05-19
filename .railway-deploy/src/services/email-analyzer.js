@@ -1094,7 +1094,8 @@ export function analyzeEmail(project, payload) {
       const desc = cleanup(item.descriptionRu || "");
       if (/^(?:минимальная цена|цена|стоимость|наличие|срок поставки)$/i.test(desc)) return false;
       // Remove DESC: items that are spec/metadata rows (manufacturer, model, brand, type headers)
-      if (/^(?:manufacturer|производитель|поставщик|vendor|supplier|brand|бренд|model\s+number|модель|тип|type|classification|ingress protection|rated voltage)\b/i.test(desc)) return false;
+      // NOTE: \b does not work after Cyrillic; use lookahead (?=[\s,]|$) instead.
+      if (/^(?:manufacturer|производитель|поставщик|vendor|supplier|brand|бренд|model\s+number|модель|тип|type|classification|ingress\s+protection|rated\s+voltage)(?=[\s,.(:]|$)/i.test(desc)) return false;
       return true;
     });
     lead.totalPositions = Math.max(lead.lineItems.length, (lead.articles || []).length);
