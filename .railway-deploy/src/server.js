@@ -1636,7 +1636,7 @@ async function handleApi(req, res, url) {
             },
           };
         }
-        // Strip large text content from attachmentAnalysis files –
+        // Strip large content from attachmentAnalysis files –
         // frontend only needs status/filename/category/extractedChars/detected* for display.
         // Full data available via GET /messages/:key fetched on detail open.
         const attFiles = analysis.attachmentAnalysis?.files;
@@ -1648,10 +1648,19 @@ async function handleApi(req, res, url) {
               files: attFiles.map(({
                 text: _t, articleText: _at, combinedText: _ct, rawText: _rt,
                 content: _c, lines: _l, tokens: _tk,
+                lineItems: _li, preview: _pv, fieldCoverage: _fc,
                 ...fileRest
               }) => fileRest),
             },
           };
+        }
+        // Strip heavy lead sub-fields not needed for inbox list
+        // (articles/brands/requestType/recognitionDecision kept for list display)
+        if (analysis.lead && typeof analysis.lead === "object") {
+          const { lineItems: _ll, nomenclatureMatches: _nm, freeText: _ft,
+            productLineItems: _pli, recognitionDiagnostics: _rd, sources: _ls,
+            ...leadRest } = analysis.lead;
+          analysis = { ...analysis, lead: leadRest };
         }
         // Strip rawInput (full email body stored in analysis) – not shown in inbox list
         const { rawInput: _ri, ...analysisRest } = analysis;
