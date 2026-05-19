@@ -1636,23 +1636,24 @@ async function handleApi(req, res, url) {
             },
           };
         }
-        // Strip large content from attachmentAnalysis files –
-        // frontend only needs status/filename/category/extractedChars/detected* for display.
+        // Strip large content from attachmentAnalysis –
+        // frontend only needs files[status/filename/category/extractedChars/detected*].
         // Full data available via GET /messages/:key fetched on detail open.
-        const attFiles = analysis.attachmentAnalysis?.files;
-        if (Array.isArray(attFiles) && attFiles.length > 0) {
-          analysis = {
-            ...analysis,
-            attachmentAnalysis: {
-              ...analysis.attachmentAnalysis,
-              files: attFiles.map(({
-                text: _t, articleText: _at, combinedText: _ct, rawText: _rt,
-                content: _c, lines: _l, tokens: _tk,
-                lineItems: _li, preview: _pv, fieldCoverage: _fc,
-                ...fileRest
-              }) => fileRest),
-            },
-          };
+        if (analysis.attachmentAnalysis && typeof analysis.attachmentAnalysis === "object") {
+          const {
+            combinedText: _act, articleText: _aat, rawText: _art, text: _att,
+            ...attRest
+          } = analysis.attachmentAnalysis;
+          const attFiles = attRest.files;
+          if (Array.isArray(attFiles) && attFiles.length > 0) {
+            attRest.files = attFiles.map(({
+              text: _t, articleText: _fat, combinedText: _fct, rawText: _rt,
+              content: _c, lines: _l, tokens: _tk,
+              lineItems: _li, preview: _pv, fieldCoverage: _fc,
+              ...fileRest
+            }) => fileRest);
+          }
+          analysis = { ...analysis, attachmentAnalysis: attRest };
         }
         // Strip heavy lead sub-fields not needed for inbox list
         // (articles/brands/requestType/recognitionDecision kept for list display)
