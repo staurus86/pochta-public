@@ -1612,7 +1612,31 @@ async function handleApi(req, res, url) {
       return sendJson(res, 404, { error: "Project not found." });
     }
 
-    return sendJson(res, 200, { messages: project.recentMessages || [] });
+    // Slim response: strip heavy per-message fields not needed for inbox list.
+    // Full message available via GET /messages/:key.
+    const slimMessages = (project.recentMessages || []).map((msg) => {
+      const result = { ...msg };
+      // Trim bodyPreview – 600 chars enough for search + list preview
+      if (typeof result.bodyPreview === "string" && result.bodyPreview.length > 600) {
+        result.bodyPreview = result.bodyPreview.slice(0, 600);
+      }
+      // Strip regex pattern from matchedRules (avg 800B/rule) – inbox only needs .weight
+      const rules = result.analysis?.classification?.signals?.matchedRules;
+      if (Array.isArray(rules) && rules.length > 0) {
+        result.analysis = {
+          ...result.analysis,
+          classification: {
+            ...result.analysis.classification,
+            signals: {
+              ...result.analysis.classification.signals,
+              matchedRules: rules.map(({ pattern: _p, ...rest }) => rest),
+            },
+          },
+        };
+      }
+      return result;
+    });
+    return sendJson(res, 200, { messages: slimMessages });
   }
 
   if (req.method === "DELETE" && messagesMatch) {

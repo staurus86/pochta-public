@@ -416,6 +416,7 @@ let selectedProjectId = null;
 let runnerMessages = [];
 let allRunnerMessages = [];
 let selectedMessageId = null;
+const msgDetailCache = new Map();
 let currentPage = 'dashboard';
 let kbData = null;
 let kbTab = 'rules';
@@ -1089,6 +1090,7 @@ async function refreshAllMailboxMessages() {
     const p3msgs = (r3.messages || []).map((m) => ({ ...m, _projectId: P3_ID }));
     const p4msgs = (r4.messages || []).map((m) => ({ ...m, _projectId: P4_ID }));
     allRunnerMessages = [...p3msgs, ...p4msgs].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    msgDetailCache.clear(); // full messages may be stale after refresh
   } catch {
     allRunnerMessages = [];
   }
@@ -2777,9 +2779,21 @@ function renderInbox() {
 
   // Click handlers
   listEl.querySelectorAll('.message-item').forEach((item) => {
-    item.addEventListener('click', () => {
-      selectedMessageId = item.dataset.mid;
+    item.addEventListener('click', async () => {
+      const mId = item.dataset.mid;
+      const mPid = item.dataset.pid;
+      selectedMessageId = mId;
       markAsRead(selectedMessageId);
+      // Fetch full message for detail panel (list response is slimmed)
+      if (mId && mPid && !msgDetailCache.has(mId)) {
+        try {
+          const r = await fetch(`/api/projects/${mPid}/messages/${encodeURIComponent(mId)}`);
+          if (r.ok) {
+            const d = await r.json();
+            if (d.message) msgDetailCache.set(mId, d.message);
+          }
+        } catch { /* ignore – fallback to slim version */ }
+      }
       renderInbox();
     });
   });
@@ -2950,7 +2964,8 @@ function buildAccordionDetailPanel(msg, a) {
     + actions;
 }
 
-function renderEmailView(msg, viewEl, detailEl) {
+function renderEmailView(slimMsg, viewEl, detailEl) {
+  const msg = msgDetailCache.get(mid(slimMsg)) || slimMsg;
   const a = msg.analysis || {};
   const sender = a.sender || {};
   const lead = a.lead || {};
