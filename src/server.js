@@ -1620,19 +1620,42 @@ async function handleApi(req, res, url) {
       if (typeof result.bodyPreview === "string" && result.bodyPreview.length > 600) {
         result.bodyPreview = result.bodyPreview.slice(0, 600);
       }
-      // Strip regex pattern from matchedRules (avg 800B/rule) – inbox only needs .weight
-      const rules = result.analysis?.classification?.signals?.matchedRules;
-      if (Array.isArray(rules) && rules.length > 0) {
-        result.analysis = {
-          ...result.analysis,
-          classification: {
-            ...result.analysis.classification,
-            signals: {
-              ...result.analysis.classification.signals,
-              matchedRules: rules.map(({ pattern: _p, ...rest }) => rest),
+      if (result.analysis) {
+        let analysis = result.analysis;
+        // Strip regex pattern from matchedRules (avg 800B/rule) – inbox only needs .weight
+        const rules = analysis.classification?.signals?.matchedRules;
+        if (Array.isArray(rules) && rules.length > 0) {
+          analysis = {
+            ...analysis,
+            classification: {
+              ...analysis.classification,
+              signals: {
+                ...analysis.classification.signals,
+                matchedRules: rules.map(({ pattern: _p, ...rest }) => rest),
+              },
             },
-          },
-        };
+          };
+        }
+        // Strip large text content from attachmentAnalysis files –
+        // frontend only needs status/filename/category/extractedChars/detected* for display.
+        // Full data available via GET /messages/:key fetched on detail open.
+        const attFiles = analysis.attachmentAnalysis?.files;
+        if (Array.isArray(attFiles) && attFiles.length > 0) {
+          analysis = {
+            ...analysis,
+            attachmentAnalysis: {
+              ...analysis.attachmentAnalysis,
+              files: attFiles.map(({
+                text: _t, articleText: _at, combinedText: _ct, rawText: _rt,
+                content: _c, lines: _l, tokens: _tk,
+                ...fileRest
+              }) => fileRest),
+            },
+          };
+        }
+        // Strip rawInput (full email body stored in analysis) – not shown in inbox list
+        const { rawInput: _ri, ...analysisRest } = analysis;
+        result.analysis = analysisRest;
       }
       return result;
     });
