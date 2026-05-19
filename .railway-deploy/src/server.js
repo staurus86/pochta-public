@@ -1881,7 +1881,12 @@ async function handleApi(req, res, url) {
       return sendJson(res, 404, { error: "Project not found." });
     }
 
-    return sendJson(res, 200, { project });
+    const MAX_RECENT = 500;
+    const projectView = {
+      ...project,
+      recentMessages: (project.recentMessages || []).slice(-MAX_RECENT),
+    };
+    return sendJson(res, 200, { project: projectView });
   }
 
   // ── CRM Sync ──
