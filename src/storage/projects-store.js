@@ -200,6 +200,22 @@ export class ProjectsStore {
   }
 
   async persist() {
+    // Strip heavy attachment raw text in-place before writing.
+    // combinedText/articleText per attachment can be 200KB+ each — they are
+    // only needed during extraction and are not used for display.
+    for (const project of this.projects) {
+      for (const msg of project.recentMessages || []) {
+        const att = msg?.analysis?.attachmentAnalysis;
+        if (!att) continue;
+        delete att.combinedText; delete att.articleText;
+        delete att.rawText; delete att.text;
+        if (att.files) {
+          for (const f of att.files) {
+            delete f.lineItems; delete f.preview; delete f.fieldCoverage;
+          }
+        }
+      }
+    }
     await writeFile(this.filePath, JSON.stringify(this.projects), "utf-8");
   }
 

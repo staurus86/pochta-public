@@ -200,6 +200,19 @@ export class ProjectsStore {
   }
 
   async persist() {
+    for (const project of this.projects) {
+      for (const msg of project.recentMessages || []) {
+        const att = msg?.analysis?.attachmentAnalysis;
+        if (!att) continue;
+        delete att.combinedText; delete att.articleText;
+        delete att.rawText; delete att.text;
+        if (att.files) {
+          for (const f of att.files) {
+            delete f.lineItems; delete f.preview; delete f.fieldCoverage;
+          }
+        }
+      }
+    }
     await writeFile(this.filePath, JSON.stringify(this.projects), "utf-8");
   }
 
