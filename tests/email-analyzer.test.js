@@ -961,7 +961,7 @@ runTest("extracts article and inn from stored xlsx attachment", () => {
   );
 });
 
-runTest("extracts requisites from legacy doc attachment without OCR", () => {
+runTest("extracts INN from requisites DOC but NOT articles (company card is requisites file)", () => {
   const messageKey = "attach-test-msg-legacy-doc";
   withStoredAttachment(
     messageKey,
@@ -979,7 +979,8 @@ runTest("extracts requisites from legacy doc attachment without OCR", () => {
 
       assert.equal(result.attachmentAnalysis.meta.processedCount, 1);
       assert.equal(result.sender.inn, "7702802784");
-      assert.ok(result.lead.articles.includes("WRD3416"));
+      // Company card = requisites file → articles must NOT be extracted from it (BUG-C02 fix)
+      assert.ok(!result.lead.articles.includes("WRD3416"), "WRD3416 must not leak from company card attachment");
     }
   );
 });

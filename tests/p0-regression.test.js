@@ -218,3 +218,26 @@ test("BUG-B03: quote-marker prefix stripped", () => {
         "ГПС Запрос Rolls-Royce Marine - 2026"
     );
 });
+
+// =====================================================================
+// BUG-C01 — mixed-case bank code "Kb192" passes OCR noise filter
+// isOCRNoise must reject "Kb192" (lowercase 'b' → not a valid SKU pattern)
+// =====================================================================
+import { isOCRNoise } from "../src/services/article-filters.js";
+
+test("BUG-C01: Kb192 (bank code) rejected by OCR noise filter", () => {
+    assert.equal(isOCRNoise("Kb192"), true, "Kb192 must be OCR noise (mixed-case, no dashes)");
+    assert.equal(isOCRNoise("KB192"), false, "KB192 (all-caps) is a valid SKU — must pass");
+    assert.equal(isOCRNoise("kb192"), false, "kb192 (all-lower) has no case transition — must pass");
+});
+
+// =====================================================================
+// BUG-C02 — requisites attachment articleText="" falls through to combinedText
+// article-filters must not let bank codes like "Kb192" into articles even after
+// the || → ?? fix; this unit test covers the isOCRNoise guard specifically.
+// =====================================================================
+test("BUG-C02: rejectArticleCandidate rejects Kb192 as ocr_noise", () => {
+    const result = rejectArticleCandidate("Kb192", { hasLabel: false, sourceLine: "КБ 192" });
+    assert.equal(result.rejected, true, "Kb192 must be rejected");
+    assert.equal(result.reason, "ocr_noise");
+});

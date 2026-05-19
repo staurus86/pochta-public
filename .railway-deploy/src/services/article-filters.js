@@ -158,12 +158,12 @@ export function isOCRNoise(token) {
     // No separator + mixed case transitions (9pnr0X, 8vjolR, Rloe5)
     if (!/[-/.]/.test(t) && transitions >= 1 && t.length <= 10) {
         // Exclude standard SKU patterns like "QIT35033" (2-6 letters then digits)
-        if (!/^[A-Z]{2,6}\d{2,8}[A-Z]{0,6}$/i.test(t)) return true;
+        if (!/^[A-Z]{2,6}\d{2,8}[A-Z]{0,6}$/.test(t)) return true;
     }
 
     // No separator + many type transitions (digit-letter-digit-letter): 9pnr0X, 4a3B2c
     if (!/[-/.]/.test(t) && typeTrans >= 3 && t.length <= 10) {
-        if (!/^[A-Z]{2,6}\d{2,8}[A-Z]{0,6}$/i.test(t)) return true;
+        if (!/^[A-Z]{2,6}\d{2,8}[A-Z]{0,6}$/.test(t)) return true;
     }
 
     // Pure uppercase random "AY3DZAR" (7 chars, letters+digits intermixed, no clear split)

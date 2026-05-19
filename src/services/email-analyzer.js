@@ -914,7 +914,7 @@ export function analyzeEmail(project, payload) {
     payload.attachmentProcessingOptions || {}
   );
   // Use articleText (excludes requisites/invoice files) to prevent INN/ОКПО leaking into articles/quantities
-  const attachmentContent = sanitizeAttachmentText(attachmentAnalysis.articleText || attachmentAnalysis.combinedText || "");
+  const attachmentContent = sanitizeAttachmentText(attachmentAnalysis.articleText ?? "");
   const brandRelevantAttachmentText = buildBrandRelevantAttachmentText(attachmentAnalysis);
 
   // Merge brands detected in attachment content into classification
