@@ -670,7 +670,7 @@ function setupForms() {
                 await refreshProjects();
                 renderDashboard();
                 if (currentPage === 'inbox') renderInbox();
-              }, 2000);
+              }, 6000);
             } else {
               hideReanalyzeProgress();
               alert('Анализ ' + (job.status === 'cancelled' ? 'отменён' : ('завершился с ошибкой: ' + (job.error || ''))));
@@ -1089,10 +1089,14 @@ async function refreshAllMailboxMessages() {
     ]);
     const p3msgs = (r3.messages || []).map((m) => ({ ...m, _projectId: P3_ID }));
     const p4msgs = (r4.messages || []).map((m) => ({ ...m, _projectId: P4_ID }));
-    allRunnerMessages = [...p3msgs, ...p4msgs].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
-    msgDetailCache.clear(); // full messages may be stale after refresh
+    const merged = [...p3msgs, ...p4msgs].sort((a, b) => new Date(b.createdAt || 0) - new Date(a.createdAt || 0));
+    // Don't overwrite existing data with empty results (server may be busy after reanalysis)
+    if (merged.length > 0 || allRunnerMessages.length === 0) {
+      allRunnerMessages = merged;
+      msgDetailCache.clear();
+    }
   } catch {
-    allRunnerMessages = [];
+    // keep allRunnerMessages as-is on error
   }
   showProgress(false);
 
