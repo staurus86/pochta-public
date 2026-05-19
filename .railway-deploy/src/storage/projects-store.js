@@ -200,7 +200,7 @@ export class ProjectsStore {
   }
 
   async persist() {
-    await writeFile(this.filePath, JSON.stringify(this.projects, null, 2), "utf-8");
+    await writeFile(this.filePath, JSON.stringify(this.projects), "utf-8");
   }
 
   async listProjects() {

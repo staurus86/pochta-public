@@ -1323,7 +1323,7 @@ async function handleApi(req, res, url) {
         }
 
         telemetry.batches += 1;
-        if (telemetry.batches % 5 === 0) await store.persist();
+        if (telemetry.batches % 10 === 0) await store.persist();
         if (i + BATCH_SIZE < messages.length) { telemetry.yields += 1; await yieldProcessingLoop(); }
       }
 
