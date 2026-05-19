@@ -29,8 +29,10 @@ import {
 
 // Numeric labels: "Артикул: 152618", "Артикул 34095 34098", "Арт 3610.5533"
 // NOTE: use артикул... first, then арт with lookahead to prevent partial "Арт" match in "Артикул"
+// (?=[^/\d]|$) lookahead: prevents backtracking to shorter prefix when code continues with "/" or more digits.
+// "8579/12-506" → "8579" followed by "/" fails → no partial "857" capture. "42201728" followed by space → OK.
 const LABEL_NUMERIC_RE =
-    /(?:^|[\s(\[])(?:артикул(?:[ау]|ом|е|ы|ов|ам|ами|ах)?|арт(?=[\s.:#№]|$))\.?\s*[:#№]?\s*(\d{3,6}(?:\.\d{1,6})?)(?:[ \t]+(\d{3,6}(?:\.\d{1,6})?))?(?:[ \t]+(\d{3,6}(?:\.\d{1,6})?))?/gi;
+    /(?:^|[\s(\[])(?:артикул(?:[ау]|ом|е|ы|ов|ам|ами|ах)?|арт(?=[\s.:#№]|$))\.?\s*[:#№]?\s*(\d{3,9}(?:\.\d{1,6})?)(?=[^/\d]|$)(?:[ \t]+(\d{3,9}(?:\.\d{1,6})?)(?=[^/\d]|$))?(?:[ \t]+(\d{3,9}(?:\.\d{1,6})?)(?=[^/\d]|$))?/gi;
 
 // Alnum labels: "Part number: DNC-80-PPV-A", "Модель: PEV-W-KL-LED-GH", "Арт R 480316021"
 // NOTE: continuation uses [ \t]+ (no newline) to avoid swallowing next line.
@@ -47,8 +49,8 @@ const SKU_MULTIBLOCK_RE = /(?:^|[\s(\[«"'>,;])([A-Z]{1,3}\s+\d{2,10}(?:[-/]\d{1
 // Dotted: "3610.5533", "88.1.82.9.02", "413415.003-02"
 const SKU_DOTTED_RE = /(?:^|[\s(\[«"'>,;])(\d{2,6}(?:\.\d{1,6}){1,5}(?:[-/]\d{1,6})?)(?=[\s.,;)\]»"'<—]|$)/g;
 
-// Digit-start with separators: "8579/12-506"
-const SKU_DIGIT_START_RE = /(?:^|[\s(\[«"'>,;:])(\d{2,6}(?:[/-]\d{1,6}){1,4}[A-Z0-9]{0,6})(?=[\s.,;)\]»"'<—]|$)/g;
+// Digit-start with separators: "8579/12-506", "9165/16-11-11s" (lowercase suffix allowed)
+const SKU_DIGIT_START_RE = /(?:^|[\s(\[«"'>,;:])(\d{2,6}(?:[/-]\d{1,6}){1,4}[A-Za-z0-9]{0,6})(?=[\s.,;)\]»"'<—]|$)/g;
 
 // Broad: any alnum token with digit or colon (feeds filter pipeline for noise detection)
 const BROAD_TOKEN_RE = /(?:^|[\s(\[«"'>,;])([A-Za-zА-ЯЁ0-9][A-Za-zА-ЯЁ0-9.:_\-/+]{3,50})(?=[\s,;)\]»"'<—]|$)/g;
@@ -210,7 +212,8 @@ function scoreCandidate(candidate) {
     if (candidate.hasLabel) score += 3;
 
     const line = candidate.sourceLine || "";
-    if (/\b(?:part\s*number|mpn|p\/n|pn|арт|артикул)\b/i.test(line)) score += 2;
+    // JS \b is ASCII-only — Cyrillic keywords need explicit boundary check.
+    if (/(?:\b(?:part\s*number|mpn|p\/n|pn)\b|(?:^|[\s(\[,;:.])(?:арт\.?|артикул))/i.test(line)) score += 2;
     if (/\b(?:поз\.?|позиция|наименование|qty|кол-?во|шт)\b/i.test(line)) score += 1;
 
     // Strong formal SKU (letter-number-dashes) bonus

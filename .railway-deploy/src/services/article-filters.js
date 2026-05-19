@@ -184,7 +184,8 @@ export function isOCRNoise(token) {
     return false;
 }
 
-const STRONG_LABEL_RE = /\b(?:part\s*number|manufacturer\s*part\s*number|mpn|p\/n|pn|арт\.?|артикул|каталож(?:ный|ного)\s+номер|код\s+товара)\b/i;
+// JS \b is ASCII-only — Cyrillic keywords need explicit boundary check.
+const STRONG_LABEL_RE = /(?:\b(?:part\s*number|manufacturer\s*part\s*number|mpn|p\/n|pn)\b|(?:^|[\s(\[,;:.])(?:арт\.?|артикул|каталож(?:ный|ного)\s+номер|код\s+товара))/i;
 const PURE_NUMERIC_RE = /^\d+$/;
 
 // BUG-A01 — 10 or 12-digit pure numeric = ИНН shape (юр.лицо / ИП).

@@ -292,7 +292,7 @@ function sanitizeFilename(filename) {
 // Patterns that identify company registration/requisites documents (DOC/DOCX).
 // These contain INN/KPP/OGRN/OKPO/bank details — never product lists.
 // Only sender fields (INN, company, email, name) should be extracted from them.
-const REQUISITES_FILENAME_RE = /реквизит|карточк|карт[аы]?(?:[-_ ]|$)|контрагент|(?:^|[-_ ])(ООО|ОАО|ЗАО|ПАО|ИП|ТОО|LLP|LLC|GmbH)(?:[-_ ]|$)|(?:^|[-_ ])ТК(?:[-_ ]|$)|card|details|банк/i;
+const REQUISITES_FILENAME_RE = /реквиз|карточк|карт[аы]?(?:[-_ ]|$)|контрагент|(?:^|[-_ ])(ООО|ОАО|ЗАО|ПАО|ИП|ТОО|LLP|LLC|GmbH)(?:[-_ ]|$)|(?:^|[-_ ])ТК(?:[-_ ]|$)|card|details|банк/i;
 
 // XLSX/XLS files that are product request sheets — articles, brands, quantities expected
 const PRODUCT_REQUEST_FILENAME_RE = /запрос|заявк[аи]|потребност|тз\b|т\.з\.|техзадан|техническое\s*задание|заказ[^_\w]|заказ$|specification|спецификац/i;
@@ -302,7 +302,7 @@ function categorizeAttachment(filename, ext, contentType) {
   // DOC/DOCX requisites files: company cards, registration details, bank requisites
   if (REQUISITES_FILENAME_RE.test(filename) && [".doc", ".docx", ".pdf"].includes(ext)) return "requisites";
   // Any file with explicit requisites/banking keywords
-  if (/реквизит|карточк|контрагент|банк|details/i.test(lower)) return "requisites";
+  if (/реквиз|карточк|контрагент|банк|details/i.test(lower)) return "requisites";
   if (/сч[её]т|invoice/i.test(lower)) return "invoice";
   // XLSX/XLS product request files — always use full tabular extraction
   if (PRODUCT_REQUEST_FILENAME_RE.test(filename) && [".xlsx", ".xls", ".csv", ".tsv"].includes(ext)) return "product_request";

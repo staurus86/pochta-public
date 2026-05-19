@@ -2662,7 +2662,7 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
       phoneNeedsReview = true;
     }
   }
-  const legalCardAttached = attachments.some((item) => /реквиз|card|details/i.test(item));
+  const legalCardAttached = attachments.some((item) => /реквиз|карточк|контрагент|card|details/i.test(item));
 
   return {
     email: fromEmail,
@@ -4574,6 +4574,16 @@ function sanitizeCompanyName(value) {
   text = text.replace(/\s+от\s+\d[\d.]*\s*(?:г\.?|года?)?$/i, "").trim();
   if (!text) return null;
 
+  // Strip action-verb continuations bled from sentence context ("АО Компания просит рассмотреть...")
+  // Note: \b doesn't work with Cyrillic, so we use \s lookahead instead.
+  text = text.replace(/\s+(?:просит?|запрашивает|рассматривает|рассмотреть|направляет|направить|уведомляет|сообщает|информирует|желает|хотел(?:и)?\s+бы?|обращается|просьба|извещает|предлагает)(?:\s|$)[\s\S]*$/i, "").trim();
+  if (!text) return null;
+
+  // Strip trailing role-word fragments bled from multi-line signature ("ООО «ПТП» Руководи[тель]")
+  // These appear when the signature block runs "ООО X\nРуководитель..." and line-join merges them.
+  text = text.replace(/\s+(?:руководи\w*|менеджер\w*|инженер\w*|начальни\w*|специалист\w*|сотрудни\w*|бухгалтер\w*|секретар\w*|консультант\w*|технолог\w*|закупщик\w*|снабженец\w*)(?:\s[\s\S]*)?$/iu, "").trim();
+  if (!text) return null;
+
   // Reject "ИНН: XXXX" — INN number, not a company name (robot form field bleeding)
   if (/^ИНН\s*[:\s]\s*\d/i.test(text)) return null;
   if (/^ИНН$/i.test(text.trim())) return null;
@@ -4617,9 +4627,9 @@ function sanitizeCompanyName(value) {
   const SPAM_SERVICE_NAMES = new Set(["mailchimp", "unisender", "sendpulse", "getresponse", "sendinblue", "mailerlite"]);
   if (SPAM_SERVICE_NAMES.has(lowerBase)) return null;
 
-  // Reject "ООО [ФИО]" — legal form followed by a person's full name (3 Cyrillic words starting with uppercase)
-  // Happens when signature lines bleed across: "ООО\nИванов Иван Иванович" → "ООО Иванов Иван Иванович"
-  if (/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)\s+[А-ЯЁ][а-яё]{1,20}\s+[А-ЯЁ][а-яё]{1,20}(?:\s+[А-ЯЁ][а-яё]{1,20})?(?:\s+[а-яё]\.?)?$/u.test(text)) return null;
+  // Reject "ООО Иванов Иван Иванович" — legal form + exactly 3 Cyrillic proper words (ФИО).
+  // Requires all 3 name words — "АО Волжский Оргсинтез" (2 words) must NOT be rejected.
+  if (/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)\s+[А-ЯЁ][а-яё]{1,20}\s+[А-ЯЁ][а-яё]{1,20}\s+[А-ЯЁ][а-яё]{1,20}(?:\s+[а-яё]\.?)?$/u.test(text)) return null;
 
   // Reject bare legal-form without any name ("ООО", "АО", "ИП")
   if (/^(?:ООО|АО|ОАО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)$/i.test(text)) return null;
@@ -4906,7 +4916,8 @@ function extractLineItems(body) {
     }
 
     // ── Format: ARTICLE (N штук/шт) ──
-    const parenMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})\s*\((\d+)\s*(штук[аи]?|шт|единиц[аы]?|компл|к-т|пар[аы]?)?\)/i);
+    // Qty in parens limited to 4 digits — "(201270)" is a catalog code, not a qty
+    const parenMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})\s*\((\d{1,4})\s*(штук[аи]?|шт|единиц[аы]?|компл|к-т|пар[аы]?)?\)/i);
     if (parenMatch) {
       items.push({ article: normalizeArticleCode(parenMatch[1]), quantity: Number(parenMatch[2]), unit: parenMatch[3] || "шт", descriptionRu: line, sourceLine: line });
       continue;
@@ -4914,7 +4925,7 @@ function extractLineItems(body) {
 
     // ── Format: ARTICLE — N шт / ARTICLE - N шт (article code THEN dash-qty) ──
     // Also handles trailing closing words: "STA.9461/12-08-11 — 5 шт Спасибо!"
-    const dashMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})\s*[—–-]\s*(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?\.?(?:\s+[А-Яа-яЁё!.]+)?\s*$/i);
+    const dashMatch = line.match(/([A-Za-zА-ЯЁа-яё0-9][-A-Za-zА-ЯЁа-яё0-9/:_]{2,})(?:\s*[—–]\s*|\s+-\s*)(\d+(?:[.,]\d+)?)\s*(шт|штук[аи]?|единиц[аы]?|компл|к-т)?\.?(?:\s+[А-Яа-яЁё!.]+)?\s*$/i);
     if (dashMatch && !VOLTAGE_PATTERN.test(dashMatch[1])) {
       items.push({ article: normalizeArticleCode(dashMatch[1]), quantity: Math.round(parseFloat(dashMatch[2].replace(",", "."))) || 1, unit: dashMatch[3] || "шт", descriptionRu: line, sourceLine: line });
       continue;

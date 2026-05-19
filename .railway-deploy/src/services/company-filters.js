@@ -269,5 +269,7 @@ export function isBadCompany(value) {
     // Letters count too low.
     const letters = (s.match(/\p{L}/gu) || []).length;
     if (letters < 2) return true;
+    // Legal form followed immediately by contact/phone abbreviation — signature line bleed ("АО Тел", "ООО e-mail")
+    if (/^(?:ООО|ОАО|АО|ЗАО|ПАО|ИП|ФГУП|МУП|ГУП)\s*(?:тел\.?|телефон|моб\.?|phone|mobile|e-?mail|email|сайт|www|fax)\.?\s*$/i.test(s)) return true;
     return false;
 }

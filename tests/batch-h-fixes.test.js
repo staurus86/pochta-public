@@ -71,6 +71,27 @@ runTest("senderProfile: brand_hint НЕ применяется если брен
 });
 
 // ------------------------------------------------------------
+// H-C — "АО Волжский Оргсинтез" (2-word company) must NOT be rejected as ФИО
+// ------------------------------------------------------------
+
+runTest("sanitizeCompanyName: 'АО Волжский Оргсинтез' не отбрасывается как ФИО", () => {
+    // Before fix: optional 3rd word in the ФИО regex matched 2-word company names too.
+    // After fix: 3rd word is required — only strict 3-word ФИО ("ООО Иванов Иван Иванович") is rejected.
+    const analysis = analyzeEmail(project, {
+        fromName: "Закупщик",
+        fromEmail: "buyer@volgorgsintez.ru",
+        subject: "Запрос цен",
+        attachments: "",
+        body: "Компания АО Волжский Оргсинтез запрашивает цены на оборудование. Артикул: VG-100, 5 шт."
+    });
+    const company = analysis.sender?.companyName || null;
+    assert.ok(
+        company && /Волжский/i.test(company),
+        `Expected sender.companyName to contain 'Волжский', got: ${JSON.stringify(company)}`
+    );
+});
+
+// ------------------------------------------------------------
 // H3 — truncated UUID filter
 // ------------------------------------------------------------
 

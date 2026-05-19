@@ -33,8 +33,8 @@ function cleanSignatureLine(line) {
     let s = String(line || "").trim();
     if (!s) return "";
     s = s.replace(GREETING_PREFIX_RE, "").trim();
-    // Strip leading "--" separator.
-    s = s.replace(/^-+\s*/, "").trim();
+    // Strip leading "--" or "//" separators used as visual dividers.
+    s = s.replace(/^(?:-+|\/\/)\s*/, "").trim();
     return s;
 }
 
@@ -95,7 +95,9 @@ function nameFromEmailLocal(emailLocal) {
     // All parts must be alpha-ish.
     const allAlpha = parts.every((p) => /^[A-Za-zА-Яа-яЁё]+$/.test(p));
     if (!allAlpha) return null;
-    if (parts.length === 1 && parts[0].length < 3) return null;
+    // Single-word locals (e.g. "verber", "ivanov") are account aliases, not real names.
+    // Only accept multi-part locals like "ivan.petrov" → "Ivan Petrov".
+    if (parts.length < 2) return null;
     return parts.map((p) => p.charAt(0).toUpperCase() + p.slice(1).toLowerCase()).join(" ");
 }
 
@@ -216,7 +218,11 @@ export function extractPersonName(input = {}) {
     // Always evaluate senderDisplay first for rejected-tracking purposes,
     // but use priority cascade (signature > form > body > sender > email_local)
     // when picking the primary.
-    const senderEval = senderDisplay ? evalCandidate(senderDisplay, "sender") : null;
+    // Skip single-word senderDisplay that matches emailLocal — it's an auto-derived alias, not a real name.
+    const senderDisplayIsAlias = senderDisplay && emailLocal &&
+        senderDisplay.split(/\s+/).filter(Boolean).length === 1 &&
+        senderDisplay.trim().toLowerCase() === emailLocal.trim().toLowerCase();
+    const senderEval = (senderDisplay && !senderDisplayIsAlias) ? evalCandidate(senderDisplay, "sender") : null;
 
     // Form fields priority: "ФИО", "Контактное лицо"
     let result = null;
