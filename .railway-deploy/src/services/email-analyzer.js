@@ -342,7 +342,7 @@ function sanitizePersonName(raw) {
 
   // No ORG, no multiline — plain string. Apply length cap only.
   if (trimmed.length > 80) return null;
-  return trimmed;
+  return trimmed.replace(/[,;]+$/, "").trim();
 }
 
 function validateSenderFields(sender) {
@@ -1091,7 +1091,11 @@ export function analyzeEmail(project, payload) {
   if ((lead.articles || []).some((item) => item && !/^DESC:/i.test(String(item)))) {
     lead.lineItems = (lead.lineItems || []).filter((item) => {
       if (!item?.article || !/^DESC:/i.test(String(item.article))) return true;
-      return !/^(?:минимальная цена|цена|стоимость|наличие|срок поставки)$/i.test(cleanup(item.descriptionRu || ""));
+      const desc = cleanup(item.descriptionRu || "");
+      if (/^(?:минимальная цена|цена|стоимость|наличие|срок поставки)$/i.test(desc)) return false;
+      // Remove DESC: items that are spec/metadata rows (manufacturer, model, brand, type headers)
+      if (/^(?:manufacturer|производитель|поставщик|vendor|supplier|brand|бренд|model\s+number|модель|тип|type|classification|ingress protection|rated voltage)\b/i.test(desc)) return false;
+      return true;
     });
     lead.totalPositions = Math.max(lead.lineItems.length, (lead.articles || []).length);
   }
