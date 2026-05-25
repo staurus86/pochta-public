@@ -62,6 +62,21 @@ Email-парсинг платформа для клиента **Siderus**: за�
 - **Прямая интеграция с CRM** — CRM забирает из Directus, не из нашей платформы напрямую
 - **Webhook push в CRM клиента** — только Directus; webhook-dispatcher.js трогать не будем
 
+## Current Milestone: v1.1 Detection Quality Sprint
+
+**Goal:** Устранить ошибки в каждом поле детекции — клиент должен видеть минимум ошибок в письмах, которые попадают в CRM через n8n.
+
+**Target features:**
+- Ручной аудит 50 реальных писем агентами → structured bug report
+- Автоматическая audit-метрика: % писем с правильным ФИО/ИНН/артикулом/брендом/телефоном
+- Контактные данные: ФИО / ИНН / телефон — устранить пропуски и ложные срабатывания
+- Товарная часть: артикулы, бренды, названия товаров, количество — точность и чистота
+- Дедупликация позиций в одном письме
+- Архитектура пайплайна: порядок этапов и логика там где ломает результат
+- LLM отключён — только rule-based улучшения
+
+---
+
 ## Context
 
 **Продукт в production** на Railway (`https://pochta-production.up.railway.app/`), активно используется Siderus. За предыдущие 30+ дней прошло 10 batch-спринтов повышения accuracy (A-J), текущая детект-метрика 97.26% refined accuracy на 1753 Клиент-письмах (batch-level), но MVP-метрика «7/7 полей perfect» значительно ниже — пользователь видит raw productNames, R407CR404A, UUID как артикул.
@@ -116,4 +131,4 @@ This document evolves at phase transitions and milestone boundaries.
 4. Update Context with current state
 
 ---
-*Last updated: 2026-04-19 after initialization (brownfield — existing production system at Siderus)*
+*Last updated: 2026-05-25 — Milestone v1.1 Detection Quality Sprint started*
