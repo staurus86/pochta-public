@@ -38,3 +38,6 @@ lid_without_calc_brand.xlsx
 Рабочий док Бренды_26(new) (1).xlsx
 бренды.txt
 Номенклатура/
+
+# Phase 10 — audit report contains raw email content, do not commit
+data/audit_sample_50_report.json
