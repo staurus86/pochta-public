@@ -52,7 +52,7 @@ Parallel track: `01-detection-fixes` — P0/P1 regression cycle (bugs A01-A06, B
 **Plans**: 3 plans
 Plans:
 - [ ] 10-01-PLAN.md — Build scripts/audit_baseline.py (AUDIT-02 + AUDIT-03)
-- [ ] 10-02-PLAN.md — Build scripts/audit_sample_50.py (AUDIT-01)
+- [x] 10-02-PLAN.md — Build scripts/audit_sample_50.py (AUDIT-01)
 - [ ] 10-03-PLAN.md — Run scripts, persist scripts/baselines/baseline_v1.json, commit
 
 ### Phase 11: Article Foundation
@@ -108,7 +108,7 @@ Plans:
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 10. Audit Baseline | v1.1 | 0/3   | Planned     | - |
+| 10. Audit Baseline | v1.1 | 1/3 | In Progress|  |
 | 11. Article Foundation | v1.1 | 0/TBD | Not started | - |
 | 12. Quantity and INN | v1.1 | 0/TBD | Not started | - |
 | 13. Contact Fields | v1.1 | 0/TBD | Not started | - |
