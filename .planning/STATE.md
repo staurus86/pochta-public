@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Detection Quality Sprint
-status: Ready to execute
-stopped_at: Completed 10-audit-baseline/10-01-PLAN.md
-last_updated: "2026-05-25T20:23:39.459Z"
+status: Phase complete — ready for verification
+stopped_at: Completed 10-audit-baseline/10-03-PLAN.md — Phase 10 complete
+last_updated: "2026-05-25T20:37:33.865Z"
 progress:
   total_phases: 5
-  completed_phases: 0
+  completed_phases: 1
   total_plans: 3
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -43,6 +43,7 @@ Plan: 3 of 3
 *Updated after each plan completion*
 | Phase 10 P02 | 152 | 2 tasks | 1 files |
 | Phase 10-audit-baseline P01 | 3min | 3 tasks | 2 files |
+| Phase 10-audit-baseline P03 | 15min | 5 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -58,6 +59,8 @@ Client reports visible errors in every letter — full-field accuracy is the gap
 - Directus dropped — n8n is the CRM integration layer
 - Deploy: always copy changes to BOTH `src/` and `.railway-deploy/src/`
 - `article-extractor.js` exists but has 0 importers — wiring it is the highest-value single action
+- Baseline sourced from live-prod (300 emails, seed=42); raw_message_ids persisted for phase-delta workflow in 11-14
+- qty.noise=42% is highest noise field — priority target for Phase 11
 
 ### Blockers/Concerns
 
@@ -65,6 +68,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-25T20:23:39.456Z
-Stopped at: Completed 10-audit-baseline/10-01-PLAN.md
+Last session: 2026-05-25T20:37:33.862Z
+Stopped at: Completed 10-audit-baseline/10-03-PLAN.md — Phase 10 complete
 Resume file: None
