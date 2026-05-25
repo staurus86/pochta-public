@@ -1,0 +1,84 @@
+{
+  "version": 1,
+  "created_at": "2026-05-25T20:21:59Z",
+  "sample_size": 30,
+  "sample_seed": 42,
+  "projects": [
+    "project-3-mailbox-file",
+    "project-4-klvrt-mail"
+  ],
+  "source": "local:data\\prod-messages-local-postAudit2.json",
+  "fields": {
+    "fio": {
+      "present": 0.9333,
+      "noise_free": 0.9333,
+      "n": 30
+    },
+    "inn": {
+      "present": 0.7,
+      "noise_free": 0.6667,
+      "n": 30
+    },
+    "phone": {
+      "present": 0.7,
+      "noise_free": 0.7,
+      "n": 30
+    },
+    "article": {
+      "present": 0.6,
+      "noise_free": 0.6,
+      "n": 30
+    },
+    "brand": {
+      "present": 0.7,
+      "noise_free": 0.6667,
+      "n": 30
+    },
+    "qty": {
+      "present": 0.4,
+      "noise_free": 0.2,
+      "n": 30
+    },
+    "product_name": {
+      "present": 0.5667,
+      "noise_free": 0.5667,
+      "n": 30
+    }
+  },
+  "n8n_signal": {
+    "total_with_feedback": 0,
+    "note": "skipped"
+  },
+  "raw_message_ids": [
+    "1ab5a3e59b50ecd125e46522e43563c6d618625e",
+    "776b353cf7bedaba5883afddf92e8c6c143bc30f",
+    "e56dec91f40289253144f0a30188014afa183807",
+    "5312e68c9b0333c79c02352d9c2af5c1574eb8af",
+    "4c9b1a57fc44f38792e04dae6dfc1142640baadb",
+    "4c935a3f6706de271b709d834edc82577d799258",
+    "9630206f8888cf1f114b21855408182dfd42a949",
+    "2c7a9431cd5fc5d3374b04d6012ea0a8f52238d2",
+    "66c1772156eccb15291b2091f483418700c5301a",
+    "f8f6085ecdaf84570f8fca393492036953787e5c",
+    "464bea912018818eb3459e61ff5e455d8be9d637",
+    "d2cd1774b69907a4272699770a235001d26d46bf",
+    "ae29346d4a67392b96af53fdcbc7bc39f1b667fc",
+    "77cfe1e72aacf904241d3ed7fcfdfe3663c29cc3",
+    "ff944c54f5a0408162ec6486d5672fbe4b488f02",
+    "ae0ed5a481abd3d749cd4406d45edd8260506b43",
+    "04d92d29c14be30684a35eecf616c2635fa54ef0",
+    "22b8265754528840c635d702b95508282a52370f",
+    "27cdbf33df28b22b7f8a390bef3fa1936de037ae",
+    "bae7469fb1e11db82c41d1e9c6ac4e099291dc0c",
+    "60bac7bcad1be19be72110b9bce252930ab87ee4",
+    "12c2ffa8b04d12f71bfd17416a578f1a838e0ab9",
+    "a2ed6ef8d9d4137844189ba8eabf1d9477c7c462",
+    "dffa54ebf381bed0ada59e992ad07e06f55f96d4",
+    "8cf53c60bb412b3e37f9989457a30f7b24489bc2",
+    "8944c7667de0f2bce56868d013f61fe293d3e734",
+    "1d4190cf86ffb67115235a36a313f81b01760f1c",
+    "32ece361c9ecf9a4a34e4dfefe6a491b50e41e4e",
+    "43057f6b5478c12f67a40dff039cca1bec621dc7",
+    "175aecc3e86abb7cfedec1b769b9e208bb752b98"
+  ]
+}
