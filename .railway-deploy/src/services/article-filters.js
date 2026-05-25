@@ -11,6 +11,10 @@ const MAILTO_RE = /^mailto:/i;
 const URL_LIKE_RE = /^https?:\/\/|^www\./i;
 const EMAIL_LIKE_RE = /^[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+/;
 
+// ART-02 D-07: UUID v4 and long hex strings (form metadata, tracking tokens)
+const UUID_V4_RE = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
+const LONG_HEX_RE = /^[0-9a-f]{20,}$/i;
+
 export function isHtmlWordMetadata(token) {
     if (typeof token !== "string" || !token) return false;
     const t = token.trim();
@@ -271,6 +275,10 @@ export function rejectArticleCandidate(token, context = {}) {
     if (typeof token !== "string" || !token.trim()) {
         return { rejected: true, reason: "empty" };
     }
+
+    // ART-02 D-07: UUID v4 and long hex strings (form metadata, tracking tokens)
+    if (UUID_V4_RE.test(token.trim())) return { rejected: true, reason: "uuid_or_long_hex" };
+    if (LONG_HEX_RE.test(token.trim())) return { rejected: true, reason: "uuid_or_long_hex" };
 
     if (isHtmlWordMetadata(token)) return { rejected: true, reason: "html_word_meta" };
     if (isHtmlStructureToken(token)) return { rejected: true, reason: "html_structure_token" };
