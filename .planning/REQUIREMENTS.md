@@ -17,8 +17,8 @@
 ### ART — Артикулы и количество
 
 - [x] **ART-01**: Zone-aware `article-extractor.js` подключается в `extractLead()` внутри `email-analyzer.js` вместо 500-строчного inline regex-каскада, устраняя мусор из подписей и цитат
-- [ ] **ART-02**: UUID-токены и form-метаданные (hex 32+ символов, UUID v4) отклоняются как артикулы
-- [ ] **ART-03**: Ключ дедупликации нормализует пробел и дефис — `MD-025-6L` эквивалентен `MD 025-6L`
+- [x] **ART-02**: UUID-токены и form-метаданные (hex 32+ символов, UUID v4) отклоняются как артикулы
+- [x] **ART-03**: Ключ дедупликации нормализует пробел и дефис — `MD-025-6L` эквивалентен `MD 025-6L`
 - [ ] **ART-04**: `positions` равно числу уникальных артикулов, `totalQty` равно сумме количеств по уникальным позициям (Belgormash bug: было 18/7, должно быть 2/5)
 
 ### CONTACT — Контактные данные
@@ -66,8 +66,8 @@
 | AUDIT-02 | Phase 10 | Complete |
 | AUDIT-03 | Phase 10 | Complete |
 | ART-01 | Phase 11 | Complete |
-| ART-02 | Phase 11 | Pending |
-| ART-03 | Phase 11 | Pending |
+| ART-02 | Phase 11 | Complete |
+| ART-03 | Phase 11 | Complete |
 | ART-04 | Phase 12 | Pending |
 | CONTACT-01 | Phase 12 | Pending |
 | CONTACT-02 | Phase 12 | Pending |
