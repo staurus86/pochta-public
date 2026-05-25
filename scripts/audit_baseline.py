@@ -338,11 +338,11 @@ def check_brand(msg, kb_a, kb_s, aliases):
 def check_qty(msg):
     l = (msg.get("analysis") or {}).get("lead") or {}
     arts = article_codes(l.get("articles"))
-    line_items = l.get("lineItems") or []
-    has_any_qty = any(
-        (it.get("quantity") or 0) > 0
-        for it in line_items
-        if isinstance(it, dict)
+    # Live prod stores qty in totalQuantity / quantitiesClean, not lineItems
+    total_qty = l.get("totalQuantity") or 0
+    quantities_clean = l.get("quantitiesClean") or []
+    has_any_qty = (total_qty > 0) or any(
+        (q.get("value") or 0) > 0 for q in quantities_clean if isinstance(q, dict)
     )
     if not arts:
         # No articles → qty not expected; present=False is correct, no noise

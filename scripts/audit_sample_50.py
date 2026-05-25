@@ -370,8 +370,12 @@ def row_brand(msg, kb_a, kb_s, aliases):
 def row_qty(msg):
     l = (msg.get("analysis") or {}).get("lead") or {}
     arts = article_codes(l.get("articles"))
-    line_items = l.get("lineItems") or []
-    total = sum((it.get("quantity") or 0) for it in line_items if isinstance(it, dict))
+    # Live prod stores qty in totalQuantity / quantitiesClean, not lineItems
+    total_qty = l.get("totalQuantity") or 0
+    quantities_clean = l.get("quantitiesClean") or []
+    total = total_qty or sum(
+        (q.get("value") or 0) for q in quantities_clean if isinstance(q, dict)
+    )
     if not arts:
         return {"value": total, "present": False, "noise": False, "noise_reasons": []}
     reasons = []
