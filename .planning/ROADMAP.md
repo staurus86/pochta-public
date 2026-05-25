@@ -49,7 +49,11 @@ Parallel track: `01-detection-fixes` — P0/P1 regression cycle (bugs A01-A06, B
   2. Автоматический audit-скрипт возвращает % корректных значений отдельно по каждому из 7 полей (ФИО, ИНН, телефон, артикул, бренд, кол-во, название товара)
   3. n8n-фидбек менеджера загружен через GET-эндпоинт и отображается в отчёте аудита как дополнительный сигнал
   4. Audit-скрипт запускается повторно после каждого следующего фикса и показывает дельту к baseline
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 10-01-PLAN.md — Build scripts/audit_baseline.py (AUDIT-02 + AUDIT-03)
+- [ ] 10-02-PLAN.md — Build scripts/audit_sample_50.py (AUDIT-01)
+- [ ] 10-03-PLAN.md — Run scripts, persist scripts/baselines/baseline_v1.json, commit
 
 ### Phase 11: Article Foundation
 **Goal**: Артикулы в каждом письме извлекаются только из тела запроса (не из подписей и цитат), без UUID-мусора и без дублей
@@ -104,7 +108,7 @@ Parallel track: `01-detection-fixes` — P0/P1 regression cycle (bugs A01-A06, B
 
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
-| 10. Audit Baseline | v1.1 | 0/TBD | Not started | - |
+| 10. Audit Baseline | v1.1 | 0/3   | Planned     | - |
 | 11. Article Foundation | v1.1 | 0/TBD | Not started | - |
 | 12. Quantity and INN | v1.1 | 0/TBD | Not started | - |
 | 13. Contact Fields | v1.1 | 0/TBD | Not started | - |
