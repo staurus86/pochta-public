@@ -64,7 +64,11 @@ Plans:
   2. Токены формата UUID v4 (hex 32+ символов) не появляются в массиве артикулов ни в одном письме из аудитной выборки
   3. `MD-025-6L` и `MD 025-6L` сворачиваются в одну запись — дублей с разным пробелом/дефисом нет
   4. Артикулы из подписи и цитированного треда не попадают в результат детекции
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 11-01-PLAN.md — Add UUID/long-hex rejection to article-filters.js (ART-02)
+- [x] 11-02-PLAN.md — Add signature-zone hard-exclude to article-extractor.js (ART-01)
+- [ ] 11-03-PLAN.md — Wire extractArticles() into extractLead() + audit baseline gate (ART-01, ART-03)
 
 ### Phase 12: Quantity and INN
 **Goal**: Счётчики позиций и количества корректны, ИНН извлекается из вложений-реквизитов, 10-значные ложные ИНН отклоняются
@@ -109,7 +113,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 10. Audit Baseline | v1.1 | 3/3 | Complete    | 2026-05-25 |
-| 11. Article Foundation | v1.1 | 0/TBD | Not started | - |
+| 11. Article Foundation | v1.1 | 1/3 | In Progress|  |
 | 12. Quantity and INN | v1.1 | 0/TBD | Not started | - |
 | 13. Contact Fields | v1.1 | 0/TBD | Not started | - |
 | 14. Brands and Product Names | v1.1 | 0/TBD | Not started | - |
