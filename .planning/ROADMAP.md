@@ -31,7 +31,7 @@ Parallel track: `01-detection-fixes` — P0/P1 regression cycle (bugs A01-A06, B
 **Milestone Goal:** Устранить ошибки в каждом поле детекции — клиент видит минимум ошибок в письмах, которые попадают в CRM через n8n. Цель: измеримое baseline до и после каждого фикса.
 
 - [x] **Phase 10: Audit Baseline** - Ручной аудит 50 писем + автоматическая метрика + загрузка n8n-фидбека (completed 2026-05-25)
-- [ ] **Phase 11: Article Foundation** - Подключение article-extractor.js, UUID-фильтры, нормализация дедупликации
+- [x] **Phase 11: Article Foundation** - Подключение article-extractor.js, UUID-фильтры, нормализация дедупликации (completed 2026-05-25)
 - [ ] **Phase 12: Quantity and INN** - Фикс positions/totalQty, ИНН из вложений-реквизитов, checksum-валидация ИНН
 - [ ] **Phase 13: Contact Fields** - Блок-лист ФИО из шаблонов robot@, поддержка международных телефонов
 - [ ] **Phase 14: Brands and Product Names** - Приоритет Subject-брендов, фильтр коротких алиасов, чистка productNames
@@ -113,7 +113,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 10. Audit Baseline | v1.1 | 3/3 | Complete    | 2026-05-25 |
-| 11. Article Foundation | v1.1 | 3/3 | Complete   | 2026-05-26 |
+| 11. Article Foundation | v1.1 | 3/3 | Complete    | 2026-05-25 |
 | 12. Quantity and INN | v1.1 | 0/TBD | Not started | - |
 | 13. Contact Fields | v1.1 | 0/TBD | Not started | - |
 | 14. Brands and Product Names | v1.1 | 0/TBD | Not started | - |
