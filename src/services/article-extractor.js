@@ -312,7 +312,10 @@ export function extractArticles(email = {}, options = {}) {
     const effectiveMinScore = strictMode ? Math.max(minScore + 2, 5) : minScore;
 
     // 8. Score threshold
-    const passing = accepted.filter((a) => a.score >= effectiveMinScore);
+    const passingByScore = accepted.filter((a) => a.score >= effectiveMinScore);
+
+    // Step 8b. Hard-exclude signature zone (ART-01 D-04): signatures never yield article results
+    const passing = passingByScore.filter((a) => a.zone !== ZONES.SIGNATURE);
 
     // 9. Sort by zone priority then score
     passing.sort((a, b) => {
