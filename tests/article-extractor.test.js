@@ -548,3 +548,25 @@ test("extractor: signature zone articles hard-excluded from result (ART-01 D-04)
         "QIT3-5033 candidate must be tagged with zone=signature"
     );
 });
+
+// =====================================================================
+// ART-03 D-08 — dedup: MD-025-6L and MD 025-6L collapse to one article
+// =====================================================================
+test("extractor: MD-025-6L and MD 025-6L collapse to one article (ART-03 D-08)", () => {
+    const result = extractArticles({
+        subject: "Запрос",
+        body: [
+            "Нужен MD-025-6L — 2 шт.",
+            "Также прошу подтвердить наличие MD 025-6L (та же позиция).",
+        ].join("\n"),
+    });
+    // Both spellings of the same code must dedup to exactly one entry
+    const matches = result.articles.filter(
+        (a) => a.replace(/[^a-z0-9]/gi, "").toUpperCase() === "MD0256L"
+    );
+    assert.equal(
+        matches.length,
+        1,
+        `MD-025-6L and MD 025-6L must dedup to one entry, got ${JSON.stringify(matches)} from ${JSON.stringify(result.articles)}`
+    );
+});
