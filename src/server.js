@@ -1440,10 +1440,11 @@ async function handleApi(req, res, url) {
     // Run async in background with bounded concurrency pool
     (async () => {
       const { analyzeEmailAsync } = await import("./services/email-analyzer.js");
-      // Concurrency pool: N workers pull from shared queue. With N=5 and ~2s/request
-      // this gives ~150 req/min vs. 17 req/min in the old sequential loop — ~9× speedup.
-      // Override via LLM_REANALYZE_CONCURRENCY env if provider has stricter rate limits.
+      // Concurrency pool: N workers pull from shared queue.
+      // For rate-limited providers (e.g. Groq free tier: 30 RPM, 6K TPM) set:
+      //   LLM_REANALYZE_CONCURRENCY=1  LLM_REANALYZE_DELAY_MS=2000
       const CONCURRENCY = Math.max(1, Number(process.env.LLM_REANALYZE_CONCURRENCY) || 5);
+      const WORKER_DELAY_MS = Number(process.env.LLM_REANALYZE_DELAY_MS) || 0;
       let queueIdx = 0;
       let lastPersistedCount = 0;
       let persistInFlight = false;
@@ -1511,6 +1512,7 @@ async function handleApi(req, res, url) {
           }
 
           await persistGuard();
+          if (WORKER_DELAY_MS > 0) await new Promise((r) => setTimeout(r, WORKER_DELAY_MS));
         }
       }
 
