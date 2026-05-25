@@ -475,3 +475,35 @@ test("extractor:debug exposes rawCandidates + rejectedCandidates", () => {
     assert.ok(result.rejectedCandidates.some((r) => r.value === "IP54"));
     assert.ok(result.rejectedCandidates.some((r) => /WordSection/i.test(r.value)));
 });
+
+// =====================================================================
+// ART-02 — UUID v4 and long-hex rejection
+// =====================================================================
+test("filters: UUID v4 rejected as uuid_or_long_hex (ART-02)", () => {
+    const r = rejectArticleCandidate("550e8400-e29b-41d4-a716-446655440000");
+    assert.equal(r.rejected, true);
+    assert.equal(r.reason, "uuid_or_long_hex");
+});
+
+test("filters: 32-char hex rejected as uuid_or_long_hex (ART-02)", () => {
+    const r = rejectArticleCandidate("fd3d37534b3f64147b70e0e7bf6a6228");
+    assert.equal(r.rejected, true);
+    assert.equal(r.reason, "uuid_or_long_hex");
+});
+
+test("filters: exactly 20-char hex rejected (ART-02 boundary)", () => {
+    const r = rejectArticleCandidate("0123456789abcdef0123");
+    assert.equal(r.rejected, true);
+    assert.equal(r.reason, "uuid_or_long_hex");
+});
+
+test("filters: real article DNC-80-PPV-A NOT rejected as uuid_or_long_hex (ART-02)", () => {
+    const r = rejectArticleCandidate("DNC-80-PPV-A");
+    assert.notEqual(r.reason, "uuid_or_long_hex");
+});
+
+test("filters: UPPERCASE UUID v4 rejected (ART-02 case-insensitive)", () => {
+    const r = rejectArticleCandidate("550E8400-E29B-41D4-A716-446655440000");
+    assert.equal(r.rejected, true);
+    assert.equal(r.reason, "uuid_or_long_hex");
+});
