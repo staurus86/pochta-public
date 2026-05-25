@@ -62,18 +62,18 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| AUDIT-01 | TBD | — |
-| AUDIT-02 | TBD | — |
-| AUDIT-03 | TBD | — |
-| ART-01 | TBD | — |
-| ART-02 | TBD | — |
-| ART-03 | TBD | — |
-| ART-04 | TBD | — |
-| CONTACT-01 | TBD | — |
-| CONTACT-02 | TBD | — |
-| CONTACT-03 | TBD | — |
-| CONTACT-04 | TBD | — |
-| BRAND-02 | TBD | — |
-| BRAND-03 | TBD | — |
-| PROD-01 | TBD | — |
-| PROD-02 | TBD | — |
+| AUDIT-01 | Phase 10 | Pending |
+| AUDIT-02 | Phase 10 | Pending |
+| AUDIT-03 | Phase 10 | Pending |
+| ART-01 | Phase 11 | Pending |
+| ART-02 | Phase 11 | Pending |
+| ART-03 | Phase 11 | Pending |
+| ART-04 | Phase 12 | Pending |
+| CONTACT-01 | Phase 12 | Pending |
+| CONTACT-02 | Phase 12 | Pending |
+| CONTACT-03 | Phase 13 | Pending |
+| CONTACT-04 | Phase 13 | Pending |
+| BRAND-02 | Phase 14 | Pending |
+| BRAND-03 | Phase 14 | Pending |
+| PROD-01 | Phase 14 | Pending |
+| PROD-02 | Phase 14 | Pending |
