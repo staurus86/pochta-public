@@ -135,8 +135,13 @@ function generateCandidates(zoneName, zoneText, knownBrands = []) {
     // 2. Alnum labels: trim tech-spec tail, then tokenize inner segment
     for (const m of iterateMatches(zoneText, LABEL_ALNUM_RE)) {
         const line = extractLine(zoneText, m.index);
-        const rawCaptured = m[1];
+        let rawCaptured = m[1];
         if (!rawCaptured) continue;
+        // Strip Cyrillic suffix bleed: "артикула 3SB3601-0AA11" captures "а 3SB3601-0AA11"
+        // because the regex backtracks — the inflection suffix "а" bleeds into group 1.
+        // Strip a leading single Cyrillic char + whitespace only when the remainder
+        // starts with a digit or Latin letter (i.e. the bleed prefix is not the code itself).
+        rawCaptured = rawCaptured.replace(/^[А-ЯЁа-яё]\s+(?=[\dA-Za-z])/, "");
         const captured = trimTechSpecTail(rawCaptured);
         const inner = extractInnerSKUs(captured, knownBrands);
         if (inner.length > 0) {
@@ -328,7 +333,7 @@ export function extractArticles(email = {}, options = {}) {
 
     return {
         articles,
-        rawCandidates: rawCandidates.map((c) => ({ value: c.value, zone: c.zone, hasLabel: c.hasLabel })),
+        rawCandidates: rawCandidates.map((c) => ({ value: c.value, zone: c.zone, hasLabel: c.hasLabel, sourceLine: c.sourceLine || "" })),
         rejectedCandidates,
         strictMode,
         confidence: strictMode ? 0.6 : 1.0,

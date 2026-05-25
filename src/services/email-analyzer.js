@@ -14,6 +14,7 @@ import {
     isHtmlWordMetadata, isFilenameLike, isDateTime, isRefrigerantCode,
     isInnLike, isHtmlStructureToken, isSizeTriple, isHoursRange, isPhoneFragment,
 } from "./article-filters.js";
+import { extractArticles } from "./article-extractor.js";
 import { sanitizeBrands } from "./brand-extractor.js";
 import { sanitizeProductNames } from "./product-name-extractor.js";
 import { normalizeProductName } from "./product-name-normalizer.js";
@@ -913,8 +914,11 @@ export function analyzeEmail(project, payload) {
     payload.attachmentFiles || [],
     payload.attachmentProcessingOptions || {}
   );
-  // Use articleText (excludes requisites/invoice files) to prevent INN/ОКПО leaking into articles/quantities
-  const attachmentContent = sanitizeAttachmentText(attachmentAnalysis.articleText ?? "");
+  // Use articleText (excludes requisites/invoice files) to prevent INN/ОКПО leaking into articles/quantities.
+  // Attachment filenames are processed separately via extractArticlesFromAttachments (below) — not appended
+  // to attachmentContent. Appending basenames to the attachment zone text causes camera filenames (IMG_*)
+  // to score 2 (attachment zone) and bypass minScore:3, or introduces noise when minScore is lowered.
+  const attachmentContent = sanitizeAttachmentText(attachmentAnalysis.articleText ?? "") || "";
   const brandRelevantAttachmentText = buildBrandRelevantAttachmentText(attachmentAnalysis);
 
   // Merge brands detected in attachment content into classification
@@ -999,7 +1003,7 @@ export function analyzeEmail(project, payload) {
   mergeAttachmentRequisites(sender, attachmentAnalysis);
   applyCompanyDirectoryHints(sender, fromEmail);
   let lead = mergeAttachmentLeadData(
-    extractLead(subjectForExtraction, bodyForExtraction, attachments, project.brands || [], classification.detectedBrands),
+    extractLead(subjectForExtraction, bodyForExtraction, attachmentContent, project.brands || [], classification.detectedBrands),
     attachmentAnalysis
   );
   const getConcreteItemScore = (candidateLead) => {
@@ -1011,7 +1015,7 @@ export function analyzeEmail(project, payload) {
   if (!(lead.articles || []).length && quotedContent && (!isEmailReplyChainQuoted || looksLikeQuotedRobotForm(quotedContent))) {
     const quotedBodyFallback = [primaryBody || body, cleanupQuotedFormText(quotedContent), attachmentContent].filter(Boolean).join("\n\n");
     const fallbackLead = mergeAttachmentLeadData(
-      extractLead(subjectForExtraction, quotedBodyFallback, attachments, project.brands || [], classification.detectedBrands),
+      extractLead(subjectForExtraction, quotedBodyFallback, attachmentContent, project.brands || [], classification.detectedBrands),
       attachmentAnalysis
     );
     if (getConcreteItemScore(fallbackLead) > getConcreteItemScore(lead)) {
@@ -1021,7 +1025,7 @@ export function analyzeEmail(project, payload) {
   if (!(lead.articles || []).length && body && body !== bodyForExtraction && !isEmailReplyChainQuoted) {
     const rawBodyFallback = [body, attachmentContent].filter(Boolean).join("\n\n");
     const fallbackLead = mergeAttachmentLeadData(
-      extractLead(subjectForExtraction, rawBodyFallback, attachments, project.brands || [], classification.detectedBrands),
+      extractLead(subjectForExtraction, rawBodyFallback, attachmentContent, project.brands || [], classification.detectedBrands),
       attachmentAnalysis
     );
     if (getConcreteItemScore(fallbackLead) > getConcreteItemScore(lead)) {
@@ -1083,6 +1087,35 @@ export function analyzeEmail(project, payload) {
         lead.productNames.push({ article, name: productName, category: null });
       }
       lead.totalPositions = Math.max(lead.totalPositions || 0, lead.lineItems.length, lead.articles.length);
+      if (lead.articles.length && /^Не определено/.test(String(lead.requestType || ""))) {
+        lead.requestType = "Не определено (есть артикулы)";
+      }
+    }
+  }
+  // Supplement: filename-based article extraction via dedicated function.
+  // This is separate from the zone-aware facade — filenames get their own path because:
+  // 1. Camera/generic image filenames (IMG_YYYYMMDD_HHMMSS) must be filtered via
+  //    isAttachmentLikelyToContainArticle (GENERIC_IMAGE_ATTACHMENT_PATTERN).
+  // 2. Attachment-zone articles score=2 and are blocked by minScore:3 in the facade.
+  // 3. This restores the behaviour of the old extractArticlesFromAttachments call.
+  if (attachments && attachments.length > 0) {
+    const bodyForForbidden = bodyForExtraction || body || "";
+    const attachForbiddenDigits = collectForbiddenArticleDigits(bodyForForbidden);
+    const attachFileArticles = extractArticlesFromAttachments(attachments, attachForbiddenDigits);
+    if (attachFileArticles.length > 0) {
+      lead.articles = lead.articles || [];
+      lead.lineItems = lead.lineItems || [];
+      const existingNorm = new Set(lead.articles.map((a) => normalizeArticleCode(a)).filter(Boolean));
+      for (const art of attachFileArticles) {
+        const n = normalizeArticleCode(art);
+        if (n && !existingNorm.has(n)) {
+          lead.articles.push(n);
+          existingNorm.add(n);
+          if (!lead.lineItems.some((i) => normalizeArticleCode(i.article) === n)) {
+            lead.lineItems.push({ article: n, quantity: null, unit: "шт", descriptionRu: null, source: "attachment_filename", explicitArticle: false });
+          }
+        }
+      }
       if (lead.articles.length && /^Не определено/.test(String(lead.requestType || ""))) {
         lead.requestType = "Не определено (есть артикулы)";
       }
@@ -2755,66 +2788,52 @@ function detectUrgency(text) {
     return "normal";
 }
 
-function extractLead(subject, body, attachments, brands, kbBrands = []) {
+function extractLead(subject, body, attachmentText, brands, kbBrands = []) {
   const freeText = body.trim().slice(0, 2000);
   const searchText = [subject, body].join("\n");
   const forbiddenDigits = collectForbiddenArticleDigits(body);
-  // Strip URLs before article extraction — URL path segments (tracking tokens like
-  // trk.mail.ru/t/DGUMAH8.aeb2.Ew50... ) are mistakenly extracted as article codes.
-  // Keep original `body` for sender/brand extraction where URL context matters.
+  // URL strip — URL path segments like trk.mail.ru/t/DGUMAH8 must not become article codes (Pitfall 3)
   const bodyNoUrls = body.replace(/https?:\/\/[^\s)]+/gi, " ");
-  const prefixedArticles = Array.from(bodyNoUrls.matchAll(ARTICLE_PATTERN))
-    .map((match) => ({
-      article: normalizeArticleCode(match[1]),
-      sourceLine: getContextLine(bodyNoUrls, match.index, match[0]?.length || String(match[1] || "").length)
-    }))
-    .filter((item) => isLikelyArticle(item.article, forbiddenDigits, item.sourceLine))
-    .map((item) => item.article);
-  const standaloneArticles = extractStandaloneCodes(bodyNoUrls, forbiddenDigits);
-  const numericArticles = extractNumericArticles(bodyNoUrls, forbiddenDigits);
-  const strongContextArticles = extractStrongContextArticles(bodyNoUrls, forbiddenDigits);
-  const trailingMixedArticles = extractTrailingMixedArticles(bodyNoUrls, forbiddenDigits);
-  const productContextArticles = extractProductContextArticles(bodyNoUrls, forbiddenDigits);
-  const subjectArticles = extractArticlesFromSubject(subject, forbiddenDigits);
-  const attachmentArticles = extractArticlesFromAttachments(attachments, forbiddenDigits);
-  const brandAdjacentCodes = extractBrandAdjacentCodes(bodyNoUrls, forbiddenDigits);
-  let allArticles = deduplicateByAbsorption(
-    unique([...subjectArticles, ...prefixedArticles, ...standaloneArticles, ...numericArticles, ...strongContextArticles, ...trailingMixedArticles, ...productContextArticles, ...attachmentArticles, ...brandAdjacentCodes].filter(Boolean)),
-    "keep-longest"
+
+  // Article extraction via zone-aware facade (ART-01 D-01: replaces 500-line inline cascade)
+  const artResult = extractArticles(
+      { subject, body: bodyNoUrls, attachmentText },
+      { knownBrands: [...(brands || []), ...(kbBrands || [])], minScore: 3 }
   );
-  // Drop single-token articles that are sub-tokens of multi-word articles (S201, C16 → dropped if "S201 C16" present)
-  const mwArticles = allArticles.filter((a) => /\s/.test(String(a)));
-  if (mwArticles.length > 0) {
-    const subTokens = new Set();
-    for (const mw of mwArticles) {
-      for (const tok of String(mw).split(/\s+/)) {
-        const t = tok.trim().toLowerCase();
-        if (t) subTokens.add(t);
+  // Build a map from normalized article value → source line for the isLikelyArticle post-filter.
+  // Using the full body as sourceLine causes ARTICLE_CONTEXT_NEGATIVE_PATTERNS to fire on
+  // valid articles when the body contains XML/PDF noise (e.g. "THEME/THEME" rejects all articles).
+  // Each candidate's own source line is the correct context for pattern matching.
+  const candidateSourceLineMap = new Map();
+  for (const c of artResult.rawCandidates || []) {
+      const key = (c.value || "").toUpperCase();
+      if (!candidateSourceLineMap.has(key) && c.sourceLine) {
+          candidateSourceLineMap.set(key, c.sourceLine);
       }
-    }
-    allArticles = allArticles.filter((a) => /\s/.test(String(a)) || !subTokens.has(String(a).toLowerCase()));
   }
-  // Context-aware filter: N.N.N list numbering (1.3.1, 1.3.2, 1.3.3 — sequential outline markers).
-  // If ≥3 такие токены с малыми сегментами (каждый ≤30) — это нумерация пунктов, не артикулы.
-  // Реальные артикулы типа Festo 504.186.202 имеют 3-значные сегменты и встречаются одиночно.
-  const nnnTokens = allArticles.filter((a) => /^\d{1,2}\.\d{1,2}\.\d{1,2}$/.test(String(a)));
-  if (nnnTokens.length >= 3) {
-    const nnnSet = new Set(nnnTokens.map((t) => String(t)));
-    allArticles = allArticles.filter((a) => !nnnSet.has(String(a)));
-  }
-  // TZ Phase-1 structural post-filter: strip WordSection/XMP/filename/datetime leaks only.
-  // Heuristic filters (tech-spec / OCR-noise / descriptor-slug) intentionally skipped —
-  // they would reject legitimate mixed-case SKUs the existing pipeline handles correctly.
-  allArticles = allArticles.filter((a) => {
-    const s = String(a).trim();
-    if (!s) return false;
-    if (isHtmlWordMetadata(s)) return false;
-    if (isFilenameLike(s)) return false;
-    if (isDateTime(s)) return false;
-    if (isRefrigerantCode(s)) return false;
-    return true;
+  // Post-filter the facade output with the legacy isLikelyArticle function to maintain
+  // backwards-compatibility with the old cascade's noise rejection (isObviousArticleNoise,
+  // forbiddenDigits, certification/electrical spec filters, phone-fragment checks).
+  // The facade's rejectArticleCandidate uses a different filter set (article-filters.js)
+  // tuned for zone-aware scoring; isLikelyArticle handles email-context-specific noise patterns.
+  let allArticles = artResult.articles.filter((article) => {
+      const sourceLine = candidateSourceLineMap.get(article.toUpperCase()) || bodyNoUrls;
+      return isLikelyArticle(article, forbiddenDigits, sourceLine);
   });
-  const attachmentsText = attachments.join(" ");
+  // Supplement 1: brand-adjacent pure-numeric codes (METROHM 63032220, Bürkert 6213)
+  // and brand-adjacent alphanumeric codes (Danfoss 032U1240, мLT220/151).
+  // The facade does not replicate this pattern — it requires explicit brand proximity.
+  const brandAdjacentArticles = extractBrandAdjacentCodes(bodyNoUrls, forbiddenDigits);
+  for (const art of brandAdjacentArticles) {
+      if (!allArticles.includes(art)) allArticles.push(art);
+  }
+  // Supplement 2: colon-separated and extended codes (VV64:KMD) via EXTENDED_CODE_PATTERN.
+  // The facade's SKU patterns only support dash/slash/dot; colons require extractStandaloneCodes.
+  const standaloneArticles = extractStandaloneCodes(bodyNoUrls, forbiddenDigits);
+  for (const art of standaloneArticles) {
+      if (!allArticles.includes(art)) allArticles.push(art);
+  }
+  const attachmentsText = attachmentText || "";
   const hasNameplatePhotos = /шильд|nameplate/i.test(attachmentsText);
   const hasArticlePhotos = /артик|sku|label/i.test(attachmentsText);
   const lineItemsRaw = extractLineItems(bodyNoUrls).filter((item) => {
@@ -2900,7 +2919,10 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   let detectedBrands = detectionKb.filterOwnBrands(deduplicateByAbsorption(rawBrands, "keep-shortest"));
   const explicitTextBrands = [...detectedBrands];
 
-  const attachmentHints = parseAttachmentHints(attachments);
+  // attachmentHints: parseAttachmentHints expects filename array; extractLead now receives text content (string).
+  // Filename-based hints are available in the outer analyzeEmail scope via attachmentAnalysis.
+  // Pass empty array here — the caller (mergeAttachmentLeadData) supplies hints via attachmentAnalysis.
+  const attachmentHints = parseAttachmentHints([]);
 
   const detectedProductTypes = detectProductTypes([subject, body].join("\n"));
   const explicitArticles = lineItems
@@ -2910,9 +2932,11 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   const finalArticles = mergedArticleCandidates
     .filter((article) => !explicitArticles.some((full) => full !== article && full.includes(article) && article.length + 2 <= full.length))
     .filter((article) => !mergedArticleCandidates.some((full) => {
-      if (full === article || !full.includes(article) || article.length + 2 > full.length) {
-        return false;
-      }
+      if (full === article) return false;
+      if (!full.includes(article)) return false;
+      // Drop truncated prefix: "99L-0159-0409" when "A99L-0159-0409" present (1-char missing prefix)
+      if (article.length + 1 === full.length && full.endsWith(article)) return true;
+      if (article.length + 2 > full.length) return false;
       if (/^\d+$/.test(article) && new RegExp(`^[A-ZА-ЯЁ]+[-/.]${escapeRegExp(article)}$`, "i").test(full)) {
         return false;
       }
@@ -2973,10 +2997,12 @@ function extractLead(subject, body, attachments, brands, kbBrands = []) {
   // ── Bridge: articles detected in text but not yet in lineItems ──
   // Ensures every article from finalArticles has a corresponding lineItem entry
   const bridgedArticleSet = new Set(lineItems.map((i) => normalizeArticleCode(i.article)).filter(Boolean));
+  // Body-derived: candidates from subject/current/quoted zones (not attachment) per rawCandidates
   const bodyDerivedArticleSet = new Set(
-      [...subjectArticles, ...prefixedArticles, ...standaloneArticles, ...numericArticles,
-       ...strongContextArticles, ...trailingMixedArticles, ...productContextArticles, ...brandAdjacentCodes]
-      .map(normalizeArticleCode).filter(Boolean)
+      (artResult.rawCandidates || [])
+          .filter((c) => c.zone !== "attachment")
+          .map((c) => normalizeArticleCode(c.value))
+          .filter(Boolean)
   );
   for (const article of finalArticles) {
       const normArt = normalizeArticleCode(article);
@@ -5805,7 +5831,9 @@ function isLikelyArticle(code, forbiddenDigits = new Set(), sourceLine = "") {
   if (/^(?:R\/[A-Z0-9]+|TYPE\/[A-Z0-9/_-]+|[A-Z]+\/[A-Z0-9/_-]+)$/i.test(normalized)) {
     return false;
   }
-  if (/^(?:\d+\/[A-Z][A-Z0-9/_-]*|[A-Z][A-Z0-9/_-]*\/\d+)$/i.test(normalized)) {
+  // Reject codes that look like type-notation: "A/1", "TYPE/01", "F1/N" — pure letter prefix + slash + digits.
+  // NOT rejected: "mLT220/151" (has digits in prefix), "8579/12-506" (digit start).
+  if (/^(?:\d+\/[A-Z]{1,8}|[A-Z]{1,8}\/\d+)$/i.test(normalized)) {
     return false;
   }
   if (/^(?:TYPE\d+|PDF-\d(?:\.\d+)?|C\d+_\d+)$/i.test(normalized)) {
@@ -5967,7 +5995,13 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   // Mixed = OCR/encoding corruption ("TPAHЗICTOP IRFD9024"), typo units ("1шtуka"),
   // phone extensions ("дoб.216"), form names ("TOPГ-12"), position labels ("поз.76.7").
   // Inner real articles (IRFD9024, 78-40-4, 6EP1961-3BA21) are already extracted separately.
-  if (/[a-zA-Z]/.test(normalized) && /[а-яёА-ЯЁ]/.test(normalized)) return true;
+  // Exception: single Cyrillic letter prefix + Latin+digits (мLT220/151, рT2400) — legitimate
+  // mixed-script article codes from German/Russian cable drum manufacturers (Hartmann und König etc.)
+  // Use the original `code` (not uppercased `normalized`) to detect the lowercase Cyrillic prefix.
+  if (/[a-zA-Z]/.test(normalized) && /[а-яёА-ЯЁ]/.test(normalized)) {
+    if (/^[А-ЯЁа-яё][A-Za-z0-9]/.test(String(code))) return false; // single Cyr prefix + Latin → keep
+    return true;
+  }
   // Pure Cyrillic word without any digits: product category name mistakenly extracted
   // as article ("Конический", "Диафрагменный", "Метчики", "кол-ве", "Ручки-барашки").
   // Real Cyrillic article codes contain digits (08Х18Н10Т, 01X16H15M3) — those pass.
@@ -6161,7 +6195,9 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   // Ranges with units: 100-240V, 4-20MA, 6-48VDC — это диапазон параметров, не артикул (42 токена).
   if (/^\d{1,4}-\d{1,4}(?:V|A|W|HZ|VA|VAR|VDC|VAC|KW|KV|MA|KHZ|MHZ|MW)$/i.test(normalized)) return true;
   // DN NN — nominal diameter (DN 65/65, DN32) — не артикул (8 токенов).
+  // Also rejects combined pipe specs: DN 65 PN 16, DN 50 PN 10 — диаметр + давление.
   if (/^DN\s*\d{1,4}(?:\/\d{1,4})?$/i.test(normalized)) return true;
+  if (/^DN\s*\d{1,4}\s+PN\s*\d{1,3}(?:\s+\S+)?$/i.test(normalized)) return true;
   // Steel grades: 316L, 304H, 321S, 310S — marka stali AISI, характеристика не артикул
   if (/^\d{3}[LHST]$/.test(normalized)) return true;
   // MAX./MIN. prefix — "максимум 5 шт", не артикул
@@ -6173,6 +6209,8 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   // Brand-family + size/version: "MSF 2.0", "TG 40-55/22", "MSF-2.0" — не артикул, а модель/версия
   if (/^[A-ZА-ЯЁ]{2,5}[- ]\d{1,3}\.\d{1,3}$/i.test(normalized)) return true;
   if (/^[A-ZА-ЯЁ]{2,5}\s+\d{1,3}-\d{1,3}\/\d{1,3}$/i.test(normalized)) return true;
+  // Single-letter engineering parameters: "A 13", "G 1", "B 5" — aperture/bore size in Bürkert/valve specs
+  if (/^[A-Z]\s+\d{1,3}$/.test(normalized)) return true;
   // Material-class: AL-A4, CU-A2 (алюминий/медь + класс прочности крепежа)
   if (/^(?:AL|CU|FE|ZN|NI|TI)-[A-Z]\d{1,2}$/i.test(normalized)) return true;
   // CamelCase-CamelCase без цифр — торговое наименование, не артикул (Ultra-Clean, Super-Flow)
