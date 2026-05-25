@@ -475,3 +475,76 @@ test("extractor:debug exposes rawCandidates + rejectedCandidates", () => {
     assert.ok(result.rejectedCandidates.some((r) => r.value === "IP54"));
     assert.ok(result.rejectedCandidates.some((r) => /WordSection/i.test(r.value)));
 });
+
+// =====================================================================
+// ART-02 — UUID v4 and long-hex rejection
+// =====================================================================
+test("filters: UUID v4 rejected as uuid_or_long_hex (ART-02)", () => {
+    const r = rejectArticleCandidate("550e8400-e29b-41d4-a716-446655440000");
+    assert.equal(r.rejected, true);
+    assert.equal(r.reason, "uuid_or_long_hex");
+});
+
+test("filters: 32-char hex rejected as uuid_or_long_hex (ART-02)", () => {
+    const r = rejectArticleCandidate("fd3d37534b3f64147b70e0e7bf6a6228");
+    assert.equal(r.rejected, true);
+    assert.equal(r.reason, "uuid_or_long_hex");
+});
+
+test("filters: exactly 20-char hex rejected (ART-02 boundary)", () => {
+    const r = rejectArticleCandidate("0123456789abcdef0123");
+    assert.equal(r.rejected, true);
+    assert.equal(r.reason, "uuid_or_long_hex");
+});
+
+test("filters: real article DNC-80-PPV-A NOT rejected as uuid_or_long_hex (ART-02)", () => {
+    const r = rejectArticleCandidate("DNC-80-PPV-A");
+    assert.notEqual(r.reason, "uuid_or_long_hex");
+});
+
+test("filters: UPPERCASE UUID v4 rejected (ART-02 case-insensitive)", () => {
+    const r = rejectArticleCandidate("550E8400-E29B-41D4-A716-446655440000");
+    assert.equal(r.rejected, true);
+    assert.equal(r.reason, "uuid_or_long_hex");
+});
+
+// =====================================================================
+// ART-01 D-04 — signature zone articles hard-excluded from result
+// =====================================================================
+test("extractor: signature zone articles hard-excluded from result (ART-01 D-04)", () => {
+    const result = extractArticles({
+        subject: "Запрос на поставку",
+        body: [
+            "Здравствуйте!",
+            "",
+            "Нужен DNC-100-PPV-A — 3 шт.",
+            "",
+            "С уважением,",
+            "Иван Иванов",
+            "Менеджер по закупкам",
+            "Артикул: QIT3-5033",
+        ].join("\n"),
+    });
+    assert.ok(
+        result.articles.includes("DNC-100-PPV-A"),
+        "body article DNC-100-PPV-A must be present in result.articles"
+    );
+    assert.ok(
+        !result.articles.includes("QIT3-5033"),
+        "signature article QIT3-5033 must be excluded from result.articles"
+    );
+    // Verify the signature candidate WAS detected by the zoning step (rawCandidates),
+    // proving the hard-exclude (not just low score) is what removed it from the final array.
+    const sigCandidate = (result.rawCandidates || []).find(
+        (c) => c.value === "QIT3-5033"
+    );
+    assert.ok(
+        sigCandidate,
+        "QIT3-5033 must appear in rawCandidates (so we know it was extracted then hard-excluded)"
+    );
+    assert.equal(
+        sigCandidate.zone,
+        "signature",
+        "QIT3-5033 candidate must be tagged with zone=signature"
+    );
+});
