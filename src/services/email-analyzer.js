@@ -6542,6 +6542,10 @@ function detectBrands(text, brands) {
     if (BRAND_FALSE_POSITIVE_ALIASES.has(aliasLower)) {
       continue;
     }
+    // BRAND-03: reject single-token aliases of length <= 2.
+    if (!/\s/.test(aliasLower) && aliasLower.length <= 2) {
+      continue;
+    }
     const canonicalLower = String(entry.canonical_brand || "").toLowerCase();
     const canonicalTokens = canonicalLower.split(/\s+/).filter(Boolean);
     const canonicalTokensHyphenSplit = canonicalLower.split(/[\s-]+/).filter(Boolean);

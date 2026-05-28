@@ -1806,6 +1806,11 @@ class DetectionKnowledgeBase {
         if (firstConflict && !/\s/.test(alias)) {
           return false;
         }
+        // BRAND-03: reject single-token aliases of length <= 2 — too short for unambiguous matching.
+        // 3-char aliases (e.g. "abb" → ABB) are preserved.
+        if (!/\s/.test(alias) && alias.length <= 2) {
+          return false;
+        }
         // Single-word aliases ALWAYS require word boundary — prevent substring hits like
         // "digi" inside "digital", "ital" inside "digital", "robot" inside "robot-mail-...".
         if (!/\s/.test(alias) || alias.length < 4 || BRAND_WORD_BOUNDARY_ALIASES.has(alias)) {
