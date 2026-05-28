@@ -67,3 +67,38 @@ test("BRAND-03 regression: 3-char alias 'abb' still matches canonical ABB", () =
         `3-char alias "abb" must still match ABB, got: ${JSON.stringify(result)}`
     );
 });
+
+// =====================================================================
+// PROD-01 — Numbered list productNames cleanup (plain-hyphen qty tail)
+// =====================================================================
+
+test("PROD-01: productNames entry '1. Клапан Korte - 5 шт' cleaned to 'Клапан Korte'", () => {
+    const result = analyzeEmail(minProject, {
+        fromEmail: "client@buyer.ru",
+        subject: "Запрос",
+        body: "Добрый день.\n1. Клапан Korte - 5 шт\n2. Насос Lowara - 2 шт",
+        attachments: "",
+    });
+    const names = (result.lead?.productNames || []).map((p) => p.name || "");
+    const hasRaw = names.some((n) => /^\d+\.\s/.test(n) || /\s-\s*\d+\s*шт/i.test(n));
+    assert.ok(!hasRaw, `productNames must not contain raw numbered list pattern, got: ${JSON.stringify(names)}`);
+});
+
+// =====================================================================
+// PROD-02 — HTML-residue duplicates collapse in productNames[]
+// =====================================================================
+
+test("PROD-02: productNames with HTML residue deduplicates correctly", () => {
+    // Two entries that are the same product but one has a <br> fragment —
+    // after canonicalNameKey fix they should collapse to one.
+    const result = analyzeEmail(minProject, {
+        fromEmail: "client@buyer.ru",
+        subject: "Запрос",
+        body: "Добрый день.\nАртикул: ABB S201-C16 x 2 шт\n\nНазвание: Клапан Norgren<br>Модель K12\nНазвание: Клапан Norgren Модель K12",
+        attachments: "",
+    });
+    const names = (result.lead?.productNames || []).map((p) => (p.name || "").replace(/<[^>]+>/g, "").trim());
+    const dupeCount = names.filter((n) => /клапан norgren/i.test(n)).length;
+    // If dedup works correctly, at most 1 entry for "Клапан Norgren Модель K12"
+    assert.ok(dupeCount <= 1, `Expected at most 1 "Клапан Norgren" entry, got ${dupeCount}: ${JSON.stringify(names)}`);
+});

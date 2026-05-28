@@ -17,7 +17,7 @@ import {
 import { extractArticles } from "./article-extractor.js";
 import { sanitizeBrands } from "./brand-extractor.js";
 import { sanitizeProductNames } from "./product-name-extractor.js";
-import { normalizeProductName } from "./product-name-normalizer.js";
+import { normalizeProductName, stripHtmlResidue } from "./product-name-normalizer.js";
 import { isBadProductName } from "./product-name-filters.js";
 import { extractQuantities } from "./quantity-extractor.js";
 import { isTechnicalSpec } from "./quantity-filters.js";
@@ -1559,10 +1559,8 @@ export function analyzeEmail(project, payload) {
   // carries the clean pre-article slice of that line.
   // Also drops question/intro lines captured by freetext Trigger C (brand-on-line).
   const canonicalNameKey = (s, article = "") => {
-    let t = String(s || "")
-      .replace(/_+/g, " ")
-      .replace(/\s+/g, " ")
-      .trim();
+    let t = stripHtmlResidue(String(s || "")); // PROD-02: strip HTML before building dedup key
+    t = t.replace(/_+/g, " ").replace(/\s+/g, " ").trim();
     if (!t) return "";
     t = t.replace(/^\d{1,3}\s*[.)\]]\s*/, "");
     t = t.replace(/\s*[-–—]?\s*\d+(?:[.,]\d+)?\s*(?:шт|штук[аи]?|единиц[аы]?|компл|к-т|пар[аы]?|м|кг|л|уп|рул|бух)\.?\s*$/i, "");

@@ -381,7 +381,7 @@ NUMBERED_LIST_RE = re.compile(r'^\s*\d+\s*[\.\)]\s+.+(?:\s+—\s+\d+\s*шт)', r
 def check_product_name(msg):
     l = (msg.get("analysis") or {}).get("lead") or {}
     names = l.get("productNames") or []
-    names = [str(n) for n in names if n]
+    names = [n.get("name", "") if isinstance(n, dict) else str(n) for n in names if n]
     arts = article_codes(l.get("articles"))
     if not arts:
         return {"present": False, "noise": False}
