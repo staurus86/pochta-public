@@ -61,7 +61,7 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 18-01-PLAN.md — TDD: QTY-1 multiline_table scanner + QTY-2 bold strip + check_qty v2 metric + mirror
+- [x] 18-01-PLAN.md — TDD: QTY-1 multiline_table scanner + QTY-2 bold strip + check_qty v2 metric + mirror
 - [ ] 18-02-PLAN.md — Deploy + reanalysis + capture baseline_v9 + delta vs baseline_v8
 
 ---
