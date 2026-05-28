@@ -28,7 +28,12 @@
   2. Расширенные паттерны извлечения покрывают выявленные случаи
   3. `inn.present` в baseline_v7 ≥ 50% (рост ≥ 15pp от baseline_v6)
   4. Новые тесты регрессии зелёные
-**Plans**: TBD
+**Plans**: 3 plans
+
+Plans:
+- [ ] 16-01-PLAN.md — INN regex fixes A+B+C (em-dash, HTML strip, EDO pattern) + TDD tests
+- [ ] 16-02-PLAN.md — Auto-learning company_directory enrichment (Fix D) + TDD tests
+- [ ] 16-03-PLAN.md — Deploy + reanalysis + capture baseline_v7 + delta measurement
 
 ### Phase 17: Brand Quality
 **Goal**: brand.noise_free растёт с 45.3% до ≥55% — меньше ghost brands в результатах
