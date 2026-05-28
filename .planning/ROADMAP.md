@@ -15,7 +15,7 @@
 
 - [x] **Phase 16: INN Quality** — 34.7%→45.7% (+11pp); цель 50% не достигнута (gap 4.3pp)
 - [ ] **Phase 17: Brand Quality** — Исследовать и устранить ghost brands (noise_free 45.3% → 55%+)
-- [ ] **Phase 18: Qty Quality** — Отфильтровать шумовые количества (noise_free 4% → 20%+)
+- [ ] **Phase 18: Qty Quality** — Extractor fixes + metric redefinition (noise_free 4% → ≥30%)
 
 ---
 
@@ -46,18 +46,23 @@ Plans:
 **Plans**: 2 plans
 
 Plans:
-- [ ] 17-01-PLAN.md — TDD: устранить ghost-паттерны GHOST-1..4 (reply-zone filter, slash-split, concat-dedup, generic aliases) + regression tests, mirror в .railway-deploy
-- [ ] 17-02-PLAN.md — GHOST-5 audit fix (full body) + deploy + reanalysis + capture baseline_v8 + delta measurement
+- [x] 17-01-PLAN.md — TDD: устранить ghost-паттерны GHOST-1..4 (reply-zone filter, slash-split, concat-dedup, generic aliases) + regression tests, mirror в .railway-deploy
+- [x] 17-02-PLAN.md — GHOST-5 audit fix (full body) + deploy + reanalysis + capture baseline_v8 + delta measurement
 
 ### Phase 18: Qty Quality
-**Goal**: qty.noise_free растёт с 4% до ≥20% — шумовые значения (OCR-ошибки, страничные номера) отфильтрованы
+**Goal**: qty.noise_free растёт с 4% до ≥30% — фикс HTML table split + bold strip + метрика v2 (без штрафа за письма без qty)
 **Depends on**: Phase 15 (baseline есть)
 **Requirements**: QTY-01, QTY-02, QTY-03
 **Success Criteria**:
-  1. Исследование идентифицировало основные паттерны шумовых qty (OCR страничные номера, timestamp-qty, коды позиций)
-  2. Фильтры внедрены с regression тестами
-  3. `qty.noise_free` в baseline_v7 ≥ 20%
-**Plans**: TBD
+  1. Исследование выявило 2 fixable паттерна (HTML table split 13 писем, bold wrapping 1 письмо) + структурный дефект метрики (75/112 noise — legitimate no-qty emails)
+  2. QTY-1 (multiline_table scanner) + QTY-2 (bold strip) внедрены с TDD тестами
+  3. check_qty v2: "no qty in email" больше не является noise
+  4. `qty.noise_free` в baseline_v9 ≥ 30% (estimate: 40-46% achievable)
+**Plans**: 2 plans
+
+Plans:
+- [ ] 18-01-PLAN.md — TDD: QTY-1 multiline_table scanner + QTY-2 bold strip + check_qty v2 metric + mirror
+- [ ] 18-02-PLAN.md — Deploy + reanalysis + capture baseline_v9 + delta vs baseline_v8
 
 ---
 
