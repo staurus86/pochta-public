@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.2
-milestone_name: Live Deployment & Measurement
-status: Ready to plan
-stopped_at: v1.3 milestone created — ready for Phase 16 planning
-last_updated: "2026-05-28T22:30:00.000Z"
+milestone: v1.3
+milestone_name: Field Quality Sprint
+status: In progress
+stopped_at: Phase 16 complete — inn.present 34.7%→45.7% (+11pp), target 50% not reached (gap 4.3pp). Next — Phase 17 Brand Quality.
+last_updated: "2026-05-28T21:00:00.000Z"
 progress:
   total_phases: 3
-  completed_phases: 0
-  total_plans: 0
-  completed_plans: 0
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
 ---
 
 # Project State
@@ -23,8 +23,8 @@ See: .planning/PROJECT.md (updated 2026-05-25)
 
 ## Current Position
 
-Phase: 16
-Next: Phase 16 (inn-quality)
+Phase: 17 (next)
+Completed: Phase 16 (inn-quality) — 3/3 plans done
 
 ## Performance Metrics
 

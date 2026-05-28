@@ -13,7 +13,7 @@
 
 **Milestone Goal:** Поднять INN.present ≥50%, brand.noise_free ≥55%, qty.noise_free ≥20% — три самых слабых поля по baseline_v6.
 
-- [ ] **Phase 16: INN Quality** — Улучшить извлечение ИНН из тела/форм/вложений (34.7% → 50%+)
+- [x] **Phase 16: INN Quality** — 34.7%→45.7% (+11pp); цель 50% не достигнута (gap 4.3pp)
 - [ ] **Phase 17: Brand Quality** — Исследовать и устранить ghost brands (noise_free 45.3% → 55%+)
 - [ ] **Phase 18: Qty Quality** — Отфильтровать шумовые количества (noise_free 4% → 20%+)
 
@@ -31,9 +31,9 @@
 **Plans**: 3 plans
 
 Plans:
-- [ ] 16-01-PLAN.md — INN regex fixes A+B+C (em-dash, HTML strip, EDO pattern) + TDD tests
-- [ ] 16-02-PLAN.md — Auto-learning company_directory enrichment (Fix D) + TDD tests
-- [ ] 16-03-PLAN.md — Deploy + reanalysis + capture baseline_v7 + delta measurement
+- [x] 16-01-PLAN.md — INN regex fixes A+B+C (em-dash, HTML strip, EDO pattern) + TDD tests
+- [x] 16-02-PLAN.md — Auto-learning company_directory enrichment (Fix D) + TDD tests
+- [x] 16-03-PLAN.md — Deploy + reanalysis + capture baseline_v7 + delta measurement
 
 ### Phase 17: Brand Quality
 **Goal**: brand.noise_free растёт с 45.3% до ≥55% — меньше ghost brands в результатах
