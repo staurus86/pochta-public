@@ -138,7 +138,8 @@ export function normalizeIntegrationMessage(project, message, options = {}) {
     lead: {
       request_type: lead.requestType || null,
       free_text: lead.freeText || "",
-      total_positions: lead.totalPositions || 0,
+      positions: lead.positions || 0,
+      total_qty: lead.totalQty || 0,
       articles: lead.articles || [],
       line_items: (lead.lineItems || []).map((item) => ({
         article: item.article || null,

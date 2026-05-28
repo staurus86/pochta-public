@@ -327,6 +327,7 @@ export function mergeLlmExtraction(result, llmData, messageKey = "") {
         if (!result.lead.lineItems) result.lead.lineItems = [];
         result.lead.lineItems.push(...newLineItems);
         result.lead.totalPositions = (result.lead.lineItems || []).length || (result.lead.articles || []).length;
+        result.lead.positions = result.lead.totalPositions;
     }
 
     // --- Merge brands ---------------------------------------------------------

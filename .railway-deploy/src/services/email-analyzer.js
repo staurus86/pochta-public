@@ -422,6 +422,29 @@ function validateSenderFields(sender) {
   return corrections;
 }
 
+export function finalizeLeadCounts(lead) {
+    if (!lead) return lead;
+    const seen = new Map(); // normalizedCode -> max qty seen
+    for (const item of (lead.lineItems || [])) {
+        const code = normalizeArticleCode(item && item.article ? item.article : "").toLowerCase();
+        if (!code) continue;
+        const qty = (item.quantity != null) ? Number(item.quantity) : 0;
+        const safeQty = Number.isFinite(qty) ? qty : 0;
+        const current = seen.get(code);
+        if (current === undefined || safeQty > current) {
+            seen.set(code, safeQty);
+        }
+    }
+    for (const a of (lead.articles || [])) {
+        const code = normalizeArticleCode(a || "").toLowerCase();
+        if (code && !seen.has(code)) seen.set(code, 0);
+    }
+    lead.positions = seen.size;
+    lead.totalQty = [...seen.values()].reduce((sum, q) => sum + q, 0);
+    lead.totalPositions = lead.positions;
+    return lead;
+}
+
 // Brand names that should not be detected as articles or company names
 const BRAND_NOISE = new Set([
   "SIDERUS", "KOLOVRAT", "KLVRT", "ERSA", "ITEC", "SCHISCHEK", "SERA", "SERFILCO", "VEGA",
@@ -1805,6 +1828,9 @@ export function analyzeEmail(project, payload) {
 
   // Post-validate sender fields: normalize INN, fix entity role errors
   const senderCorrections = validateSenderFields(sender);
+
+  // Deduplicate positions/qty — single authoritative write after all zone extraction
+  finalizeLeadCounts(lead);
 
   // Final recognition summary / diagnostics / decision — recomputed from the FINAL
   // lead/sender state. Must run AFTER noise filters (which can empty lead.articles /
