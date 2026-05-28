@@ -93,7 +93,11 @@ Plans:
   1. «Екатерина Попова» (и другие имена блок-листа robot@siderus.ru) не появляется как ФИО клиента ни в одном письме — клиент-специфичный шаблон заблокирован
   2. Телефоны в формате +375 (Беларусь), +86 (Китай), +994 (Азербайджан) нормализуются и сохраняются в `sender.phone`
   3. Audit-скрипт показывает рост % писем с корректным ФИО и телефоном относительно Phase 10 baseline
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 13-01-PLAN.md — FIO_TEMPLATE_BLOCKLIST + step 0c in validateSenderFields (CONTACT-03)
+- [ ] 13-02-PLAN.md — International phone coverage BY/CN/AZ verification + fix (CONTACT-04)
+- [ ] 13-03-PLAN.md — audit_baseline.py FIO noise detection + baseline_v3 (CONTACT-03, CONTACT-04)
 
 ### Phase 14: Brands and Product Names
 **Goal**: Бренды из темы письма детектируются с приоритетом, шумовые однобуквенные алиасы отклонены, productNames не содержат сырых строк и дублей
@@ -119,5 +123,5 @@ Plans:
 | 10. Audit Baseline | v1.1 | 3/3 | Complete    | 2026-05-25 |
 | 11. Article Foundation | v1.1 | 3/3 | Complete    | 2026-05-25 |
 | 12. Quantity and INN | v1.1 | 3/3 | Complete    | 2026-05-28 |
-| 13. Contact Fields | v1.1 | 0/TBD | Not started | - |
+| 13. Contact Fields | v1.1 | 0/3 | Not started | - |
 | 14. Brands and Product Names | v1.1 | 0/TBD | Not started | - |
