@@ -285,6 +285,24 @@ def inn_digits(inn):
         return ""
     return re.sub(r'\D', '', str(inn).split('.')[0])
 
+def validate_inn_checksum(digits):
+    """FNS mod-11 checksum for Russian INN. 9-digit Belarus УНП skips checksum."""
+    if not digits or not digits.isdigit():
+        return False
+    d = [int(c) for c in digits]
+    if len(d) == 9:
+        return True
+    if len(d) == 10:
+        w = [2, 4, 10, 3, 5, 9, 4, 6, 8, 0]
+        return d[9] == (sum(w[i] * d[i] for i in range(9)) % 11) % 10
+    if len(d) == 12:
+        w1 = [7, 2, 4, 10, 3, 5, 9, 4, 6, 8, 0]
+        w2 = [3, 7, 2, 4, 10, 3, 5, 9, 4, 6, 8, 0]
+        c1 = (sum(w1[i] * d[i] for i in range(11)) % 11) % 10
+        c2 = (sum(w2[i] * d[i] for i in range(12)) % 11) % 10
+        return d[10] == c1 and d[11] == c2
+    return False
+
 # ─── Per-field scorers ────────────────────────────────────────────────────────
 def check_fio(msg):
     s = (msg.get("analysis") or {}).get("sender") or {}
@@ -299,8 +317,9 @@ def check_inn(msg):
     d = inn_digits(s.get("inn"))
     if not d:
         return {"present": False, "noise": False}
-    ok_len = len(d) in (10, 12)
-    return {"present": True, "noise": not ok_len}
+    ok_len = len(d) in (9, 10, 12)
+    ok_checksum = validate_inn_checksum(d) if ok_len else False
+    return {"present": True, "noise": not ok_checksum}
 
 def check_phone(msg):
     s = (msg.get("analysis") or {}).get("sender") or {}
@@ -363,8 +382,17 @@ def check_product_name(msg):
     has_raw_numbered = any(NUMBERED_LIST_RE.match(n) for n in names)
     return {"present": True, "noise": has_raw_numbered}
 
+def check_positions(msg):
+    l = (msg.get("analysis") or {}).get("lead") or {}
+    arts = article_codes(l.get("articles"))
+    positions = l.get("positions") or 0
+    total_qty = l.get("totalQty") or 0
+    if not arts:
+        return {"present": False, "noise": False}
+    return {"present": positions > 0, "noise": not (total_qty > 0)}
+
 # ─── Aggregator ───────────────────────────────────────────────────────────────
-FIELDS = ("fio", "inn", "phone", "article", "brand", "qty", "product_name")
+FIELDS = ("fio", "inn", "phone", "article", "brand", "qty", "positions", "product_name")
 
 def score_sample(sample, kb_a, kb_s, aliases):
     counts = {f: {"present": 0, "noise": 0} for f in FIELDS}
@@ -377,6 +405,7 @@ def score_sample(sample, kb_a, kb_s, aliases):
             "article":      check_article(m, from_email),
             "brand":        check_brand(m, kb_a, kb_s, aliases),
             "qty":          check_qty(m),
+            "positions":    check_positions(m),
             "product_name": check_product_name(m),
         }
         for f, r in results.items():
