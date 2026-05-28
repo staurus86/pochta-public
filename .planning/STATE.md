@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.2
 milestone_name: Live Deployment & Measurement
-status: Milestone complete
-stopped_at: Phase 15 complete — deploy done, baseline_v6 generated, v1.3 priorities identified
-last_updated: "2026-05-28T22:00:00.000Z"
+status: Ready to plan
+stopped_at: v1.3 milestone created — ready for Phase 16 planning
+last_updated: "2026-05-28T22:30:00.000Z"
 progress:
-  total_phases: 1
-  completed_phases: 1
-  total_plans: 1
-  completed_plans: 1
+  total_phases: 3
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-25)
 
 **Core value:** ≥50% входящих писем детектятся 7/7 полей perfect и попадают в Directus без ручной правки
-**Current focus:** Phase 15 — Deploy + Live Baseline
+**Current focus:** Phase 16 — INN Quality
 
 ## Current Position
 
-Phase: 15
-Next: Phase 15 (deploy-and-live-baseline)
+Phase: 16
+Next: Phase 16 (inn-quality)
 
 ## Performance Metrics
 
@@ -76,6 +76,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-28T19:30:00.000Z
-Stopped at: v1.2 milestone created — Phase 15 ready to plan
-Resume file: .planning/ROADMAP.md — Phase 15 Deploy + Live Baseline
+Last session: 2026-05-28T22:30:00.000Z
+Stopped at: v1.3 milestone created — Phase 16 INN Quality ready to plan
+Resume file: .planning/ROADMAP.md — Phase 16

@@ -52,11 +52,13 @@ _Note: brand/article improvements from v1.1 fixes will show in fresh post-deploy
 
 ---
 
-## Current Milestone: v1.2 Live Deployment & Measurement
+## Current Milestone: v1.3 Field Quality Sprint
 
-**Goal:** Задеплоить v1.1 на Railway production, получить реальные post-deploy метрики, принять решение о приоритетах v1.3.
+**Goal:** INN.present ≥50%, brand.noise_free ≥55%, qty.noise_free ≥20%
 
-**Phase 15:** Push v1.1 → smoke-check → `baseline_v5.json` (live prod) → delta-отчёт v1→v5 → решение о v1.3
+**Phase 16:** INN Quality — улучшить извлечение ИНН (34.7% → 50%+)
+**Phase 17:** Brand Quality — ghost brands (45.3% → 55%+)
+**Phase 18:** Qty Quality — шумовые количества (4% → 20%+)
 
 ---
 

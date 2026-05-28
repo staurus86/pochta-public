@@ -1,6 +1,6 @@
-# Requirements — v1.2 Live Deployment & Measurement
+# Requirements — v1.3 Field Quality Sprint
 
-**Milestone:** v1.2
+**Milestone:** v1.3
 **Status:** Defined
 **Date:** 2026-05-28
 
@@ -8,38 +8,33 @@
 
 ## In Scope
 
-### DEPLOY — Деплой v1.1 в production
+### INN — Улучшение извлечения ИНН
 
-- [ ] **DEPLOY-01**: v1.1 код задеплоен на Railway production (`git push origin main`) — `.railway-deploy/src/` содержит все изменения из v1.1
-- [ ] **DEPLOY-02**: Smoke-check после деплоя — `GET /api/health` отвечает 200, анализ тестового письма через UI возвращает результат без 500-ошибок
-- [ ] **DEPLOY-03**: Проверка ключевых v1.1 фич на живых данных:
-  - `finalizeLeadCounts` — positions/totalQty без дублей
-  - `validateInnChecksum` — ИНН с неверной контрольной суммой = null
-  - `FIO_TEMPLATE_BLOCKLIST` — «Екатерина Попова» = null в fullName
-  - `subjectGroundedBrands` — бренд из Subject присутствует в detectedBrands
+- [ ] **INN-01**: Исследовать почему только 34.7% писем имеют ИНН — какие паттерны пропускаются в теле письма, форме, вложениях
+- [ ] **INN-02**: Расширить паттерны извлечения ИНН: labeled-форматы (`ИНН:`, `ИНН/КПП:`, `TIN:`, ИНН с пробелами), контекстные блоки реквизитов
+- [ ] **INN-03**: Улучшить извлечение ИНН из вложений-реквизитов (PDF/DOCX): расширить regex-паттерны, обработать форматы с пробелами
+- [ ] **INN-04**: Audit-скрипт показывает рост `inn.present` относительно baseline_v6 (цель: ≥50%)
 
-### MEASURE — Живые метрики после деплоя
+### BRAND — Снижение ghost brands
 
-- [ ] **MEASURE-01**: `audit_baseline.py` запущен против live production API (не локальный snapshot) — `baseline_v5.json` с n=300, seed=42
-- [ ] **MEASURE-02**: Delta v1 → v5 посчитана по каждому полю — задокументирована в `DELTA.md`
-- [ ] **MEASURE-03**: Решение принято: какое поле детекции приоритизировать в v1.3 (бренды / артикулы / компания / ФИО / ИНН / qty)
+- [ ] **BRAND-04**: Исследовать оставшиеся ghost brands в production — какие бренды ложно срабатывают и почему (анализ на 300-письмовой выборке)
+- [ ] **BRAND-05**: Устранить топ-5 паттернов ghost brands по результатам исследования
+- [ ] **BRAND-06**: Audit-скрипт показывает рост `brand.noise_free` относительно baseline_v6 (цель: ≥55%)
 
----
+### QTY — Чистка количеств
 
-## Future Requirements (deferred to v1.3+)
-
-- Brand quality: noise_free 58% → 70%+ (зависит от реальных постдеплой метрик)
-- qty/positions: измерение реального улучшения от finalizeLeadCounts
-- src/ ↔ .railway-deploy/ auto-sync (REQ-SYNC-01) — инфраструктурная задача
-- Company/INN quality — после измерений
+- [ ] **QTY-01**: Исследовать почему qty.noise_free = 4% при qty.present = 41.3% — какие количества некорректны (OCR-ошибки, страничные номера, коды, временны́е метки как qty)
+- [ ] **QTY-02**: Добавить фильтры шумовых qty-значений: исключить qty > 10000 без явного контекста, исключить значения вида 40787/760 (OCR-страничные номера)
+- [ ] **QTY-03**: Audit-скрипт показывает рост `qty.noise_free` относительно baseline_v6 (цель: ≥20%)
 
 ---
 
 ## Out of Scope
 
-- Новые фичи детекции — только после получения реальных метрик
+- LLM-классификация — отключена по стоимости
 - v2 монорепо — без изменений
-- OCR вложений
+- src/ ↔ .railway-deploy/ auto-sync — отложено
+- Телефон и ФИО — достаточно хороши (75%+, 87%+)
 
 ---
 
@@ -47,9 +42,13 @@
 
 | REQ-ID | Phase | Status |
 |--------|-------|--------|
-| DEPLOY-01 | Phase 15 | Pending |
-| DEPLOY-02 | Phase 15 | Pending |
-| DEPLOY-03 | Phase 15 | Pending |
-| MEASURE-01 | Phase 15 | Pending |
-| MEASURE-02 | Phase 15 | Pending |
-| MEASURE-03 | Phase 15 | Pending |
+| INN-01 | Phase 16 | Pending |
+| INN-02 | Phase 16 | Pending |
+| INN-03 | Phase 16 | Pending |
+| INN-04 | Phase 16 | Pending |
+| BRAND-04 | Phase 17 | Pending |
+| BRAND-05 | Phase 17 | Pending |
+| BRAND-06 | Phase 17 | Pending |
+| QTY-01 | Phase 18 | Pending |
+| QTY-02 | Phase 18 | Pending |
+| QTY-03 | Phase 18 | Pending |
