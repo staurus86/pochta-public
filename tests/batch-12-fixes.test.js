@@ -1,8 +1,9 @@
-// Phase 12 regression — ART-04 (positions/totalQty) + CONTACT-02 (INN checksum, added in plan 02)
+// Phase 12 regression — ART-04 (positions/totalQty) + CONTACT-02 (INN checksum) + CONTACT-01 (attachment checksum)
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import { finalizeLeadCounts, validateInnChecksum, normalizeInn } from "../src/services/email-analyzer.js";
+import { validateInnChecksum as validateInnChecksumAttachment } from "../src/services/attachment-content.js";
 
 // =====================================================================
 // ART-04 — positions/totalQty deduplication (finalizeLeadCounts)
@@ -110,4 +111,25 @@ test("CONTACT-02 normalizeInn: valid 12-digit ИП accepted (500100732259)", () 
 
 test("CONTACT-02 normalizeInn: invalid 12-digit ИП rejected (500100732250) → null", () => {
     assert.equal(normalizeInn("500100732250"), null);
+});
+
+// =====================================================================
+// CONTACT-01 — Attachment validateInnChecksum parity with email-analyzer
+// =====================================================================
+
+test("CONTACT-01 attachment validateInnChecksum: valid INN accepted, invalid dropped", () => {
+    const candidates = ["7707083893", "1234567890"];
+    const filtered = candidates.filter(validateInnChecksumAttachment);
+    assert.deepEqual(filtered, ["7707083893"]);
+});
+
+test("CONTACT-01 attachment validateInnChecksum: algorithm matches email-analyzer version", () => {
+    const cases = ["7707083893", "1234567890", "123456789", "500100732259", "500100732250"];
+    for (const v of cases) {
+        assert.equal(
+            validateInnChecksumAttachment(v),
+            validateInnChecksum(v),
+            `parity mismatch for ${v}`
+        );
+    }
 });
