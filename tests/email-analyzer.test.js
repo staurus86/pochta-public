@@ -18,7 +18,7 @@ const project = {
     {
       id: "client-1001",
       legalName: "ООО ПромСнаб",
-      inn: "7701234567",
+      inn: "7701234507",
       website: "https://promsnab.ru",
       domain: "promsnab.ru",
       curatorMop: "Иван Колесов",
@@ -91,7 +91,7 @@ runTest("analyzes client email and matches known company", () => {
     attachments: "rekvizity.pdf, shildik.jpg",
     body: `
       Добрый день.
-      ООО "ПромСнаб", ИНН 7701234567
+      ООО "ПромСнаб", ИНН 7701234507
       Артикул S201-C16 x 20 шт
       С уважением,
       Павел Ильин
@@ -129,7 +129,7 @@ runTest("enriches sender from company directory when email is known", () => {
   detectionKb.importCompanyDirectory([
     {
       name: "ООО ДоменТест",
-      inn: "7812345678",
+      inn: "7812345675",
       fio: "Соколова Анна",
       post: "Специалист по закупкам",
       email: "procurement@domain-test.ru",
@@ -150,7 +150,7 @@ runTest("enriches sender from company directory when email is known", () => {
   });
 
   assert.equal(analysis.sender.companyName, "ООО ДоменТест");
-  assert.equal(analysis.sender.inn, "7812345678");
+  assert.equal(analysis.sender.inn, "7812345675");
   assert.equal(analysis.sender.position, "Специалист по закупкам");
 });
 
@@ -293,14 +293,14 @@ runTest("does not treat inn and kpp fragments as articles", () => {
     attachments: "",
     body: `
       Добрый день.
-      ИНН 7701234567
+      ИНН 7701234507
       КПП 770101001
       ОГРН 1234567890123
       Артикул A9N18346 x 2 шт
     `
   });
 
-  assert.ok(!analysis.lead.articles.includes("7701234567"));
+  assert.ok(!analysis.lead.articles.includes("7701234507"));
   assert.ok(!analysis.lead.articles.includes("770101001"));
   assert.ok(!analysis.lead.articles.includes("1234567890123"));
   assert.ok(analysis.lead.articles.includes("A9N18346"));
@@ -336,7 +336,7 @@ runTest("extracts requisites and labeled phones without leaking them into articl
     body: `
       Карточка компании:
       ООО "Ромашка"
-      ИНН: 7701234567
+      ИНН: 7701234507
       КПП: 770101001
       ОГРН: 1234567890123
       Телефон: +7 (495) 111-22-33
@@ -346,7 +346,7 @@ runTest("extracts requisites and labeled phones without leaking them into articl
     `
   });
 
-  assert.equal(analysis.sender.inn, "7701234567");
+  assert.equal(analysis.sender.inn, "7701234507");
   assert.equal(analysis.sender.kpp, "770101001");
   assert.equal(analysis.sender.ogrn, "1234567890123");
   assert.equal(analysis.sender.mobilePhone, "+7 (926) 555-44-33");
@@ -366,12 +366,12 @@ runTest("extracts INN and KPP from combined ИНН/КПП: X/Y format", () => {
     body: `
       Добрый день.
       ООО "Завод"
-      ИНН/КПП: 7701234567/770101001
+      ИНН/КПП: 7701234507/770101001
       Нужен артикул A9N18346 x 1 шт.
     `
   });
 
-  assert.equal(analysis.sender.inn, "7701234567");
+  assert.equal(analysis.sender.inn, "7701234507");
   assert.equal(analysis.sender.kpp, "770101001");
 });
 
@@ -1528,7 +1528,7 @@ ESX20S-9534Y
 1
 Встроенная
 зажимная головка
-Арт.: 9510451992
+Арт.: 9510451-992
 шт.
 1
 Ротационное
@@ -1546,7 +1546,7 @@ joint
 
   assert.ok(result.lead.lineItems.some((item) => item.article === "H0019-0008-28" && item.quantity === 3));
   assert.ok(result.lead.lineItems.some((item) => item.article === "95.101.808.2.2" && item.quantity === 1));
-  assert.ok(result.lead.lineItems.some((item) => item.article === "9510451992" && item.quantity === 1));
+  assert.ok(result.lead.lineItems.some((item) => item.article === "9510451-992" && item.quantity === 1));
   assert.ok(result.lead.lineItems.some((item) => item.article === "1114-160-318" && item.quantity === 1));
   assert.ok(!result.lead.lineItems.some((item) => item.quantity === 9534));
 });
@@ -1621,7 +1621,7 @@ runTest("builds recognition diagnostics with high confidence for well-structured
     fromName: "Иван Петров",
     subject: "Запрос по S201-C16",
     body: `Добрый день
-ООО "Ромашка" ИНН 7701234567
+ООО "Ромашка" ИНН 7701234507
 Телефон: +7 (495) 123-45-67
 Просим выставить счет на ABB S201-C16 - 5 шт`
   });
@@ -3208,7 +3208,7 @@ runTest("recognitionSummary.article отражает актуальный lead.a
       "Количество: 1 шт",
       "Телефон: +7 999 123-45-67",
       "Компания: ООО Ромашка",
-      "ИНН: 7701234567"
+      "ИНН: 7701234507"
     ].join("\n")
   });
   const arts = analysis.lead.articles || [];

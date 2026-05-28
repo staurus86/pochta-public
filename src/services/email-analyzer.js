@@ -250,12 +250,36 @@ function classifyInn(inn) {
   return 'UNKNOWN';
 }
 
-// Normalize INN: digits only, 10 or 12 chars (9 for Belarus УНП), or null
-function normalizeInn(v) {
-  if (!v) return null;
-  const digits = String(v).replace(/\D/g, "");
-  if (digits.length === 9 || digits.length === 10 || digits.length === 12) return digits;
-  return null;
+// FNS mod-11 checksum for Russian INN (10- or 12-digit). 9-digit Belarus УНП skips checksum.
+export function validateInnChecksum(digits) {
+    const s = String(digits || "").replace(/\D/g, "");
+    if (s.length === 9) return true; // Belarus УНП — no checksum
+    const d = s.split("").map(Number);
+    if (d.some((x) => Number.isNaN(x))) return false;
+    if (s.length === 10) {
+        const w = [2, 4, 10, 3, 5, 9, 4, 6, 8, 0];
+        const sum = w.slice(0, 9).reduce((acc, wi, i) => acc + wi * d[i], 0);
+        return d[9] === (sum % 11) % 10;
+    }
+    if (s.length === 12) {
+        const w1 = [7, 2, 4, 10, 3, 5, 9, 4, 6, 8, 0];
+        const w2 = [3, 7, 2, 4, 10, 3, 5, 9, 4, 6, 8, 0];
+        const c1 = (w1.slice(0, 11).reduce((acc, wi, i) => acc + wi * d[i], 0) % 11) % 10;
+        const c2 = (w2.slice(0, 12).reduce((acc, wi, i) => acc + wi * d[i], 0) % 11) % 10;
+        return d[10] === c1 && d[11] === c2;
+    }
+    return false;
+}
+
+// Normalize INN: digits only, 9/10/12 chars, checksum-validated for 10/12-digit. Returns null on failure.
+export function normalizeInn(v) {
+    if (!v) return null;
+    const digits = String(v).replace(/\D/g, "");
+    if (digits.length === 9) return digits; // Belarus УНП — accept as-is
+    if (digits.length === 10 || digits.length === 12) {
+        return validateInnChecksum(digits) ? digits : null;
+    }
+    return null;
 }
 
 // Detect field label values that accidentally ended up in a field (e.g. company = "ИНН:")
@@ -6333,10 +6357,10 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   if (/^[A-Za-z0-9]{1,8}:[A-Za-z0-9]{1,4}$/.test(normalized)) return true;
   // Cycle 2 — delegate narrow P0 predicates only (not the full rejectArticleCandidate,
   // which includes tech_spec rules that would regress legacy article extraction).
-  // 12-digit INN is always rejected; 10-digit INN only without strong label context.
+  // 10-digit: passes checksum → real INN; fails checksum → noise. Either way, not an article.
   if (isInnLike(normalized)) {
     if (normalized.length === 12) return true;
-    if (normalized.length === 10 && !hasStrongArticleContext) return true;
+    if (normalized.length === 10) return true; // P12: INN if checksum passes, noise otherwise — reject as article either way
   }
   if (isHtmlStructureToken(normalized)) return true;
   if (isSizeTriple(normalized)) return true;
