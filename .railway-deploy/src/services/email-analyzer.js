@@ -305,6 +305,12 @@ const FULLNAME_STOPLIST = /^(?:письмо\s+(?:сгенерировано|от
 // Use explicit non-letter lookarounds so Cyrillic job titles are caught.
 const JOB_TITLE_STOPLIST = /(?<![A-Za-zА-Яа-яЁё])(?:менеджер|директор|руководитель|специалист|начальник|главный|ведущий|старший|механик|энергетик|бухгалтер|инженер|генеральный|коммерческий|исполнительный|технический|отдел\s+(?:продаж|закупок|снабжения|сбыта|логистики)|manager|director|sales|purchasing|engineer|head\s+of|chief)(?![A-Za-zА-Яа-яЁё])/iu;
 
+// CONTACT-03: known template/placeholder proper names that must never appear as sender.fullName.
+// Use a Set for O(1) lookup. Extend as new template names are discovered in production.
+const FIO_TEMPLATE_BLOCKLIST = new Set([
+    "екатерина попова", // Siderus robot@ web-form default visitor name placeholder
+]);
+
 // Batch J2: sanitizePersonName — validates a raw fullName candidate.
 // Returns null if the value looks like a legal entity, job title, or multi-line signature block.
 // Otherwise returns the trimmed name, stripping trailing junk.
@@ -370,7 +376,7 @@ function sanitizePersonName(raw) {
   return trimmed.replace(/[,;]+$/, "").trim();
 }
 
-function validateSenderFields(sender) {
+export function validateSenderFields(sender) {
   let corrections = 0;
 
   // 0. Reject boilerplate / service phrases in fullName
@@ -392,6 +398,16 @@ function validateSenderFields(sender) {
       } else {
         sender.fullName = cleaned;
       }
+      corrections++;
+    }
+  }
+
+  // 0c. CONTACT-03: reject known template/placeholder names (exact match, case-insensitive)
+  if (sender.fullName && sender.fullName !== "Не определено") {
+    if (FIO_TEMPLATE_BLOCKLIST.has(sender.fullName.trim().toLowerCase())) {
+      if (!sender.contactNameRaw) sender.contactNameRaw = sender.fullName;
+      sender.fullName = null;
+      if (sender.sources) sender.sources.name = null;
       corrections++;
     }
   }
