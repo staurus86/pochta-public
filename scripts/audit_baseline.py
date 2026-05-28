@@ -365,19 +365,30 @@ def check_brand(msg, kb_a, kb_s, aliases):
     )
     return {"present": True, "noise": any_ghost}
 
+# QTY-03 v2: noise only when qty IS found but obviously wrong (outlier >10000 unlabeled).
+# "No qty in email" is not noise — B2B clients often send article-only КП requests.
 def check_qty(msg):
     l = (msg.get("analysis") or {}).get("lead") or {}
     arts = article_codes(l.get("articles"))
-    # Live prod stores qty in totalQuantity / quantitiesClean, not lineItems
+    if not arts:
+        return {"present": False, "noise": False}
     total_qty = l.get("totalQuantity") or 0
     quantities_clean = l.get("quantitiesClean") or []
     has_any_qty = (total_qty > 0) or any(
         (q.get("value") or 0) > 0 for q in quantities_clean if isinstance(q, dict)
     )
-    if not arts:
-        # No articles → qty not expected; present=False is correct, no noise
+    if not has_any_qty:
+        # No qty in email — not noise (B2B article-only inquiries are valid)
         return {"present": False, "noise": False}
-    return {"present": has_any_qty, "noise": not has_any_qty}
+    # Qty was extracted — only flag as noise if value is obviously wrong:
+    # outlier (>10000) without an explicit labeled or pack context
+    noise = any(
+        isinstance(q, dict)
+        and (q.get("value") or 0) > 10000
+        and q.get("source") not in ("labeled", "pack")
+        for q in quantities_clean
+    )
+    return {"present": True, "noise": noise}
 
 NUMBERED_LIST_RE = re.compile(r'^\s*\d+\s*[\.\)]\s+.+(?:\s+—\s+\d+\s*шт)', re.U)
 

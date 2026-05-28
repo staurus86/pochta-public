@@ -152,8 +152,8 @@ function extractFromLine(line, options) {
 
 function pickPrimary(items) {
     if (items.length === 0) return null;
-    // Priority: pack > article_boundary > labeled > inline > locale
-    const priority = { pack: 5, article_boundary: 4, labeled: 3, inline: 2, locale: 1 };
+    // Priority: pack > article_boundary > labeled > inline/multiline_table > locale
+    const priority = { pack: 5, article_boundary: 4, labeled: 3, inline: 2, multiline_table: 2, locale: 1 };
     const sorted = [...items].sort((a, b) => {
         const pa = priority[a.source] || 0;
         const pb = priority[b.source] || 0;
@@ -170,6 +170,12 @@ function pickPrimary(items) {
 
 export function extractQuantities(input, options = {}) {
     const articles = options.articles || [];
+
+    // QTY-2: strip bold/italic Outlook markdown markers before parsing
+    // Handles: *10****шт.* → 10шт.
+    if (typeof input === "string") {
+        input = input.replace(/\*+/g, "");
+    }
 
     // 1. Array-of-objects input: passthrough normalize
     if (Array.isArray(input)) {
@@ -214,6 +220,45 @@ export function extractQuantities(input, options = {}) {
         .split(/\r?\n|(?:[.;!?]\s+)/)
         .map((l) => l.trim())
         .filter(Boolean);
+
+    // QTY-1: cross-line pairing for HTML-table-rendered emails
+    // HTML table cells produce: description \n\n N \n\n шт
+    // The extractor is line-by-line only; this pre-pass pairs unit-only lines
+    // with adjacent number-only lines (within 2 raw lines distance, including blank lines).
+    // Uses raw lines (before blank filtering) so "100\n\n\n\nшт" (4 lines apart) is NOT matched.
+    const _rawLines = text.split(/\r?\n/).map((l) => l.trim());
+    const _UNIT_ONLY_RE = /^(шт|ШТ|штук[аи]?|штука|pcs|pc|компл(?:ект(?:а|ы|ов)?)?|к-т|уп|рул|бух|ед)\.?\s*$/i;
+    const _NUM_ONLY_RE = /^(\d+(?:[.,]\d+)?)$/;
+    const _multilineItems = [];
+    for (let _i = 0; _i < _rawLines.length; _i++) {
+        if (!_UNIT_ONLY_RE.test(_rawLines[_i])) continue;
+        const _unitStr = _rawLines[_i].trim();
+        let _paired = false;
+        // Search backward up to 2 raw lines
+        for (let _d = 1; _d <= 2 && !_paired; _d++) {
+            const _j = _i - _d;
+            if (_j < 0) continue;
+            const _nm = _rawLines[_j].match(_NUM_ONLY_RE);
+            if (!_nm) continue;
+            const _val = parseFloat(_nm[1].replace(",", "."));
+            if (_val > 0 && _val <= 100000) {
+                _multilineItems.push({ value: _val, unit: normalizeQtyUnit(_unitStr) || "шт", source: "multiline_table", sourceLine: `${_rawLines[_j]} ${_unitStr}` });
+                _paired = true;
+            }
+        }
+        // Search forward up to 2 raw lines (only if not already paired backward)
+        for (let _d = 1; _d <= 2 && !_paired; _d++) {
+            const _j = _i + _d;
+            if (_j >= _rawLines.length) continue;
+            const _nm = _rawLines[_j].match(_NUM_ONLY_RE);
+            if (!_nm) continue;
+            const _val = parseFloat(_nm[1].replace(",", "."));
+            if (_val > 0 && _val <= 100000) {
+                _multilineItems.push({ value: _val, unit: normalizeQtyUnit(_unitStr) || "шт", source: "multiline_table", sourceLine: `${_unitStr} ${_rawLines[_j]}` });
+                _paired = true;
+            }
+        }
+    }
 
     const accepted = [];
     const rejected = [];
@@ -262,6 +307,7 @@ export function extractQuantities(input, options = {}) {
         dedupedRejected.push(r);
     }
 
+    accepted.push(..._multilineItems);
     const primary = pickPrimary(accepted);
     const needsReview = accepted.some((c) => c.ambiguous);
 
