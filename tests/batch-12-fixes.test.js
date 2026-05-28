@@ -2,7 +2,7 @@
 
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { finalizeLeadCounts } from "../src/services/email-analyzer.js";
+import { finalizeLeadCounts, validateInnChecksum, normalizeInn } from "../src/services/email-analyzer.js";
 
 // =====================================================================
 // ART-04 — positions/totalQty deduplication (finalizeLeadCounts)
@@ -66,4 +66,48 @@ test("ART-04 article without lineItem counts toward positions with qty 0", () =>
     finalizeLeadCounts(lead);
     assert.equal(lead.positions, 1);
     assert.equal(lead.totalQty, 0);
+});
+
+// =====================================================================
+// CONTACT-02 — FNS mod-11 INN checksum (validateInnChecksum + normalizeInn)
+// =====================================================================
+
+test("CONTACT-02 validateInnChecksum: valid 10-digit (Сбербанк 7707083893) → true", () => {
+    assert.equal(validateInnChecksum("7707083893"), true);
+});
+
+test("CONTACT-02 validateInnChecksum: invalid 10-digit (1234567890) → false", () => {
+    assert.equal(validateInnChecksum("1234567890"), false);
+});
+
+test("CONTACT-02 validateInnChecksum: 9-digit Belarus УНП → true (no checksum)", () => {
+    assert.equal(validateInnChecksum("123456789"), true);
+});
+
+test("CONTACT-02 validateInnChecksum: valid 12-digit ИП (500100732259) → true", () => {
+    assert.equal(validateInnChecksum("500100732259"), true);
+});
+
+test("CONTACT-02 validateInnChecksum: invalid 12-digit ИП (flip last digit: 500100732250) → false", () => {
+    assert.equal(validateInnChecksum("500100732250"), false);
+});
+
+test("CONTACT-02 normalizeInn: valid INN accepted (7707083893)", () => {
+    assert.equal(normalizeInn("7707083893"), "7707083893");
+});
+
+test("CONTACT-02 normalizeInn: invalid INN rejected (1234567890) → null", () => {
+    assert.equal(normalizeInn("1234567890"), null);
+});
+
+test("CONTACT-02 normalizeInn: strips non-digits then validates (ИНН: 7707083893)", () => {
+    assert.equal(normalizeInn("ИНН: 7707083893"), "7707083893");
+});
+
+test("CONTACT-02 normalizeInn: valid 12-digit ИП accepted (500100732259)", () => {
+    assert.equal(normalizeInn("500100732259"), "500100732259");
+});
+
+test("CONTACT-02 normalizeInn: invalid 12-digit ИП rejected (500100732250) → null", () => {
+    assert.equal(normalizeInn("500100732250"), null);
 });
