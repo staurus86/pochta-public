@@ -1,0 +1,21 @@
+{
+  "label": "cycle3",
+  "pid": "project-3-mailbox-file",
+  "ts": 1776717988,
+  "totals": {
+    "clients": 1759,
+    "articles_total": 4977,
+    "titles_total": 866,
+    "dup_articles_msgs": 12,
+    "dup_titles_msgs": 32,
+    "over_art_msgs": 30,
+    "over_title_msgs": 2
+  },
+  "buckets": {
+    "B2_url_email": 3,
+    "B3_tiny": 2,
+    "A2_phone": 6,
+    "A6_decimal": 1,
+    "A4_date": 1
+  }
+}

@@ -1,0 +1,111 @@
+{
+  "version": "1.0",
+  "timestamp": "2026-04-10T20:49:03.739Z",
+  "phase": "01",
+  "phase_name": "detection-fixes",
+  "phase_dir": ".planning/phases/01-detection-fixes",
+  "plan": 1,
+  "task": 4,
+  "total_tasks": 7,
+  "status": "paused",
+  "completed_tasks": [
+    {
+      "id": 1,
+      "name": "Fix company field — 43 ошибки",
+      "status": "done",
+      "commit": "67f2ef2",
+      "details": "sanitizeCompanyName: INN-prefix, PDF font noise, phone/address/position, bare ООО"
+    },
+    {
+      "id": 2,
+      "name": "Fix classification — 14 ошибок",
+      "status": "done",
+      "commit": "f00079e",
+      "details": "robot form non-resume → Клиент; 8 new sender profiles; ООО/АО body rule +3"
+    },
+    {
+      "id": 3,
+      "name": "Fix sender name — 6 ошибок",
+      "status": "done",
+      "commit": "657213f",
+      "details": "Фамилия И.В. pattern; KB multiline fix (split on \\n); single surname in sig"
+    },
+    {
+      "id": 4,
+      "name": "Deploy + reanalysis + v2 xlsx",
+      "status": "done",
+      "commit": "deployed to Railway",
+      "details": "git push → Railway deploy; reanalysis 1771/1790; pochta-analysis-500-v2.xlsx created"
+    }
+  ],
+  "remaining_tasks": [
+    {
+      "id": 5,
+      "name": "Fix: email из quoted history → own domain",
+      "status": "not_started",
+      "priority": "high",
+      "details": "extractForwardedSender (line 326-330) не проверяет isOwnDomain. Если quoted часть содержит 'From: SIDERUS [mailto:info@siderus.ru]', override fromEmail на info@siderus.ru. Fix: добавить isOwnDomain check перед override",
+      "file": "src/services/email-analyzer.js",
+      "line": 328
+    },
+    {
+      "id": 6,
+      "name": "Fix: bodyForClassification от quoted-history spam",
+      "status": "not_started",
+      "priority": "high",
+      "details": "Красмаш/Элакс/ФолгГрупп/Демар-Центр → СПАМ из-за spam-слов в quoted части. primaryBody пустой или не отделяется от quote. Fix: если primaryBody слишком короткий (<50 chars), брать первые 500 chars от body (не всё). Также расширить QUOTE_PATTERNS для Outlook/Exchange форматов",
+      "file": "src/services/email-analyzer.js",
+      "line": 348
+    },
+    {
+      "id": 7,
+      "name": "Fix: sender profiles не работают на продакшн DB",
+      "status": "not_started",
+      "priority": "high",
+      "details": "DEFAULT_SENDER_PROFILES с новыми доменами (obed.ru, cdek.ru, elecrow.com, tektorg.ru, 1c-uc.ru, slacnc.com, eayglobal.com, globalpost.ru) не попали в prod DB из-за WHERE NOT EXISTS seeding. Нужно: (A) добавить через API или (B) добавить migration-логику в initialize() которая обновляет записи"
+    },
+    {
+      "id": 8,
+      "name": "Fix: extended company name garbage",
+      "status": "not_started",
+      "priority": "medium",
+      "details": "Ещё 37 строк с мусором: 'United Process Co', 'Any co', 'SPecialiST RePack AppVersion Co', 'Diaphragm metering pump se', 'Snipermail'. Нужно расширить PDF_COMPANY_NOISE_TOKENS + добавить rejection для software-версий, generic слов (any, some, process) и known-spam сервисов"
+    }
+  ],
+  "blockers": [
+    {
+      "description": "Sender profiles в prod DB не обновились — WHERE NOT EXISTS seeding пропустил новые домены т.к. email-записи уже были",
+      "type": "technical",
+      "workaround": "Добавить через REST API: POST /api/detection-kb/sender-profiles с каждым новым доменом. Token и URL в project_auth_gate.md памяти"
+    }
+  ],
+  "human_actions_pending": [],
+  "decisions": [
+    {
+      "decision": "robot form non-resume → всегда Клиент override",
+      "rationale": "Форма на сайте siderus.ru создана для клиентских запросов; спам через форму крайне редок",
+      "commit": "f00079e"
+    },
+    {
+      "decision": "PDF_COMPANY_NOISE_TOKENS как Set для быстрой проверки",
+      "rationale": "Дешевле regex, легче расширять",
+      "commit": "67f2ef2"
+    },
+    {
+      "decision": "Системный фикс вместо точечных правок",
+      "rationale": "Пользователь явно сказал: нужен рабочий детект на платформе, не патчи к конкретным письмам",
+      "session": "2026-04-10"
+    }
+  ],
+  "uncommitted_files": [],
+  "prod_stats": {
+    "after_v2_reanalysis": {
+      "client": 1523,
+      "spam": 246,
+      "vendor": 14,
+      "undefined": 7,
+      "total": 1790
+    }
+  },
+  "next_action": "Начать с Fix 5: в email-analyzer.js строка 328, добавить isOwnDomain check в extractForwardedSender. Затем Fix 6: bodyForClassification cap. Затем добавить sender profiles через API."
+}

@@ -1,0 +1,24 @@
+{
+  "label": "before",
+  "pid": "project-3-mailbox-file",
+  "ts": 1776714449,
+  "totals": {
+    "clients": 1759,
+    "articles_total": 5167,
+    "titles_total": 875,
+    "dup_articles_msgs": 13,
+    "dup_titles_msgs": 32,
+    "over_art_msgs": 32,
+    "over_title_msgs": 2
+  },
+  "buckets": {
+    "A_size_triple": 28,
+    "B2_url_email": 4,
+    "A2_phone": 11,
+    "B3_tiny": 2,
+    "A4_date": 3,
+    "A3_inn": 4,
+    "A5_tiny_digit": 8,
+    "A6_decimal": 1
+  }
+}

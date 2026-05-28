@@ -12,7 +12,7 @@
 
 **Milestone Goal:** Задеплоить v1.1 на Railway production, получить реальные post-deploy метрики через live audit, принять решение о приоритетах v1.3 на основе данных.
 
-- [ ] **Phase 15: Deploy + Live Baseline** — Push v1.1, smoke-check, `baseline_v5.json` через live prod API, delta-отчёт
+- [x] **Phase 15: Deploy + Live Baseline** — Push v1.1, smoke-check, baseline_v6.json post-reanalysis, DELTA.md (completed 2026-05-28)
 
 ### Phase 15: Deploy + Live Baseline
 **Goal**: v1.1 код работает в production, живые метрики зафиксированы в baseline_v5.json, принято решение о следующем приоритете
@@ -35,4 +35,4 @@
 |-----------|--------|--------------|--------|---------|
 | v1.0 Entity Extraction Sprint | 01-09 | - | ✅ Complete | 2026-04-22 |
 | v1.1 Detection Quality Sprint | 10-14 | 15/15 | ✅ Complete | 2026-05-28 |
-| v1.2 Live Deployment & Measurement | 15 | 6/6 | 🔄 In progress | - |
+| v1.2 Live Deployment & Measurement | 15 | 6/6 | ✅ Complete | 2026-05-28 |
