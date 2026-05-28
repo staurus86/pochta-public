@@ -525,6 +525,8 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   "micro", "corteco", "simrit", "seat", "rota", "tool", "index", "itec", "nito", "irem",
   "able", "kimo", "roller", "ross", "fisher", "ital", "helical", "bar", "check", "select",
   "robot", "pressure", "high", "contact", "elektro",
+  // Phase 17 / GHOST-4: generic single-token aliases from 15K-brand KB import that match common words.
+  "instruments", "smart", "west", "drive", "neo", "mission",
 ]);
 // Batch D / P13 + Batch E / P17: aliases whose FIRST token is a common generic word — when such
 // an alias has ≥2 tokens (e.g. "Alfa Electric", "Power Innovation", "High Perfection Tech",
@@ -1427,13 +1429,19 @@ export function analyzeEmail(project, payload) {
     }
   }
 
-  // Zone filter: if we have many brands and a real reply chain, keep only brands
-  // that appear in the primary zone (subject + primaryBody) to avoid history bleed
-  if ((lead.detectedBrands || []).length > 5 && quotedContent && /(?:От|From)\s*:\s*\S+@/i.test(quotedContent)) {
+  // Zone filter: when there is a real reply chain, keep only brands grounded in the
+  // primary zone (subject + primaryBody) OR in attachment text — drops quoted-history
+  // bleed even for 1-5 brand emails (GHOST-1). Guard: if zero brands are grounded,
+  // keep all (don't wipe brands for brand-less client text whose attachment has brands).
+  if ((lead.detectedBrands || []).length > 0 && quotedContent && /(?:От|From)\s*:\s*\S+@/i.test(quotedContent)) {
     const primaryZone = ` ${String(subject || "").toLowerCase()} ${String(primaryBody || "").toLowerCase()} `;
+    const attLower = String(attachmentContent || "").toLowerCase();
     const primaryZoneBrands = (lead.detectedBrands || []).filter((brand) => {
-      const b = ` ${brand.toLowerCase()} `;
-      return primaryZone.includes(b) || new RegExp(`\\b${escapeRegExp(brand.toLowerCase())}\\b`).test(primaryZone);
+      const bl = brand.toLowerCase();
+      const b = ` ${bl} `;
+      const inPrimary = primaryZone.includes(b) || new RegExp(`\\b${escapeRegExp(bl)}\\b`).test(primaryZone);
+      const inAtt = attLower.includes(bl);
+      return inPrimary || inAtt;
     });
     if (primaryZoneBrands.length > 0) {
       lead.detectedBrands = primaryZoneBrands;

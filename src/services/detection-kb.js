@@ -44,6 +44,8 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   "item", "items", "single", "double", "p.a.", "qty", "part", "parts",
   "pcs", "piece", "pieces", "set", "kit", "pack",
   "model", "type", "series", "version", "standard",
+  // Phase 17 / GHOST-4: generic single-token aliases from 15K-brand KB import that match common words.
+  "instruments", "smart", "west", "drive", "neo", "mission",
 ]);
 // Aliases that must match as whole words only (prevent substring false positives)
 // "puls" — prevent matching inside "vegapuls"; "foss" — prevent matching inside "danfoss"
