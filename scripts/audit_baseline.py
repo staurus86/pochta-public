@@ -352,7 +352,10 @@ def check_brand(msg, kb_a, kb_s, aliases):
     brands = brand_names(a.get("detectedBrands") or l.get("detectedBrands") or [])
     if not brands:
         return {"present": False, "noise": False}
-    body = msg.get("bodyPreview") or ""
+    body_preview = msg.get("bodyPreview") or ""
+    # GHOST-5 / Phase 17: bodyPreview is capped at 600 chars; legitimate brands after
+    # char 600 were counted as ghosts. Prefer full body if the snapshot/API provides it.
+    body = msg.get("body") or body_preview
     subj = msg.get("subject") or ""
     att = ((a.get("attachmentAnalysis") or {}).get("combinedText") or "")
     arts = article_codes(l.get("articles"))
