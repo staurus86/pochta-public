@@ -2,14 +2,14 @@
 gsd_state_version: 1.0
 milestone: v1.3
 milestone_name: Field Quality Sprint
-status: Executing Phase 17
-stopped_at: v1.3 milestone created — Phase 16 INN Quality ready to plan
-last_updated: "2026-05-28T18:47:42.759Z"
+status: Executing Phase 18
+stopped_at: Phase 18 planned — 18-01 (TDD extractor+metric) and 18-02 (deploy+baseline_v9) ready
+last_updated: "2026-05-28T20:30:00.000Z"
 progress:
   total_phases: 3
-  completed_phases: 1
-  total_plans: 5
-  completed_plans: 3
+  completed_phases: 2
+  total_plans: 7
+  completed_plans: 5
 ---
 
 # Project State
@@ -19,12 +19,13 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-25)
 
 **Core value:** ≥50% входящих писем детектятся 7/7 полей perfect и попадают в Directus без ручной правки
-**Current focus:** Phase 17 — Brand Quality
+**Current focus:** Phase 18 — Qty Quality
 
 ## Current Position
 
-Phase: 17 (Brand Quality) — EXECUTING
-Plan: 1 of 2
+Phase: 17 (Brand Quality) — COMPLETE (baseline_v8: noise_free 46% measured / ~57% real)
+Phase: 18 (Qty Quality) — EXECUTING
+Plan: 1 of 2 (18-01: TDD extractor fixes + metric update)
 
 ## Performance Metrics
 
