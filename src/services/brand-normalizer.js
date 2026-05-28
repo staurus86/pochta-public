@@ -1,6 +1,12 @@
 // brand-normalizer.js — splitAliasBundle, canonicalizeBrand, dedupCanonical.
 // Fixes TZ §3 defects: dupe surface-forms, alias bundles stored as single string.
 
+// Phase 17 / GHOST-2: when a slash-canonical's secondary part is a generic word,
+// the split emits a ghost (e.g. "Instruments"). Suppress: keep only the primary.
+const GENERIC_SPLIT_PARTS = new Set([
+    "instruments", "west", "systems", "controls", "control", "technology", "solutions", "smart",
+]);
+
 // Split "Buerkert / Burkert / Bürkert" → ["Buerkert", "Burkert", "Bürkert"].
 // Only splits on " / " (slash with surrounding whitespace) — does NOT break
 // legitimate brand names containing "/" without spaces (e.g. "WTO/MAS").
@@ -10,7 +16,12 @@ export function splitAliasBundle(input) {
     if (!s) return [];
     // Split only on slash/bar with at least one surrounding whitespace
     const parts = s.split(/\s+[/|]\s+/).map((x) => x.trim()).filter(Boolean);
-    if (parts.length > 1) return parts;
+    if (parts.length > 1) {
+        if (parts.some((p) => GENERIC_SPLIT_PARTS.has(p.toLowerCase()))) {
+            return [parts[0]];
+        }
+        return parts;
+    }
     return [s];
 }
 
@@ -63,6 +74,13 @@ function pickRepresentative(forms) {
     return scored[0].s;
 }
 
+// Phase 17 / GHOST-3: collapse same-manufacturer variants that differ only by
+// punctuation (Endress+Hauser / Endress & Hauser / ENDRESS+HAUSER). Strip + & - . and
+// whitespace, lowercase, compare. "Bosch" vs "Bosch Rexroth" stay distinct (boschrexroth != bosch).
+function normalizeForDedup(brand) {
+    return String(brand).toLowerCase().replace(/[-+&.,\s]/g, "");
+}
+
 // Dedup brand list collapsing surface-form variants that normalize to the same key.
 // Picks the best-looking representative per cluster.
 export function dedupCanonical(brands) {
@@ -79,5 +97,14 @@ export function dedupCanonical(brands) {
     for (const [, forms] of clusters) {
         out.push(pickRepresentative(forms));
     }
-    return out;
+    // Second pass: concat-normalized dedup — collapses punctuation variants like
+    // Endress+Hauser / Endress & Hauser / ENDRESS+HAUSER that don't share the same normalizeKey.
+    const seen = new Map();
+    return out.filter((b) => {
+        const k = normalizeForDedup(b);
+        if (!k) return false;
+        if (seen.has(k)) return false;
+        seen.set(k, b);
+        return true;
+    });
 }
