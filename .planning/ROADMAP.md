@@ -79,7 +79,11 @@ Plans:
   2. Если тело письма не содержит ИНН, но во вложении (PDF/DOCX карточка контрагента) есть 10-значный ИНН с корректной контрольной суммой — он попадает в `sender.inn`
   3. 10-значное число, не прошедшее checksum ФНС (mod-11), не принимается ни как ИНН, ни как артикул
   4. Audit-скрипт показывает рост % писем с корректным ИНН относительно Phase 10 baseline
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 12-01-PLAN.md — finalizeLeadCounts + positions/totalQty rename (ART-04)
+- [ ] 12-02-PLAN.md — validateInnChecksum + normalizeInn gate + article rejection (CONTACT-02)
+- [ ] 12-03-PLAN.md — attachment INN checksum filter + audit metrics + baseline_v2 (CONTACT-01)
 
 ### Phase 13: Contact Fields
 **Goal**: ФИО клиента не загрязнено шаблонными именами из форм, телефоны из Беларуси, Китая и Азербайджана корректно распознаются
@@ -114,6 +118,6 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 10. Audit Baseline | v1.1 | 3/3 | Complete    | 2026-05-25 |
 | 11. Article Foundation | v1.1 | 3/3 | Complete    | 2026-05-25 |
-| 12. Quantity and INN | v1.1 | 0/TBD | Not started | - |
+| 12. Quantity and INN | v1.1 | 0/3 | Not started | - |
 | 13. Contact Fields | v1.1 | 0/TBD | Not started | - |
 | 14. Brands and Product Names | v1.1 | 0/TBD | Not started | - |
