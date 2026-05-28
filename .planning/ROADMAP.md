@@ -42,8 +42,12 @@ Plans:
 **Success Criteria**:
   1. Исследование идентифицировало топ-5 паттернов ghost brands с примерами
   2. Каждый паттерн устранён с regression тестом
-  3. `brand.noise_free` в baseline_v7 ≥ 55%
-**Plans**: TBD
+  3. `brand.noise_free` в baseline_v8 ≥ 55%
+**Plans**: 2 plans
+
+Plans:
+- [ ] 17-01-PLAN.md — TDD: устранить ghost-паттерны GHOST-1..4 (reply-zone filter, slash-split, concat-dedup, generic aliases) + regression tests, mirror в .railway-deploy
+- [ ] 17-02-PLAN.md — GHOST-5 audit fix (full body) + deploy + reanalysis + capture baseline_v8 + delta measurement
 
 ### Phase 18: Qty Quality
 **Goal**: qty.noise_free растёт с 4% до ≥20% — шумовые значения (OCR-ошибки, страничные номера) отфильтрованы
