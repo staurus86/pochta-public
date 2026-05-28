@@ -32,7 +32,7 @@ Parallel track: `01-detection-fixes` — P0/P1 regression cycle (bugs A01-A06, B
 
 - [x] **Phase 10: Audit Baseline** - Ручной аудит 50 писем + автоматическая метрика + загрузка n8n-фидбека (completed 2026-05-25)
 - [x] **Phase 11: Article Foundation** - Подключение article-extractor.js, UUID-фильтры, нормализация дедупликации (completed 2026-05-25)
-- [ ] **Phase 12: Quantity and INN** - Фикс positions/totalQty, ИНН из вложений-реквизитов, checksum-валидация ИНН
+- [x] **Phase 12: Quantity and INN** - Фикс positions/totalQty, ИНН из вложений-реквизитов, checksum-валидация ИНН (completed 2026-05-28)
 - [ ] **Phase 13: Contact Fields** - Блок-лист ФИО из шаблонов robot@, поддержка международных телефонов
 - [ ] **Phase 14: Brands and Product Names** - Приоритет Subject-брендов, фильтр коротких алиасов, чистка productNames
 
@@ -70,7 +70,7 @@ Plans:
 - [x] 11-02-PLAN.md — Add signature-zone hard-exclude to article-extractor.js (ART-01)
 - [x] 11-03-PLAN.md — Wire extractArticles() into extractLead() + audit baseline gate (ART-01, ART-03)
 
-### Phase 12: Quantity and INN
+### Phase 12: Quantity and INN ✅ COMPLETE
 **Goal**: Счётчики позиций и количества корректны, ИНН извлекается из вложений-реквизитов, 10-значные ложные ИНН отклоняются
 **Depends on**: Phase 11
 **Requirements**: ART-04, CONTACT-01, CONTACT-02
@@ -81,9 +81,9 @@ Plans:
   4. Audit-скрипт показывает рост % писем с корректным ИНН относительно Phase 10 baseline
 **Plans**: 3 plans
 Plans:
-- [ ] 12-01-PLAN.md — finalizeLeadCounts + positions/totalQty rename (ART-04)
-- [ ] 12-02-PLAN.md — validateInnChecksum + normalizeInn gate + article rejection (CONTACT-02)
-- [ ] 12-03-PLAN.md — attachment INN checksum filter + audit metrics + baseline_v2 (CONTACT-01)
+- [x] 12-01-PLAN.md — finalizeLeadCounts + positions/totalQty rename (ART-04)
+- [x] 12-02-PLAN.md — validateInnChecksum + normalizeInn gate + article rejection (CONTACT-02)
+- [x] 12-03-PLAN.md — attachment INN checksum filter + audit metrics + baseline_v2 (CONTACT-01)
 
 ### Phase 13: Contact Fields
 **Goal**: ФИО клиента не загрязнено шаблонными именами из форм, телефоны из Беларуси, Китая и Азербайджана корректно распознаются
@@ -118,6 +118,6 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 10. Audit Baseline | v1.1 | 3/3 | Complete    | 2026-05-25 |
 | 11. Article Foundation | v1.1 | 3/3 | Complete    | 2026-05-25 |
-| 12. Quantity and INN | v1.1 | 0/3 | Not started | - |
+| 12. Quantity and INN | v1.1 | 3/3 | Complete    | 2026-05-28 |
 | 13. Contact Fields | v1.1 | 0/TBD | Not started | - |
 | 14. Brands and Product Names | v1.1 | 0/TBD | Not started | - |
