@@ -95,9 +95,9 @@ Plans:
   3. Audit-скрипт показывает рост % писем с корректным ФИО и телефоном относительно Phase 10 baseline
 **Plans**: 3 plans
 Plans:
-- [ ] 13-01-PLAN.md — FIO_TEMPLATE_BLOCKLIST + step 0c in validateSenderFields (CONTACT-03)
-- [ ] 13-02-PLAN.md — International phone coverage BY/CN/AZ verification + fix (CONTACT-04)
-- [ ] 13-03-PLAN.md — audit_baseline.py FIO noise detection + baseline_v3 (CONTACT-03, CONTACT-04)
+- [x] 13-01-PLAN.md — FIO_TEMPLATE_BLOCKLIST + step 0c in validateSenderFields (CONTACT-03)
+- [x] 13-02-PLAN.md — International phone coverage BY/CN/AZ verification + fix (CONTACT-04)
+- [x] 13-03-PLAN.md — audit_baseline.py FIO noise detection + baseline_v3 (CONTACT-03, CONTACT-04)
 
 ### Phase 14: Brands and Product Names
 **Goal**: Бренды из темы письма детектируются с приоритетом, шумовые короткие алиасы отклонены, productNames не содержат сырых строк и дублей
@@ -111,9 +111,9 @@ Plans:
   5. Audit-скрипт показывает рост % писем с корректными брендами и названиями товаров относительно Phase 10 baseline
 **Plans**: 3 plans
 Plans:
-- [ ] 14-01-PLAN.md — BRAND-02 subject priority (P15/P18 exemption) + BRAND-03 <=2-char alias guard (BRAND-02, BRAND-03)
-- [ ] 14-02-PLAN.md — PROD-01 plain-hyphen qty cleanup + PROD-02 HTML-residue dedup + audit fix (PROD-01, PROD-02)
-- [ ] 14-03-PLAN.md — Generate baseline_v4.json (BRAND-02, BRAND-03, PROD-01, PROD-02)
+- [x] 14-01-PLAN.md — BRAND-02 subject priority (P15/P18 exemption) + BRAND-03 <=2-char alias guard (BRAND-02, BRAND-03)
+- [x] 14-02-PLAN.md — PROD-01 plain-hyphen qty cleanup + PROD-02 HTML-residue dedup + audit fix (PROD-01, PROD-02)
+- [x] 14-03-PLAN.md — Generate baseline_v4.json (BRAND-02, BRAND-03, PROD-01, PROD-02)
 
 ---
 
