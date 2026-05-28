@@ -57,7 +57,7 @@ const PHONE_LABEL_PATTERN = /(?:тел|телефон|phone|моб|mobile|фак
 const CONTACT_CONTEXT_PATTERN = /\b(?:тел|телефон|phone|моб|mobile|факс|fax|whatsapp|viber|email|e-mail|почта)\b/i;
 const IDENTIFIER_CONTEXT_PATTERN = /\b(?:инн|inn|кпп|kpp|огрн|ogrn|request\s*id|order\s*id|ticket\s*id|номер\s*заявки|идентификатор)\b/i;
 // Compact 9-12 digits OR any 2-4 space-separated groups totaling 9, 10, or 12 digits
-const INN_PATTERN = /(?:ИНН|inn|УНП)(?:\/КПП)?\s*[:#-]?\s*(\d{1,6}(?:\s\d{1,6}){1,3}|\d{9,12})/i;
+const INN_PATTERN = /(?:ИНН|inn|УНП|УНН)(?:\/КПП)?(?:\s*\([^)]{0,30}\))?\s*[:#\-–—]?\s*(\d{1,6}(?:\s\d{1,6}){1,9}|\d{9,12})/i;
 const KPP_PATTERN = /(?:КПП|kpp)\s*[:#-]?\s*(\d{9})/i;
 const OGRN_PATTERN = /(?:ОГРН|ogrn)\s*[:#-]?\s*(\d{13,15})/i;
 const ARTICLE_PATTERN = /(?:арт(?:икул(?:а|у|ом|е|ы|ов|ам|ами|ах)?)?|sku)\s*[:#-]?\s*([A-Za-zА-Яа-яЁё0-9][A-Za-zА-Яа-яЁё0-9\-/_]{2,}(?:[ \t]+[A-Za-z][A-Za-z0-9]{1,15}){0,2})/gi;
@@ -2648,7 +2648,7 @@ function extractSender(fromName, fromEmail, body, attachments, signature = "") {
   const ruPhones = body.match(PHONE_PATTERN) || [];
   const intlPhones = (body.match(INTL_PHONE_PATTERN) || []).filter((p) => !/^\+7\b/.test(p));
   const phones = [...ruPhones, ...intlPhones];
-  const requisites = extractRequisites(body);
+  const requisites = extractRequisites(stripLightMarkup(body));
   if (isOwnCompanyData("inn", requisites?.inn)) requisites.inn = null;
   if (isOwnCompanyData("kpp", requisites?.kpp)) requisites.kpp = null;
   if (isOwnCompanyData("ogrn", requisites?.ogrn)) requisites.ogrn = null;
@@ -6913,6 +6913,18 @@ function addNumericFragments(bucket, value, options = {}) {
   }
 }
 
+function stripLightMarkup(text) {
+    return String(text || "")
+        .replace(/<[^>]{0,200}>/g, " ")
+        .replace(/\*{1,3}/g, " ")
+        .replace(/_{1,2}/g, " ")
+        .replace(/\|/g, " ")
+        .replace(/&nbsp;/gi, " ")
+        .replace(/&lt;/gi, "<")
+        .replace(/&gt;/gi, ">")
+        .replace(/\s+/g, " ");
+}
+
 function extractRequisites(text) {
   // Handle combined ИНН/КПП: X/Y format first (КПП after slash)
   const innKppMatch = text.match(/(?:ИНН|inn)\/КПП\s*[:#-]?\s*(\d{9,12})\/(\d{9})/i);
@@ -6938,9 +6950,13 @@ function extractRequisites(text) {
   }
 
   const rawInn = innKppMatch?.[1] || text.match(INN_PATTERN)?.[1] || null;
+  // Fix C: ЭДО operator identifier format 2XX-{10-digit-INN}-{9-digit-KPP}-{timestamp}
+  const EDO_INN_PATTERN = /\b2[A-Z]{2}-(\d{10})-(\d{9})-\d{14,}/i;
+  const edoIdMatch = !rawInn && text.match(EDO_INN_PATTERN);
+  const rawInnFinal = rawInn || (edoIdMatch && !isOwnInn(edoIdMatch[1]) ? edoIdMatch[1] : null);
   return {
-    inn: filterInn(rawInn, text),
-    kpp: innKppMatch?.[2] || text.match(KPP_PATTERN)?.[1] || null,
+    inn: filterInn(rawInnFinal, rawInn ? text : null),
+    kpp: innKppMatch?.[2] || (edoIdMatch ? edoIdMatch[2] : null) || text.match(KPP_PATTERN)?.[1] || null,
     ogrn: text.match(OGRN_PATTERN)?.[1] || null
   };
 }

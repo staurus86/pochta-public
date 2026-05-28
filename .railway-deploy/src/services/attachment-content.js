@@ -247,7 +247,7 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
           .filter((v) => v.length === 10 || v.length === 12)
           .filter((v) => !v.startsWith("00"));
         // Labeled INNs with any spacing: 4+6, 3+3+2+2, 4+4+4, etc. — any 2-4 groups totaling 10 or 12 digits
-        const INN_LABELED_SPACED = /(?:ИНН|инн|inn)\s*[:#-]?\s*(\d{1,6}(?:\s\d{1,6}){1,3})(?!\d)/gi;
+        const INN_LABELED_SPACED = /(?:ИНН|инн|inn)\s*[:#-]?\s*(\d{1,6}(?:\s\d{1,6}){1,9})(?!\d)/gi;
         const labeled = Array.from(extractedText.matchAll(INN_LABELED_SPACED))
           .map((m) => m[1].replace(/\s+/g, ""))
           .filter((v) => v.length === 10 || v.length === 12)
