@@ -100,16 +100,20 @@ Plans:
 - [ ] 13-03-PLAN.md — audit_baseline.py FIO noise detection + baseline_v3 (CONTACT-03, CONTACT-04)
 
 ### Phase 14: Brands and Product Names
-**Goal**: Бренды из темы письма детектируются с приоритетом, шумовые однобуквенные алиасы отклонены, productNames не содержат сырых строк и дублей
+**Goal**: Бренды из темы письма детектируются с приоритетом, шумовые короткие алиасы отклонены, productNames не содержат сырых строк и дублей
 **Depends on**: Phase 10
 **Requirements**: BRAND-02, BRAND-03, PROD-01, PROD-02
 **Success Criteria** (what must be TRUE):
   1. Бренд, упомянутый в Subject письма, всегда присутствует в результатах детекции — даже если в теле письма сигнал слабее
-  2. Алиасы длиной 1-3 символа не вызывают срабатывания бренда (нет ложных матчей по однобуквенным аббревиатурам)
+  2. Алиасы длиной 1-2 символа не вызывают срабатывания бренда; 3-символьные алиасы (abb→ABB) сохраняются
   3. `productNames` не содержит строк вида `"1. Название товара — N шт."` — сырой формат нумерованного списка убран
-  4. Дубли в `productNames`, отличающиеся только HTML-остатком или пунктуацией, свёрнуты в одну строку
+  4. Дубли в `productNames`, отличающиеся только HTML-остатком, свёрнуты в одну строку
   5. Audit-скрипт показывает рост % писем с корректными брендами и названиями товаров относительно Phase 10 baseline
-**Plans**: TBD
+**Plans**: 3 plans
+Plans:
+- [ ] 14-01-PLAN.md — BRAND-02 subject priority (P15/P18 exemption) + BRAND-03 <=2-char alias guard (BRAND-02, BRAND-03)
+- [ ] 14-02-PLAN.md — PROD-01 plain-hyphen qty cleanup + PROD-02 HTML-residue dedup + audit fix (PROD-01, PROD-02)
+- [ ] 14-03-PLAN.md — Generate baseline_v4.json (BRAND-02, BRAND-03, PROD-01, PROD-02)
 
 ---
 
@@ -124,4 +128,4 @@ Plans:
 | 11. Article Foundation | v1.1 | 3/3 | Complete    | 2026-05-25 |
 | 12. Quantity and INN | v1.1 | 3/3 | Complete    | 2026-05-28 |
 | 13. Contact Fields | v1.1 | 3/3 | Complete    | 2026-05-28 |
-| 14. Brands and Product Names | v1.1 | 0/TBD | Not started | - |
+| 14. Brands and Product Names | v1.1 | 0/3 | Not started | - |
