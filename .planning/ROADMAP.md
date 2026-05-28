@@ -34,7 +34,7 @@ Parallel track: `01-detection-fixes` — P0/P1 regression cycle (bugs A01-A06, B
 - [x] **Phase 11: Article Foundation** - Подключение article-extractor.js, UUID-фильтры, нормализация дедупликации (completed 2026-05-25)
 - [x] **Phase 12: Quantity and INN** - Фикс positions/totalQty, ИНН из вложений-реквизитов, checksum-валидация ИНН (completed 2026-05-28)
 - [x] **Phase 13: Contact Fields** - Блок-лист ФИО из шаблонов robot@, поддержка международных телефонов (completed 2026-05-28)
-- [ ] **Phase 14: Brands and Product Names** - Приоритет Subject-брендов, фильтр коротких алиасов, чистка productNames
+- [x] **Phase 14: Brands and Product Names** - Приоритет Subject-брендов, фильтр коротких алиасов, чистка productNames (completed 2026-05-28)
 
 ---
 
@@ -128,4 +128,4 @@ Plans:
 | 11. Article Foundation | v1.1 | 3/3 | Complete    | 2026-05-25 |
 | 12. Quantity and INN | v1.1 | 3/3 | Complete    | 2026-05-28 |
 | 13. Contact Fields | v1.1 | 3/3 | Complete    | 2026-05-28 |
-| 14. Brands and Product Names | v1.1 | 0/3 | Not started | - |
+| 14. Brands and Product Names | v1.1 | 3/3 | Complete    | 2026-05-28 |
