@@ -303,13 +303,21 @@ def validate_inn_checksum(digits):
         return d[10] == c1 and d[11] == c2
     return False
 
+# CONTACT-03: Python mirror of JS FIO_TEMPLATE_BLOCKLIST — same entries, same purpose.
+FIO_NOISE_NAMES = {
+    "екатерина попова",  # Siderus robot@ web-form default visitor name placeholder
+}
+
 # ─── Per-field scorers ────────────────────────────────────────────────────────
 def check_fio(msg):
     s = (msg.get("analysis") or {}).get("sender") or {}
     fio = (s.get("fullName") or "").strip()
     if not fio or fio.lower() in ("не определено",):
         return {"present": False, "noise": False}
-    is_noise = bool(ORG_RE.search(fio) or TITLE_RE.search(fio) or "\n" in fio)
+    is_noise = bool(
+        ORG_RE.search(fio) or TITLE_RE.search(fio) or "\n" in fio
+        or fio.lower() in FIO_NOISE_NAMES
+    )
     return {"present": True, "noise": is_noise}
 
 def check_inn(msg):
