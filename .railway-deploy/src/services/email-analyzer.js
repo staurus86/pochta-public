@@ -1304,9 +1304,46 @@ export function analyzeEmail(project, payload) {
       return false;
     };
   };
+  // BRAND-02: build a Set of brands confirmed in the subject line (alias-aware, ≥3-char aliases).
+  // These are exempt from the P15 and P18 body-grounding gates.
+  const subjectGroundedBrands = new Set();
+  if (subject.length >= 4 && (classification.detectedBrands || []).length > 0) {
+    const subjectLower = subject.toLowerCase();
+    let subjectKbAliases = null;
+    for (const brand of (classification.detectedBrands || [])) {
+      const b = String(brand || "").trim();
+      if (!b) continue;
+      if (new RegExp(`\\b${escapeRegExp(b.toLowerCase())}\\b`, "i").test(subjectLower)) {
+        subjectGroundedBrands.add(b.toLowerCase());
+        continue;
+      }
+      try {
+        if (!subjectKbAliases) {
+          subjectKbAliases = new Map();
+          for (const entry of (detectionKb.getBrandAliases() || [])) {
+            const key = String(entry.canonical_brand || "").toLowerCase();
+            if (!key) continue;
+            if (!subjectKbAliases.has(key)) subjectKbAliases.set(key, []);
+            subjectKbAliases.get(key).push(String(entry.alias || "").toLowerCase());
+          }
+        }
+        const aliases = subjectKbAliases.get(b.toLowerCase()) || [];
+        for (const alias of aliases) {
+          if (!alias || alias.length < 3) continue;
+          if (new RegExp(`\\b${escapeRegExp(alias)}\\b`, "i").test(subjectLower)) {
+            subjectGroundedBrands.add(b.toLowerCase());
+            break;
+          }
+        }
+      } catch (_) { /* noop */ }
+    }
+  }
+
   if ((classification.detectedBrands || []).length > 0) {
     const isBrandGrounded = buildBrandGroundingCheck();
-    const groundedBrands = (classification.detectedBrands || []).filter(isBrandGrounded);
+    const groundedBrands = (classification.detectedBrands || []).filter(
+      (b) => isBrandGrounded(b) || subjectGroundedBrands.has(String(b).toLowerCase())
+    );
     if (groundedBrands.length !== classification.detectedBrands.length) {
       const dropped = (classification.detectedBrands || []).filter((b) => !groundedBrands.includes(b));
       if (dropped.length > 0) {
@@ -1373,7 +1410,9 @@ export function analyzeEmail(project, payload) {
       (lead?.sources?.semanticGroundedBrands || []).map((b) => String(b).toLowerCase())
     );
     const groundedLeadBrands = (lead.detectedBrands || []).filter((brand) =>
-      semanticGrounded.has(String(brand).toLowerCase()) || isBrandGrounded(brand)
+      semanticGrounded.has(String(brand).toLowerCase()) ||
+      isBrandGrounded(brand) ||
+      subjectGroundedBrands.has(String(brand).toLowerCase())
     );
     if (groundedLeadBrands.length !== lead.detectedBrands.length) {
       const dropped = (lead.detectedBrands || []).filter((b) => !groundedLeadBrands.includes(b));
@@ -6501,6 +6540,10 @@ function detectBrands(text, brands) {
     // Valve" and single-hyphen canonicals "Electro-Sensors" also trip the first-token check.
     const aliasLower = String(entry.alias || "").toLowerCase();
     if (BRAND_FALSE_POSITIVE_ALIASES.has(aliasLower)) {
+      continue;
+    }
+    // BRAND-03: reject single-token aliases of length <= 2.
+    if (!/\s/.test(aliasLower) && aliasLower.length <= 2) {
       continue;
     }
     const canonicalLower = String(entry.canonical_brand || "").toLowerCase();
