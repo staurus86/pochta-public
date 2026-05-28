@@ -1309,6 +1309,19 @@ async function handleApi(req, res, url) {
             // J4: re-run post-processing after LLM cache restore so request-type fallback,
             // missing-enum normalization, and quality gate reflect the merged state.
             applyPostProcessing(newAnalysis);
+            // Fix D (Phase 16): auto-learn INN to company_directory so later emails in batch benefit
+            {
+              const senderInn = newAnalysis?.sender?.inn;
+              const fromEmail = msg.from || newAnalysis?.sender?.email || "";
+              const emailDomain = fromEmail.split("@")[1]?.toLowerCase() || "";
+              const FREE_DOMAINS = new Set(["gmail.com","mail.ru","yandex.ru","ya.ru","hotmail.com","outlook.com","bk.ru","list.ru","inbox.ru","rambler.ru","protonmail.com","proton.me"]);
+              if (senderInn && senderInn !== "9701077015" &&
+                  newAnalysis?.classification?.label === "Клиент" &&
+                  newAnalysis?.sender?.sources?.inn !== "company_directory" &&
+                  fromEmail && emailDomain && !FREE_DOMAINS.has(emailDomain)) {
+                detectionKb.upsertCompanyDirectoryEntry({ email: fromEmail, inn: senderInn, companyName: newAnalysis?.sender?.companyName || "" });
+              }
+            }
             msg.analysis = newAnalysis;
             msg.brand = (newAnalysis.detectedBrands || [])[0] || null;
             const wasManuallyChanged = (msg.auditLog || []).some((e) => e.action === "status_change");
