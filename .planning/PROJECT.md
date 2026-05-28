@@ -52,15 +52,11 @@ _Note: brand/article improvements from v1.1 fixes will show in fresh post-deploy
 
 ---
 
-## Next Milestone Goals (v1.2 — TBD)
+## Current Milestone: v1.2 Live Deployment & Measurement
 
-Приоритеты для следующего milestone определяются через `/gsd:new-milestone`.
+**Goal:** Задеплоить v1.1 на Railway production, получить реальные post-deploy метрики, принять решение о приоритетах v1.3.
 
-**Кандидаты на основе текущих метрик:**
-- brand.noise_free 58.3% → цель 70%+ (ghost brands, false positives)
-- brand.present 65% → цель 75%+ (missed brands)
-- qty/positions: 0% на старом snapshot → измерить на post-deploy данных
-- deploy автоматизация: `src/` ↔ `.railway-deploy/src/` sync (REQ-SYNC-01)
+**Phase 15:** Push v1.1 → smoke-check → `baseline_v5.json` (live prod) → delta-отчёт v1→v5 → решение о v1.3
 
 ---
 

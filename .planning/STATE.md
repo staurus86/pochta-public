@@ -1,15 +1,15 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.1
-milestone_name: Detection Quality Sprint
-status: Between milestones
-stopped_at: v1.1 archived — ready for v1.2 via /gsd:new-milestone
-last_updated: "2026-05-28T19:00:00.000Z"
+milestone: v1.2
+milestone_name: Live Deployment & Measurement
+status: Ready to plan
+stopped_at: Milestone v1.2 roadmap created — ready for Phase 15 planning
+last_updated: "2026-05-28T19:30:00.000Z"
 progress:
-  total_phases: 5
-  completed_phases: 5
-  total_plans: 15
-  completed_plans: 15
+  total_phases: 1
+  completed_phases: 0
+  total_plans: 0
+  completed_plans: 0
 ---
 
 # Project State
@@ -19,12 +19,12 @@ progress:
 See: .planning/PROJECT.md (updated 2026-05-25)
 
 **Core value:** ≥50% входящих писем детектятся 7/7 полей perfect и попадают в Directus без ручной правки
-**Current focus:** Milestone v1.1 Detection Quality Sprint — COMPLETE
+**Current focus:** Phase 15 — Deploy + Live Baseline
 
 ## Current Position
 
-Phase: —
-Next: Milestone v1.2 or new roadmap
+Phase: 15
+Next: Phase 15 (deploy-and-live-baseline)
 
 ## Performance Metrics
 
@@ -76,6 +76,6 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-05-28T16:00:00.000Z
-Stopped at: Phase 13 complete (3/3 plans executed, all commits done)
-Resume file: .planning/ROADMAP.md — next is Phase 14
+Last session: 2026-05-28T19:30:00.000Z
+Stopped at: v1.2 milestone created — Phase 15 ready to plan
+Resume file: .planning/ROADMAP.md — Phase 15 Deploy + Live Baseline
