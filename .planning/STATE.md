@@ -2,9 +2,9 @@
 gsd_state_version: 1.0
 milestone: v1.1
 milestone_name: Detection Quality Sprint
-status: Milestone complete
-stopped_at: Phase 14 complete — all 5 phases of v1.1 done
-last_updated: "2026-05-28T18:00:00.000Z"
+status: Between milestones
+stopped_at: v1.1 archived — ready for v1.2 via /gsd:new-milestone
+last_updated: "2026-05-28T19:00:00.000Z"
 progress:
   total_phases: 5
   completed_phases: 5
