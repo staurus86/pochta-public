@@ -75,6 +75,28 @@ const WORD_INTERNAL_TOKEN_PATTERN = /^WW8[A-Z0-9]+$/i;
 const WORD_STYLE_TOKEN_PATTERN = /^(?:WW-[A-Z0-9-]+|\d+ROMAN|V\d+)$/i;
 const STANDARD_TOKEN_PATTERN = /^(?:IEC|ISO|EN|DIN)\d+(?:[-/.]\d+)*$/i;
 
+// Local copy of FNS mod-11 checksum — attachment-content.js does not import from email-analyzer.js.
+// Algorithm kept in sync with validateInnChecksum in email-analyzer.js.
+export function validateInnChecksum(digits) {
+    const s = String(digits || "").replace(/\D/g, "");
+    if (s.length === 9) return true; // Belarus УНП — no checksum
+    const d = s.split("").map(Number);
+    if (d.some((x) => Number.isNaN(x))) return false;
+    if (s.length === 10) {
+        const w = [2, 4, 10, 3, 5, 9, 4, 6, 8, 0];
+        const sum = w.slice(0, 9).reduce((acc, wi, i) => acc + wi * d[i], 0);
+        return d[9] === (sum % 11) % 10;
+    }
+    if (s.length === 12) {
+        const w1 = [7, 2, 4, 10, 3, 5, 9, 4, 6, 8, 0];
+        const w2 = [3, 7, 2, 4, 10, 3, 5, 9, 4, 6, 8, 0];
+        const c1 = (w1.slice(0, 11).reduce((acc, wi, i) => acc + wi * d[i], 0) % 11) % 10;
+        const c2 = (w2.slice(0, 12).reduce((acc, wi, i) => acc + wi * d[i], 0) % 11) % 10;
+        return d[10] === c1 && d[11] === c2;
+    }
+    return false;
+}
+
 export function analyzeStoredAttachments(messageKey, attachmentFiles = [], options = {}) {
   const limits = { ...DEFAULT_LIMITS, ...options };
   const startedAt = Date.now();
@@ -231,7 +253,7 @@ export function analyzeStoredAttachments(messageKey, attachmentFiles = [], optio
           .filter((v) => v.length === 10 || v.length === 12)
           .filter((v) => !v.startsWith("00"));
         const merged = new Set([...compact, ...labeled]);
-        return [...merged];
+        return [...merged].filter((v) => validateInnChecksum(v));
       })();
       result.detectedKpp = uniqueMatches(extractedText, KPP_PATTERN);
       result.detectedOgrn = uniqueMatches(extractedText, OGRN_PATTERN).filter((value) => value.length === 13 || value.length === 15);
