@@ -1928,6 +1928,27 @@ async function handleApi(req, res, url) {
     }
 
     const analysis = await analyzeEmailAsync(project, payload);
+
+    // Auto-learn: persist INN to company_directory for future lookups (Fix D, Phase 16)
+    {
+      const senderInn = analysis?.sender?.inn;
+      const fromEmail = payload.fromEmail || "";
+      const emailDomain = fromEmail.split("@")[1]?.toLowerCase() || "";
+      const FREE_DOMAINS = new Set(["gmail.com","mail.ru","yandex.ru","ya.ru","hotmail.com","outlook.com","bk.ru","list.ru","inbox.ru","rambler.ru","protonmail.com","proton.me"]);
+      if (senderInn &&
+          senderInn !== "9701077015" &&
+          analysis?.classification?.label === "Клиент" &&
+          analysis?.sender?.sources?.inn !== "company_directory" &&
+          fromEmail && emailDomain &&
+          !FREE_DOMAINS.has(emailDomain)) {
+        detectionKb.upsertCompanyDirectoryEntry({
+          email: fromEmail,
+          inn: senderInn,
+          companyName: analysis?.sender?.companyName || "",
+        });
+      }
+    }
+
     await store.appendAnalysis(project.id, analysis);
     notifyNewMessages(project.id, 1, "analyze");
     return sendJson(res, 200, { analysis });

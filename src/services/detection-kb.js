@@ -1711,6 +1711,21 @@ class DetectionKnowledgeBase {
     return null;
   }
 
+  upsertCompanyDirectoryEntry({ email, inn, companyName } = {}) {
+    if (!email || !inn) return;
+    const emailDomain = getDomain(email);
+    this.db.prepare(`
+      INSERT INTO company_directory (email, email_domain, inn, company_name, source_file, is_active)
+      VALUES (?, ?, ?, ?, 'auto_learned', 1)
+      ON CONFLICT(email) DO UPDATE SET
+        inn = CASE WHEN (inn = '' OR inn IS NULL) THEN excluded.inn ELSE inn END,
+        company_name = CASE WHEN (company_name = '' OR company_name IS NULL) THEN excluded.company_name ELSE company_name END,
+        email_domain = CASE WHEN (email_domain = '' OR email_domain IS NULL) THEN excluded.email_domain ELSE email_domain END
+      WHERE is_active = 1
+    `).run(email, emailDomain, inn, companyName || '');
+    this.cache.companyDirectory = null; // invalidate cache
+  }
+
   classifyMessage({ subject = "", body = "", attachments = [], fromEmail = "", projectBrands = [] }) {
     const scopes = {
       subject: String(subject || "").toLowerCase(),
