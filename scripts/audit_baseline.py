@@ -64,6 +64,10 @@ def build_parser():
                    help="Full-text dump (JSON) used to ground brand detection by messageKey. "
                         "Without it, brand grounding runs on text-stripped live payloads "
                         "and brand.grounding_source is flagged UNRELIABLE.")
+    p.add_argument("--ground-detail", action="store_true",
+                   help="Ground brands using each sampled message's detail endpoint, which "
+                        "returns the full up-to-4000-char bodyPreview (the list API trims to "
+                        "600). Live mode only. Resolves body-grounded brands without a dump.")
     return p
 
 # ─── API helpers ──────────────────────────────────────────────────────────────
@@ -599,9 +603,9 @@ def main():
     print("Loading KB...", flush=True)
     kb_a, kb_s, aliases = load_kb()
 
-    # Load optional full-text grounding source (A2)
+    # Load optional full-text grounding source (A2 / B1)
     ground_map = None
-    grounding_source = "live-api (text-stripped, UNRELIABLE for brand)"
+    grounding_source = "live-api list (600-char preview, UNRELIABLE for brand)"
     if args.ground_from:
         print(f"Loading grounding source: {args.ground_from}", flush=True)
         ground_map = load_ground_map(args.ground_from)
@@ -610,6 +614,25 @@ def main():
         )
         grounding_source = f"fulltext-dump:{args.ground_from} (covers {grounded_in_sample}/{len(sample)} sampled)"
         print(f"  grounding covers {grounded_in_sample}/{len(sample)} sampled messages", flush=True)
+    elif args.ground_detail and token:
+        # B1: fetch the detail endpoint per sampled message — returns the full
+        # up-to-4000-char bodyPreview that the list API trims to 600.
+        print("Grounding via detail endpoint (up to 4000-char body)...", flush=True)
+        ground_map = {}
+        for i, m in enumerate(sample):
+            pid = m.get("_project_id"); key = m.get("messageKey") or m.get("id")
+            if not (pid and key):
+                continue
+            try:
+                det = (api_get(f"/api/projects/{pid}/messages/{urllib.parse.quote(key, safe='')}", token)
+                       .get("message") or {})
+            except Exception:
+                continue
+            att = ((det.get("analysis") or {}).get("attachmentAnalysis") or {}).get("combinedText") or ""
+            ground_map[key] = {"body": det.get("bodyPreview") or "", "att": att}
+            if (i + 1) % 50 == 0:
+                print(f"  fetched {i+1}/{len(sample)}", flush=True)
+        grounding_source = f"detail-endpoint (<=4000-char body, {len(ground_map)}/{len(sample)} fetched)"
 
     # Score 8 fields
     print("Scoring fields...", flush=True)
