@@ -107,6 +107,9 @@ function titleCaseWord(word) {
             .map((p) => titleCaseWord(p))
             .join("-");
     }
+    // Initials like "И.И." / "A.B." — every letter is an initial, keep all uppercase
+    // (otherwise "И.И." → "И.и." because slice(1).toLowerCase() lowercases the 2nd initial).
+    if (/^(?:[A-Za-zА-Яа-яЁё]\.){1,4}$/.test(word)) return word.toUpperCase();
     // All-caps → title. All-lower → title. Mixed (Ivan) → keep.
     if (hasLower && hasUpper) return word;
     const first = word.charAt(0).toUpperCase();
