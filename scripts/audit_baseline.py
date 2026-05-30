@@ -60,6 +60,10 @@ def build_parser():
                    help=f"Random seed for deterministic sampling (default: {DEFAULT_SEED}).")
     p.add_argument("--skip-n8n", action="store_true",
                    help="Skip the AUDIT-03 n8n feedback fetch.")
+    p.add_argument("--ground-from", type=str, default=None,
+                   help="Full-text dump (JSON) used to ground brand detection by messageKey. "
+                        "Without it, brand grounding runs on text-stripped live payloads "
+                        "and brand.grounding_source is flagged UNRELIABLE.")
     return p
 
 # ─── API helpers ──────────────────────────────────────────────────────────────
@@ -164,6 +168,29 @@ def load_kb():
         brand_aliases.setdefault(canonical, set()).add(alias.lower())
     c.close()
     return kb_article_to_brand, kb_article_to_brand_str, brand_aliases
+
+# ─── Full-text grounding source (A2) ─────────────────────────────────────────
+def load_ground_map(path):
+    """Build {messageKey -> {body, att}} from a full-text dump for brand grounding.
+
+    Current prod strips `body` and `attachmentAnalysis.combinedText`, so the live API
+    cannot confirm whether a detected brand is real. A historical full-text dump (e.g.
+    data/prod-messages-2026-04-19-postH.json, which retains attachment combinedText for
+    ~780 msgs) lets grounding reflect the text the server actually parsed.
+    """
+    with open(path, encoding="utf-8") as f:
+        raw = json.load(f)
+    msgs = raw["messages"] if isinstance(raw, dict) else raw
+    gm = {}
+    for m in msgs:
+        key = m.get("messageKey") or m.get("id")
+        if not key:
+            continue
+        body = m.get("body") or m.get("bodyPreview") or ""
+        att = ((m.get("analysis") or {}).get("attachmentAnalysis") or {}).get("combinedText") or ""
+        if body or att:
+            gm[key] = {"body": body, "att": att}
+    return gm
 
 # ─── Lifted verbatim from audit_prod_json.py ─────────────────────────────────
 def normalize_article(a):
@@ -346,18 +373,27 @@ def check_article(msg, from_email):
     bad = bad_articles(arts, from_email)
     return {"present": True, "noise": len(bad) > 0}
 
-def check_brand(msg, kb_a, kb_s, aliases):
+def check_brand(msg, kb_a, kb_s, aliases, ground_map=None):
     a = msg.get("analysis") or {}
     l = a.get("lead") or {}
     brands = brand_names(a.get("detectedBrands") or l.get("detectedBrands") or [])
     if not brands:
         return {"present": False, "noise": False}
     body_preview = msg.get("bodyPreview") or ""
-    # GHOST-5 / Phase 17: bodyPreview is capped at 600 chars; legitimate brands after
-    # char 600 were counted as ghosts. Prefer full body if the snapshot/API provides it.
-    body = msg.get("body") or body_preview
+    # GHOST-5 / Phase 17: bodyPreview is capped at 600 chars and current prod also strips
+    # `body` and `attachmentAnalysis.combinedText` (post-May OOM optimisation). When the
+    # grounding text is unavailable a legitimately-detected brand looks like a ghost.
+    # --ground-from supplies a full-text dump (body + attachment combinedText) keyed by
+    # messageKey so grounding reflects the text the server actually saw.
+    key = msg.get("messageKey") or msg.get("id")
+    g = ground_map.get(key) if ground_map else None
+    if g:
+        body = g["body"] or body_preview
+        att = g["att"] or ((a.get("attachmentAnalysis") or {}).get("combinedText") or "")
+    else:
+        body = msg.get("body") or body_preview
+        att = ((a.get("attachmentAnalysis") or {}).get("combinedText") or "")
     subj = msg.get("subject") or ""
-    att = ((a.get("attachmentAnalysis") or {}).get("combinedText") or "")
     arts = article_codes(l.get("articles"))
     any_ghost = any(
         not is_brand_grounded(b, body, subj, att, arts, kb_a, kb_s, aliases)
@@ -404,19 +440,27 @@ def check_product_name(msg):
     has_raw_numbered = any(NUMBERED_LIST_RE.match(n) for n in names)
     return {"present": True, "noise": has_raw_numbered}
 
+# POSITIONS-METRIC v2: mirror check_qty v2. Absence of a quantity total is NOT noise —
+# article-only B2B requests legitimately list positions without a summable quantity.
+# The old rule `noise = not (totalQty > 0)` reproduced the exact "no qty = noise" logic
+# that Phase 18 rejected for qty, and read the inconsistent `totalQty` field while the
+# canonical qty field is `totalQuantity`. Noise now fires only on an implausible position
+# count (contamination), threshold well above the observed max (48, p99=36) in the seed-42
+# sample — so a genuine multi-line КП is never penalised.
+POSITIONS_OUTLIER = 200
+
 def check_positions(msg):
     l = (msg.get("analysis") or {}).get("lead") or {}
     arts = article_codes(l.get("articles"))
-    positions = l.get("positions") or 0
-    total_qty = l.get("totalQty") or 0
     if not arts:
         return {"present": False, "noise": False}
-    return {"present": positions > 0, "noise": not (total_qty > 0)}
+    positions = l.get("positions") or 0
+    return {"present": positions > 0, "noise": positions > POSITIONS_OUTLIER}
 
 # ─── Aggregator ───────────────────────────────────────────────────────────────
 FIELDS = ("fio", "inn", "phone", "article", "brand", "qty", "positions", "product_name")
 
-def score_sample(sample, kb_a, kb_s, aliases):
+def score_sample(sample, kb_a, kb_s, aliases, ground_map=None):
     counts = {f: {"present": 0, "noise": 0} for f in FIELDS}
     for m in sample:
         from_email = m.get("from") or ""
@@ -425,7 +469,7 @@ def score_sample(sample, kb_a, kb_s, aliases):
             "inn":          check_inn(m),
             "phone":        check_phone(m),
             "article":      check_article(m, from_email),
-            "brand":        check_brand(m, kb_a, kb_s, aliases),
+            "brand":        check_brand(m, kb_a, kb_s, aliases, ground_map),
             "qty":          check_qty(m),
             "positions":    check_positions(m),
             "product_name": check_product_name(m),
@@ -555,9 +599,22 @@ def main():
     print("Loading KB...", flush=True)
     kb_a, kb_s, aliases = load_kb()
 
-    # Score 7 fields
+    # Load optional full-text grounding source (A2)
+    ground_map = None
+    grounding_source = "live-api (text-stripped, UNRELIABLE for brand)"
+    if args.ground_from:
+        print(f"Loading grounding source: {args.ground_from}", flush=True)
+        ground_map = load_ground_map(args.ground_from)
+        grounded_in_sample = sum(
+            1 for m in sample if (m.get("messageKey") or m.get("id")) in ground_map
+        )
+        grounding_source = f"fulltext-dump:{args.ground_from} (covers {grounded_in_sample}/{len(sample)} sampled)"
+        print(f"  grounding covers {grounded_in_sample}/{len(sample)} sampled messages", flush=True)
+
+    # Score 8 fields
     print("Scoring fields...", flush=True)
-    field_scores = score_sample(sample, kb_a, kb_s, aliases)
+    field_scores = score_sample(sample, kb_a, kb_s, aliases, ground_map)
+    field_scores["brand"]["grounding_source"] = grounding_source
 
     # Print table
     print()
