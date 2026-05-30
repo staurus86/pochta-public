@@ -71,7 +71,10 @@ function withArchiveAttachment(messageKey, filename, files, fn) {
   const safeName = filename.replace(/[<>:"/\\|?*]/g, "_");
   const archivePath = path.join(dir, safeName);
   const entries = Object.keys(files);
-  const result = spawnSync("tar", ["-a", "-cf", archivePath, "-C", buildDir, ...entries], { encoding: "utf8" });
+  // --force-local + forward-slash paths: GNU tar on Windows treats "C:" as a remote host
+  // and mangles backslashes. No-op on Linux paths.
+  const fs = (p) => String(p).replace(/\\/g, "/");
+  const result = spawnSync("tar", ["--force-local", "-a", "-cf", fs(archivePath), "-C", fs(buildDir), ...entries], { encoding: "utf8" });
   if (result.status !== 0) {
     throw new Error(`tar failed: ${result.stderr || result.stdout}`);
   }

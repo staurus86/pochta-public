@@ -480,14 +480,17 @@ function extractTextFromXlsx(filePath) {
   return lines.join("\n");
 }
 
+// GNU tar on Windows reads the "C:" of a path as a remote host and mangles backslashes,
+// so pass --force-local and forward-slash the path. Both are no-ops on Linux/prod paths.
+const tarPath = (p) => String(p).replace(/\\/g, "/");
 function listArchiveEntries(filePath) {
-  const result = spawnSync("tar", ["-tf", filePath], { encoding: "utf8", timeout: 1200 });
+  const result = spawnSync("tar", ["--force-local", "-tf", tarPath(filePath)], { encoding: "utf8", timeout: 1200 });
   if (result.status !== 0 || result.error) return [];
   return String(result.stdout || "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
 }
 
 function extractArchiveEntry(filePath, entry) {
-  const result = spawnSync("tar", ["-xOf", filePath, entry], { encoding: "utf8", timeout: 1200 });
+  const result = spawnSync("tar", ["--force-local", "-xOf", tarPath(filePath), entry], { encoding: "utf8", timeout: 1200 });
   if (result.status !== 0 || result.error) return "";
   return String(result.stdout || "");
 }
