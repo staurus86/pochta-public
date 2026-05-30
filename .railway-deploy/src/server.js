@@ -366,8 +366,17 @@ async function ensureCompanyDirectoryLoaded() {
     const count = detectionKb.getStats().companyDirectoryCount || 0;
     if (count < 10000) {
       console.log(`[startup] Company directory: ${count} < 10000, importing catalog...`);
-      const { readFileSync } = await import("node:fs");
-      const dirPath = new URL("../data/company-directory.json", import.meta.url);
+      const { readFileSync, existsSync } = await import("node:fs");
+      // The Railway volume mounts at /app/data and shadows the image's data/, so the
+      // seed copy ships in seed/ (outside the volume). Fall back to data/ for local dev.
+      const dirPath = [
+        new URL("../seed/company-directory.json", import.meta.url),
+        new URL("../data/company-directory.json", import.meta.url),
+      ].find((u) => existsSync(u));
+      if (!dirPath) {
+        console.error("[startup] company-directory.json not found in seed/ or data/");
+        return;
+      }
       const entries = JSON.parse(readFileSync(dirPath));
       const result = detectionKb.importCompanyDirectory(
         Array.isArray(entries) ? entries : (entries.entries || entries.companies || []),
