@@ -3053,7 +3053,8 @@ function extractLead(subject, body, attachmentText, brands, kbBrands = []) {
       }
       return true;
     }))
-    .filter((article) => !(/^\d{2,4}-\d{2,4}$/.test(article) && /\b(?:vac|vdc|ac|dc|питание|напряжение|voltage)\b/i.test(searchText)));
+    .filter((article) => !(/^\d{2,4}-\d{2,4}$/.test(article) && /\b(?:vac|vdc|ac|dc|питание|напряжение|voltage)\b/i.test(searchText)))
+    .filter((article) => !isRefrigerantCode(article));  // R407C/R404A — gas type, not a SKU
   const nomenclatureMatches = finalArticles
     .map((article) => {
       const candidates = detectionKb.findNomenclatureCandidates({
@@ -6105,6 +6106,10 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
     line && new RegExp(`\\b[${EXTENDED_BRAND_WORD_RE}][${EXTENDED_BRAND_WORD_RE}üöäÜÖÄ-]{2,20}\\s+${escapeRegExp(normalized)}\\b`, "i").test(line)
   );
   if (!normalized) return true;
+  // Refrigerant codes (R22, R134A, R404A, R407C, R410A, R32) — gas type, not a product article.
+  // isObviousArticleNoise is the broadest filter (~20 extraction paths); the facade already
+  // rejects these but body/table paths reach here instead.
+  if (isRefrigerantCode(normalized)) return true;
   // IP protection ratings: IP54, IP67, IP65-0, IP-65 — ingress protection class, never a product article.
   // The suffix variant (IP65-0) and hyphen variant (IP-65) bypass STRICT_TECHNICAL_NOISE_PATTERN which
   // only covers the clean IP\d{1,3} form; catching them here ensures all extraction paths reject them.
