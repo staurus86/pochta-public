@@ -356,6 +356,30 @@ async function ensureBrandCatalogLoaded() {
   }
 }
 
+// INN enrichment depends on the company directory. seedCompanyDirectory() only seeds
+// when the table is empty, so an early trickle of auto-learned entries (564 on prod)
+// permanently blocked the full 57903-row catalog. Mirror the brand-catalog threshold
+// pattern: import the full catalog whenever the directory is sparse. Idempotent via
+// ON CONFLICT(email) upsert — auto-learned-only entries are preserved.
+async function ensureCompanyDirectoryLoaded() {
+  try {
+    const count = detectionKb.getStats().companyDirectoryCount || 0;
+    if (count < 10000) {
+      console.log(`[startup] Company directory: ${count} < 10000, importing catalog...`);
+      const { readFileSync } = await import("node:fs");
+      const dirPath = new URL("../data/company-directory.json", import.meta.url);
+      const entries = JSON.parse(readFileSync(dirPath));
+      const result = detectionKb.importCompanyDirectory(
+        Array.isArray(entries) ? entries : (entries.entries || entries.companies || []),
+        { sourceFile: "data/company-directory.json" }
+      );
+      console.log(`[startup] Company directory imported: +${result.imported} (scanned ${result.scanned})`);
+    }
+  } catch (e) {
+    console.error(`[startup] Failed to import company directory:`, e.message);
+  }
+}
+
 server.listen(port, host, () => {
   isReady = true;
   console.log(`Server listening on http://${host}:${port}`);
@@ -370,6 +394,7 @@ server.listen(port, host, () => {
   }
 
   ensureBrandCatalogLoaded();
+  ensureCompanyDirectoryLoaded();
 });
 
 server.keepAliveTimeout = Number(process.env.SERVER_KEEP_ALIVE_TIMEOUT_MS || 60_000);
