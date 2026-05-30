@@ -3288,10 +3288,26 @@ function mergeAttachmentLeadData(lead, attachmentAnalysis = {}) {
       item.quantity = null;
     }
   }
-  lead.lineItems = mergedLineItems;
-  lead.articles = mergedArticles;
+  // Collapse separator-only article variants of the SAME item that inflate positions
+  // and double quantity, e.g. "PS 6-200-15" alongside "PS6-200-15-1", or
+  // "TCTTRAD-25E-63" alongside "TCTTRAD-25E-63-SP". A variant is dropped only when its
+  // fully separator-stripped key is a strict prefix of a longer item's key, so genuinely
+  // distinct codes (S201-C16 vs S203-C25) and same-article conflicts (equal keys) are kept.
+  const variantKey = (a) => normalizeArticleCode(String(a || "")).replace(/[\s\-./]+/g, "").toLowerCase();
+  const dropVariantPrefixes = (items, getArticle) => {
+    const keys = items.map((it) => variantKey(getArticle(it)));
+    return items.filter((it, i) => {
+      const k = keys[i];
+      if (!k) return true;
+      return !keys.some((other, j) => j !== i && other.length > k.length && other.startsWith(k));
+    });
+  };
+  const dedupedLineItems = dropVariantPrefixes(mergedLineItems, (it) => it.article);
+  const dedupedArticles = dropVariantPrefixes(mergedArticles, (a) => a);
+  lead.lineItems = dedupedLineItems;
+  lead.articles = dedupedArticles;
   lead.productNames = mergedProductNames;
-  lead.totalPositions = mergedLineItems.length || mergedArticles.length;
+  lead.totalPositions = dedupedLineItems.length || dedupedArticles.length;
   lead.sources = buildLeadSources(lead, files);
   lead.recognitionSummary = buildRecognitionSummary(lead, files);
   return lead;
