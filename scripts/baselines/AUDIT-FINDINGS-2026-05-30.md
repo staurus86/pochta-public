@@ -116,6 +116,39 @@ present` — шума почти нет, узкое место — recall, а р
 (текст вложений всё ещё стрипнут persist()) либо реальные дефекты. Их разбор + recall-
 диагностика qty/article теперь возможны на detail-теле, тоже без деплоя.
 
+## #1 РЕАЛИЗОВАНО — INN enrichment (deployed)
+
+Ground-truth от менеджера (n8n, 20 needs_rework) выявил реальный дефект: «нет ИНН, хотя
+карточка клиента с реквизитами есть». Расследование:
+
+- Код enrichment корректен (`applyCompanyDirectoryHints` → `lookupCompanyDirectory`):
+  свежий `analyzeEmail` заполняет ИНН из справочника. Проблема — данные.
+- Прод-`company_directory` = **564 из 57874** записей. `seedCompanyDirectory` сеет только
+  при пустой таблице; ранний приток auto-learned записей навсегда заблокировал полный seed.
+- Полный каталог не доходил до прода: файл в образе по `/app/data/`, но том Railway
+  монтируется на `/app/data` и **затеняет** его (лог: `ENOENT /app/data/company-directory.json`).
+
+**Фикс (коммиты `6718f9d`, `f5ce021`):**
+- `ensureCompanyDirectoryLoaded()` по образцу `ensureBrandCatalogLoaded` — импорт при
+  `companyDirectoryCount < 10000` (идемпотентный upsert по email).
+- Seed-копия в `seed/` (вне тома); лоадер: `seed/` → fallback `data/`.
+- Зеркало в `.railway-deploy/src/server.js`. Замер heap: пик 86МБ при лимите 256.
+
+**Деплой + smoke + реанализ:**
+- Railway SUCCESS; `companyDirectoryCount` 564 → **58431** (smoke pass).
+- Реанализ project-3 (142) + project-4 (1835), 0 ошибок.
+- Манагерские кейсы заполнены: `2f48eb`→5948037949, `db0840`→9703148335 (source=company_directory).
+
+**Результат (baseline_v13):**
+
+| Поле | до (v12) | после (v13) | Δ |
+|------|---------:|------------:|---:|
+| **inn** | 46.3% | **86.7%** | **+40.4pp** |
+
+Все ИНН проходят контрольную сумму (noise_free == present — мусора не внесено).
+Известное ограничение: домены с несколькими компаниями (напр. kscgroup.ru → 2) дают
+первую по id — возможен валидный-но-неверный ИНН; менеджер валидирует.
+
 ## Итог по «улучшить детекцию»
 
 Главный результат — не рост детекции, а **разоблачение лживых метрик**: positions +25.4pp
