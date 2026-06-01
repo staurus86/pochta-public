@@ -23,7 +23,7 @@ import {
 
 // Scan signature block for a clean person-name line.
 // Skip: greeting ("С уважением"), company markers, role-only lines, emails, phones.
-const GREETING_PREFIX_RE = /^(?:с\s+уважением|best\s+regards|regards|thanks|kind\s+regards|sincerely|truly|yours|wbr|br)[,.!\s]*/i;
+const GREETING_PREFIX_RE = /^(?:(?:с\s+уважением|добр(?:ый|ое|ого)\s+(?:день|дня|утро|утра|вечер|вечера|времени\s+суток)|здравствуйте|приветствую|best\s+regards|kind\s+regards|regards|thanks|sincerely|truly|yours|wbr|br|hello|hi)[,.!\s]*)+/i;
 const PHONE_LIKE_RE = /^\+?\d[\d\s\-().]{5,}$/;
 // Lines starting with phone-context labels: "Раб. 8(812)...", "Тел.: +7...", "Моб.: ...", "Доб. 123"
 // These are phone/contact lines that start with a word, not a name.
