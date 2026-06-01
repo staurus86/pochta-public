@@ -195,13 +195,17 @@ export function extractPersonName(input = {}) {
         const value = String(raw).trim();
         if (!value) return null;
         if (isBadPersonName(value)) {
-            // Composite like "ИП Foo - Елена" is "bad" at the top level but splittable.
-            const comp = splitCompositeCompanyPerson(value);
-            if (comp.company && comp.person && !isBadPersonName(comp.person)) {
-                const pp = postProcess(value);
-                if (pp && pp.primary && !isBadPersonName(pp.primary)) {
-                    return { ...pp, source };
-                }
+            // A "bad" raw candidate may still yield a clean name after post-processing:
+            // composite "ИП Foo - Елена" → "Елена" (company split off), or a name with a
+            // role/phone tail "Дордаль Артем Инженер-Механик +375…" → "Дордаль Артем".
+            // Guard against role fragments ("Главный Механик" → "Главный"): a non-composite
+            // recovery must be a proper multi-word name, not a single leftover token.
+            const pp = postProcess(value);
+            const prim = (pp && pp.primary) || "";
+            const properMultiWord =
+                /^[A-ZА-ЯЁ][a-zа-яё'’-]+(?:\s+[A-ZА-ЯЁ](?:[a-zа-яё'’-]+|\.)\.?){1,2}$/u.test(prim);
+            if (prim && !isBadPersonName(prim) && (pp.company || properMultiWord)) {
+                return { ...pp, source };
             }
             rejected.push({ value, source, reason: classifyReject(value) });
             return null;

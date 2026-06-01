@@ -392,6 +392,9 @@ export function isBadPersonName(value) {
     if (isRoleOnly(s)) return true;
     if (isCorporateUppercase(s)) return true;
     if (isDepartmentLike(s)) return true;
+    // A person name never contains a digit (addresses, phones, INN, Telegram handles).
+    // Rejecting here lets the extraction cascade fall through to the From-header name.
+    if (/\d/.test(s)) return true;
     // Non-letter-dominated strings: numbers, punctuation only.
     const letterCount = (s.match(/\p{L}/gu) || []).length;
     if (letterCount < 2) return true;

@@ -373,7 +373,19 @@ function sanitizePersonName(raw) {
 
   // No ORG, no multiline — plain string. Apply length cap only.
   if (trimmed.length > 80) return null;
-  return trimmed.replace(/[,;]+$/, "").trim();
+  const plain = trimmed.replace(/[,;]+$/, "").trim();
+  // CONTACT (n8n needs_rework): a person name never contains a digit. Recover a clean
+  // leading name from a contact tail ("Харитонов Александр 8 800 600 8161" → "Харитонов
+  // Александр") and reject digit-laden non-names ("Инн 7804…", "Адрес: 194064…",
+  // "Telegram +7…"). The ORG/multiline branch above is already digit-safe via looksLikePersonName.
+  if (/\d/.test(plain)) {
+    const head = plain.split(/[\s(,;:.\-—–]*\d/u)[0].replace(/[\s(,;:.\-—–]+$/u, "").trim();
+    // Recover only a real name: a preposition/conjunction token means it is a label
+    // phrase ("Телефон Для Связи"), not a person — drop it.
+    const hasStopword = /(?:^|\s)(?:для|по|на|в|во|с|со|от|до|и|или)(?:\s|$)/i.test(head);
+    return (!hasStopword && looksLikePersonName(head)) ? head : null;
+  }
+  return plain;
 }
 
 export function validateSenderFields(sender) {
@@ -4690,7 +4702,7 @@ function inferCompanyFromDomain(email) {
   return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 }
 
-function sanitizeCompanyName(value) {
+export function sanitizeCompanyName(value) {
   let text = cleanup(value);
   if (!text) return null;
 
@@ -4740,15 +4752,27 @@ function sanitizeCompanyName(value) {
 
   // Strip trailing role-word fragments bled from multi-line signature ("ООО «ПТП» Руководи[тель]")
   // These appear when the signature block runs "ООО X\nРуководитель..." and line-join merges them.
-  text = text.replace(/\s+(?:руководи\w*|менеджер\w*|инженер\w*|начальни\w*|специалист\w*|сотрудни\w*|бухгалтер\w*|секретар\w*|консультант\w*|технолог\w*|закупщик\w*|снабженец\w*)(?:\s[\s\S]*)?$/iu, "").trim();
+  text = text.replace(/\s+(?:директор\w*|заместител\w*|президент\w*|руководи\w*|менеджер\w*|инженер\w*|начальни\w*|специалист\w*|сотрудни\w*|бухгалтер\w*|секретар\w*|консультант\w*|технолог\w*|закупщик\w*|снабженец\w*)(?:\s[\s\S]*)?$/iu, "").trim();
+  if (!text) return null;
+
+  // Strip trailing registration/legal-boilerplate phrases bled from a requisites block
+  // ("ООО «НК Сервис» Зарегистрировано в ИФНС…", "АО «X» Сокращенное наименование…",
+  // "ООО «Y» Полное наименование организации…", "ООО Z Данный Тахогенератор…").
+  // Cyrillic-explicit (NOT \w, which is ASCII-only and would silently never match).
+  text = text.replace(/\s+(?:зарегистрир[а-яё]*|сокращ[а-яё]+\s+наименовани[а-яё]*|полное\s+наименовани[а-яё]*|наименование\s+организации|данн[а-яё]+\s)[\s\S]*$/iu, "").trim();
   if (!text) return null;
 
   // Reject "ИНН: XXXX" — INN number, not a company name (robot form field bleeding)
   if (/^ИНН\s*[:\s]\s*\d/i.test(text)) return null;
   if (/^ИНН$/i.test(text.trim())) return null;
 
-  // Reject known Russian bank names appearing in payment footer/signature (not client company)
-  if (/\b(?:Альфа-?Банк|Сбербанк|Сбер|ВТБ|Тинькофф|Т-?Банк|Точка|ОткрытиеБанк|Открытие|Газпромбанк|Райффайзен|Росбанк|Промсвязьбанк|ПСБ|РНКБ|Совкомбанк|Банк Точка|Банк\s+Уралсиб|Уралсиб)\b/i.test(text) && /\b(?:Банк|АО|ООО)\b/i.test(text)) return null;
+  // Reject known Russian bank names appearing in payment footer/signature (not client company).
+  // JS \b does NOT fire at Cyrillic boundaries, so the previous \b…\b version silently never
+  // matched Cyrillic bank names ("АО ТИНЬКОФФ БАНК", "ПАО Сбербанк") — 20 slipped through.
+  // Use letter-class lookarounds. Generic words (Открытие/Точка/Сбер) dropped to avoid
+  // false positives on real company names now that the boundaries actually match.
+  if (/(?:^|[^А-Яа-яЁёA-Za-z])(?:Альфа-?Банк|Сбербанк|ВТБ|Тинькофф|Т-?Банк|Газпромбанк|Райффайзен(?:банк)?|Росбанк|Промсвязьбанк|Совкомбанк|Уралсиб)(?![А-Яа-яЁёA-Za-z])/i.test(text)
+    && /(?:^|[^А-Яа-яЁёA-Za-z])(?:Банк|АО|ООО|ПАО|ОАО|ЗАО)(?![А-Яа-яЁёA-Za-z])/i.test(text)) return null;
 
   // Reject phone number masquerading as company
   if (/^(?:тел\.?|телефон|моб\.?|\+7[\s(]|\+7$|8\s*[\s(]\d{3})/i.test(text)) return null;
@@ -6171,6 +6195,11 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   if (/^TOP-?\d+$/i.test(normalized) || /^COVID-?\d+$/i.test(normalized)) return true;
   // Image filenames: image001.jpg, image005.png
   if (/^image\d+\.\w+$/i.test(normalized)) return true;
+  // Filename tokens leaking as articles: any code ending in a document/image/archive
+  // file extension is never a catalog code (manager 4fc194fe "R007.pdf"; corpus scan:
+  // 34/1895 Клиент msgs — "220.PDF", "1342447151.jpg", "5000plus.docx", "2000423780.xlsx.xls").
+  // Real dotted codes (80.364.40.FHN, 595.2, 10.02.071-ATX-211) do not end in these extensions.
+  if (/\.(?:pdf|docx?|xlsx?|pptx?|csv|rtf|txt|odt|ods|png|jpe?g|gif|bmp|tiff?|webp|heic|svg|zip|rar|7z|tar|gz|eml|msg|p7s)$/i.test(normalized)) return true;
   // Currency expressions: EUR 6, USD 100
   if (/^(?:EUR|USD|RUB|GBP|CHF)\s+\d/i.test(normalized)) return true;
   // PDF/XML version markers: PDF-1.7, PDF-1.3, 1.0, 2.0, 0.0, 3.0
