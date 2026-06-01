@@ -6181,7 +6181,11 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   // mixed-script article codes from German/Russian cable drum manufacturers (Hartmann und König etc.)
   // Use the original `code` (not uppercased `normalized`) to detect the lowercase Cyrillic prefix.
   if (/[a-zA-Z]/.test(normalized) && /[а-яёА-ЯЁ]/.test(normalized)) {
-    if (/^[А-ЯЁа-яё][A-Za-z0-9]/.test(String(code))) return false; // single Cyr prefix + Latin → keep
+    // Except only a real code with ONE mis-typed Cyrillic letter (мLT220, ПP200-24, Ц2Y-160).
+    // OCR-garbled Russian words (ДATЧIK, ГAЗOAHAЛIЗATOP, ПPYЖIHA) have 2+ scattered Cyrillic
+    // letters → not a code, reject. Count on the original `code` (pre-transliteration).
+    const cyrLetterCount = (String(code).match(/[А-ЯЁа-яё]/g) || []).length;
+    if (cyrLetterCount === 1 && /^[А-ЯЁа-яё][A-Za-z0-9]/.test(String(code))) return false;
     return true;
   }
   // Pure Cyrillic word without any digits: product category name mistakenly extracted
