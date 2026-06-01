@@ -28,6 +28,8 @@ const PHONE_LIKE_RE = /^\+?\d[\d\s\-().]{5,}$/;
 // Lines starting with phone-context labels: "Раб. 8(812)...", "Тел.: +7...", "Моб.: ...", "Доб. 123"
 // These are phone/contact lines that start with a word, not a name.
 const PHONE_LABEL_PREFIX_RE = /^(?:раб|тел|моб|факс|доб|mob|tel|fax|phone|direct|office)[\s.:]/i;
+// A clean 2–3 word person name (surname + given(+patronymic), or with initials).
+const PROPER_NAME_RE = /^[A-ZА-ЯЁ][a-zа-яё'’-]+(?:\s+[A-ZА-ЯЁ](?:[a-zа-яё'’-]+|\.)\.?){1,2}$/u;
 
 function cleanSignatureLine(line) {
     let s = String(line || "").trim();
@@ -194,6 +196,20 @@ export function extractPersonName(input = {}) {
         if (!raw) return null;
         const value = String(raw).trim();
         if (!value) return null;
+        // Outlook bold/italic plaintext markers (*Имя Фамилия*, `name`) hide the underlying
+        // token from the company/greeting/role filters, which need a word boundary. Strip them
+        // and recover only a clean person name; bold-wrapped company/greeting/label noise
+        // ("*ооо «Авангард»*", "*с Уважением*", "Компания: *STSProm*") is rejected.
+        if (/[*`]/.test(value)) {
+            const unwrapped = value.replace(/[*`_]+/g, " ").replace(/\s+/g, " ").trim();
+            const pp = postProcess(unwrapped);
+            const prim = (pp && pp.primary) || "";
+            if (prim && PROPER_NAME_RE.test(prim) && !isBadPersonName(prim)) {
+                return { ...pp, source };
+            }
+            rejected.push({ value, source, reason: "markdown_noise" });
+            return null;
+        }
         if (isBadPersonName(value)) {
             // A "bad" raw candidate may still yield a clean name after post-processing:
             // composite "ИП Foo - Елена" → "Елена" (company split off), or a name with a
@@ -202,8 +218,7 @@ export function extractPersonName(input = {}) {
             // recovery must be a proper multi-word name, not a single leftover token.
             const pp = postProcess(value);
             const prim = (pp && pp.primary) || "";
-            const properMultiWord =
-                /^[A-ZА-ЯЁ][a-zа-яё'’-]+(?:\s+[A-ZА-ЯЁ](?:[a-zа-яё'’-]+|\.)\.?){1,2}$/u.test(prim);
+            const properMultiWord = PROPER_NAME_RE.test(prim);
             if (prim && !isBadPersonName(prim) && (pp.company || properMultiWord)) {
                 return { ...pp, source };
             }

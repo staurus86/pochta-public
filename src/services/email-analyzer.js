@@ -438,6 +438,16 @@ export function validateSenderFields(sender) {
     corrections++;
   }
 
+  // 2b. Bank-name catch-all: companyName can enter from sources that bypass sanitizeCompanyName
+  // (company_directory, sender_profile, quoted_body) — a bank pulled from payment requisites
+  // leaks through as the client company. Reject only banks here (NOT the full cleaner, whose
+  // text-extraction trims misfire on already-resolved directory names like "ТЕХНИЧЕСКИЙ ЦЕНТР").
+  if (sender.companyName && isRequisitesBankName(sender.companyName)) {
+    sender.companyName = null;
+    if (sender.sources) sender.sources.company = null;
+    corrections++;
+  }
+
   // 3. fullName contains org legal form → move to companyName if empty, clear fullName
   if (sender.fullName && sender.fullName !== "Не определено" && ORG_LEGAL_FORM_RE.test(sender.fullName)) {
     const nameParts = sender.fullName.split(/[-–—]\s*/);
@@ -4705,6 +4715,15 @@ function inferCompanyFromDomain(email) {
   return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
 }
 
+// A Russian bank name pulled from payment requisites — never the industrial client company.
+// Cyrillic-safe letter-class lookarounds (JS \b does NOT fire at Cyrillic boundaries).
+// Generic words (Открытие/Точка/Сбер) excluded to avoid false positives on real names.
+function isRequisitesBankName(text) {
+  const s = String(text || "");
+  return /(?:^|[^А-Яа-яЁёA-Za-z])(?:Альфа-?Банк|Сбербанк|ВТБ|Тинькофф|Т-?Банк|Газпромбанк|Райффайзен(?:банк)?|Росбанк|Промсвязьбанк|Совкомбанк|Уралсиб)(?![А-Яа-яЁёA-Za-z])/i.test(s)
+    && /(?:^|[^А-Яа-яЁёA-Za-z])(?:Банк|АО|ООО|ПАО|ОАО|ЗАО)(?![А-Яа-яЁёA-Za-z])/i.test(s);
+}
+
 export function sanitizeCompanyName(value) {
   let text = cleanup(value);
   if (!text) return null;
@@ -4718,6 +4737,15 @@ export function sanitizeCompanyName(value) {
     .replace(/\s{2,}/g, " ")
     .trim();
   if (!text) return null;
+
+  // Latin "Person Role of Company LLC" signature blob (manager 4fc194fe):
+  // "Anna Zimmermann Procurement manager of ITER PPTF Project LLC" → keep only the company.
+  // Guard: requires an explicit Latin job role + "of" + a Latin company suffix, so plain
+  // names with "of" ("Bank of America") are untouched.
+  {
+    const blob = text.match(/\b(?:manager|director|engineer|procurement|purchasing|specialist|officer|head|chief|ceo|cto)\s+of\s+(.+?(?:\bLLC|\bLtd|\bGmbH|\bInc|\bCorp|\bCo|\bAG|\bPLC|\bLimited)\.?)\s*$/i);
+    if (blob && blob[1]) text = blob[1].trim();
+  }
 
   // Fix broken guillemets: "ОАО « Белгазпромбанк" → "ОАО «Белгазпромбанк"
   // Also strip orphaned leading/trailing guillemets and mismatched pairs
@@ -4762,7 +4790,7 @@ export function sanitizeCompanyName(value) {
   // ("ООО «НК Сервис» Зарегистрировано в ИФНС…", "АО «X» Сокращенное наименование…",
   // "ООО «Y» Полное наименование организации…", "ООО Z Данный Тахогенератор…").
   // Cyrillic-explicit (NOT \w, which is ASCII-only and would silently never match).
-  text = text.replace(/\s+(?:зарегистрир[а-яё]*|сокращ[а-яё]+\s+наименовани[а-яё]*|полное\s+наименовани[а-яё]*|наименование\s+организации|данн[а-яё]+\s)[\s\S]*$/iu, "").trim();
+  text = text.replace(/\s+(?:зарегистрир[а-яё]*|сокращ[а-яё]+\s+наименовани[а-яё]*|полное\s+наименовани[а-яё]*|наименование\s+организаци[ия]|данн[а-яё]+\s)[\s\S]*$/iu, "").trim();
   if (!text) return null;
 
   // Reject "ИНН: XXXX" — INN number, not a company name (robot form field bleeding)
@@ -4770,12 +4798,7 @@ export function sanitizeCompanyName(value) {
   if (/^ИНН$/i.test(text.trim())) return null;
 
   // Reject known Russian bank names appearing in payment footer/signature (not client company).
-  // JS \b does NOT fire at Cyrillic boundaries, so the previous \b…\b version silently never
-  // matched Cyrillic bank names ("АО ТИНЬКОФФ БАНК", "ПАО Сбербанк") — 20 slipped through.
-  // Use letter-class lookarounds. Generic words (Открытие/Точка/Сбер) dropped to avoid
-  // false positives on real company names now that the boundaries actually match.
-  if (/(?:^|[^А-Яа-яЁёA-Za-z])(?:Альфа-?Банк|Сбербанк|ВТБ|Тинькофф|Т-?Банк|Газпромбанк|Райффайзен(?:банк)?|Росбанк|Промсвязьбанк|Совкомбанк|Уралсиб)(?![А-Яа-яЁёA-Za-z])/i.test(text)
-    && /(?:^|[^А-Яа-яЁёA-Za-z])(?:Банк|АО|ООО|ПАО|ОАО|ЗАО)(?![А-Яа-яЁёA-Za-z])/i.test(text)) return null;
+  if (isRequisitesBankName(text)) return null;
 
   // Reject phone number masquerading as company
   if (/^(?:тел\.?|телефон|моб\.?|\+7[\s(]|\+7$|8\s*[\s(]\d{3})/i.test(text)) return null;
