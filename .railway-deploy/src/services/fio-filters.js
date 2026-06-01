@@ -383,9 +383,25 @@ export const _roleSets = {
     ROLE_SET,
 };
 
+// Courtesy / sign-off / greeting phrases that leak into fullName via the
+// sender-display path (reanalysis feeds the prior fullName back as senderDisplay,
+// bypassing the signature greeting strip). Whole-string match only — a courtesy
+// word that merely prefixes a real name is stripped elsewhere in the cascade.
+const COURTESY_PHRASE_RE = /^(?:sincerely(?:\s+yours)?|(?:best|kind|warm|with)\s+regards|regards|thanks(?:\s+a\s+lot)?|thank\s+you(?:\s+(?:so|very)\s+much)?|yours(?:\s+(?:truly|faithfully|sincerely))?|wbr|br|cheers|hello|hi|с\s+уважением|за\s+понимание|спасибо(?:\s+(?:большое|за\s+понимание))?|заранее\s+спасибо|благодарю(?:\s+вас)?|всего\s+(?:доброго|хорошего)|с\s+наилучшими\s+пожеланиями|хорошего\s+дня|добр(?:ый|ое|ого)\s+(?:день|дня|утро|утра|вечер|вечера|времени\s+суток)|здравствуйте|приветствую|привет)$/i;
+
+function isCourtesyPhrase(value) {
+    const s = safeString(value)
+        .replace(/^[\s,.!:;–—-]+/, "")
+        .replace(/[\s,.!:;–—-]+$/, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    return COURTESY_PHRASE_RE.test(s);
+}
+
 export function isBadPersonName(value) {
     const s = safeString(value);
     if (!s) return true;
+    if (isCourtesyPhrase(s)) return true;
     if (isCompanyLike(s)) return true;
     if (isEmailLike(s)) return true;
     if (isAliasLike(s)) return true;
