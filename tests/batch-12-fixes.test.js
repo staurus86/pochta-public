@@ -113,6 +113,17 @@ test("CONTACT-02 normalizeInn: invalid 12-digit ИП rejected (500100732250) →
     assert.equal(normalizeInn("500100732250"), null);
 });
 
+// INN-LEADZERO — Russian INN from regions 01-09 loses its leading zero when a
+// data source (CRM directory import, Excel cell) stores it as a number. The
+// 9-digit value must be restored to 10 digits if "0"+digits passes the checksum.
+test("INN-LEADZERO normalizeInn: 9-digit RU INN with dropped leading zero restored (ПСГ 274976323 → 0274976323)", () => {
+    assert.equal(normalizeInn("274976323"), "0274976323");
+});
+
+test("INN-LEADZERO normalizeInn: genuine 9-digit Belarus УНП not padded (192014566 stays as-is)", () => {
+    assert.equal(normalizeInn("192014566"), "192014566");
+});
+
 // =====================================================================
 // CONTACT-01 — Attachment validateInnChecksum parity with email-analyzer
 // =====================================================================

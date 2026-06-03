@@ -275,7 +275,13 @@ export function validateInnChecksum(digits) {
 export function normalizeInn(v) {
     if (!v) return null;
     const digits = String(v).replace(/\D/g, "");
-    if (digits.length === 9) return digits; // Belarus УНП — accept as-is
+    if (digits.length === 9) {
+        // Russian INN from regions 01-09 loses its leading zero when a source
+        // stores it as a number (CRM directory import, Excel cell). Restore it
+        // if "0"+digits passes the 10-digit checksum; otherwise it's a Belarus УНП.
+        if (validateInnChecksum("0" + digits)) return "0" + digits;
+        return digits; // Belarus УНП — accept as-is
+    }
     if (digits.length === 10 || digits.length === 12) {
         return validateInnChecksum(digits) ? digits : null;
     }
