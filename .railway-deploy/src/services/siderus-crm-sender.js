@@ -74,21 +74,30 @@ function buildOrderFromMail(lead) {
         (i) => i.article && !i.article.startsWith("DESC:") && !isPayloadArticleNoise(i.article)
     ).length;
     const brandFallback = (detectedBrands.length === 1 && realPositionCount === 1) ? mainBrand : null;
+    // For positions sourced from a structured spreadsheet, keep name+qty rows even when the
+    // sheet has no dedicated article column (article embedded in the name) — those are real
+    // positions the manager counts. Body-derived leads keep the strict article requirement.
+    const isStructured = lead.positionsSource === "structured_attachment";
     const seen = new Set();
     const structured = lineItems
-        .filter((item) => item.article && !item.article.startsWith("DESC:") && !isPayloadArticleNoise(item.article))
         .filter((item) => {
-            const key = normalizeArticleCode(item.article).toLowerCase();
+            if (item.article) return !item.article.startsWith("DESC:") && !isPayloadArticleNoise(item.article);
+            // Article-less spreadsheet row: keep only if it looks like a real position
+            // (has a quantity), so junk/empty cells in messy sheets are not flooded in.
+            return isStructured && Boolean(item.descriptionRu) && item.quantity != null;
+        })
+        .filter((item) => {
+            const key = item.article ? normalizeArticleCode(item.article).toLowerCase() : `desc:${(item.descriptionRu || "").toLowerCase()}`;
             if (seen.has(key)) return false;
             seen.add(key);
             return true;
         })
         .map((item) => ({
             brand: item.brand
-                || articleBrandMap.get(normalizeArticleCode(item.article).toLowerCase())
+                || (item.article ? articleBrandMap.get(normalizeArticleCode(item.article).toLowerCase()) : null)
                 || brandFallback,
             desc: item.descriptionRu || null,
-            item_number: item.article,
+            item_number: item.article || null,
             quantity: sanitizePayloadQuantity(item.quantity, item.article)
         }));
 

@@ -747,9 +747,15 @@ function extractTabularLineItems(lines, filename) {
     // Skip the row-counter column when searching for article
     const rowWithoutNum = rowNumIdx >= 0 ? row.filter((_, i) => i !== rowNumIdx) : row;
     const articleRaw = pickRowValue(row, articleIdx) || rowWithoutNum.find(isAttachmentArticleCandidate) || "";
-    const article = normalizeAttachmentArticle(articleRaw);
-    const brand = brandIdx >= 0 ? cleanupAttachmentName(pickRowValue(row, brandIdx)) : "";
+    let article = normalizeAttachmentArticle(articleRaw);
     const nameRaw = pickRowValue(row, nameIdx) || inferDescriptionFromRow(row, { articleIdx, qtyIdx, unitIdx, rowNumIdx });
+    // Recover an article embedded in the product name when the sheet has no dedicated
+    // article column (industrial sheets often write "Наименование ... CODE 2200116").
+    if (!article && nameRaw) article = normalizeAttachmentArticle(findArticleInText(nameRaw) || "");
+    let brand = brandIdx >= 0 ? cleanupAttachmentName(pickRowValue(row, brandIdx)) : "";
+    // Guard against the name column being mistaken for the brand column: a brand is a short
+    // manufacturer token, never a 35+ char product sentence or a copy of the name itself.
+    if (brandIdx === nameIdx || (brand && brand.length > 35) || (brand && brand === cleanupAttachmentName(nameRaw))) brand = "";
     const descriptionRu = cleanupAttachmentName(nameRaw + (brand ? ` [${brand}]` : ""));
     const quantity = parseAttachmentQuantity(pickRowValue(row, qtyIdx) || "");
     const unit = cleanupAttachmentUnit(pickRowValue(row, unitIdx) || inferUnitFromRow(row) || "шт");
