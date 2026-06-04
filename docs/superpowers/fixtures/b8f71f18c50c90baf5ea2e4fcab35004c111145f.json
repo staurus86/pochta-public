@@ -1,0 +1,591 @@
+{
+  "messageKey": "b8f71f18c50c90baf5ea2e4fcab35004c111145f",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Достаточно сложный запрос, как я понял с запросом реквизитов. Сам запрос в теле письма, вёрстка похоже поехала и даже визуально сложно обрабатывать запрос. Один из двух артикул указан верно,  но нет бренда и описания. \nКол-во клиент не указал, собственно его и не проставила система, а по хорошему должна проставлять по умолчанию 1шт."
+  ],
+  "subject": "Re: Запрос",
+  "body": "*С уважением,\nМенеджер по продажам\nЦыганков Александр\n\nООО\"КомТрейд\"\n309516,Белгородская обл., г.Старый Оскол\nм-н Ольминского 7А\n(4725)42-18-68/42-11-68/42-00-66\n910-327-555-4\nATSYGANKOV@MAIL.RU\nKOMT.RU*\n\n>\n> Понедельник, 13 апреля 2026, 16:33 +03:00 от SIDERUS :\n>\n>\n> Добрый день, для обработки запроса прошу прислать реквизиты Вашей\n> организации.\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> С уважением,\n>\n>\n>\n> *Екатерина Попова*\n> Офис-менеджер\n> ООО «КОЛОВРАТ» | SIDERUS\n>\n>\n>\n>\n>\n>\n>\n> i n f o @siderus.ru ( info@siderus.ru )\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> siderus.ru ( https://siderus.ru/ )\n>\n>\n>\n>\n>\n>\n>\n> +7 499 647-47-07\n>\n>\n>\n>\n>\n>\n>\n>\n> 107061, г. Москва, Преображенская площадь, д.8, оф. 815\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> Наш идентификатор в системе ЭДО (Контур Диадок)\n>\n>\n>\n> 2BM-9701077015-770101001-201711021137514319612\n>\n>\n>\n>\n>\n>\n>\n>\n> *From:* Цыганков Александр Олегович\n> *Sent:* Monday, April 13, 2026 2:37 PM\n> *To:* info+247431@siderus.ru\n> *Subject:* Запрос\n>\n>\n>\n>\n>\n>\n>\n>\n> Добрый день\n>\n>\n>\n>\n> посмотрите пожалуйста что из этого ваше , пришлите мне предложение\n> пожалуйста\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> ASA-RT\n>\n>\n>\n> Месдоза ASAADSM/A/5 ASA-RT Load cell Profibus\n>\n>\n>\n> 050PE13\n>\n>\n>\n> линейная люминесцентная лампа\n>\n>\n>\n> TMF\n>\n>\n>\n> Термостат TMF - STULZ Cosmotec с нормально разомкнутым контактом, диапазон\n> температур от -10 до +80 °C.\n>\n>\n>\n> ZKXVA5000320\n>\n>\n>\n> Настенный промышленный теплообменник типа «воздух-воздух» Cosmotec XVA50\n>\n>\n>\n> 852-101\n>\n>\n>\n> Промышленный коммутатор, 5 x 100BASE-TX\n>\n>\n>\n> cMT8121X\n>\n>\n>\n> Панель оператора\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> жду ответ спасибо\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> *С уважением,*\n> **Менеджер по продажам*\n> *Цыганков Александр*\n>\n> *ООО\"КомТрейд\"*\n> *309516,Белгородская обл., г.Старый Оскол*\n> *м-н Ольминского 7А*\n> *(4725)42-18-68/42-11-68/42-00-66*\n> *910-327-555-4*\n> *ATSYGANKOV@MAIL.RU (\n> ATSYGANKOV@MAIL.RU )*\n> *KOMT.RU**\n>\n>\n>\n>\n>",
+  "attachmentFiles": [
+    {
+      "filename": "image001.jpg",
+      "safeName": "image001.jpg",
+      "contentType": "image/jpeg",
+      "size": 27877
+    },
+    {
+      "filename": "image002.jpg",
+      "safeName": "image002.jpg",
+      "contentType": "image/jpeg",
+      "size": 27947
+    },
+    {
+      "filename": "image003.jpg",
+      "safeName": "image003.jpg",
+      "contentType": "image/jpeg",
+      "size": 27881
+    },
+    {
+      "filename": "image004.jpg",
+      "safeName": "image004.jpg",
+      "contentType": "image/jpeg",
+      "size": 27917
+    },
+    {
+      "filename": "image005.jpg",
+      "safeName": "image005.jpg",
+      "contentType": "image/jpeg",
+      "size": 2311
+    },
+    {
+      "filename": "Реквизиты КомТрейд.doc",
+      "safeName": "Реквизиты КомТрейд.doc",
+      "contentType": "application/msword",
+      "size": 23040
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "749d9979-c3fc-4ed7-9a38-b30e6e8355db",
+    "createdAt": "2026-06-01T14:54:34.266Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [],
+      "signals": {
+        "clientScore": 12,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 5,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label",
+            "weight": 2
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "atsygankov@mail.ru",
+      "emailPrimary": "atsygankov@mail.ru",
+      "emailDisplayName": "Цыганков Александр",
+      "emailLocal": "atsygankov",
+      "emailDomain": "mail.ru",
+      "emailType": "person_email",
+      "emailDomainType": "public_provider",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.85,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": false,
+      "emailRejected": [],
+      "fullName": "Цыганков Александр",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "body",
+      "fullNameConfidence": 0.9,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Менеджер по продажам",
+      "positionAlt": "Менеджер по продажам",
+      "departmentName": null,
+      "positionSource": "body",
+      "positionConfidence": 0.8700000000000001,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Цыганков Александр",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «КОМТРЕЙД»",
+      "companyAlt": null,
+      "companyNameSource": null,
+      "companyNameConfidence": 0,
+      "companyNameNeedsReview": true,
+      "companyNameRejected": [
+        {
+          "value": "Цыганков Александр",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        },
+        {
+          "value": "mail.ru",
+          "source": "email_domain",
+          "reason": "generic_provider"
+        }
+      ],
+      "website": null,
+      "cityPhone": "+7 (472) 542-18-68",
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "RU",
+      "phoneSource": "current_message",
+      "phoneConfidence": 0.8,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "3128035556",
+      "kpp": null,
+      "ogrn": "1023102361193",
+      "legalCardAttached": true,
+      "sources": {
+        "company": "attachment",
+        "website": null,
+        "phone": "current_message",
+        "inn": "attachment",
+        "kpp": null,
+        "ogrn": "attachment",
+        "fullName": "body",
+        "position": "body",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "*С уважением,\nМенеджер по продажам\nЦыганков Александр\n\nООО\"КомТрейд\"\n309516,Белгородская обл., г.Старый Оскол\nм-н Ольминского 7А\n(4725)42-18-68/42-11-68/42-00-66\n910-327-555-4\nATSYGANKOV@MAIL.RU\nKOMT.RU*\n\nПонедельник, 13 апреля 2026, 16:33 +03:00 от SIDERUS :\n\n\nДобрый день, для обработки запроса прошу прислать реквизиты Вашей\nорганизации.\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\nС уважением,\n\n\n\n*Екатерина Попова*\nОфис-менеджер\nООО «КОЛОВРАТ» | SIDERUS\n\n\n\n\n\n\n\ni n f o @siderus.ru ( info@siderus.ru )\n\n\n\n\n\n\n\n\n\n\n\nsiderus.ru ( https://siderus.ru/ )\n\n\n\n\n\n\n\n+7 499 647-47-07\n\n\n\n\n\n\n\n\n107061, г. Москва, Преображенская площадь, д.8, оф. 815\n\n\n\n\n\n\n\n\n\nНаш идентификатор в системе ЭДО (Контур Диадок)\n\n\n\n2BM-9701077015-770101001-201711021137514319612\n\n\n\n\n\n\n\n\n*From:* Цыганков Александр Олегович\n*Sent:* Monday, April 13, 2026 2:37 PM\n*To:* info+247431@siderus.ru\n*Subject:* Запрос\n\n\n\n\n\n\n\n\nДобрый день\n\n\n\n\nпосмотрите пожалуйста что из этого ваше , пришлите мне предложение\nпожалуйста\n\n\n\n\n\n\n\n\n\n\n\nASA-RT\n\n\n\nМесдоза ASAADSM/A/5 ASA-RT Load cell Profibus\n\n\n\n050PE13\n\n\n\nлинейная люминесцентная лампа\n\n\n\nTMF\n\n\n\nТермостат TMF - STULZ Cosmotec с нормально разомкнутым контактом, диапазон\nтемператур от -10 до +80 °C.\n\n\n\nZKXVA5000320\n\n\n\nНастенный промышленный теплообменник типа «воздух-воздух» Cosmotec XVA50\n\n\n\n852-101\n\n\n\nПромышленный коммутатор, 5 x 100BASE-TX\n\n\n\ncMT8121X\n\n\n\nПанель оператора\n\n\n\n\n\n\n\n\n\n\n\nжду ответ спасибо\n\n\n\n\n\n\n\n\n\n\n\n\n\n*С уважением,*\n**Менеджер по продажам*\n*Цыганков Александр*\n\n*ООО\"КомТрейд\"*\n*309516,Белгородская обл., г.Старый Оскол*\n*м-н Ольминского 7А*\n*(4725)42-18-68/42-11-68/42-00-66*\n*910-327-555-4*\n*ATSYGANKOV@MAIL.RU (\nATSYGANKOV@MAIL.RU )*\n*KOMT.RU**",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "050PE13",
+        "ZKXVA5000320",
+        "100BASE-TX"
+      ],
+      "lineItems": [
+        {
+          "article": "DESC:asa-rt",
+          "descriptionRu": "ASA-RT",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:mesdoza-asaadsm-a-5-asa-rt-load-cell-profibus",
+          "descriptionRu": "Месдоза ASAADSM/A/5 ASA-RT Load cell Profibus",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:termostat-tmf-stulz-cosmotec-s-normalno-razomknutym-kontaktom-diapazon",
+          "descriptionRu": "Термостат TMF - STULZ Cosmotec с нормально разомкнутым контактом, диапазон",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "050PE13",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "ZKXVA5000320",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "100BASE-TX",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 6,
+      "detectedBrands": [
+        "ASA-RT",
+        "COSMOTEC",
+        "STULZ"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "050PE13",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "ZKXVA5000320",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "100BASE-TX",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "freetext",
+          "body"
+        ],
+        "names": [
+          "freetext"
+        ],
+        "attachmentsProcessed": [
+          "Реквизиты КомТрейд.doc"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.83,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Месдоза ASAADSM/A/5 ASA-RT Load cell Profibus",
+      "productLineItems": [
+        "ASA-RT",
+        "Месдоза ASAADSM/A/5 ASA-RT Load cell Profibus",
+        "Термостат TMF - STULZ Cosmotec с нормально разомкнутым контактом, диапазон"
+      ],
+      "productNamesClean": [
+        "ASA-RT",
+        "Месдоза ASAADSM/A/5 ASA-RT Load cell Profibus",
+        "Термостат TMF - STULZ Cosmotec с нормально разомкнутым контактом, диапазон"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 6,
+      "totalQty": 3,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.83,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "freetext"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "current_message"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "attachment"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "ASA-RT",
+              "COSMOTEC",
+              "STULZ"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый company; multiple brands detected",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:050PE13, ZKXVA5000320, 100BASE-TX | бренды:ASA-RT, COSMOTEC, STULZ | компания:ООО «КОМТРЕЙД» • email:atsygankov@mail.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:050PE13, ZKXVA5000320, 100BASE-TX",
+          "бренды:ASA-RT, COSMOTEC, STULZ",
+          "компания:ООО «КОМТРЕЙД»",
+          "ИНН:3128035556",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 3,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 4,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7885
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Сайт не найден автоматически",
+        "Сверить запрос по артикулам: 050PE13, ZKXVA5000320, 100BASE-TX",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": null,
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "3128035556",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "ASA-RT",
+      "COSMOTEC",
+      "STULZ"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Цыганков, добрый день!\n\nСпасибо за заявку по ASA-RT, COSMOTEC, STULZ (6 позиций).\nАртикулы: 050PE13, ZKXVA5000320, 100BASE-TX\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Re: Запрос",
+      "attachments": [
+        "image001.jpg",
+        "image002.jpg",
+        "image003.jpg",
+        "image004.jpg",
+        "image005.jpg",
+        "Реквизиты КомТрейд.doc"
+      ],
+      "body": "*С уважением,\nМенеджер по продажам\nЦыганков Александр\n\nООО\"КомТрейд\"\n309516,Белгородская обл., г.Старый Оскол\nм-н Ольминского 7А\n(4725)42-18-68/42-11-68/42-00-66\n910-327-555-4\nATSYGANKOV@MAIL.RU\nKOMT.RU*\n\n>\n> Понедельник, 13 апреля 2026, 16:33 +03:00 от SIDERUS :\n>\n>\n> Добрый день, для обработки запроса прошу прислать реквизиты Вашей\n> организации.\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> С уважением,\n>\n>\n>\n> *Екатерина Попова*\n> Офис-менеджер\n> ООО «КОЛОВРАТ» | SIDERUS\n>\n>\n>\n>\n>\n>\n>\n> i n f o @siderus.ru ( info@siderus.ru )\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> siderus.ru ( https://siderus.ru/ )\n>\n>\n>\n>\n>\n>\n>\n> +7 499 647-47-07\n>\n>\n>\n>\n>\n>\n>\n>\n> 107061, г. Москва, Преображенская площадь, д.8, оф. 815\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> Наш идентификатор в системе ЭДО (Контур Диадок)\n>\n>\n>\n> 2BM-9701077015-770101001-201711021137514319612\n>\n>\n>\n>\n>\n>\n>\n>\n> *From:* Цыганков Александр Олегович\n> *Sent:* Monday, April 13, 2026 2:37 PM\n> *To:* info+247431@siderus.ru\n> *Subject:* Запрос\n>\n>\n>\n>\n>\n>\n>\n>\n> Добрый день\n>\n>\n>\n>\n> посмотрите пожалуйста что из этого ваше , пришлите мне предложение\n> пожалуйста\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> ASA-RT\n>\n>\n>\n> Месдоза ASAADSM/A/5 ASA-RT Load cell Profibus\n>\n>\n>\n> 050PE13\n>\n>\n>\n> линейная люминесцентная лампа\n>\n>\n>\n> TMF\n>\n>\n>\n> Термостат TMF - STULZ Cosmotec с нормально разомкнутым контактом, диапазон\n> температур от -10 до +80 °C.\n>\n>\n>\n> ZKXVA5000320\n>\n>\n>\n> Настенный промышленный теплообменник типа «воздух-воздух» Cosmotec XVA50\n>\n>\n>\n> 852-101\n>\n>\n>\n> Промышленный коммутатор, 5 x 100BASE-TX\n>\n>\n>\n> cMT8121X\n>\n>\n>\n> Панель оператора\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> жду ответ спасибо\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> *С уважением,*\n> **Менеджер по продажам*\n> *Цыганков Александр*\n>\n> *ООО\"КомТрейд\"*\n> *309516,Белгородская обл., г.Старый Оскол*\n> *м-н Ольминского 7А*\n> *(4725)42-18-68/42-11-68/42-00-66*\n> *910-327-555-4*\n> *ATSYGANKOV@MAIL.RU (\n> ATSYGANKOV@MAIL.RU )*\n> *KOMT.RU**\n>\n>\n>\n>\n>"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "image001.jpg",
+          "safeName": "image001.jpg",
+          "contentType": "image/jpeg",
+          "size": 27877,
+          "ext": ".jpg",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image002.jpg",
+          "safeName": "image002.jpg",
+          "contentType": "image/jpeg",
+          "size": 27947,
+          "ext": ".jpg",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image003.jpg",
+          "safeName": "image003.jpg",
+          "contentType": "image/jpeg",
+          "size": 27881,
+          "ext": ".jpg",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image004.jpg",
+          "safeName": "image004.jpg",
+          "contentType": "image/jpeg",
+          "size": 27917,
+          "ext": ".jpg",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image005.jpg",
+          "safeName": "image005.jpg",
+          "contentType": "image/jpeg",
+          "size": 2311,
+          "ext": ".jpg",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Реквизиты КомТрейд.doc",
+          "safeName": "Реквизиты КомТрейд.doc",
+          "contentType": "application/msword",
+          "size": 23040,
+          "ext": ".doc",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 718,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "3128035556"
+          ],
+          "detectedKpp": [
+            "312801001",
+            "041403633"
+          ],
+          "detectedOgrn": [
+            "1023102361193"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 5,
+        "totalBytes": 23040,
+        "totalChars": 718,
+        "budgetMs": 3,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": false,
+      "quotedTextDetected": true,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 5
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-17T15:15:47.450Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 3,
+      "detectionGapsCount": 3
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:54:34.278Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

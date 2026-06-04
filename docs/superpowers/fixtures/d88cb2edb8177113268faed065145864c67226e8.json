@@ -1,0 +1,570 @@
+{
+  "messageKey": "d88cb2edb8177113268faed065145864c67226e8",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Артикулы определил отлично, но вот описание бренды не подтянул"
+  ],
+  "subject": "Заявка СРОЧНО! РШ Я  Производитель: Eaton AEROQUIP , Continental",
+  "body": "Здравствуйте.\n\nПросьба направить КП на продукцию с указанием стоимости и срока поставки:\n\n№\n\nНаименование\n\nЕд. изм\n\nКол-во\n\n1\n\nРукав высокого давления гидравлический полимер 31,8х42 МПа Eaton AEROQUIP R15 GH466-20\n\nм\n\n2,4\n\n2\n\nГидравлический шлан GH681-05 Eaton Aeroquip\n\nм\n\n1,5\n\n3\n\nГидравлический шланг Eaton Aeroquip GH681-16\n\nм\n\n3,8\n\n4\n\nГидравлический шланг Eaton Aeroquip GH681-20\n\nм\n\n1,2\n\n5\n\nГидравлический шланг Eaton Aeroquip GH681-24\n\nм\n\n1,4\n\n6\n\nГидравлический шланг Eaton Aeroquip GH681-32\n\nм\n\n1,4\n\n7\n\nГидравлический шланг Eaton Aeroquip GH506-06\n\nм\n\n2,7\n\n8\n\nГидравлический шланг Eaton Aeroquip GH506-12\n\nм\n\n4,4\n\n9\n\nРукав высокого давления гидравлический полимер 32х1 МПа Continental OSD-32 с внутренним диаметром 2 дюйма (Plicord OSD Oil Suction & Discharge)\n\nм\n\n4,8\n\n10\n\nГидравлический шланг Eaton Aeroquip GH781-06\n\nм\n\n4,4\n\n11\n\nГидравлический шланг Eaton Aeroquip GH781-08\n\nм\n\n3\n\n*ООО «ПромЭлектроСнаб»*\n115280, г. Москва, ул. Ленинская Слобода, д. 19, помещ. 62/1\nИНН/КПП 7731319363 / 772501001\nОКПО 03077061; р/с 40702810900000152326\nФилиал \"ЦЕНТРАЛЬНЫЙ\" БАНКА ВТБ (ПАО) в г. Москва\nк/с 30101810145250000411\nБИК 044525411\n(495) 669-93-94\n\nС уважением, Максим",
+  "attachmentFiles": [],
+  "currentAnalysis": {
+    "analysisId": "d4f2ad13-6c2a-4969-989a-896eb5312ffc",
+    "createdAt": "2026-06-01T15:05:33.708Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Aeroquip",
+        "Continental Ultra Pumps",
+        "EATON"
+      ],
+      "signals": {
+        "clientScore": 23,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 35,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП)\\s+[\"«]",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "tdelpromoborud@bk.ru",
+      "emailPrimary": "tdelpromoborud@bk.ru",
+      "emailDisplayName": "Максим",
+      "emailLocal": "tdelpromoborud",
+      "emailDomain": "bk.ru",
+      "emailType": "person_email",
+      "emailDomainType": "public_provider",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.85,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": false,
+      "emailRejected": [],
+      "fullName": "Максим",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.6,
+      "fullNameNeedsReview": true,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "Максим",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «ПромЭлектроСнаб»",
+      "companyAlt": "ООО «ПромЭлектроСнаб»",
+      "companyNameSource": "body",
+      "companyNameConfidence": 0.9700000000000001,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Максим",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        },
+        {
+          "value": "bk.ru",
+          "source": "email_domain",
+          "reason": "generic_provider"
+        }
+      ],
+      "website": null,
+      "cityPhone": "+7 (495) 669-93-94",
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "RU",
+      "phoneSource": "current_message",
+      "phoneConfidence": 0.8,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [
+        {
+          "value": "810900000152326",
+          "source": "current_message",
+          "reason": "ogrn_like"
+        },
+        {
+          "value": "810145250000411",
+          "source": "current_message",
+          "reason": "ogrn_like"
+        },
+        {
+          "value": "7731319363",
+          "source": "current_message",
+          "reason": "inn_like"
+        }
+      ],
+      "inn": "7731319363",
+      "kpp": "773131936",
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "body",
+        "website": null,
+        "phone": "current_message",
+        "inn": "body",
+        "kpp": "body",
+        "ogrn": null,
+        "fullName": "signature",
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Здравствуйте.\n\nПросьба направить КП на продукцию с указанием стоимости и срока поставки:\n\n№\n\nНаименование\n\nЕд. изм\n\nКол-во\n\n1\n\nРукав высокого давления гидравлический полимер 31,8х42 МПа Eaton AEROQUIP R15 GH466-20\n\nм\n\n2,4\n\n2\n\nГидравлический шлан GH681-05 Eaton Aeroquip\n\nм\n\n1,5\n\n3\n\nГидравлический шланг Eaton Aeroquip GH681-16\n\nм\n\n3,8\n\n4\n\nГидравлический шланг Eaton Aeroquip GH681-20\n\nм\n\n1,2\n\n5\n\nГидравлический шланг Eaton Aeroquip GH681-24\n\nм\n\n1,4\n\n6\n\nГидравлический шланг Eaton Aeroquip GH681-32\n\nм\n\n1,4\n\n7\n\nГидравлический шланг Eaton Aeroquip GH506-06\n\nм\n\n2,7\n\n8\n\nГидравлический шланг Eaton Aeroquip GH506-12\n\nм\n\n4,4\n\n9\n\nРукав высокого давления гидравлический полимер 32х1 МПа Continental OSD-32 с внутренним диаметром 2 дюйма (Plicord OSD Oil Suction & Discharge)\n\nм\n\n4,8\n\n10\n\nГидравлический шланг Eaton Aeroquip GH781-06\n\nм\n\n4,4\n\n11\n\nГидравлический шланг Eaton Aeroquip GH781-08\n\nм\n\n3\n\n*ООО «ПромЭлектроСнаб»*\n115280, г. Москва, ул. Ленинская Слобода, д. 19, помещ. 62/1\nИНН/КПП 7731319363 / 772501001\nОКПО 03077061; р/с 40702810900000152326\nФилиал \"ЦЕНТРАЛЬНЫЙ\" БАНКА ВТБ (ПАО) в г. Москва\nк/с 30101810145250000411\nБИК 044525411\n(495) 669-93-94",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "GH681-05",
+        "GH681-16",
+        "GH681-20",
+        "GH681-24",
+        "GH681-32",
+        "GH506-06",
+        "GH506-12",
+        "OSD-32",
+        "GH781-06",
+        "GH781-08",
+        "GH466-20"
+      ],
+      "lineItems": [
+        {
+          "article": "GH681-05",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Заявка СРОЧНО! РШ Я Производитель: Eaton AEROQUIP , Continental",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "GH681-16",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Заявка СРОЧНО! РШ Я Производитель: Eaton AEROQUIP , Continental",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "GH681-20",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Заявка СРОЧНО! РШ Я Производитель: Eaton AEROQUIP , Continental",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "GH681-24",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Заявка СРОЧНО! РШ Я Производитель: Eaton AEROQUIP , Continental",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "GH681-32",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Заявка СРОЧНО! РШ Я Производитель: Eaton AEROQUIP , Continental",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "GH506-06",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Заявка СРОЧНО! РШ Я Производитель: Eaton AEROQUIP , Continental",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "GH506-12",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Заявка СРОЧНО! РШ Я Производитель: Eaton AEROQUIP , Continental",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "OSD-32",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Заявка СРОЧНО! РШ Я Производитель: Eaton AEROQUIP , Continental",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "GH781-06",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Заявка СРОЧНО! РШ Я Производитель: Eaton AEROQUIP , Continental",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "GH781-08",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Заявка СРОЧНО! РШ Я Производитель: Eaton AEROQUIP , Continental",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "GH466-20",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Заявка СРОЧНО! РШ Я Производитель: Eaton AEROQUIP , Continental",
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 11,
+      "detectedBrands": [
+        "Aeroquip",
+        "Continental Ultra Pumps",
+        "EATON"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "GH681-05",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GH681-16",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GH681-20",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GH681-24",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GH681-32",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GH506-06",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GH506-12",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "OSD-32",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GH781-06",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GH781-08",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GH466-20",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "urgent",
+      "attachmentHints": [],
+      "requestType": "Мультибрендовая",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [],
+        "attachmentsProcessed": [],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": false,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.88,
+        "riskLevel": "low",
+        "primaryIssue": "multiple_brands_detected",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Заявка СРОЧНО! РШ Я Производитель: Eaton AEROQUIP , Continental",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Заявка СРОЧНО! РШ Я Производитель: Eaton AEROQUIP , Continental"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "42 МПа"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "1 МПа"
+        }
+      ],
+      "positions": 11,
+      "totalQty": 0,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.88,
+        "riskLevel": "low",
+        "primaryIssue": "multiple_brands_detected",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "current_message"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.93,
+            "source": "body"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "Aeroquip",
+              "Continental Ultra Pumps",
+              "EATON"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "multiple brands detected",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:GH681-05, GH681-16, GH681-20 | бренды:Aeroquip, Continental Ultra Pumps, EATON | компания:ООО «ПромЭлектроСнаб» • email:tdelpromoborud@bk.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:GH681-05, GH681-16, GH681-20",
+          "бренды:Aeroquip, Continental Ultra Pumps, EATON",
+          "компания:ООО «ПромЭлектроСнаб»",
+          "ИНН:7731319363",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 11,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 7,
+          "processedAttachments": 0
+        }
+      },
+      "confidence": 0.836
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Сайт не найден автоматически",
+        "Сверить запрос по артикулам: GH681-05, GH681-16, GH681-20, GH681-24, GH681-32",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": null,
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7731319363/773131936",
+      "isFilialByKpp": true
+    },
+    "detectedBrands": [
+      "Aeroquip",
+      "Continental Ultra Pumps",
+      "EATON"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Мультибрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Максим, добрый день!\n\nСпасибо за заявку по Aeroquip, Continental Ultra Pumps, EATON (11 позиций).\nАртикулы: GH681-05, GH681-16, GH681-20, GH681-24, GH681-32\nМы подготовим коммерческое предложение и направим в ближайшее время.\nМы понимаем срочность запроса и обработаем его в приоритетном порядке.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Заявка СРОЧНО! РШ Я  Производитель: Eaton AEROQUIP , Continental",
+      "attachments": [],
+      "body": "Здравствуйте.\n\nПросьба направить КП на продукцию с указанием стоимости и срока поставки:\n\n№\n\nНаименование\n\nЕд. изм\n\nКол-во\n\n1\n\nРукав высокого давления гидравлический полимер 31,8х42 МПа Eaton AEROQUIP R15 GH466-20\n\nм\n\n2,4\n\n2\n\nГидравлический шлан GH681-05 Eaton Aeroquip\n\nм\n\n1,5\n\n3\n\nГидравлический шланг Eaton Aeroquip GH681-16\n\nм\n\n3,8\n\n4\n\nГидравлический шланг Eaton Aeroquip GH681-20\n\nм\n\n1,2\n\n5\n\nГидравлический шланг Eaton Aeroquip GH681-24\n\nм\n\n1,4\n\n6\n\nГидравлический шланг Eaton Aeroquip GH681-32\n\nм\n\n1,4\n\n7\n\nГидравлический шланг Eaton Aeroquip GH506-06\n\nм\n\n2,7\n\n8\n\nГидравлический шланг Eaton Aeroquip GH506-12\n\nм\n\n4,4\n\n9\n\nРукав высокого давления гидравлический полимер 32х1 МПа Continental OSD-32 с внутренним диаметром 2 дюйма (Plicord OSD Oil Suction & Discharge)\n\nм\n\n4,8\n\n10\n\nГидравлический шланг Eaton Aeroquip GH781-06\n\nм\n\n4,4\n\n11\n\nГидравлический шланг Eaton Aeroquip GH781-08\n\nм\n\n3\n\n*ООО «ПромЭлектроСнаб»*\n115280, г. Москва, ул. Ленинская Слобода, д. 19, помещ. 62/1\nИНН/КПП 7731319363 / 772501001\nОКПО 03077061; р/с 40702810900000152326\nФилиал \"ЦЕНТРАЛЬНЫЙ\" БАНКА ВТБ (ПАО) в г. Москва\nк/с 30101810145250000411\nБИК 044525411\n(495) 669-93-94\n\nС уважением, Максим"
+    },
+    "attachmentAnalysis": {
+      "files": [],
+      "meta": {
+        "processedCount": 0,
+        "skippedCount": 0,
+        "totalBytes": 0,
+        "totalChars": 0,
+        "budgetMs": 0,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 0,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-22T22:51:03.252Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": true,
+      "missingForProcessing": [
+        "quantity"
+      ],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:05:33.720Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

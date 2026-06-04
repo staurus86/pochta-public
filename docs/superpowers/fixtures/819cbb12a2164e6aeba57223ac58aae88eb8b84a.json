@@ -1,0 +1,440 @@
+{
+  "messageKey": "819cbb12a2164e6aeba57223ac58aae88eb8b84a",
+  "projectId": "project-3-mailbox-file",
+  "comments": [
+    "в-принципе нет, но смущает название компании ( добавка Руководи)"
+  ],
+  "subject": "Запрос ТКП",
+  "body": "Добрый день! Прошу прислать КП на перечень ниже:\r\n\r\n\r\n8146/5095 Панель управления с кнопками и лампами, 680x340x200 мм, Ex de IIC T6 Рабочая температура. -40 °C .... 50 °C, производитель Stahl\r\n\r\n8316/22-24-100 24 В 10 Ач коробка, производитель Stahl\r\n\r\nСроками и стоимостью доставки.\r\n\r\n\r\n\r\n\r\nСпасибо!\r\nС уважением,\r\nКривощекова Виктория\r\nИнженер отдела комплектации и\r\nматериально-технического обеспечения\r\nОбщество с ограниченной ответственностью «Приморский торговый порт» (ООО «ПТП»)\r\n188910, Ленинградская область, Выборгский район, Приморская территория, Портовый проезд, д.10\r\nтел.:(81378) 62-999 доб. 237\r\nwww.ptport.ru",
+  "attachmentFiles": [
+    {
+      "filename": "Карта предприятия ООО ПТП.docx",
+      "safeName": "Карта предприятия ООО ПТП.docx",
+      "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size": 24153
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "7e42c15a-91c4-4838-a295-8405ca87e15c",
+    "createdAt": "2026-06-01T14:50:49.065Z",
+    "mailbox": "multi-mailbox@project3.local",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [],
+      "signals": {
+        "clientScore": 21,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal",
+      "sources": {
+        "droppedBrands_noBodyOverlap": [
+          "R. STAHL"
+        ]
+      }
+    },
+    "sender": {
+      "email": "krivoshekovava@ptport.ru",
+      "emailPrimary": "krivoshekovava@ptport.ru",
+      "emailDisplayName": "Кривощекова Виктория",
+      "emailLocal": "krivoshekovava",
+      "emailDomain": "ptport.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Кривощекова Виктория",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Инженер отдела комплектации и",
+      "positionAlt": "Инженер отдела комплектации и",
+      "departmentName": "отдела комплектации и",
+      "positionSource": "signature",
+      "positionConfidence": 1,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Кривощекова Виктория",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «ПТП»",
+      "companyAlt": "ООО «ПТП»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Кривощекова Виктория",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://ptport.ru",
+      "cityPhone": "+7 (813) 786-29-99",
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "4704057515",
+      "kpp": null,
+      "ogrn": "1044700880762",
+      "legalCardAttached": false,
+      "sources": {
+        "company": "attachment",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": "attachment",
+        "fullName": "signature",
+        "position": "signature",
+        "department": "body"
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день! Прошу прислать КП на перечень ниже:\n\n\n8146/5095 Панель управления с кнопками и лампами, 680x340x200 мм, Ex de IIC T6 Рабочая температура. -40 °C .... 50 °C, производитель Stahl\n\n8316/22-24-100 24 В 10 Ач коробка, производитель Stahl\n\nСроками и стоимостью доставки.\n\n\n\n\nСпасибо!",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "8316/22-24-100"
+      ],
+      "lineItems": [
+        {
+          "article": "8316/22-24-100",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Запрос ТКП",
+          "source": "articles_synth",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 1,
+      "detectedBrands": [
+        "R. STAHL"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "8316/22-24-100",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [],
+        "attachmentsProcessed": [
+          "Карта предприятия ООО ПТП.docx"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.79,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_article",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Запрос ТКП",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Запрос ТКП"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "200 мм"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "24 В"
+        }
+      ],
+      "positions": 1,
+      "totalQty": 0,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.79,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_article",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.74,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "articles_synth"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_article",
+            "field": "article",
+            "severity": "medium",
+            "confidence": 0.74
+          },
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый article; слабый company; слабый inn",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:8316/22-24-100 | бренды:R. STAHL | компания:ООО «ПТП» • email:krivoshekovava@ptport.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:8316/22-24-100",
+          "бренды:R. STAHL",
+          "компания:ООО «ПТП»",
+          "ИНН:4704057515",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 1,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 6,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7505
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://ptport.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: 8316/22-24-100",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://ptport.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "4704057515",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "R. STAHL"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Кривощекова, добрый день!\n\nСпасибо за заявку по R. STAHL.\nАртикулы: 8316/22-24-100\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос ТКП",
+      "attachments": [
+        "Карта предприятия ООО ПТП.docx"
+      ],
+      "body": "Добрый день! Прошу прислать КП на перечень ниже:\r\n\r\n\r\n8146/5095 Панель управления с кнопками и лампами, 680x340x200 мм, Ex de IIC T6 Рабочая температура. -40 °C .... 50 °C, производитель Stahl\r\n\r\n8316/22-24-100 24 В 10 Ач коробка, производитель Stahl\r\n\r\nСроками и стоимостью доставки.\r\n\r\n\r\n\r\n\r\nСпасибо!\r\nС уважением,\r\nКривощекова Виктория\r\nИнженер отдела комплектации и\r\nматериально-технического обеспечения\r\nОбщество с ограниченной ответственностью «Приморский торговый порт» (ООО «ПТП»)\r\n188910, Ленинградская область, Выборгский район, Приморская территория, Портовый проезд, д.10\r\nтел.:(81378) 62-999 доб. 237\r\nwww.ptport.ru"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Карта предприятия ООО ПТП.docx",
+          "safeName": "Карта предприятия ООО ПТП.docx",
+          "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "size": 24153,
+          "ext": ".docx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 1181,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "4704057515"
+          ],
+          "detectedKpp": [],
+          "detectedOgrn": [
+            "1044700880762"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 24153,
+        "totalChars": 1181,
+        "budgetMs": 62,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-21T05:58:28.797Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "quantity"
+      ],
+      "newArticlesAdded": 1,
+      "detectionGapsCount": 6
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:50:49.081Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

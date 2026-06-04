@@ -1,0 +1,742 @@
+{
+  "messageKey": "76400796b9428cd5edae658f7177b41740864e57",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Не открывается ссылка.\nВ запросе несколько брендов.",
+    "не корректно перенеслись бренды"
+  ],
+  "subject": "Запрос на поставку электродвигателей, устройств плавного пуска и компонентов гидравлики",
+  "body": "Добрый день,\n Прошу выставить счёт или КП на следующие позиции:\n Электродвигатель ESQ 225 M6-SDN- 30/1000 IMB3 - 1.00 шт\n\n Устройство плавного пуска ESQ-GS9-320 (640А, 380В, 320кВт, встроенный шунтирующий контактор) - 1.00 шт\n\n Устройство плавного пуска NJR5-320/ZX3 320А 160кВт 380В - 1.00 шт\n\n АИС132S4 электродвигатель 5,5 кВт 1440 об/мин IM2081(B35) лапы+фланец DIN EN 50347 ЭЛМАШ - 2.00 шт\n\n Автоматический выключатель NM1-630S/3300 400А - 2.00 шт\n\n Реле давления Danfoss MBC 5100-5251-1СB04 - 2.00 шт\n\n Гидрораспределитель Rexroth 4WE 6 J62/EG24N9K4 (R900561288) - 2.00 шт\n\n Предохранительный клапан L-ZDB-6-VB-1-315 - 2.00 шт\n\n Также интересует возможность доставки указанных товаров и информация о сроках поставки.\n Буду благодарен за оперативный ответ.\n \n --\n С уважением, Павел\n ООО \"РМКСИБ\"\n Телефон: +7 924 99 09 122\n Email: rmksibirk@snipermail.ru\n #59640:",
+  "attachmentFiles": [
+    {
+      "filename": "Карточка ООО РМКСИБ_СБЕРБАНК — для запросов.doc",
+      "safeName": "Карточка ООО РМКСИБ_СБЕРБАНК — для запросов.doc",
+      "contentType": "application/msword",
+      "size": 42496
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "52036319-656b-473a-9e72-5d81a0c5f179",
+    "createdAt": "2026-06-01T14:55:22.458Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Danfoss",
+        "ESQ"
+      ],
+      "signals": {
+        "clientScore": 21,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "rmksibirk@snipermail.ru",
+      "emailPrimary": "rmksibirk@snipermail.ru",
+      "emailDisplayName": "Павел",
+      "emailLocal": "rmksibirk",
+      "emailDomain": "snipermail.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Павел",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.6,
+      "fullNameNeedsReview": true,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "Павел",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «РМКСИБ»",
+      "companyAlt": "ООО «РМКСИБ»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Павел",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://snipermail.ru",
+      "cityPhone": null,
+      "mobilePhone": "+7 (924) 990-91-22",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "3811475473",
+      "kpp": "381101001",
+      "ogrn": "1213800017958",
+      "legalCardAttached": true,
+      "sources": {
+        "company": "attachment",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": "attachment",
+        "ogrn": "attachment",
+        "fullName": "signature",
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день,\n Прошу выставить счёт или КП на следующие позиции:\n Электродвигатель ESQ 225 M6-SDN- 30/1000 IMB3 - 1.00 шт\n\n Устройство плавного пуска ESQ-GS9-320 (640А, 380В, 320кВт, встроенный шунтирующий контактор) - 1.00 шт\n\n Устройство плавного пуска NJR5-320/ZX3 320А 160кВт 380В - 1.00 шт\n\n АИС132S4 электродвигатель 5,5 кВт 1440 об/мин IM2081(B35) лапы+фланец DIN EN 50347 ЭЛМАШ - 2.00 шт\n\n Автоматический выключатель NM1-630S/3300 400А - 2.00 шт\n\n Реле давления Danfoss MBC 5100-5251-1СB04 - 2.00 шт\n\n Гидрораспределитель Rexroth 4WE 6 J62/EG24N9K4 (R900561288) - 2.00 шт\n\n Предохранительный клапан L-ZDB-6-VB-1-315 - 2.00 шт\n\n Также интересует возможность доставки указанных товаров и информация о сроках поставки.\n Буду благодарен за оперативный ответ.\n \n --",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "M6-SDN-30/1000",
+        "NJR5-320/ZX3",
+        "NM1-630S/3300",
+        "EN 50347",
+        "L-ZDB-6-VB-1-315",
+        "ESQ-GS9-320",
+        "5100",
+        "R900561288",
+        "AIC132S4",
+        "320kBt",
+        "160kBt",
+        "ESQ 225"
+      ],
+      "lineItems": [
+        {
+          "article": "ESQ-GS9-320",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Предохранительный клапан L-ZDB-6-VB-1-315",
+          "sourceLine": "Устройство плавного пуска ESQ-GS9-320 (640А, 380В, 320кВт, встроенный шунтирующий контактор) - 1.00 шт",
+          "source": "body"
+        },
+        {
+          "article": "NM1-630S/3300",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "Предохранительный клапан L-ZDB-6-VB-1-315",
+          "sourceLine": "Автоматический выключатель NM1-630S/3300 400А - 2.00 шт",
+          "source": "body"
+        },
+        {
+          "article": "5100",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "Предохранительный клапан L-ZDB-6-VB-1-315",
+          "explicitArticle": true,
+          "sourceLine": "Реле давления Danfoss MBC 5100-5251-1СB04 - 2.00 шт",
+          "source": "body"
+        },
+        {
+          "article": "R900561288",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "Предохранительный клапан L-ZDB-6-VB-1-315",
+          "sourceLine": "Гидрораспределитель Rexroth 4WE 6 J62/EG24N9K4 (R900561288) - 2.00 шт",
+          "source": "body"
+        },
+        {
+          "article": "ZDB-6-VB-1-315",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "Предохранительный клапан L-ZDB-6-VB-1-315",
+          "explicitArticle": true,
+          "sourceLine": "Предохранительный клапан L-ZDB-6-VB-1-315 - 2.00 шт",
+          "source": "body"
+        },
+        {
+          "article": "M6-SDN-30/1000",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Предохранительный клапан L-ZDB-6-VB-1-315",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "NJR5-320/ZX3",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Предохранительный клапан L-ZDB-6-VB-1-315",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "EN 50347",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Предохранительный клапан L-ZDB-6-VB-1-315",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "L-ZDB-6-VB-1-315",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Предохранительный клапан L-ZDB-6-VB-1-315",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "AIC132S4",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Предохранительный клапан L-ZDB-6-VB-1-315",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "320kBt",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "160kBt",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "ESQ 225",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Предохранительный клапан L-ZDB-6-VB-1-315",
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 13,
+      "detectedBrands": [
+        "Danfoss",
+        "ESQ"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "NJR5-320/ZX3",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "NM1-630S/3300",
+          "name": "Автоматический выключатель",
+          "category": null
+        },
+        {
+          "article": "EN 50347",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "L-ZDB-6-VB-1-315",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "ESQ-GS9-320",
+          "name": "Устройство плавного пуска",
+          "category": null
+        },
+        {
+          "article": "5100",
+          "name": "Реле давления Danfoss MBC",
+          "category": null
+        },
+        {
+          "article": "R900561288",
+          "name": "Гидрораспределитель Rexroth 4WE 6 J62/EG24N9K4 (",
+          "category": null
+        },
+        {
+          "article": "ESQ 225",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "planned",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "attachment"
+        ],
+        "names": [
+          "body"
+        ],
+        "attachmentsProcessed": [
+          "Карточка ООО РМКСИБ_СБЕРБАНК — для запросов.doc"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.83,
+        "riskLevel": "high",
+        "primaryIssue": "article_name_conflict",
+        "hasConflicts": true
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Предохранительный клапан L-ZDB-6-VB-1-315",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Предохранительный клапан L-ZDB-6-VB-1-315"
+      ],
+      "productNamesRejected": [
+        {
+          "raw": "Устройство плавного пуска ESQ-GS9-320 (640А, 380В, 320кВт, встроенный шунтирующий контактор) - 1.00 шт",
+          "normalized": "Устройство плавного пуска ESQ-GS9-320 (640А, 380В, 320кВт, встроенный шунтирующий контактор)",
+          "reason": "bad_product_name"
+        },
+        {
+          "raw": "Автоматический выключатель NM1-630S/3300 400А - 2.00 шт",
+          "normalized": "Автоматический выключатель NM1-630S/3300 400А",
+          "reason": "bad_product_name"
+        },
+        {
+          "raw": "Реле давления Danfoss MBC 5100-5251-1СB04 - 2.00 шт",
+          "normalized": "Реле давления Danfoss MBC 5100-5251-1СB04",
+          "reason": "bad_product_name"
+        },
+        {
+          "raw": "Гидрораспределитель Rexroth 4WE 6 J62/EG24N9K4 (R900561288) - 2.00 шт",
+          "normalized": "Гидрораспределитель Rexroth 4WE 6 J62/EG24N9K4 (R900561288)",
+          "reason": "bad_product_name"
+        }
+      ],
+      "primaryQuantity": 2,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 26,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "380В"
+        }
+      ],
+      "positions": 13,
+      "totalQty": 9,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.83,
+        "riskLevel": "high",
+        "primaryIssue": "article_name_conflict",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.96,
+            "source": "explicit_article_block"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [
+          {
+            "code": "article_name_conflict",
+            "field": "name",
+            "severity": "medium",
+            "article": "ESQ-GS9-320",
+            "values": [
+              "Предохранительный клапан L-ZDB-6-VB-1-315",
+              "Устройство плавного пуска"
+            ],
+            "sources": [
+              "body"
+            ]
+          },
+          {
+            "code": "article_name_conflict",
+            "field": "name",
+            "severity": "medium",
+            "article": "NM1-630S/3300",
+            "values": [
+              "Предохранительный клапан L-ZDB-6-VB-1-315",
+              "Автоматический выключатель"
+            ],
+            "sources": [
+              "body"
+            ]
+          },
+          {
+            "code": "article_name_conflict",
+            "field": "name",
+            "severity": "medium",
+            "article": "5100",
+            "values": [
+              "Предохранительный клапан L-ZDB-6-VB-1-315",
+              "Реле давления Danfoss MBC"
+            ],
+            "sources": [
+              "body"
+            ]
+          },
+          {
+            "code": "article_name_conflict",
+            "field": "name",
+            "severity": "medium",
+            "article": "R900561288",
+            "values": [
+              "Предохранительный клапан L-ZDB-6-VB-1-315",
+              "Гидрораспределитель Rexroth 4WE 6 J62/EG24N9K4 ("
+            ],
+            "sources": [
+              "body"
+            ]
+          }
+        ],
+        "issues": [
+          {
+            "code": "detection_conflicts_present",
+            "field": "recognition",
+            "severity": "high",
+            "count": 4
+          },
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "Danfoss",
+              "ESQ"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "article name conflict; article name conflict",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:M6-SDN-30/1000, NJR5-320/ZX3, NM1-630S/3300 | бренды:Danfoss, ESQ | компания:ООО «РМКСИБ» • email:rmksibirk@snipermail.ru",
+        "suggestion": "Разные описания для одного артикула — уточните.",
+        "triggerSignals": [
+          "артикулы:M6-SDN-30/1000, NJR5-320/ZX3, NM1-630S/3300",
+          "бренды:Danfoss, ESQ",
+          "компания:ООО «РМКСИБ»",
+          "ИНН:3811475473",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 11,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 6,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7885
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://snipermail.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: M6-SDN-30/1000, NJR5-320/ZX3, NM1-630S/3300, EN 50347, L-ZDB-6-VB-1-315",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://snipermail.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "3811475473/381101001",
+      "isFilialByKpp": true
+    },
+    "detectedBrands": [
+      "Danfoss",
+      "ESQ"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Павел, добрый день!\n\nСпасибо за заявку по Danfoss, ESQ (13 позиций).\nАртикулы: M6-SDN-30/1000, NJR5-320/ZX3, NM1-630S/3300, EN 50347, L-ZDB-6-VB-1-315\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос на поставку электродвигателей, устройств плавного пуска и компонентов гидравлики",
+      "attachments": [
+        "Карточка ООО РМКСИБ_СБЕРБАНК — для запросов.doc"
+      ],
+      "body": "Добрый день,\n Прошу выставить счёт или КП на следующие позиции:\n Электродвигатель ESQ 225 M6-SDN- 30/1000 IMB3 - 1.00 шт\n\n Устройство плавного пуска ESQ-GS9-320 (640А, 380В, 320кВт, встроенный шунтирующий контактор) - 1.00 шт\n\n Устройство плавного пуска NJR5-320/ZX3 320А 160кВт 380В - 1.00 шт\n\n АИС132S4 электродвигатель 5,5 кВт 1440 об/мин IM2081(B35) лапы+фланец DIN EN 50347 ЭЛМАШ - 2.00 шт\n\n Автоматический выключатель NM1-630S/3300 400А - 2.00 шт\n\n Реле давления Danfoss MBC 5100-5251-1СB04 - 2.00 шт\n\n Гидрораспределитель Rexroth 4WE 6 J62/EG24N9K4 (R900561288) - 2.00 шт\n\n Предохранительный клапан L-ZDB-6-VB-1-315 - 2.00 шт\n\n Также интересует возможность доставки указанных товаров и информация о сроках поставки.\n Буду благодарен за оперативный ответ.\n \n --\n С уважением, Павел\n ООО \"РМКСИБ\"\n Телефон: +7 924 99 09 122\n Email: rmksibirk@snipermail.ru\n #59640:"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Карточка ООО РМКСИБ_СБЕРБАНК — для запросов.doc",
+          "safeName": "Карточка ООО РМКСИБ_СБЕРБАНК — для запросов.doc",
+          "contentType": "application/msword",
+          "size": 42496,
+          "ext": ".doc",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 1205,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "3811475473"
+          ],
+          "detectedKpp": [
+            "381101001"
+          ],
+          "detectedOgrn": [
+            "1213800017958"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 42496,
+        "totalChars": 1205,
+        "budgetMs": 4,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-18T02:39:49.194Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 2,
+      "detectionGapsCount": 1
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:55:22.470Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

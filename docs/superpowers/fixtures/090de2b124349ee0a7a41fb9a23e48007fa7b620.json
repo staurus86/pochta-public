@@ -1,0 +1,3069 @@
+{
+  "messageKey": "090de2b124349ee0a7a41fb9a23e48007fa7b620",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "ошибка с назначением бренда, в теле письма он где-то указан, в файле эксель что по сути дублирует запрос но уже в более структурном формате, почему не взять из него, а не из поля текста письма\nНекоторые строки остались без названия товара, хотя в экселе они были.\nошибка с кол-вом во всех строках\nаналогичные запросы требуют двойной обработки, нужно сравнивать то что в теле письма и то во во вложении в эксель файле в данном случае.\nОчень большой запрос, детальную обработку не делал."
+  ],
+  "subject": "Запрос КП от ООО \"ТРИАМА\" по запросу №00004466",
+  "body": "Запрос КП от ООО \"ТРИАМА\" по запросу №00004466 \n Добрый день!\n Прошу сформировать коммерческое предложение или счет по следующим позициям:\n п/п Наименование изделия Кол-во Ед. изм. \n 1 Диод 1N4007 10 шт. \n 2 Диод BYG21M-E3/TR 30 шт. \n 3 Диод FES8GT 10 шт. \n 4 Диод HER508 50 шт. \n 5 Диод RHRG75120 10 шт. \n 6 Диод STTA12 10 шт. \n 7 Диод выпрямительный 1А 1000В 50 шт. \n 8 Диод выпрямительный S1K 10 шт. \n 9 Диод Д226Б 10 шт. \n 10 Диод для трехфазного контактора 3RT1916-1DG00 3 шт. \n 11 Диод КД226Г 40 шт. \n 12 Диод Шоттки 1N5819 30 шт. \n 13 Диод шоттки MBR20100CT 10 шт. \n 14 Диодно-тиристорный модуль ATD250HVIS45 3 шт. \n 15 Диодно-тиристорный модуль МT/D3-320-16-С1 12 шт. \n 16 Диодный модуль AZD780HVILS45 3 шт. \n 17 Диодный модуль SKKD26/16 6 шт. \n 18 Драйвер тиристоров ДТРВ-6-Б-1-ПТ1-В-1-DIN2 3 шт. \n 19 Модуль IGBT 3 шт. \n 20 Модуль IGBT 4 шт. \n 21 Модуль IGBT 6 шт. \n 22 Модуль IGBT CM900HB-90H 4 шт. \n 23 Модуль IGBT MBN600E45A 4 шт. \n 24 Модуль IGBT PM50RVA120 1 м. \n 25 Модуль IGBT PS12034 2 м. \n 26 Модуль IGBT SKIIP20NAB12IT42 2 шт. \n 27 Модуль IGBT SKIIP24NAB126V10 10 шт. \n 28 Модуль IGBT SKIIP35NAB126V1 10 шт. \n 29 Модуль IGBT SKM400GB128DH12B 4 шт. \n 30 Модуль транзисторный 3 шт. \n 31 Модуль транзисторный 6 шт. \n 32 Модуль транзисторный SkiiP1813GB123-3DL 3 шт. \n 33 Оптопара транзисторная 20 шт. \n 34 Оптопара транзисторная 20 шт. \n 35 Плата управления тиристорами ЦРТМ 03.30.05 1 шт. \n 36 Релейный модуль 2 шт. \n 37 Тиристор TZ425N14KOF 6 шт. \n 38 Тиристор Т161-160-14 20 шт. \n 39 Тиристор Т2-160-10 5 шт. \n 40 Тиристор Т243-800-18 4 шт. \n 41 Тиристор Т253-1250 4 шт. \n 42 Тиристор ТБ271-250-12 20 шт. \n 43 Тиристор ТБ271-250-12 20 шт. \n 44 Тиристор ТБИ243-400-22 12 шт. \n 45 Тиристорно-диодный модуль MТ/Д3-250-22-С1 3 шт. \n 46 Тиристорно-диодный модуль MТ/Д3-430-24-А2 3 шт. \n 47 Тиристорный модуль AZTT400HVI S45 3 шт. \n 48 Тиристорный модуль MCO500-16IO1 6 шт. \n 49 Тиристорный модуль MT3-165-20-F 6 шт. \n 50 Тиристорный модуль MT3-320-18-C1 3 шт. \n 51 Тиристорный модуль SKET 400/16E 2 шт. \n 52 Тиристорный модуль SKKT 20/16E 3 шт. \n 53 Тиристорный модуль SKKT330/16E 12 шт. \n 54 Тиристорный модуль МТТ160-12 6 шт. \n 55 Тиристорный модуль МТх-595-18-А2 МТ3 4 шт. \n 56 Тиристорный регулятор мощности ТРМ3-Б-1-800-Т-Х 1 шт. \n 57 Тиристорный регулятор скорости ДПТ ТРС-РВ-460-220-40-13 1 шт. \n 58 Тиристорный регулятор скорости ДПТ ТРС-РВ-460-220-500-35 1 шт. \n 59 Тиристорный регулятор скорости ДПТ ТРС-ТЯ-460-220-125-13 1 шт. \n 60 Тиристорный регулятор скорости ДПТ ТРС-ТЯ-460-220-40-13 1 шт. \n 61 Тиристорный регулятор скорости ДПТ ТРС-ТЯ-460-220-80-13 1 шт. \n 62 Транзистор 24N60C3 10 шт. \n 63 Транзистор 2N60 10 шт. \n 64 Транзистор 2SA1295 10 шт. \n 65 Транзистор 2SA1943 20 шт. \n 66 Транзистор 2SC3264 10 шт. \n 67 Транзистор 2SC5200 20 шт. \n 68 Транзистор 2SK2225 10 шт. \n 69 Транзистор 4N60 10 шт. \n 70 Транзистор 6N60 10 шт. \n 71 Транзистор AO4606 N+P-MOSFET 30В 6/7.6А 10 шт. \n 72 Транзистор AO4614 N/P-MOSFET 40В 6/5А 2Вт 10 шт. \n 73 Транзистор AO4826 2N-MOSFET 60В 6.3А 4Вт 10 шт. \n 74 Транзистор AO4832 N-MOSFET 30В 10А 2Вт 10 шт. \n 75 Транзистор BC327 5 шт. \n 76 Транзистор BC337 5 шт. \n 77 Транзистор BDP948H6327 10 шт. \n 78 Транзистор BDX54B ТО-220AB 20 шт. \n 79 Транзистор BDX54C 5 шт. \n 80 Транзистор BSS84 30 шт. \n 81 Транзистор FGH40N60SFDTU 24 шт. \n 82 Транзистор FGH60N60SFDTU 24 шт. \n 83 Транзистор FQAF13N80 5 шт. \n 84 Транзистор GT15Q101 5 шт. \n 85 Транзистор IPW60R160C6 20 шт. \n 86 Транзистор IRF1310NPBF 20 шт. \n 87 Транзистор IRF520 ТО-220AB 5 шт. \n 88 Транзистор IRF540NPBF 20 шт. \n 89 Транзистор IRF640NPBF 20 шт. \n 90 Транзистор IRFB260NPBF 20 шт. \n 91 Транзистор IRFD024 5 шт. \n 92 Транзистор IRFD110 5 шт. \n 93 Транзистор IRFD9024 5 шт. \n 94 Транзистор IRFP150NPBF 20 шт. \n 95 Транзистор IRFP260NPBF 20 шт. \n 96 Транзистор IRFP3206PBF 24 шт. \n 97 Транзистор IRFP460 10 шт. \n 98 Транзистор IRFP4710PBF 20 шт. \n 99 Транзистор IRFP90N20DPBF 20 шт. \n 100 Транзистор MJD44H11G 10 шт. \n 101 Транзистор MJD45H11G 10 шт. \n 102 Транзистор MSG100T65HLB3",
+  "attachmentFiles": [
+    {
+      "filename": "Заказ №00004466.xlsx",
+      "safeName": "Заказ №00004466.xlsx",
+      "contentType": "application/octet-stream",
+      "size": 41564
+    },
+    {
+      "filename": "ТЗ на все позиции.docx",
+      "safeName": "ТЗ на все позиции.docx",
+      "contentType": "application/octet-stream",
+      "size": 121921
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "a7a436f8-d423-4a7f-b43e-0035c7e85e55",
+    "createdAt": "2026-06-01T14:59:03.404Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "IGBT"
+      ],
+      "signals": {
+        "clientScore": 24,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 35,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП)\\s+[\"«]",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "proposals@istock.link",
+      "emailPrimary": "proposals@istock.link",
+      "emailDisplayName": "Сахипов Рамиль",
+      "emailLocal": "proposals",
+      "emailDomain": "istock.link",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Сахипов Рамиль",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "sender",
+      "fullNameConfidence": 0.85,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "Сахипов Рамиль",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «ТРИАМА»",
+      "companyAlt": "ООО «ТРИАМА»",
+      "companyNameSource": "body",
+      "companyNameConfidence": 0.9700000000000001,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Сахипов Рамиль",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://istock.link",
+      "cityPhone": null,
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "unknown",
+      "phoneSource": null,
+      "phoneConfidence": 0,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "7802071707",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "body",
+        "website": "email_domain",
+        "phone": null,
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "sender",
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Запрос КП от ООО \"ТРИАМА\" по запросу №00004466 \n Добрый день!\n Прошу сформировать коммерческое предложение или счет по следующим позициям:\n п/п Наименование изделия Кол-во Ед. изм. \n 1 Диод 1N4007 10 шт. \n 2 Диод BYG21M-E3/TR 30 шт. \n 3 Диод FES8GT 10 шт. \n 4 Диод HER508 50 шт. \n 5 Диод RHRG75120 10 шт. \n 6 Диод STTA12 10 шт. \n 7 Диод выпрямительный 1А 1000В 50 шт. \n 8 Диод выпрямительный S1K 10 шт. \n 9 Диод Д226Б 10 шт. \n 10 Диод для трехфазного контактора 3RT1916-1DG00 3 шт. \n 11 Диод КД226Г 40 шт. \n 12 Диод Шоттки 1N5819 30 шт. \n 13 Диод шоттки MBR20100CT 10 шт. \n 14 Диодно-тиристорный модуль ATD250HVIS45 3 шт. \n 15 Диодно-тиристорный модуль МT/D3-320-16-С1 12 шт. \n 16 Диодный модуль AZD780HVILS45 3 шт. \n 17 Диодный модуль SKKD26/16 6 шт. \n 18 Драйвер тиристоров ДТРВ-6-Б-1-ПТ1-В-1-DIN2 3 шт. \n 19 Модуль IGBT 3 шт. \n 20 Модуль IGBT 4 шт. \n 21 Модуль IGBT 6 шт. \n 22 Модуль IGBT CM900HB-90H 4 шт. \n 23 Модуль IGBT MBN600E45A 4 шт. \n 24 Модуль IGBT PM50RVA120 1 м. \n 25 Модуль IGBT PS12034 2 м. \n 26 Модуль IGBT SKIIP20NAB12IT42 2 шт. \n 27 Модуль IGBT SKIIP24NAB126V10 10 шт. \n 28 Модуль IGBT SKIIP35NAB126V1 10 шт. \n 29 Модуль IGBT SKM400GB128DH12B 4 шт. \n 30 Модуль транзисторный 3 шт. \n 31 Модуль транзисторный 6 шт. \n 32 Модуль транзисторный SkiiP1813GB123-3DL 3 шт. \n 33 Оптопара транзисторная 20 шт. \n 34 Оптопара транзисторная 20 шт. \n 35 Плата управления тиристорами ЦРТМ 03.30.05 1 шт. \n 36 Релейный модуль 2 шт. \n 37 Тиристор TZ425N14KOF 6 шт. \n 38 Тиристор Т161-160-14 20 шт. \n 39 Тиристор Т2-160-10 5 шт. \n 40 Тиристор Т243-800-18 4 шт. \n 41 Тиристор Т253-1250 4 шт. \n 42 Тиристор ТБ271-250-12 20 шт. \n 43 Тиристор ТБ271-250-12 20 шт. \n 44 Тиристор ТБИ243-400-22 12 шт. \n 45 Тиристорно-диодный модуль MТ/Д3-250-22-С1 3 шт. \n 46 Тиристорно-диодный модуль MТ/Д3-430-24-А2 3 шт. \n 47 Тиристорный модуль AZTT400HVI S45 3 шт. \n 48 Тиристорный модуль MCO500-16IO1 6 шт. \n 49 Тиристорный модуль MT3-165-20-F 6 шт. \n 50 Тиристорный модуль MT3-320-18-C1 3 шт. \n 51 Тиристорный модуль S",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "BYG21M-E3/TR",
+        "MBR20100CT",
+        "ATD250HVIS45",
+        "AZD780HVILS45",
+        "SKKD26/16",
+        "CM900HB-90H",
+        "PS12034-Y2",
+        "SKiiP 20NAB12IT42",
+        "BSM200GB120DlC",
+        "MID100-12A3",
+        "TZ425N14KOF",
+        "AZTT400HVI S45",
+        "MCO500-16IO1",
+        "DO-214AC/SMA",
+        "TO-220AC",
+        "DO-201AD",
+        "TO-247",
+        "DO-41",
+        "SOD-123",
+        "SMD-4",
+        "DIP-4",
+        "Y1-2CU",
+        "PM 50 RVA 120",
+        "MT3-165-20-F",
+        "MT3-320-18-C1",
+        "TPC-PB-460-220-40-13",
+        "TPC-PB-460-220-500-35",
+        "1200В",
+        "4500В",
+        "SEMIPACK1",
+        "1600В",
+        "0-5В",
+        "DP300D1200T",
+        "176F8628",
+        "SEMITRANS3",
+        "1400В",
+        "2200В",
+        "SEMIPACK4",
+        "SEMIPACK3",
+        "SKKT330/16E",
+        "1N4007",
+        "HER508",
+        "RHRG75120",
+        "STTA12",
+        "Д226Б",
+        "3RT1916-1DG00",
+        "1N5819",
+        "SKIIP35NAB126V1",
+        "SkiiP1813GB123-3DL",
+        "Т161-160-14",
+        "Т2-160-10",
+        "Т243-800-18",
+        "Т253-1250",
+        "МТТ160-12",
+        "2SA1295",
+        "2SA1943",
+        "2SC3264",
+        "2SC5200",
+        "2SK2225",
+        "AO4606",
+        "6/7.6А",
+        "AO4614",
+        "6/5А",
+        "AO4826",
+        "2N-MOSFET",
+        "AO4832",
+        "BC327",
+        "BC337",
+        "BDP948H6327",
+        "BDX54B",
+        "BDX54C",
+        "BSS84",
+        "FGH40N60SFDTU",
+        "FGH60N60SFDTU",
+        "IPW60R160C6",
+        "IRF1310NPBF",
+        "IRF520",
+        "IRF540NPBF",
+        "IRF640NPBF",
+        "IRFB260NPBF",
+        "IRFD024",
+        "IRFD110",
+        "IRFD9024",
+        "IRFP150NPBF",
+        "IRFP260NPBF",
+        "IRFP3206PBF",
+        "IRFP460",
+        "IRFP4710PBF",
+        "IRFP90N20DPBF",
+        "MSG100T65HLB3",
+        "NJW0281G",
+        "NJW0302G",
+        "AO4410",
+        "STGW30NC60WD",
+        "STGW40V60DF",
+        "400/16E",
+        "MTx-595-18-A2",
+        "24N60C3",
+        "TO-220-3/TO-220AB",
+        "3-9900",
+        "FES8GT",
+        "MBN600E45A",
+        "PM50RVA120",
+        "FQAF13N80",
+        "GT15Q101",
+        "MJD44H11G",
+        "MJD45H11G",
+        "STP4NB100",
+        "D3-320-16-C1",
+        "M.C1",
+        "T.SA1",
+        "T.C1",
+        "T.D2",
+        "T.SB1",
+        "250-22-C1",
+        "430-24-A2",
+        "TR 30",
+        "SKKT 20/16E",
+        "MOSFET 30",
+        "MOSFET 40",
+        "MOSFET 60",
+        "TIPICTOP TZ425N14KOF",
+        "TIPICTOP T161-160-14",
+        "TIPICTOP T2-160-10",
+        "TIPICTOP T243-800-18",
+        "TIPICTOP T253-1250",
+        "AA22",
+        "AE22",
+        "AI22",
+        "S1K",
+        "T/D3-320-16-C1",
+        "161-160-14",
+        "2-160-10",
+        "243-800-18",
+        "253-1250",
+        "271-250-12"
+      ],
+      "lineItems": [
+        {
+          "article": "1N4007",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диод 1N",
+          "explicitArticle": true,
+          "sourceLine": "1\tДиод 1N4007\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "BYG21M-E3/TR",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диод BYG21M-E3/TR 30 0",
+          "explicitArticle": true,
+          "sourceLine": "2\tДиод BYG21M-E3/TR\t30\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "FES8GT",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диод FES8GT 10 0",
+          "explicitArticle": true,
+          "sourceLine": "3\tДиод FES8GT\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "HER508",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диод HER508 50 0",
+          "explicitArticle": true,
+          "sourceLine": "4\tДиод HER508\t50\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "RHRG75120",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диод RHRG",
+          "explicitArticle": true,
+          "sourceLine": "5\tДиод RHRG75120\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "STTA12",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диод STTA12 10 0",
+          "explicitArticle": true,
+          "sourceLine": "6\tДиод STTA12\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "Д226Б",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диод Д226Б 10 0",
+          "explicitArticle": true,
+          "sourceLine": "9\tДиод Д226Б\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "3RT1916-1DG00",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диод для трехфазного контактора 3RT1916-1DG00 3 0",
+          "explicitArticle": true,
+          "sourceLine": "10\tДиод для трехфазного контактора 3RT1916-1DG00\t3\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "1N5819",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диод Шоттки 1N",
+          "explicitArticle": true,
+          "sourceLine": "12\tДиод Шоттки 1N5819\t30\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "MBR20100CT",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диод шоттки MBR20100CT 10 0",
+          "explicitArticle": true,
+          "sourceLine": "13\tДиод шоттки MBR20100CT\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "ATD250HVIS45",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диодно-тиристорный модуль ATD250HVIS45 3 0",
+          "explicitArticle": true,
+          "sourceLine": "14\tДиодно-тиристорный модуль ATD250HVIS45\t3\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "320-16-C1",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диодно-тиристорный модуль МT/D3-320-16-С1 12 0",
+          "explicitArticle": true,
+          "sourceLine": "15\tДиодно-тиристорный модуль МT/D3-320-16-С1\t12\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "AZD780HVILS45",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диодный модуль AZD780HVILS45 3 0",
+          "explicitArticle": true,
+          "sourceLine": "16\tДиодный модуль AZD780HVILS45\t3\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "SKKD26/16",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Диодный модуль SKKD26/16 6 0",
+          "explicitArticle": true,
+          "sourceLine": "17\tДиодный модуль SKKD26/16\t6\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "CM900HB-90H",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Модуль IGBT CM900HB-90H 4 0",
+          "explicitArticle": true,
+          "sourceLine": "22\tМодуль IGBT CM900HB-90H\t4\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "MBN600E45A",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Модуль IGBT MBN600E45A 4 0",
+          "explicitArticle": true,
+          "sourceLine": "23\tМодуль IGBT MBN600E45A\t4\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "PM50RVA120",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Модуль IGBT PM50RVA120 1 0",
+          "explicitArticle": true,
+          "sourceLine": "24\tМодуль IGBT PM50RVA120\t1\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "SKIIP35NAB126V1",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Модуль IGBT SKIIP35NAB126V1 10 0",
+          "explicitArticle": true,
+          "sourceLine": "28\tМодуль IGBT SKIIP35NAB126V1\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "SkiiP1813GB123-3DL",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Модуль транзисторный SkiiP1813GB123-3DL 3 0",
+          "explicitArticle": true,
+          "sourceLine": "32\tМодуль транзисторный SkiiP1813GB123-3DL\t3\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "TZ425N14KOF",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристор TZ425N14KOF 6 0",
+          "explicitArticle": true,
+          "sourceLine": "37\tТиристор TZ425N14KOF\t6\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "T161-160-14",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристор Т",
+          "explicitArticle": true,
+          "sourceLine": "38\tТиристор Т161-160-14\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "T2-160-10",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристор Т",
+          "explicitArticle": true,
+          "sourceLine": "39\tТиристор Т2-160-10\t5\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "T243-800-18",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристор Т",
+          "explicitArticle": true,
+          "sourceLine": "40\tТиристор Т243-800-18\t4\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "T253-1250",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристор Т",
+          "explicitArticle": true,
+          "sourceLine": "41\tТиристор Т253-1250\t4\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "250-22-C1",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристорно-диодный модуль MТ/Д3-250-22-С1 3 0",
+          "explicitArticle": true,
+          "sourceLine": "45\tТиристорно-диодный модуль MТ/Д3-250-22-С1\t3\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "430-24-A2",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристорно-диодный модуль MТ/Д3-430-24-А2 3 0",
+          "explicitArticle": true,
+          "sourceLine": "46\tТиристорно-диодный модуль MТ/Д3-430-24-А2\t3\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "MCO500-16IO1",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристорный модуль MCO500-16IO1 6 0",
+          "explicitArticle": true,
+          "sourceLine": "48\tТиристорный модуль MCO500-16IO1\t6\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "MT3-165-20-F",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристорный модуль MT3-165-20-F 6 0",
+          "explicitArticle": true,
+          "sourceLine": "49\tТиристорный модуль MT3-165-20-F\t6\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "MT3-320-18-C1",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристорный модуль MT3-320-18-C1 3 0",
+          "explicitArticle": true,
+          "sourceLine": "50\tТиристорный модуль MT3-320-18-C1\t3\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "400/16E",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристорный модуль SKET 400/16E 2 0",
+          "explicitArticle": true,
+          "sourceLine": "51\tТиристорный модуль SKET 400/16E\t2\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "20/16E",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристорный модуль SKKT 20/16E 3 0",
+          "explicitArticle": true,
+          "sourceLine": "52\tТиристорный модуль SKKT 20/16E\t3\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "SKKT330/16E",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристорный модуль SKKT330/16E 12 0",
+          "explicitArticle": true,
+          "sourceLine": "53\tТиристорный модуль SKKT330/16E\t12\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "MTT160-12",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристорный модуль МТТ",
+          "explicitArticle": true,
+          "sourceLine": "54\tТиристорный модуль МТТ160-12\t6\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "MTx-595-18-A2",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристорный модуль МТх-595-18-А2 МТ3 4 0",
+          "explicitArticle": true,
+          "sourceLine": "55\tТиристорный модуль МТх-595-18-А2 МТ3\t4\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "TPC-PB-460-220-40-13",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристорный регулятор скорости ДПТ ТРС-РВ",
+          "explicitArticle": true,
+          "sourceLine": "57\tТиристорный регулятор скорости ДПТ ТРС-РВ-460-220-40-13\t1\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "TPC-PB-460-220-500-35",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Тиристорный регулятор скорости ДПТ ТРС-РВ",
+          "explicitArticle": true,
+          "sourceLine": "58\tТиристорный регулятор скорости ДПТ ТРС-РВ-460-220-500-35\t1\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "24N60C3",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор 24N60C3 10 0",
+          "explicitArticle": true,
+          "sourceLine": "62\tТранзистор 24N60C3\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "2SA1295",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор 2SA",
+          "explicitArticle": true,
+          "sourceLine": "64\tТранзистор 2SA1295\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "2SA1943",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор 2SA",
+          "explicitArticle": true,
+          "sourceLine": "65\tТранзистор 2SA1943\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "2SC3264",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор 2SC",
+          "explicitArticle": true,
+          "sourceLine": "66\tТранзистор 2SC3264\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "2SC5200",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор 2SC",
+          "explicitArticle": true,
+          "sourceLine": "67\tТранзистор 2SC5200\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "2SK2225",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор 2SK",
+          "explicitArticle": true,
+          "sourceLine": "68\tТранзистор 2SK2225\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "AO4606",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор AO4606 N+P-MOSFET 30В 6/7.6А 10 0",
+          "explicitArticle": true,
+          "sourceLine": "71\tТранзистор AO4606 N+P-MOSFET 30В 6/7.6А\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "AO4614",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор AO4614 N/P-MOSFET 40В 6/5А 2Вт 10 0",
+          "explicitArticle": true,
+          "sourceLine": "72\tТранзистор AO4614 N/P-MOSFET 40В 6/5А 2Вт\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "2N-MOSFET",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор AO4826 2N-MOSFET 60В 6.3А 4Вт 10 0",
+          "explicitArticle": true,
+          "sourceLine": "73\tТранзистор AO4826 2N-MOSFET 60В 6.3А 4Вт\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "AO4832",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор AO4832 N-MOSFET 30В 10А 2Вт 10 0",
+          "explicitArticle": true,
+          "sourceLine": "74\tТранзистор AO4832 N-MOSFET 30В 10А 2Вт\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "BC327",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор BC327 5 0",
+          "explicitArticle": true,
+          "sourceLine": "75\tТранзистор BC327\t5\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "BC337",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор BC337 5 0",
+          "explicitArticle": true,
+          "sourceLine": "76\tТранзистор BC337\t5\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "BDP948H6327",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор BDP948H",
+          "explicitArticle": true,
+          "sourceLine": "77\tТранзистор BDP948H6327\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "BDX54B",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор BDX54B ТО-220AB 20 0",
+          "explicitArticle": true,
+          "sourceLine": "78\tТранзистор BDX54B ТО-220AB\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "BDX54C",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор BDX54C 5 0",
+          "explicitArticle": true,
+          "sourceLine": "79\tТранзистор BDX54C\t5\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "BSS84",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор BSS84 30 0",
+          "explicitArticle": true,
+          "sourceLine": "80\tТранзистор BSS84\t30\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "FGH40N60SFDTU",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор FGH40N60SFDTU 24 0",
+          "explicitArticle": true,
+          "sourceLine": "81\tТранзистор FGH40N60SFDTU\t24\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "FGH60N60SFDTU",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор FGH60N60SFDTU 24 0",
+          "explicitArticle": true,
+          "sourceLine": "82\tТранзистор FGH60N60SFDTU\t24\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "FQAF13N80",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор FQAF13N80 5 0",
+          "explicitArticle": true,
+          "sourceLine": "83\tТранзистор FQAF13N80\t5\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "GT15Q101",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор GT15Q101 5 0",
+          "explicitArticle": true,
+          "sourceLine": "84\tТранзистор GT15Q101\t5\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IPW60R160C6",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IPW60R160C6 20 0",
+          "explicitArticle": true,
+          "sourceLine": "85\tТранзистор IPW60R160C6\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRF1310NPBF",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRF1310NPBF 20 0",
+          "explicitArticle": true,
+          "sourceLine": "86\tТранзистор IRF1310NPBF\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRF520",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRF520 ТО-220AB 5 0",
+          "explicitArticle": true,
+          "sourceLine": "87\tТранзистор IRF520 ТО-220AB\t5\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRF540NPBF",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRF540NPBF 20 0",
+          "explicitArticle": true,
+          "sourceLine": "88\tТранзистор IRF540NPBF\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRF640NPBF",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRF640NPBF 20 0",
+          "explicitArticle": true,
+          "sourceLine": "89\tТранзистор IRF640NPBF\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRFB260NPBF",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRFB260NPBF 20 0",
+          "explicitArticle": true,
+          "sourceLine": "90\tТранзистор IRFB260NPBF\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRFD024",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRFD024 5 0",
+          "explicitArticle": true,
+          "sourceLine": "91\tТранзистор IRFD024\t5\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRFD110",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRFD110 5 0",
+          "explicitArticle": true,
+          "sourceLine": "92\tТранзистор IRFD110\t5\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRFD9024",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRFD9024 5 0",
+          "explicitArticle": true,
+          "sourceLine": "93\tТранзистор IRFD9024\t5\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRFP150NPBF",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRFP150NPBF 20 0",
+          "explicitArticle": true,
+          "sourceLine": "94\tТранзистор IRFP150NPBF\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRFP260NPBF",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRFP260NPBF 20 0",
+          "explicitArticle": true,
+          "sourceLine": "95\tТранзистор IRFP260NPBF\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRFP3206PBF",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRFP3206PBF 24 0",
+          "explicitArticle": true,
+          "sourceLine": "96\tТранзистор IRFP3206PBF\t24\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRFP460",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRFP460 10 0",
+          "explicitArticle": true,
+          "sourceLine": "97\tТранзистор IRFP460\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRFP4710PBF",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRFP4710PBF 20 0",
+          "explicitArticle": true,
+          "sourceLine": "98\tТранзистор IRFP4710PBF\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "IRFP90N20DPBF",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор IRFP90N20DPBF 20 0",
+          "explicitArticle": true,
+          "sourceLine": "99\tТранзистор IRFP90N20DPBF\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "MJD44H11G",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор MJD44H11G 10 0",
+          "explicitArticle": true,
+          "sourceLine": "100\tТранзистор MJD44H11G\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "MJD45H11G",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор MJD45H11G 10 0",
+          "explicitArticle": true,
+          "sourceLine": "101\tТранзистор MJD45H11G\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "MSG100T65HLB3",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор MSG100T65HLB3 24 0",
+          "explicitArticle": true,
+          "sourceLine": "102\tТранзистор MSG100T65HLB3\t24\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "NJW0281G",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор NJW0281G 10 0",
+          "explicitArticle": true,
+          "sourceLine": "103\tТранзистор NJW0281G\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "NJW0302G",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор NJW0302G 10 0",
+          "explicitArticle": true,
+          "sourceLine": "104\tТранзистор NJW0302G\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "AO4410",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор N-MOSFET AO",
+          "explicitArticle": true,
+          "sourceLine": "105\tТранзистор N-MOSFET AO4410\t10\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "STGW30NC60WD",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор STGW30NC60WD 20 0",
+          "explicitArticle": true,
+          "sourceLine": "106\tТранзистор STGW30NC60WD\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "STGW40V60DF",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор STGW40V60DF 20 0",
+          "explicitArticle": true,
+          "sourceLine": "107\tТранзистор STGW40V60DF\t20\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "STP4NB100",
+          "quantity": 22,
+          "unit": "шт",
+          "descriptionRu": "Транзистор STP4NB100 5 0",
+          "explicitArticle": true,
+          "sourceLine": "108\tТранзистор STP4NB100\t5\t0\t22\t0\t0",
+          "source": "body"
+        },
+        {
+          "article": "DESC:modul-igbt-skiip24nab126v10",
+          "descriptionRu": "Модуль IGBT SKIIP24NAB126V10",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:modul-igbt-skm400gb128dh12b",
+          "descriptionRu": "Модуль IGBT SKM400GB128DH12B",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "PS12034-Y2",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "SKiiP 20NAB12IT42",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "BSM200GB120DlC",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "MID100-12A3",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "AZTT400HVI S45",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "DO-214AC/SMA",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "TO-220AC",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "DO-201AD",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "TO-247",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "DO-41",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "SOD-123",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "SMD-4",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "DIP-4",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "Y1-2CU",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "PM 50 RVA 120",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "1200В",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "4500В",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "SEMIPACK1",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "1600В",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "0-5В",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "DP300D1200T",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "176F8628",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "SEMITRANS3",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "1400В",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "2200В",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "SEMIPACK4",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "SEMIPACK3",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "6/7.6А",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "6/5А",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "AO4826",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "TO-220-3/TO-220AB",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "D3-320-16-C1",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "M.C1",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "T.SA1",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "T.C1",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "T.D2",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "T.SB1",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "TR 30",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "SKKT 20/16E",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "MOSFET 30",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "MOSFET 40",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "MOSFET 60",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": null,
+          "quantity": 3,
+          "unit": "0",
+          "descriptionRu": "Диод для трехфазного контактора 3RT1916-1DG00",
+          "source": "attachment:Заказ №00004466.xlsx"
+        },
+        {
+          "article": "TIPICTOP TZ425N14KOF",
+          "quantity": 6,
+          "unit": "0",
+          "descriptionRu": null,
+          "source": "attachment:Заказ №00004466.xlsx"
+        },
+        {
+          "article": "TIPICTOP T161-160-14",
+          "quantity": 20,
+          "unit": "0",
+          "descriptionRu": null,
+          "source": "attachment:Заказ №00004466.xlsx"
+        },
+        {
+          "article": "TIPICTOP T2-160-10",
+          "quantity": 5,
+          "unit": "0",
+          "descriptionRu": null,
+          "source": "attachment:Заказ №00004466.xlsx"
+        },
+        {
+          "article": "TIPICTOP T243-800-18",
+          "quantity": 4,
+          "unit": "0",
+          "descriptionRu": null,
+          "source": "attachment:Заказ №00004466.xlsx"
+        },
+        {
+          "article": "TIPICTOP T253-1250",
+          "quantity": 4,
+          "unit": "0",
+          "descriptionRu": null,
+          "source": "attachment:Заказ №00004466.xlsx"
+        },
+        {
+          "article": "AA22",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "text",
+          "source": "attachment:Заказ №00004466.xlsx"
+        },
+        {
+          "article": "AI22",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "money",
+          "source": "attachment:Заказ №00004466.xlsx"
+        }
+      ],
+      "totalPositions": 140,
+      "detectedBrands": [
+        "IGBT"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "BYG21M-E3/TR",
+          "name": "Диод",
+          "category": null
+        },
+        {
+          "article": "MBR20100CT",
+          "name": "Диод шоттки",
+          "category": null
+        },
+        {
+          "article": "ATD250HVIS45",
+          "name": "Диодно-тиристорный модуль",
+          "category": null
+        },
+        {
+          "article": "AZD780HVILS45",
+          "name": "Диодный модуль",
+          "category": null
+        },
+        {
+          "article": "SKKD26/16",
+          "name": "Диодный модуль",
+          "category": null
+        },
+        {
+          "article": "CM900HB-90H",
+          "name": "Модуль IGBT",
+          "category": null
+        },
+        {
+          "article": "PS12034-Y2",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SKiiP 20NAB12IT42",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "BSM200GB120DlC",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "MID100-12A3",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "TZ425N14KOF",
+          "name": "Тиристор",
+          "category": null
+        },
+        {
+          "article": "AZTT400HVI S45",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "MCO500-16IO1",
+          "name": "Тиристорный модуль",
+          "category": null
+        },
+        {
+          "article": "DO-214AC/SMA",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "TO-220AC",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "DO-201AD",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "TO-247",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "DO-41",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SOD-123",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SMD-4",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "DIP-4",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "Y1-2CU",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "PM 50 RVA 120",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "MT3-165-20-F",
+          "name": "Тиристорный модуль",
+          "category": null
+        },
+        {
+          "article": "MT3-320-18-C1",
+          "name": "Тиристорный модуль",
+          "category": null
+        },
+        {
+          "article": "1200В",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "DO214AC",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "4500В",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SEMIPACK1",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "1600В",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "0-5В",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "DP300D1200T",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "176F8628",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SEMITRANS3",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "1400В",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "2200В",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SEMIPACK4",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SEMIPACK3",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SKKT330/16E",
+          "name": "Тиристорный модуль",
+          "category": null
+        },
+        {
+          "article": "1N4007",
+          "name": "Диод",
+          "category": null
+        },
+        {
+          "article": "HER508",
+          "name": "Диод",
+          "category": null
+        },
+        {
+          "article": "RHRG75120",
+          "name": "Диод",
+          "category": null
+        },
+        {
+          "article": "STTA12",
+          "name": "Диод",
+          "category": null
+        },
+        {
+          "article": "Д226Б",
+          "name": "Диод",
+          "category": null
+        },
+        {
+          "article": "3RT1916-1DG00",
+          "name": "Диод для трехфазного контактора",
+          "category": null
+        },
+        {
+          "article": "1N5819",
+          "name": "Диод Шоттки",
+          "category": null
+        },
+        {
+          "article": "SKIIP35NAB126V1",
+          "name": "Модуль IGBT",
+          "category": null
+        },
+        {
+          "article": "SkiiP1813GB123-3DL",
+          "name": "Модуль транзисторный",
+          "category": null
+        },
+        {
+          "article": "Т161-160-14",
+          "name": "Тиристор Т",
+          "category": null
+        },
+        {
+          "article": "Т2-160-10",
+          "name": "Тиристор Т",
+          "category": null
+        },
+        {
+          "article": "Т243-800-18",
+          "name": "Тиристор Т",
+          "category": null
+        },
+        {
+          "article": "Т253-1250",
+          "name": "Тиристор Т",
+          "category": null
+        },
+        {
+          "article": "МТТ160-12",
+          "name": "Тиристорный модуль МТТ",
+          "category": null
+        },
+        {
+          "article": "2SA1295",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "2SA1943",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "2SC3264",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "2SC5200",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "2SK2225",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "AO4606",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "6/7.6А",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "AO4614",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "6/5А",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "AO4826",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "2N-MOSFET",
+          "name": "Транзистор AO4826",
+          "category": null
+        },
+        {
+          "article": "AO4832",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "BC327",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "BC337",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "BDP948H6327",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "BDX54B",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "BDX54C",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "BSS84",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "FGH40N60SFDTU",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "FGH60N60SFDTU",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IPW60R160C6",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRF1310NPBF",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRF520",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRF540NPBF",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRF640NPBF",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRFB260NPBF",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRFD024",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRFD110",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRFD9024",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRFP150NPBF",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRFP260NPBF",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRFP3206PBF",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRFP460",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRFP4710PBF",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "IRFP90N20DPBF",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "MSG100T65HLB3",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "NJW0281G",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "NJW0302G",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "AO4410",
+          "name": "Транзистор N-MOSFET",
+          "category": null
+        },
+        {
+          "article": "STGW30NC60WD",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "STGW40V60DF",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "400/16E",
+          "name": "Тиристорный модуль SKET",
+          "category": null
+        },
+        {
+          "article": "24N60C3",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "TO-220-3/TO-220AB",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3-9900",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "FES8GT",
+          "name": "Диод",
+          "category": null
+        },
+        {
+          "article": "MBN600E45A",
+          "name": "Модуль IGBT",
+          "category": null
+        },
+        {
+          "article": "PM50RVA120",
+          "name": "Модуль IGBT",
+          "category": null
+        },
+        {
+          "article": "FQAF13N80",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "GT15Q101",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "MJD44H11G",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "MJD45H11G",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "STP4NB100",
+          "name": "Транзистор",
+          "category": null
+        },
+        {
+          "article": "M.C1",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "T.SA1",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "T.C1",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "T.D2",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "T.SB1",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "TR 30",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SKKT 20/16E",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "MOSFET 30",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "MOSFET 40",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "MOSFET 60",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "AA22",
+          "name": "text",
+          "category": null,
+          "source": "attachment:Заказ №00004466.xlsx"
+        },
+        {
+          "article": "AE22",
+          "name": "text",
+          "category": null,
+          "source": "attachment:Заказ №00004466.xlsx"
+        },
+        {
+          "article": "AI22",
+          "name": "money",
+          "category": null,
+          "source": "attachment:Заказ №00004466.xlsx"
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "freetext",
+          "attachment",
+          "attachment:Заказ №00004466.xlsx"
+        ],
+        "names": [
+          "attachment:Заказ №00004466.xlsx",
+          "body",
+          "freetext"
+        ],
+        "attachmentsProcessed": [
+          "Заказ №00004466.xlsx",
+          "ТЗ на все позиции.docx"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": false,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [
+          "phone"
+        ],
+        "completenessScore": 83,
+        "overallConfidence": 0.86,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_inn",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Диод FES8GT 10 0",
+      "productLineItems": [
+        "Тиристор Т",
+        "Тиристорный модуль МТТ",
+        "text",
+        "Диод 1N",
+        "Диод BYG21M-E3/TR 30 0",
+        "Диод FES8GT 10 0",
+        "Диод HER508 50 0",
+        "Диод RHRG",
+        "Диод STTA12 10 0",
+        "Диод Д226Б 10 0",
+        "Диод для трехфазного контактора 3RT1916-1DG00 3 0",
+        "Диод Шоттки 1N",
+        "Диод шоттки MBR20100CT 10 0",
+        "Диодно-тиристорный модуль ATD250HVIS45 3 0",
+        "Диодно-тиристорный модуль МT/D3-320-16-С1 12 0",
+        "Диодный модуль AZD780HVILS45 3 0",
+        "Диодный модуль SKKD26/16 6 0",
+        "Модуль IGBT CM900HB-90H 4 0",
+        "Модуль IGBT MBN600E45A 4 0",
+        "Модуль IGBT PM50RVA120 1 0",
+        "Модуль IGBT SKIIP35NAB126V1 10 0",
+        "Модуль транзисторный SkiiP1813GB123-3DL 3 0",
+        "Тиристор TZ425N14KOF 6 0",
+        "Тиристорно-диодный модуль MТ/Д3-250-22-С1 3 0",
+        "Тиристорно-диодный модуль MТ/Д3-430-24-А2 3 0",
+        "Тиристорный модуль MCO500-16IO1 6 0",
+        "Тиристорный модуль MT3-165-20-F 6 0",
+        "Тиристорный модуль MT3-320-18-C1 3 0",
+        "Тиристорный модуль SKET 400/16E 2 0",
+        "Тиристорный модуль SKKT 20/16E 3 0",
+        "Тиристорный модуль SKKT330/16E 12 0",
+        "Тиристорный модуль МТх-595-18-А2 МТ3 4 0",
+        "Тиристорный регулятор скорости ДПТ ТРС-РВ",
+        "Транзистор 24N60C3 10 0",
+        "Транзистор 2SA",
+        "Транзистор 2SC",
+        "Транзистор 2SK",
+        "Транзистор AO4606 N+P-MOSFET 30В 6/7.6А 10 0",
+        "Транзистор AO4614 N/P-MOSFET 40В 6/5А 2Вт 10 0",
+        "Транзистор AO4826 2N-MOSFET 60В 6.3А 4Вт 10 0",
+        "Транзистор AO4832 N-MOSFET 30В 10А 2Вт 10 0",
+        "Транзистор BC327 5 0",
+        "Транзистор BC337 5 0",
+        "Транзистор BDP948H",
+        "Транзистор BDX54B ТО-220AB 20 0",
+        "Транзистор BDX54C 5 0",
+        "Транзистор BSS84 30 0",
+        "Транзистор FGH40N60SFDTU 24 0",
+        "Транзистор FGH60N60SFDTU 24 0",
+        "Транзистор FQAF13N80 5 0",
+        "Транзистор GT15Q101 5 0",
+        "Транзистор IPW60R160C6 20 0",
+        "Транзистор IRF1310NPBF 20 0",
+        "Транзистор IRF520 ТО-220AB 5 0",
+        "Транзистор IRF540NPBF 20 0",
+        "Транзистор IRF640NPBF 20 0",
+        "Транзистор IRFB260NPBF 20 0",
+        "Транзистор IRFD024 5 0",
+        "Транзистор IRFD110 5 0",
+        "Транзистор IRFD9024 5 0",
+        "Транзистор IRFP150NPBF 20 0",
+        "Транзистор IRFP260NPBF 20 0",
+        "Транзистор IRFP3206PBF 24 0",
+        "Транзистор IRFP460 10 0",
+        "Транзистор IRFP4710PBF 20 0",
+        "Транзистор IRFP90N20DPBF 20 0",
+        "Транзистор MJD44H11G 10 0",
+        "Транзистор MJD45H11G 10 0",
+        "Транзистор MSG100T65HLB3 24 0",
+        "Транзистор NJW0281G 10 0",
+        "Транзистор NJW0302G 10 0",
+        "Транзистор N-MOSFET AO",
+        "Транзистор STGW30NC60WD 20 0",
+        "Транзистор STGW40V60DF 20 0",
+        "Транзистор STP4NB100 5 0",
+        "Модуль IGBT SKIIP24NAB126V10",
+        "Модуль IGBT SKM400GB128DH12B",
+        "Диод для трехфазного контактора 3RT1916-1DG00",
+        "money"
+      ],
+      "productNamesClean": [
+        "Тиристор Т",
+        "Тиристорный модуль МТТ",
+        "text",
+        "Диод 1N",
+        "Диод BYG21M-E3/TR 30 0",
+        "Диод FES8GT 10 0",
+        "Диод HER508 50 0",
+        "Диод RHRG",
+        "Диод STTA12 10 0",
+        "Диод Д226Б 10 0",
+        "Диод для трехфазного контактора 3RT1916-1DG00 3 0",
+        "Диод Шоттки 1N",
+        "Диод шоттки MBR20100CT 10 0",
+        "Диодно-тиристорный модуль ATD250HVIS45 3 0",
+        "Диодно-тиристорный модуль МT/D3-320-16-С1 12 0",
+        "Диодный модуль AZD780HVILS45 3 0",
+        "Диодный модуль SKKD26/16 6 0",
+        "Модуль IGBT CM900HB-90H 4 0",
+        "Модуль IGBT MBN600E45A 4 0",
+        "Модуль IGBT PM50RVA120 1 0",
+        "Модуль IGBT SKIIP35NAB126V1 10 0",
+        "Модуль транзисторный SkiiP1813GB123-3DL 3 0",
+        "Тиристор TZ425N14KOF 6 0",
+        "Тиристорно-диодный модуль MТ/Д3-250-22-С1 3 0",
+        "Тиристорно-диодный модуль MТ/Д3-430-24-А2 3 0",
+        "Тиристорный модуль MCO500-16IO1 6 0",
+        "Тиристорный модуль MT3-165-20-F 6 0",
+        "Тиристорный модуль MT3-320-18-C1 3 0",
+        "Тиристорный модуль SKET 400/16E 2 0",
+        "Тиристорный модуль SKKT 20/16E 3 0",
+        "Тиристорный модуль SKKT330/16E 12 0",
+        "Тиристорный модуль МТх-595-18-А2 МТ3 4 0",
+        "Тиристорный регулятор скорости ДПТ ТРС-РВ",
+        "Транзистор 24N60C3 10 0",
+        "Транзистор 2SA",
+        "Транзистор 2SC",
+        "Транзистор 2SK",
+        "Транзистор AO4606 N+P-MOSFET 30В 6/7.6А 10 0",
+        "Транзистор AO4614 N/P-MOSFET 40В 6/5А 2Вт 10 0",
+        "Транзистор AO4826 2N-MOSFET 60В 6.3А 4Вт 10 0",
+        "Транзистор AO4832 N-MOSFET 30В 10А 2Вт 10 0",
+        "Транзистор BC327 5 0",
+        "Транзистор BC337 5 0",
+        "Транзистор BDP948H",
+        "Транзистор BDX54B ТО-220AB 20 0",
+        "Транзистор BDX54C 5 0",
+        "Транзистор BSS84 30 0",
+        "Транзистор FGH40N60SFDTU 24 0",
+        "Транзистор FGH60N60SFDTU 24 0",
+        "Транзистор FQAF13N80 5 0",
+        "Транзистор GT15Q101 5 0",
+        "Транзистор IPW60R160C6 20 0",
+        "Транзистор IRF1310NPBF 20 0",
+        "Транзистор IRF520 ТО-220AB 5 0",
+        "Транзистор IRF540NPBF 20 0",
+        "Транзистор IRF640NPBF 20 0",
+        "Транзистор IRFB260NPBF 20 0",
+        "Транзистор IRFD024 5 0",
+        "Транзистор IRFD110 5 0",
+        "Транзистор IRFD9024 5 0",
+        "Транзистор IRFP150NPBF 20 0",
+        "Транзистор IRFP260NPBF 20 0",
+        "Транзистор IRFP3206PBF 24 0",
+        "Транзистор IRFP460 10 0",
+        "Транзистор IRFP4710PBF 20 0",
+        "Транзистор IRFP90N20DPBF 20 0",
+        "Транзистор MJD44H11G 10 0",
+        "Транзистор MJD45H11G 10 0",
+        "Транзистор MSG100T65HLB3 24 0",
+        "Транзистор NJW0281G 10 0",
+        "Транзистор NJW0302G 10 0",
+        "Транзистор N-MOSFET AO",
+        "Транзистор STGW30NC60WD 20 0",
+        "Транзистор STGW40V60DF 20 0",
+        "Транзистор STP4NB100 5 0",
+        "Модуль IGBT SKIIP24NAB126V10",
+        "Модуль IGBT SKM400GB128DH12B",
+        "Диод для трехфазного контактора 3RT1916-1DG00",
+        "money"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 10,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 30,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 50,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 50,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 40,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 30,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 12,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 6,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 6,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 6,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 6,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 12,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 6,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 6,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 12,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 6,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 30,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 24,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 24,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 24,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 1087,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "1000В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "126V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "30В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "40В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "2В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "60В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "4В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "40V"
+        }
+      ],
+      "positions": 140,
+      "totalQty": 1801,
+      "recognitionDiagnostics": {
+        "completenessScore": 83,
+        "overallConfidence": 0.86,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_inn",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.96,
+            "source": "explicit_article_block"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "missing_phone",
+            "field": "phone",
+            "severity": "medium"
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый inn; нет phone",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:BYG21M-E3/TR, MBR20100CT, ATD250HVIS45 | бренды:IGBT | компания:ООО «ТРИАМА» • email:proposals@istock.link",
+        "suggestion": "Не хватает: телефон. Дополните через быструю коррекцию или запросите у клиента.",
+        "triggerSignals": [
+          "артикулы:BYG21M-E3/TR, MBR20100CT, ATD250HVIS45",
+          "бренды:IGBT",
+          "компания:ООО «ТРИАМА»",
+          "ИНН:7802071707",
+          "вложения:2",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 115,
+          "attachmentArticles": 7,
+          "matchedRuleCount": 7,
+          "processedAttachments": 2
+        }
+      },
+      "confidence": 0.817
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://istock.link для поиска реквизитов",
+        "Сверить запрос по артикулам: BYG21M-E3/TR, MBR20100CT, ATD250HVIS45, AZD780HVILS45, SKKD26/16",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://istock.link",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7802071707",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "IGBT"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Сахипов, добрый день!\n\nСпасибо за заявку по IGBT (140 позиций).\nАртикулы: BYG21M-E3/TR, MBR20100CT, ATD250HVIS45, AZD780HVILS45, SKKD26/16\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос КП от ООО \"ТРИАМА\" по запросу №00004466",
+      "attachments": [
+        "Заказ №00004466.xlsx",
+        "ТЗ на все позиции.docx"
+      ],
+      "body": "Запрос КП от ООО \"ТРИАМА\" по запросу №00004466 \n Добрый день!\n Прошу сформировать коммерческое предложение или счет по следующим позициям:\n п/п Наименование изделия Кол-во Ед. изм. \n 1 Диод 1N4007 10 шт. \n 2 Диод BYG21M-E3/TR 30 шт. \n 3 Диод FES8GT 10 шт. \n 4 Диод HER508 50 шт. \n 5 Диод RHRG75120 10 шт. \n 6 Диод STTA12 10 шт. \n 7 Диод выпрямительный 1А 1000В 50 шт. \n 8 Диод выпрямительный S1K 10 шт. \n 9 Диод Д226Б 10 шт. \n 10 Диод для трехфазного контактора 3RT1916-1DG00 3 шт. \n 11 Диод КД226Г 40 шт. \n 12 Диод Шоттки 1N5819 30 шт. \n 13 Диод шоттки MBR20100CT 10 шт. \n 14 Диодно-тиристорный модуль ATD250HVIS45 3 шт. \n 15 Диодно-тиристорный модуль МT/D3-320-16-С1 12 шт. \n 16 Диодный модуль AZD780HVILS45 3 шт. \n 17 Диодный модуль SKKD26/16 6 шт. \n 18 Драйвер тиристоров ДТРВ-6-Б-1-ПТ1-В-1-DIN2 3 шт. \n 19 Модуль IGBT 3 шт. \n 20 Модуль IGBT 4 шт. \n 21 Модуль IGBT 6 шт. \n 22 Модуль IGBT CM900HB-90H 4 шт. \n 23 Модуль IGBT MBN600E45A 4 шт. \n 24 Модуль IGBT PM50RVA120 1 м. \n 25 Модуль IGBT PS12034 2 м. \n 26 Модуль IGBT SKIIP20NAB12IT42 2 шт. \n 27 Модуль IGBT SKIIP24NAB126V10 10 шт. \n 28 Модуль IGBT SKIIP35NAB126V1 10 шт. \n 29 Модуль IGBT SKM400GB128DH12B 4 шт. \n 30 Модуль транзисторный 3 шт. \n 31 Модуль транзисторный 6 шт. \n 32 Модуль транзисторный SkiiP1813GB123-3DL 3 шт. \n 33 Оптопара транзисторная 20 шт. \n 34 Оптопара транзисторная 20 шт. \n 35 Плата управления тиристорами ЦРТМ 03.30.05 1 шт. \n 36 Релейный модуль 2 шт. \n 37 Тиристор TZ425N14KOF 6 шт. \n 38 Тиристор Т161-160-14 20 шт. \n 39 Тиристор Т2-160-10 5 шт. \n 40 Тиристор Т243-800-18 4 шт. \n 41 Тиристор Т253-1250 4 шт. \n 42 Тиристор ТБ271-250-12 20 шт. \n 43 Тиристор ТБ271-250-12 20 шт. \n 44 Тиристор ТБИ243-400-22 12 шт. \n 45 Тиристорно-диодный модуль MТ/Д3-250-22-С1 3 шт. \n 46 Тиристорно-диодный модуль MТ/Д3-430-24-А2 3 шт. \n 47 Тиристорный модуль AZTT400HVI S45 3 шт. \n 48 Тиристорный модуль MCO500-16IO1 6 шт. \n 49 Тиристорный модуль MT3-165-20-F 6 шт. \n 50 Тиристорный модуль MT3-320-18-C1 3 шт. \n 51 Тиристорный модуль SKET 400/16E 2 шт. \n 52 Тиристорный модуль SKKT 20/16E 3 шт. \n 53 Тиристорный модуль SKKT330/16E 12 шт. \n 54 Тиристорный модуль МТТ160-12 6 шт. \n 55 Тиристорный модуль МТх-595-18-А2 МТ3 4 шт. \n 56 Тиристорный регулятор мощности ТРМ3-Б-1-800-Т-Х 1 шт. \n 57 Тиристорный регулятор скорости ДПТ ТРС-РВ-460-220-40-13 1 шт. \n 58 Тиристорный регулятор скорости ДПТ ТРС-РВ-460-220-500-35 1 шт. \n 59 Тиристорный регулятор скорости ДПТ ТРС-ТЯ-460-220-125-13 1 шт. \n 60 Тиристорный регулятор скорости ДПТ ТРС-ТЯ-460-220-40-13 1 шт. \n 61 Тиристорный регулятор скорости ДПТ ТРС-ТЯ-460-220-80-13 1 шт. \n 62 Транзистор 24N60C3 10 шт. \n 63 Транзистор 2N60 10 шт. \n 64 Транзистор 2SA1295 10 шт. \n 65 Транзистор 2SA1943 20 шт. \n 66 Транзистор 2SC3264 10 шт. \n 67 Транзистор 2SC5200 20 шт. \n 68 Транзистор 2SK2225 10 шт. \n 69 Транзистор 4N60 10 шт. \n 70 Транзистор 6N60 10 шт. \n 71 Транзистор AO4606 N+P-MOSFET 30В 6/7.6А 10 шт. \n 72 Транзистор AO4614 N/P-MOSFET 40В 6/5А 2Вт 10 шт. \n 73 Транзистор AO4826 2N-MOSFET 60В 6.3А 4Вт 10 шт. \n 74 Транзистор AO4832 N-MOSFET 30В 10А 2Вт 10 шт. \n 75 Транзистор BC327 5 шт. \n 76 Транзистор BC337 5 шт. \n 77 Транзистор BDP948H6327 10 шт. \n 78 Транзистор BDX54B ТО-220AB 20 шт. \n 79 Транзистор BDX54C 5 шт. \n 80 Транзистор BSS84 30 шт. \n 81 Транзистор FGH40N60SFDTU 24 шт. \n 82 Транзистор FGH60N60SFDTU 24 шт. \n 83 Транзистор FQAF13N80 5 шт. \n 84 Транзистор GT15Q101 5 шт. \n 85 Транзистор IPW60R160C6 20 шт. \n 86 Транзистор IRF1310NPBF 20 шт. \n 87 Транзистор IRF520 ТО-220AB 5 шт. \n 88 Транзистор IRF540NPBF 20 шт. \n 89 Транзистор IRF640NPBF 20 шт. \n 90 Транзистор IRFB260NPBF 20 шт. \n 91 Транзистор IRFD024 5 шт. \n 92 Транзистор IRFD110 5 шт. \n 93 Транзистор IRFD9024 5 шт. \n 94 Транзистор IRFP150NPBF 20 шт. \n 95 Транзистор IRFP260NPBF 20 шт. \n 96 Транзистор IRFP3206PBF 24 шт. \n 97 Транзистор IRFP460 10 шт. \n 98 Транзистор IRFP4710PBF 20 шт. \n 99 Транзистор IRFP90N20DPBF 20 шт. \n 100 Транзистор MJD44H11G 10 шт. \n 101 Транзистор MJD45H11G 10 шт. \n 102 Транзистор MSG100T65HLB3"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Заказ №00004466.xlsx",
+          "safeName": "Заказ №00004466.xlsx",
+          "contentType": "application/octet-stream",
+          "size": 41564,
+          "ext": ".xlsx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 9888,
+          "category": "product_request",
+          "detectedArticles": [
+            "23.03.2026",
+            "1N4007",
+            "BYG21M-E3/TR",
+            "FES8GT",
+            "HER508",
+            "RHRG75120",
+            "STTA12",
+            "S1K",
+            "3RT1916-1DG00",
+            "1N5819",
+            "MBR20100CT",
+            "ATD250HVIS45",
+            "T/D3-320-16-С1",
+            "AZD780HVILS45",
+            "6-Б-1-ПТ1-В-1-DIN2",
+            "CM900HB-90H",
+            "MBN600E45A",
+            "PM50RVA120",
+            "PS12034",
+            "SKIIP20NAB12IT42",
+            "SKIIP24NAB126V10",
+            "SKIIP35NAB126V1",
+            "SKM400GB128DH12B",
+            "SKIIP1813GB123-3DL",
+            "TZ425N14KOF",
+            "161-160-14",
+            "2-160-10",
+            "243-800-18",
+            "253-1250",
+            "271-250-12"
+          ],
+          "detectedBrands": [
+            "IGBT"
+          ],
+          "detectedInn": [
+            "1660321926"
+          ],
+          "detectedKpp": [
+            "166001001"
+          ],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "ТЗ на все позиции.docx",
+          "safeName": "ТЗ на все позиции.docx",
+          "contentType": "application/octet-stream",
+          "size": 121921,
+          "ext": ".docx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 30593,
+          "category": "office_document",
+          "detectedArticles": [
+            "1N4007",
+            "BYG21M-E3/TR",
+            "DO-214AC/SMA",
+            "FES8GT",
+            "TO-220AC",
+            "HER508",
+            "DO-201AD",
+            "RHRG75120",
+            "75A",
+            "TO-247",
+            "STTA12",
+            "1200V",
+            "DO-41",
+            "S1K",
+            "DO214AC",
+            "3RT1916-1DG00",
+            "1N5819",
+            "SOD-123",
+            "MBR20100CT",
+            "TO-220-3/TO-220AB",
+            "ATD250HVIS45",
+            "259A",
+            "124X60X52",
+            "D3-320-16-С1",
+            "M.C1",
+            "AZD780HVILS45",
+            "136X70X90",
+            "SEMIPACK1",
+            "6-Б-1-ПТ1-В-1-DIN2",
+            "5VDC"
+          ],
+          "detectedBrands": [
+            "IGBT",
+            "smd"
+          ],
+          "detectedInn": [],
+          "detectedKpp": [
+            "159001698"
+          ],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 2,
+        "skippedCount": 0,
+        "totalBytes": 163485,
+        "totalChars": 21888,
+        "budgetMs": 1791,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": false,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 2,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-05-19T21:33:41.329Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "phone"
+      ],
+      "newArticlesAdded": 0,
+      "fromCache": true
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:59:03.418Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "google/gemini-2.0-flash-lite-001",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "logSuggestions": true
+    }
+  }
+}

@@ -1,0 +1,769 @@
+{
+  "messageKey": "d4fe53852bd05b3e3a00a0346c66f6d82ba85725",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "графа \"Бренд\" не заполнена"
+  ],
+  "subject": "Блоки, модули",
+  "body": "Блок дополнительных контактов 3RH1911-1HA22, SIEMENS - 3 шт.\n Блок управления горением LMO82.110C2WH W-FM 05 Siemens - 1 шт. Кабель силовой, 6FX8002-5DA01-1BB0, SIEMENS - 5 шт.\n Кабель силовой, 6FX8002-5DA21-1BB0, SIEMENS - 5 шт.\n Кабель управления JZ-HF 12G1 HELUKABEL арт.15043 - 100 шт.\n Модуль интерфейсный 6SN1118-0DH23-0AA1, Siemens - 1 шт.\n Модуль интерфейсный, Siemens, 6SN1118-0DJ23-0AA0 - 1 шт.\n Выключатель одиночный BNS 819 FD-60-101-FD - 2 шт.\n\n Панель ЖК-дисплея LB104V03-A1 - 1 шт.\n Элемент питания YASKAWA ER6BD-WK77P - 2 шт.\n Элемент питания MOTOMAN Battery HW1483880-A Battery Unit - 6 шт.\n Элемент питания YASKAWA Motoman Robotics HW8471030-A - 1 шт.\n Элемент питания Panasonic Lithium Battery 6V BR-2/3AGCT4A PLC w/Plug - 4 шт.\n\n \n С Уважением, \n Козыревский Евгений Владимирович \n Заместитель директора по логистике \n и кооперации АО \"Волгабурмаш\" \n Тел.: 8 (846) 300-84-50 \n e.kozyrevskiy@vbm.ru \n www.vbm.ru",
+  "attachmentFiles": [],
+  "currentAnalysis": {
+    "analysisId": "3cac1683-0472-4682-b765-b6340d2fca54",
+    "createdAt": "2026-06-01T14:58:37.570Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Helukabel",
+        "PANASONIC",
+        "Siemens",
+        "YASKAWA"
+      ],
+      "signals": {
+        "clientScore": 1,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": []
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "e.kozyrevskiy@vbm.ru",
+      "emailPrimary": "e.kozyrevskiy@vbm.ru",
+      "emailDisplayName": "Козыревский Евгений Владимирович",
+      "emailLocal": "e.kozyrevskiy",
+      "emailDomain": "vbm.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Козыревский Евгений Владимирович",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Заместитель директора по логистике",
+      "positionAlt": "Заместитель директора по логистике",
+      "departmentName": null,
+      "positionSource": "signature",
+      "positionConfidence": 0.97,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Козыревский",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "АО «Волгабурмаш»",
+      "companyAlt": "АО «Волгабурмаш»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Козыревский Евгений Владимирович",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://vbm.ru",
+      "cityPhone": "+7 (846) 300-84-50",
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "6314041136",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "signature",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "signature",
+        "position": "signature",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Блок дополнительных контактов 3RH1911-1HA22, SIEMENS - 3 шт.\n Блок управления горением LMO82.110C2WH W-FM 05 Siemens - 1 шт. Кабель силовой, 6FX8002-5DA01-1BB0, SIEMENS - 5 шт.\n Кабель силовой, 6FX8002-5DA21-1BB0, SIEMENS - 5 шт.\n Кабель управления JZ-HF 12G1 HELUKABEL арт.15043 - 100 шт.\n Модуль интерфейсный 6SN1118-0DH23-0AA1, Siemens - 1 шт.\n Модуль интерфейсный, Siemens, 6SN1118-0DJ23-0AA0 - 1 шт.\n Выключатель одиночный BNS 819 FD-60-101-FD - 2 шт.\n\n Панель ЖК-дисплея LB104V03-A1 - 1 шт.\n Элемент питания YASKAWA ER6BD-WK77P - 2 шт.\n Элемент питания MOTOMAN Battery HW1483880-A Battery Unit - 6 шт.\n Элемент питания YASKAWA Motoman Robotics HW8471030-A - 1 шт.\n Элемент питания Panasonic Lithium Battery 6V BR-2/3AGCT4A PLC w/Plug - 4 шт.",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "FD-60-101-FD",
+        "LMO82.110C2WH",
+        "LB104V03-A1",
+        "ER6BD-WK77P",
+        "HW1483880-A",
+        "HW8471030-A",
+        "BR-2/3AGCT4A",
+        "BNS 819",
+        "3RH1911-1HA22",
+        "6SN1118-0DH23-0AA1",
+        "12G1",
+        "6FX8002-5DA01-1BB0",
+        "6FX8002-5DA21-1BB0",
+        "6SN1118-0DJ23-0AA0",
+        "FM 05"
+      ],
+      "lineItems": [
+        {
+          "article": "3RH1911-1HA22",
+          "quantity": 3,
+          "unit": "шт",
+          "descriptionRu": "Блок дополнительных контактов 3RH1911-1HA22, SIEMENS",
+          "sourceLine": "Блок дополнительных контактов 3RH1911-1HA22, SIEMENS - 3 шт.",
+          "source": "body"
+        },
+        {
+          "article": "6FX8002-5DA01-1BB0",
+          "quantity": 5,
+          "unit": "шт",
+          "descriptionRu": "Блок управления горением LMO82.110C2WH W-FM 05 Siemens - 1 шт. Кабель силовой, 6FX8002-5DA01-1BB0, SIEMENS",
+          "sourceLine": "Блок управления горением LMO82.110C2WH W-FM 05 Siemens - 1 шт. Кабель силовой, 6FX8002-5DA01-1BB0, SIEMENS - 5 шт.",
+          "source": "body"
+        },
+        {
+          "article": "6FX8002-5DA21-1BB0",
+          "quantity": 5,
+          "unit": "шт",
+          "descriptionRu": "Кабель силовой, 6FX8002-5DA21-1BB0, SIEMENS",
+          "sourceLine": "Кабель силовой, 6FX8002-5DA21-1BB0, SIEMENS - 5 шт.",
+          "source": "body"
+        },
+        {
+          "article": "6SN1118-0DH23-0AA1",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Модуль интерфейсный 6SN1118-0DH23-0AA1, Siemens",
+          "sourceLine": "Модуль интерфейсный 6SN1118-0DH23-0AA1, Siemens - 1 шт.",
+          "source": "body"
+        },
+        {
+          "article": "SN1118-0DJ23-0AA0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Модуль интерфейсный, Siemens, 6SN1118-0DJ23-0AA0",
+          "explicitArticle": true,
+          "sourceLine": "Модуль интерфейсный, Siemens, 6SN1118-0DJ23-0AA0 - 1 шт.",
+          "source": "body"
+        },
+        {
+          "article": "LB104V03-A1",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Панель ЖК-дисплея LB104V03-A1",
+          "explicitArticle": true,
+          "sourceLine": "Панель ЖК-дисплея LB104V03-A1 - 1 шт.",
+          "source": "body"
+        },
+        {
+          "article": "ER6BD-WK77P",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "Элемент питания YASKAWA ER6BD-WK77P",
+          "explicitArticle": true,
+          "sourceLine": "Элемент питания YASKAWA ER6BD-WK77P - 2 шт.",
+          "source": "body"
+        },
+        {
+          "article": "HW1483880-A",
+          "quantity": 6,
+          "unit": "шт",
+          "descriptionRu": "Элемент питания MOTOMAN Battery HW1483880-A Battery Unit",
+          "sourceLine": "Элемент питания MOTOMAN Battery HW1483880-A Battery Unit - 6 шт.",
+          "source": "body"
+        },
+        {
+          "article": "HW8471030-A",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Элемент питания YASKAWA Motoman Robotics HW8471030-A",
+          "explicitArticle": true,
+          "sourceLine": "Элемент питания YASKAWA Motoman Robotics HW8471030-A - 1 шт.",
+          "source": "body"
+        },
+        {
+          "article": "BR-2/3AGCT4A",
+          "quantity": 4,
+          "unit": "шт",
+          "descriptionRu": "Элемент питания Panasonic Lithium Battery 6V BR-2/3AGCT4A PLC w/Plug",
+          "sourceLine": "Элемент питания Panasonic Lithium Battery 6V BR-2/3AGCT4A PLC w/Plug - 4 шт.",
+          "source": "body"
+        },
+        {
+          "article": "FD-60-101-FD",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LMO82.110C2WH",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "BNS 819",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "12G1",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "6SN1118-0DJ23-0AA0",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "FM 05",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 16,
+      "detectedBrands": [
+        "Helukabel",
+        "PANASONIC",
+        "Siemens",
+        "YASKAWA"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "FD-60-101-FD",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LMO82.110C2WH",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LB104V03-A1",
+          "name": "Панель ЖК-дисплея",
+          "category": null
+        },
+        {
+          "article": "ER6BD-WK77P",
+          "name": "Элемент питания YASKAWA",
+          "category": null
+        },
+        {
+          "article": "HW1483880-A",
+          "name": "Элемент питания MOTOMAN Battery",
+          "category": null
+        },
+        {
+          "article": "HW8471030-A",
+          "name": "Элемент питания YASKAWA Motoman Robotics",
+          "category": null
+        },
+        {
+          "article": "BR-2/3AGCT4A",
+          "name": "Элемент питания Panasonic Lithium Battery 6V",
+          "category": null
+        },
+        {
+          "article": "BNS 819",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3RH1911-1HA22",
+          "name": "Блок дополнительных контактов",
+          "category": null
+        },
+        {
+          "article": "6SN1118-0DH23-0AA1",
+          "name": "Модуль интерфейсный",
+          "category": null
+        },
+        {
+          "article": "12G1",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "6FX8002-5DA01-1BB0",
+          "name": "Блок управления горением LMO82.110C2WH W-FM 05 Siemens",
+          "category": null
+        },
+        {
+          "article": "6FX8002-5DA21-1BB0",
+          "name": "Кабель силовой",
+          "category": null
+        },
+        {
+          "article": "6SN1118-0DJ23-0AA0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "FM 05",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "attachment"
+        ],
+        "names": [
+          "body"
+        ],
+        "attachmentsProcessed": [],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": false,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.83,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Элемент питания YASKAWA ER6BD-WK77P",
+      "productLineItems": [
+        "Блок дополнительных контактов 3RH1911-1HA22, SIEMENS",
+        "Блок управления горением LMO82.110C2WH W-FM 05 Siemens - 1 шт. Кабель силовой, 6FX8002-5DA01-1BB0, SIEMENS",
+        "Кабель силовой, 6FX8002-5DA21-1BB0, SIEMENS",
+        "Модуль интерфейсный 6SN1118-0DH23-0AA1, Siemens",
+        "Модуль интерфейсный, Siemens, 6SN1118-0DJ23-0AA0",
+        "Панель ЖК-дисплея LB104V03-A1",
+        "Элемент питания YASKAWA ER6BD-WK77P",
+        "Элемент питания MOTOMAN Battery HW1483880-A Battery Unit",
+        "Элемент питания YASKAWA Motoman Robotics HW8471030-A",
+        "Элемент питания Panasonic Lithium Battery 6V BR-2/3AGCT4A PLC w/Plug"
+      ],
+      "productNamesClean": [
+        "Блок дополнительных контактов 3RH1911-1HA22, SIEMENS",
+        "Блок управления горением LMO82.110C2WH W-FM 05 Siemens - 1 шт. Кабель силовой, 6FX8002-5DA01-1BB0, SIEMENS",
+        "Кабель силовой, 6FX8002-5DA21-1BB0, SIEMENS",
+        "Модуль интерфейсный 6SN1118-0DH23-0AA1, Siemens",
+        "Модуль интерфейсный, Siemens, 6SN1118-0DJ23-0AA0",
+        "Панель ЖК-дисплея LB104V03-A1",
+        "Элемент питания YASKAWA ER6BD-WK77P",
+        "Элемент питания MOTOMAN Battery HW1483880-A Battery Unit",
+        "Элемент питания YASKAWA Motoman Robotics HW8471030-A",
+        "Элемент питания Panasonic Lithium Battery 6V BR-2/3AGCT4A PLC w/Plug"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 1,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 100,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 6,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 6,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 174,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "104V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "6V"
+        }
+      ],
+      "positions": 16,
+      "totalQty": 29,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.83,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.96,
+            "source": "explicit_article_block"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "signature"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "Helukabel",
+              "PANASONIC",
+              "Siemens",
+              "YASKAWA"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый company; слабый inn; multiple brands detected",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:FD-60-101-FD, LMO82.110C2WH, LB104V03-A1 | бренды:Helukabel, PANASONIC, Siemens | компания:АО «Волгабурмаш» • email:e.kozyrevskiy@vbm.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:FD-60-101-FD, LMO82.110C2WH, LB104V03-A1",
+          "бренды:Helukabel, PANASONIC, Siemens",
+          "компания:АО «Волгабурмаш»",
+          "ИНН:6314041136"
+        ],
+        "pipeline": {
+          "bodyArticles": 15,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 0,
+          "processedAttachments": 0
+        }
+      },
+      "confidence": 0.7885
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://vbm.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: FD-60-101-FD, LMO82.110C2WH, LB104V03-A1, ER6BD-WK77P, HW1483880-A",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://vbm.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "6314041136",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Helukabel",
+      "PANASONIC",
+      "Siemens",
+      "YASKAWA"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Козыревский, добрый день!\n\nСпасибо за заявку по Helukabel, PANASONIC, Siemens, YASKAWA (16 позиций).\nАртикулы: FD-60-101-FD, LMO82.110C2WH, LB104V03-A1, ER6BD-WK77P, HW1483880-A\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Блоки, модули",
+      "attachments": [],
+      "body": "Блок дополнительных контактов 3RH1911-1HA22, SIEMENS - 3 шт.\n Блок управления горением LMO82.110C2WH W-FM 05 Siemens - 1 шт. Кабель силовой, 6FX8002-5DA01-1BB0, SIEMENS - 5 шт.\n Кабель силовой, 6FX8002-5DA21-1BB0, SIEMENS - 5 шт.\n Кабель управления JZ-HF 12G1 HELUKABEL арт.15043 - 100 шт.\n Модуль интерфейсный 6SN1118-0DH23-0AA1, Siemens - 1 шт.\n Модуль интерфейсный, Siemens, 6SN1118-0DJ23-0AA0 - 1 шт.\n Выключатель одиночный BNS 819 FD-60-101-FD - 2 шт.\n\n Панель ЖК-дисплея LB104V03-A1 - 1 шт.\n Элемент питания YASKAWA ER6BD-WK77P - 2 шт.\n Элемент питания MOTOMAN Battery HW1483880-A Battery Unit - 6 шт.\n Элемент питания YASKAWA Motoman Robotics HW8471030-A - 1 шт.\n Элемент питания Panasonic Lithium Battery 6V BR-2/3AGCT4A PLC w/Plug - 4 шт.\n\n \n С Уважением, \n Козыревский Евгений Владимирович \n Заместитель директора по логистике \n и кооперации АО \"Волгабурмаш\" \n Тел.: 8 (846) 300-84-50 \n e.kozyrevskiy@vbm.ru \n www.vbm.ru"
+    },
+    "attachmentAnalysis": {
+      "files": [],
+      "meta": {
+        "processedCount": 0,
+        "skippedCount": 0,
+        "totalBytes": 0,
+        "totalChars": 0,
+        "budgetMs": 0,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 0,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-05-19T21:33:14.471Z",
+      "model": "gpt-4o-mini",
+      "requestType": "order",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 0,
+      "fromCache": true
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:58:37.583Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "google/gemini-2.0-flash-lite-001",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "logSuggestions": true
+    }
+  }
+}

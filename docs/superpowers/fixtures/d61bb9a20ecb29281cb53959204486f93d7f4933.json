@@ -1,0 +1,496 @@
+{
+  "messageKey": "d61bb9a20ecb29281cb53959204486f93d7f4933",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Нет ИНН, некорректно заполнены товары"
+  ],
+  "subject": "RE: кас. счета на продукцию \"Marl Intl. Ltd.\" Англия ",
+  "body": "Алия, добрый день.\r\nНаправляю Вам карточку компании.\r\n\r\nFrom: SIDERUS \r\nSent: Monday, April 20, 2026 4:56 PM\r\nTo: Романенко Роксана Павловна \r\nSubject: FW: кас. счета на продукцию \"Marl Intl. Ltd.\" Англия\r\nImportance: High\r\n\r\nДобрый день!\r\n\r\nДля обработки запроса, нужны реквизиты компании.\r\nОриентировочный срок поставки от 12-14 нед. до склада в Москве.\r\nЦены в КП в теч. 3-4 раб.дней\r\n\r\n\r\nС уважением,\r\n\r\nАлия Дульмаева\r\nКлиентский менеджер\r\nКОЛОВРАТ | СИДЕРУС\r\n\r\n[signature_2031521182]\r\n\r\n215@siderus.ru \r\n\r\n\r\n[signature_1881685027]\r\n\r\nsiderus.ru \r\n\r\n[signature_1509172816]\r\n\r\n+7 499 647-47-07 доб. 215\r\n\r\n[signature_1494146949]\r\n\r\n107061, г. Москва, Преображенская площадь, д.8, оф. 815\r\n\r\n[signature_1848202311]\r\n\r\nНаш идентификатор в системе ЭДО (Контур Диадок)\r\n2BM-9701077015-770101001-201711021137514319612\r\n\r\nFrom: Романенко Роксана Павловна >\r\nSent: Monday, April 20, 2026 10:00 AM\r\nTo: info+256675@siderus.ru \r\nSubject: кас. счета на продукцию \"Marl Intl. Ltd.\" Англия\r\nImportance: High\r\n\r\n\r\nУважаемые коллеги, добрый день.\r\nВы не могли бы, пожалуйста, прислать счет на оплату на продукцию \"Marl Intl. Ltd.\" Англия с указанием сроков поставки и условий оплаты. И укажите пожалуйста, НДС с которым Вы работаете.\r\n\r\n\r\n13052\r\n\r\nИндикатор светодиодный белый 604-998-23 \"Marl Intl. Ltd.\" Англия\r\n\r\n5\r\n\r\n13053\r\n\r\nИндикатор светодиодный желтый 604-325-23 \"Marl Intl. Ltd.\" Англия\r\n\r\n5\r\n\r\n13054\r\n\r\nИндикатор светодиодный зеленый 604-324-23 \"Marl Intl. Ltd.\" Англия\r\n\r\n5\r\n\r\n13055\r\n\r\nИндикатор светодиодный красный 604-301-23 \"Marl Intl. Ltd.\" Англия\r\n\r\n5\r\n\r\n\r\nЗаранее Вас благодарю,\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n[cid:image007.png@01DCD0E7.798C8FB0]\r\n\r\nC уважением,\r\n\r\nРоманенко Роксана\r\n\r\nВедущий менеджер группы электрооборудования, ОМТС\r\nОАО «ПФ «КМТ» г. Ломоносов\r\n1984412, РФ Г. Санкт-Петербург, г. Ломоносов,\r\nУл. Федюнинского 3 А\r\nМест.телефон: 43026\r\nТел.: +7-911-947-88-70\r\nТел.: +7-952-358-44-51\r\nE-mail: rp.romanenko@kscgroup.ru",
+  "attachmentFiles": [
+    {
+      "filename": "image002.jpg",
+      "safeName": "image002.jpg",
+      "contentType": "image/jpeg",
+      "size": 27877
+    },
+    {
+      "filename": "image003.jpg",
+      "safeName": "image003.jpg",
+      "contentType": "image/jpeg",
+      "size": 27947
+    },
+    {
+      "filename": "image004.jpg",
+      "safeName": "image004.jpg",
+      "contentType": "image/jpeg",
+      "size": 27881
+    },
+    {
+      "filename": "image005.jpg",
+      "safeName": "image005.jpg",
+      "contentType": "image/jpeg",
+      "size": 27917
+    },
+    {
+      "filename": "image006.jpg",
+      "safeName": "image006.jpg",
+      "contentType": "image/jpeg",
+      "size": 2311
+    },
+    {
+      "filename": "image007.png",
+      "safeName": "image007.png",
+      "contentType": "image/png",
+      "size": 19013
+    },
+    {
+      "filename": "Карточка ОАО ПФ КМТ с 01.10.2024.pdf",
+      "safeName": "Карточка ОАО ПФ КМТ с 01.10.2024.pdf",
+      "contentType": "application/pdf",
+      "size": 493888
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "c9e5527c-875f-4087-9aee-39b27e2be58d",
+    "createdAt": "2026-06-01T14:51:32.596Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Marl International"
+      ],
+      "signals": {
+        "clientScore": 1,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": []
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "rp.romanenko@kscgroup.ru",
+      "emailPrimary": "rp.romanenko@kscgroup.ru",
+      "emailDisplayName": "Романенко Роксана Павловна",
+      "emailLocal": "rp.romanenko",
+      "emailDomain": "kscgroup.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Романенко Роксана Павловна",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "sender",
+      "fullNameConfidence": 0.85,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "Романенко",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "ОАО «ПФ «КМТ»»",
+      "companyAlt": null,
+      "companyNameSource": "email_domain",
+      "companyNameConfidence": 0.16999999999999996,
+      "companyNameNeedsReview": true,
+      "companyNameRejected": [
+        {
+          "value": "Романенко Роксана Павловна",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://kscgroup.ru",
+      "cityPhone": "+7 (952) 358-44-51",
+      "mobilePhone": "+7 (911) 947-88-70",
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "unknown",
+      "phoneSource": null,
+      "phoneConfidence": 0,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "6950033083",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": true,
+      "sources": {
+        "company": "body",
+        "website": "email_domain",
+        "phone": "current_message",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "sender",
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Алия, добрый день.\nНаправляю Вам карточку компании.\n\nFrom: SIDERUS \n\n\n\nImportance: High\n\nДобрый день!\n\nДля обработки запроса, нужны реквизиты компании.\nОриентировочный срок поставки от 12-14 нед. до склада в Москве.\nЦены в КП в теч. 3-4 раб.дней\n\n\nС уважением,\n\nАлия Дульмаева\nКлиентский менеджер\nКОЛОВРАТ | СИДЕРУС\n\n[signature_2031521182]\n\n215@siderus.ru \n\n\n[signature_1881685027]\n\nsiderus.ru \n\n[signature_1509172816]\n\n+7 499 647-47-07 доб. 215\n\n[signature_1494146949]\n\n107061, г. Москва, Преображенская площадь, д.8, оф. 815\n\n[signature_1848202311]\n\nНаш идентификатор в системе ЭДО (Контур Диадок)\n2BM-9701077015-770101001-201711021137514319612\n\nFrom: Романенко Роксана Павловна >\n\n\n\nImportance: High\n\n\nУважаемые коллеги, добрый день.\nВы не могли бы, пожалуйста, прислать счет на оплату на продукцию \"Marl Intl. Ltd.\" Англия с указанием сроков поставки и условий оплаты. И укажите пожалуйста, НДС с которым Вы работаете.\n\n\n13052\n\nИндикатор светодиодный белый 604-998-23 \"Marl Intl. Ltd.\" Англия\n\n5\n\n13053\n\nИндикатор светодиодный желтый 604-325-23 \"Marl Intl. Ltd.\" Англия\n\n5\n\n13054\n\nИндикатор светодиодный зеленый 604-324-23 \"Marl Intl. Ltd.\" Англия\n\n5\n\n13055\n\nИндикатор светодиодный красный 604-301-23 \"Marl Intl. Ltd.\" Англия\n\n5\n\n\nЗаранее Вас благодарю,\n\n\n\n\n\n\n\n\n\n\n\n[cid:image007.png@01DCD0E7.798C8FB0]\n\nC уважением,\n\nРоманенко Роксана\n\nВедущий менеджер группы электрооборудования, ОМТС\nОАО «ПФ «КМТ» г. Ломоносов\n1984412, РФ Г. Санкт-Петербург, г. Ломоносов,\nУл. Федюнинского 3 А\nМест.телефон: 43026\nТел.: +7-911-947-88-70\nТел.: +7-952-358-44-51\nE-mail: rp.romanenko@kscgroup.ru",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [],
+      "lineItems": [],
+      "totalPositions": 0,
+      "detectedBrands": [
+        "Marl International"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [],
+        "names": [],
+        "attachmentsProcessed": [
+          "Карточка ОАО ПФ КМТ с 01.10.2024.pdf"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": false,
+        "brand": true,
+        "name": false,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [
+          "article",
+          "name"
+        ],
+        "completenessScore": 67,
+        "overallConfidence": 0.83,
+        "riskLevel": "high",
+        "primaryIssue": "missing_article",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": null,
+      "productLineItems": [],
+      "productNamesClean": [],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 0,
+      "totalQty": 0,
+      "recognitionDiagnostics": {
+        "completenessScore": 67,
+        "overallConfidence": 0.83,
+        "riskLevel": "high",
+        "primaryIssue": "missing_article",
+        "fields": {
+          "article": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "current_message"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "missing_article",
+            "field": "article",
+            "severity": "high"
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "missing_name",
+            "field": "name",
+            "severity": "medium"
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "нет article; слабый inn; нет name",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:бренды:Marl International | компания:ОАО «ПФ «КМТ»» | ИНН:6950033083 • email:rp.romanenko@kscgroup.ru",
+        "suggestion": "Не хватает: артикулы, наименование. Дополните через быструю коррекцию или запросите у клиента.",
+        "triggerSignals": [
+          "бренды:Marl International",
+          "компания:ОАО «ПФ «КМТ»»",
+          "ИНН:6950033083",
+          "вложения:1"
+        ],
+        "pipeline": {
+          "bodyArticles": 0,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 0,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7885
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://kscgroup.ru для поиска реквизитов",
+        "Сверить номенклатуру вручную не требуется",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://kscgroup.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "6950033083",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Marl International"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Романенко, добрый день!\n\nСпасибо за заявку по Marl International.\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "RE: кас. счета на продукцию \"Marl Intl. Ltd.\" Англия ",
+      "attachments": [
+        "image002.jpg",
+        "image003.jpg",
+        "image004.jpg",
+        "image005.jpg",
+        "image006.jpg",
+        "image007.png",
+        "Карточка ОАО ПФ КМТ с 01.10.2024.pdf"
+      ],
+      "body": "Алия, добрый день.\r\nНаправляю Вам карточку компании.\r\n\r\nFrom: SIDERUS \r\nSent: Monday, April 20, 2026 4:56 PM\r\nTo: Романенко Роксана Павловна \r\nSubject: FW: кас. счета на продукцию \"Marl Intl. Ltd.\" Англия\r\nImportance: High\r\n\r\nДобрый день!\r\n\r\nДля обработки запроса, нужны реквизиты компании.\r\nОриентировочный срок поставки от 12-14 нед. до склада в Москве.\r\nЦены в КП в теч. 3-4 раб.дней\r\n\r\n\r\nС уважением,\r\n\r\nАлия Дульмаева\r\nКлиентский менеджер\r\nКОЛОВРАТ | СИДЕРУС\r\n\r\n[signature_2031521182]\r\n\r\n215@siderus.ru \r\n\r\n\r\n[signature_1881685027]\r\n\r\nsiderus.ru \r\n\r\n[signature_1509172816]\r\n\r\n+7 499 647-47-07 доб. 215\r\n\r\n[signature_1494146949]\r\n\r\n107061, г. Москва, Преображенская площадь, д.8, оф. 815\r\n\r\n[signature_1848202311]\r\n\r\nНаш идентификатор в системе ЭДО (Контур Диадок)\r\n2BM-9701077015-770101001-201711021137514319612\r\n\r\nFrom: Романенко Роксана Павловна >\r\nSent: Monday, April 20, 2026 10:00 AM\r\nTo: info+256675@siderus.ru \r\nSubject: кас. счета на продукцию \"Marl Intl. Ltd.\" Англия\r\nImportance: High\r\n\r\n\r\nУважаемые коллеги, добрый день.\r\nВы не могли бы, пожалуйста, прислать счет на оплату на продукцию \"Marl Intl. Ltd.\" Англия с указанием сроков поставки и условий оплаты. И укажите пожалуйста, НДС с которым Вы работаете.\r\n\r\n\r\n13052\r\n\r\nИндикатор светодиодный белый 604-998-23 \"Marl Intl. Ltd.\" Англия\r\n\r\n5\r\n\r\n13053\r\n\r\nИндикатор светодиодный желтый 604-325-23 \"Marl Intl. Ltd.\" Англия\r\n\r\n5\r\n\r\n13054\r\n\r\nИндикатор светодиодный зеленый 604-324-23 \"Marl Intl. Ltd.\" Англия\r\n\r\n5\r\n\r\n13055\r\n\r\nИндикатор светодиодный красный 604-301-23 \"Marl Intl. Ltd.\" Англия\r\n\r\n5\r\n\r\n\r\nЗаранее Вас благодарю,\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n\r\n[cid:image007.png@01DCD0E7.798C8FB0]\r\n\r\nC уважением,\r\n\r\nРоманенко Роксана\r\n\r\nВедущий менеджер группы электрооборудования, ОМТС\r\nОАО «ПФ «КМТ» г. Ломоносов\r\n1984412, РФ Г. Санкт-Петербург, г. Ломоносов,\r\nУл. Федюнинского 3 А\r\nМест.телефон: 43026\r\nТел.: +7-911-947-88-70\r\nТел.: +7-952-358-44-51\r\nE-mail: rp.romanenko@kscgroup.ru"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "image002.jpg",
+          "safeName": "image002.jpg",
+          "contentType": "image/jpeg",
+          "size": 27877,
+          "ext": ".jpg",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image003.jpg",
+          "safeName": "image003.jpg",
+          "contentType": "image/jpeg",
+          "size": 27947,
+          "ext": ".jpg",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image004.jpg",
+          "safeName": "image004.jpg",
+          "contentType": "image/jpeg",
+          "size": 27881,
+          "ext": ".jpg",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image005.jpg",
+          "safeName": "image005.jpg",
+          "contentType": "image/jpeg",
+          "size": 27917,
+          "ext": ".jpg",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image006.jpg",
+          "safeName": "image006.jpg",
+          "contentType": "image/jpeg",
+          "size": 2311,
+          "ext": ".jpg",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image007.png",
+          "safeName": "image007.png",
+          "contentType": "image/png",
+          "size": 19013,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Карточка ОАО ПФ КМТ с 01.10.2024.pdf",
+          "safeName": "Карточка ОАО ПФ КМТ с 01.10.2024.pdf",
+          "contentType": "application/pdf",
+          "size": 493888,
+          "ext": ".pdf",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 8090,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 6,
+        "totalBytes": 493888,
+        "totalChars": 8090,
+        "budgetMs": 62,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": false,
+      "quotedTextDetected": true,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 6
+    },
+    "llmExtraction": {
+      "processedAt": "2026-05-25T10:20:29.877Z",
+      "model": "google/gemini-2.0-flash-lite-001",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "article",
+        "quantity"
+      ],
+      "newArticlesAdded": 4,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:51:32.609Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "google/gemini-2.0-flash-lite-001",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "logSuggestions": true
+    }
+  }
+}

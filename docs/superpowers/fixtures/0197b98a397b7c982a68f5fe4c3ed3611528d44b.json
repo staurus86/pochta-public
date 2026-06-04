@@ -1,0 +1,508 @@
+{
+  "messageKey": "0197b98a397b7c982a68f5fe4c3ed3611528d44b",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "первый товар действительно бренда IFM, но у него нет названия товара, кол-во которое похоже должно было быть указано в таблице разбора 5шт. Сам клиент написал неоднозначно.\nПоследующие товары не являются товарами бренда IFM, скорее всего они бренда производства РФ и их кол-во по 10шт."
+  ],
+  "subject": "FW: Уралэнерго",
+  "body": "Добрый день, прошу выставить счет и указать сроки поставки\r\nДатчик для цилиндра IFM Electronic MK5101 5,000\r\nКВМ-20Вн (нерж. сталь) Кабельный ввод для небронированного кабеля под металлорукав Ø20 мм 1,000\r\nКронштейн для монтажа на трубу Ø50 мм 2,000\r\nИндуктивный датчик ВБИ-Ф60-45К-2113-С 10,000\r\nОптический датчик ВБО-М18-76В-5113-СА 10,000\r\nИндуктивный датчик ВБИ-М30-91В-2113-С 10,000\r\nОптический датчик ВБО-У25-80У-1113-СА 10,000\r\nИнлуктивный датчик ВБИ-П40-120К-1113-Л 10,000\r\nДоставка до Ижевска\r\n\r\nС уважением,\r\nВаранкина Дарья\r\nМенеджер по снабжению\r\ndvarankina@snab-mail.ru<mailto:dvarankina@snab-mail.ru>\r\nТел 8 (3412) 908 668 доп 3339\r\nСот 8-950-819-77-62\r\n\r\n Это сообщение и все приложения к нему строго конфиденциальны и предназначены исключительно для использования получателем (адресатом), указанным выше. Использование информации, содержащейся в настоящем сообщении, допускается с соблюдением требований законодательства РФ и соглашений о коммерческой тайне.",
+  "attachmentFiles": [
+    {
+      "filename": "Реквизиты ООО ТД Уралэнерго (ранее ТД Элеком).docx",
+      "safeName": "Реквизиты ООО ТД Уралэнерго (ранее ТД Элеком).docx",
+      "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size": 14815
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "7b679578-b567-4583-b32a-dba21d70041f",
+    "createdAt": "2026-06-01T15:06:02.414Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "IFM"
+      ],
+      "signals": {
+        "clientScore": 18,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 14,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "наличие\\s+на\\s+складе|сроки\\s+поставки|с\\s+доставкой|просьба\\s+выставить|реквизиты\\s+прилагаются|карточка\\s+предприятия",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 5,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label",
+            "weight": 2
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "dvarankina@snab-mail.ru",
+      "emailPrimary": "dvarankina@snab-mail.ru",
+      "emailDisplayName": "Варанкина Дарья",
+      "emailLocal": "dvarankina",
+      "emailDomain": "snab-mail.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Варанкина Дарья",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Менеджер по снабжению",
+      "positionAlt": "Менеджер по снабжению",
+      "departmentName": null,
+      "positionSource": "signature",
+      "positionConfidence": 0.97,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Варанкина Дарья",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «ТД «Уралэнерго»»",
+      "companyAlt": null,
+      "companyNameSource": "email_domain",
+      "companyNameConfidence": 0.37,
+      "companyNameNeedsReview": true,
+      "companyNameRejected": [
+        {
+          "value": "Варанкина Дарья",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://snab-mail.ru",
+      "cityPhone": "+7 (341) 290-86-68",
+      "mobilePhone": "+7 (950) 819-77-62",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "7814740712",
+      "kpp": null,
+      "ogrn": "1187847262393",
+      "legalCardAttached": true,
+      "sources": {
+        "company": "attachment",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": "attachment",
+        "fullName": "signature",
+        "position": "signature",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день, прошу выставить счет и указать сроки поставки\nДатчик для цилиндра IFM Electronic MK5101 5,000\nКВМ-20Вн (нерж. сталь) Кабельный ввод для небронированного кабеля под металлорукав Ø20 мм 1,000\nКронштейн для монтажа на трубу Ø50 мм 2,000\nИндуктивный датчик ВБИ-Ф60-45К-2113-С 10,000\nОптический датчик ВБО-М18-76В-5113-СА 10,000\nИндуктивный датчик ВБИ-М30-91В-2113-С 10,000\nОптический датчик ВБО-У25-80У-1113-СА 10,000\nИнлуктивный датчик ВБИ-П40-120К-1113-Л 10,000\nДоставка до Ижевска",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "MK5101",
+        "60-45K-2113",
+        "18-76B-5113",
+        "30-91B-2113",
+        "25-80Y-1113",
+        "40-120K-1113"
+      ],
+      "lineItems": [
+        {
+          "article": "MK5101",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "60-45K-2113",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "18-76B-5113",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "30-91B-2113",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "25-80Y-1113",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "40-120K-1113",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 6,
+      "detectedBrands": [
+        "IFM"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "MK5101",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "attachment"
+        ],
+        "names": [],
+        "attachmentsProcessed": [
+          "Реквизиты ООО ТД Уралэнерго (ранее ТД Элеком).docx"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": false,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [
+          "name"
+        ],
+        "completenessScore": 83,
+        "overallConfidence": 0.79,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": null,
+      "productLineItems": [],
+      "productNamesClean": [],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "20В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "20 мм"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "50 мм"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "76В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "91В"
+        }
+      ],
+      "positions": 6,
+      "totalQty": 0,
+      "recognitionDiagnostics": {
+        "completenessScore": 83,
+        "overallConfidence": 0.79,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "missing_name",
+            "field": "name",
+            "severity": "medium"
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый company; слабый inn; нет name",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:MK5101, 60-45K-2113, 18-76B-5113 | бренды:IFM | компания:ООО «ТД «Уралэнерго»» • email:dvarankina@snab-mail.ru",
+        "suggestion": "Не хватает: наименование. Дополните через быструю коррекцию или запросите у клиента. Добавьте наименование для артикула — закрепите через feedback.",
+        "triggerSignals": [
+          "артикулы:MK5101, 60-45K-2113, 18-76B-5113",
+          "бренды:IFM",
+          "компания:ООО «ТД «Уралэнерго»»",
+          "ИНН:7814740712",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 1,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 6,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7505
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://snab-mail.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: MK5101, 60-45K-2113, 18-76B-5113, 30-91B-2113, 25-80Y-1113",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://snab-mail.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7814740712",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "IFM"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Варанкина, добрый день!\n\nСпасибо за заявку по IFM (6 позиций).\nАртикулы: MK5101, 60-45K-2113, 18-76B-5113, 30-91B-2113, 25-80Y-1113\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "FW: Уралэнерго",
+      "attachments": [
+        "Реквизиты ООО ТД Уралэнерго (ранее ТД Элеком).docx"
+      ],
+      "body": "Добрый день, прошу выставить счет и указать сроки поставки\r\nДатчик для цилиндра IFM Electronic MK5101 5,000\r\nКВМ-20Вн (нерж. сталь) Кабельный ввод для небронированного кабеля под металлорукав Ø20 мм 1,000\r\nКронштейн для монтажа на трубу Ø50 мм 2,000\r\nИндуктивный датчик ВБИ-Ф60-45К-2113-С 10,000\r\nОптический датчик ВБО-М18-76В-5113-СА 10,000\r\nИндуктивный датчик ВБИ-М30-91В-2113-С 10,000\r\nОптический датчик ВБО-У25-80У-1113-СА 10,000\r\nИнлуктивный датчик ВБИ-П40-120К-1113-Л 10,000\r\nДоставка до Ижевска\r\n\r\nС уважением,\r\nВаранкина Дарья\r\nМенеджер по снабжению\r\ndvarankina@snab-mail.ru<mailto:dvarankina@snab-mail.ru>\r\nТел 8 (3412) 908 668 доп 3339\r\nСот 8-950-819-77-62\r\n\r\n Это сообщение и все приложения к нему строго конфиденциальны и предназначены исключительно для использования получателем (адресатом), указанным выше. Использование информации, содержащейся в настоящем сообщении, допускается с соблюдением требований законодательства РФ и соглашений о коммерческой тайне."
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Реквизиты ООО ТД Уралэнерго (ранее ТД Элеком).docx",
+          "safeName": "Реквизиты ООО ТД Уралэнерго (ранее ТД Элеком).docx",
+          "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "size": 14815,
+          "ext": ".docx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 1523,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "7814740712"
+          ],
+          "detectedKpp": [
+            "781401001",
+            "184045002",
+            "184045003",
+            "184045001",
+            "027445001",
+            "213045001",
+            "026845001",
+            "026545001",
+            "026445001",
+            "042202824"
+          ],
+          "detectedOgrn": [
+            "1187847262393"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 14815,
+        "totalChars": 1523,
+        "budgetMs": 84,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-19T12:20:47.632Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "quantity"
+      ],
+      "newArticlesAdded": 2,
+      "detectionGapsCount": 2
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:06:02.432Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

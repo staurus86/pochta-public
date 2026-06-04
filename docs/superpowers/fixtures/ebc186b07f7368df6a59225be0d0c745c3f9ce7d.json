@@ -1,0 +1,855 @@
+{
+  "messageKey": "ebc186b07f7368df6a59225be0d0c745c3f9ce7d",
+  "projectId": "project-3-mailbox-file",
+  "comments": [
+    "Бренд, описание и количество не везде заполнены"
+  ],
+  "subject": "Fwd: R. STAHL SCHALTGERATE GMBH",
+  "body": "Добрый день! \n Для проработки закупки прошу в возможно короткий срок (по возможности до 04.04.2026) направить на данный email ТКП с указанием: \n Стоимости продукции; \n возможными сроками поставки; \n Наличие документов о качестве (сертификатов и т.д) указаны в запросе \n гарантийными сроками; \n Места нахождения продукции при самовывозе или условиях при доставке на склад заказчика автотранспортом. \n Массо-габаритными характеристиками для проработки логистики \n Информацией об упаковке \n Страна происхождение \n \nПеерчень во вложении\n С уважением!\nКонстантинов Алексей Евгеньевич\nтел 8-903-540-52-88\nООО \"ЦентрСнабИнжиниринг\" \n \n kae@cs-eng.ru",
+  "attachmentFiles": [
+    {
+      "filename": "Запрос R. STAHL SCHALTGERATE GMBH.xlsx",
+      "safeName": "Запрос R. STAHL SCHALTGERATE GMBH.xlsx",
+      "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "size": 17783
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "b1b24ef0-88e6-4a4f-8a24-80155a95e5a2",
+    "createdAt": "2026-06-01T14:51:17.370Z",
+    "mailbox": "multi-mailbox@project3.local",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "R. STAHL",
+        "R. STAHL SCHALTGERAETE"
+      ],
+      "signals": {
+        "clientScore": 13,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "kae@cs-eng.ru",
+      "emailPrimary": "kae@cs-eng.ru",
+      "emailDisplayName": "Константинов Алексей Евгеньевич",
+      "emailLocal": "kae",
+      "emailDomain": "cs-eng.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Константинов Алексей Евгеньевич",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "Константинов",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "ООО «ЦентрСнабИнжиниринг»",
+      "companyAlt": "ООО «ЦентрСнабИнжиниринг»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Константинов Алексей Евгеньевич",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://cs-eng.ru",
+      "cityPhone": null,
+      "mobilePhone": "+7 (903) 540-52-88",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "7730605139",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "signature",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "signature",
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день! \n Для проработки закупки прошу в возможно короткий срок (по возможности до 04.04.2026) направить на данный email ТКП с указанием: \n Стоимости продукции; \n возможными сроками поставки; \n Наличие документов о качестве (сертификатов и т.д) указаны в запросе \n гарантийными сроками; \n Места нахождения продукции при самовывозе или условиях при доставке на склад заказчика автотранспортом. \n Массо-габаритными характеристиками для проработки логистики \n Информацией об упаковке \n Страна происхождение \n \nПеерчень во вложении\n\nВложение: Запрос R. STAHL SCHALTGERATE GMBH.xlsx\n№п/п\tОписание\tОписание на русском\tПарт. номер производителя\tПроизводитель\tТребование к документации\tКол-во\tЕд.изм.\n1\tMODULE TEMP CONT,8040/1260-R5A,R-STAHL Instrument systems Type THERMOSTAT MEASURING RANGE : 0 DEG C TO 120 DEG C HAZARD CERT : EEX ED IIC T6 INGRESS CERT : IP66 MAT, HOUSING : FIBRE GLASS MAT, GASKET : POLYURETHANE, FOAMED SENSOR : VA 1.4571 RATED VOLTAGE : MAX 250VAC RATED CURRENT : 5A CAPILLAR TUBE LENGTH : 1000MM CAPILLAR TUBE DIA : 1.5MM MIN BENDING RADIUS : 5MM SENSOR DIAMETER : 6MM SENSOR LENGTH : 81MM Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer Part Number 8040/1260-R5A/°C Base Unit of Measure: EA\tМОДУЛЬ УПР ТЕМП,8040/1260-R5A,R-STAHL Системы КИП Тип THERMOSTAT Системы КИП Тип ТЕРМОСТАТ ДИАПАЗОН ИЗМЕРЕНИЯ : 0–120 °C СЕРТИФ ДЛЯ ОПАС ЗОН : EEX ED IIC T6 СЕРТИФ СТЕПЕНИ ЗАЩ : IP66 МАТЕРИАЛ КОРПУСА : СТЕКЛОВОЛОКНО МАТЕРИАЛ ПРОКЛАДКИ : ВСПЕНЕННЫЙ ПОЛИУРЕТАН ДАТЧИК : VA 1.4571 НОМИН НАПРЯЖЕНИЕ : МАКС 250 В ПЕРЕМ ТОКА НОМИНАЛЬНЫЙ ТОК : 5 A ДЛИНА КАПИЛЛ ТРУБКИ :  MM ДИАМЕТР КАПИЛЛ ТРУБКИ: ММ МИН РАДИУС ИЗГИБА : 5 MM ДИАМЕТР ДАТЧИКА : 6 MM ДЛИНА ДАТЧИКА : 81 MM Изготовитель R STAHL SCHALTGERATE Номер детали изготовителя 8040/1260-R5A/°C Производитель R. STAHL SCHALTGERATE GMBH Парт. номер производителя 8040/1260-R5A/°C\t8040/1260-R5A/°C\tR. STAHL SCHALTGERATE GMBH\t3\tшт\n2\tTERMINAL BOX,R-STAHL,8146/1073-3GRP,10/4 Connection boxes, Electrical cable Manufacturer model number 8146",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": true,
+      "articles": [
+        "TO 120 DEG C HAZARD CERT",
+        "6043/771-204",
+        "6050/111-12010-100-1",
+        "6050/111-30711-000-1",
+        "1016",
+        "8290/3-M25",
+        "8146/1073-3GRP",
+        "6108/1081-8017-74-00",
+        "171256",
+        "118013",
+        "8040/1260-R5A/0-120°C",
+        "6050/111-3051-000-1",
+        "8082/1-2-00",
+        "8570/12-306-S-XX-X-XX-XXX",
+        "8146/5-V27-201-085-02-21-1",
+        "8573/15-212",
+        "8579/12-506",
+        "A21",
+        "TS35",
+        "3-M25",
+        "M25",
+        "M10",
+        "7A.H",
+        "A01",
+        "B06",
+        "B07",
+        "220-254",
+        "50/60HZ"
+      ],
+      "lineItems": [
+        {
+          "article": "171256",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "NI/CD BATTERY,171256,R-STAHL Spare parts Part name NI/CD BATTERY Weight kg 0.480 Capacity AH Voltage 6 V Manufacturer R",
+          "explicitArticle": true,
+          "sourceLine": "6\tNI/CD BATTERY,171256,R-STAHL Spare parts Part name NI/CD BATTERY Weight kg 0.480 Capacity AH Voltage 6 V Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer part number 171256\tNI/CD БАТАРЕЯ,171256,R-STAHL Запасные части Наименование детали NI/CD АККУМУЛЯТОРНАЯ БАТАРЕЯ Вес кг. 0.480 Емкость AH Напряжение 6 V Производитель R. STAHL SCHALTGERATE GMBH Парт. номер производителя 171256\t171256\tR. STAHL SCHALTGERATE GMBH\tТРЕБОВАНИЕ ДОКУМЕНТАЦИИ ПОСТАВШИКА: Листы технических данных на оборудование Сертификаты для опасных зон Сертификат электромагнитной совместимости (ЭМС) ТР ТС / Декл арация о соответствии\t2\tшт",
+          "source": "body"
+        },
+        {
+          "article": "6043/771-204",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "BALLAST,6043/771-204,R-STAHL Spare parts Part name ELECTRNIC BALLAST Voltage 220-254 VAC 50/60HZ Power 1X8 W Manufacturer R",
+          "explicitArticle": true,
+          "sourceLine": "7\tBALLAST,6043/771-204,R-STAHL Spare parts Part name ELECTRNIC BALLAST Voltage 220-254 VAC 50/60HZ Power 1X8 W Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer part number 6043/771-204 R\tБАЛЛАСТ,6043/771-204,R-STAHL Запасные части Наименование детали ЭЛЕКТРОННЫЙ БАЛЛАСТ Напряжение 220-254 VAC 50/60HZ Мощность 1X8 W Производитель R. STAHL SCHALTGERATE GMBH Парт. номер производителя 6043/771-204\t6043/771-204\tR. STAHL SCHALTGERATE GMBH\tТРЕБОВАНИЕ ДОКУМЕНТАЦИИ ПОСТАВШИКА: Листы технических данных на оборудование Сертификаты для опасных зон Сертификат электромагнитной совместимости (ЭМС) ТР ТС / Декл арация о соответствии\t2\tшт",
+          "source": "body"
+        },
+        {
+          "article": "118013",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "BATTERY PACK,R-STAHL,118013,6V,7A.H Descripiton BATTERY PACK Voltage 6 V Capacity 7 A.h Manufacturer R",
+          "explicitArticle": true,
+          "sourceLine": "8\tBATTERY PACK,R-STAHL,118013,6V,7A.H Descripiton BATTERY PACK Voltage 6 V Capacity 7 A.h Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer part number 118013\tBATTERY PACK,R-STAHL,118013,6V,7A.H Descripiton BATTERY PACK Voltage 6 V Capacity 7 A.h Производитель R. STAHL SCHALTGERATE GMBH Парт. номер производителя 118013 VENDOR DOCUMENT REQUIREMENTS: A01 Vendor Master Data Schedule (VMDS) B06 Certificate of Origin B07 Certificate of Compliance\t118013\tR. STAHL SCHALTGERATE GMBH\t2\tшт",
+          "source": "body"
+        },
+        {
+          "article": "6050/111-12010-100-1",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": null,
+          "explicitArticle": true,
+          "sourceLine": "9\tPENDANT LIGHT FITTING,6050/111+,R-STAHL Pendant light fitting Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer Part Number 6050/111-12010-100-1\tПОДВЕС Д/СВЕТИЛЬНИКА,6050/111+,R-STAHL Подвесной светильник Изготовитель R STAHL SCHALTGERATE Номер детали изготовителя 6050/111-12010-100-1 Производитель R. STAHL SCHALTGERATE GMBH Парт. номер производителя 6050/111-12010-100-1\t6050/111-12010-100-1\tR. STAHL SCHALTGERATE GMBH\t2\tшт",
+          "source": "body"
+        },
+        {
+          "article": "DESC:vlozhenie-zapros-r-stahl-schaltgerate-gmbh-xlsx",
+          "descriptionRu": "Вложение: Запрос R. STAHL SCHALTGERATE GMBH.xlsx",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "TO 120 DEG C HAZARD CERT",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "8290/3-M25",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "8146/1073-3GRP",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "TERMINAL BOX,R-STAHL,8146/1073-3GRP,10/4 Connection boxes, Electrical cable Manufacturer model number 8146/1073-3 GRP Type TERMINAL BOX Classification, hazard areas T 80 °C GAS EXPLOSION PROTECTION EX",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "8040/1260-R5A/0-120°C",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "MODULE TEMP CONT,8040/1260-R5A,R-STAHL Instrument systems Type THERMOSTAT MEASURING RANGE : 0 DEG C TO 120 DEG C HAZARD CERT : EEX ED IIC T6 INGRESS CERT : IP66 MAT, HOUSING : FIBRE GLASS MAT, GASKET",
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": null,
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "BATTERY PACK,R-STAHL,118013,6V,7A.H Descripiton BATTERY PACK Voltage 6 V Capacity 7 A.h Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer part number 118013 VENDOR DOCUMENT REQUIREMENTS: A01 Vendor",
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "6108/1081-8017-74-00",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "6050/111-30711-000-1",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "FITTING,LIGHT,PENDANT6050/111+,R-STAHL High pressure sodium lamp Power rating 70 W Voltage rating 230 V Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer Part Number 6050/",
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "6050/111-3051-000-1",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "8082/1-2-00",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "TERMINAL,SCREW,R-STAHL,8082/1-2-00 . Description SCREW TERMINAL Contacts 1 NORMALLY OPEN (NO) Mat, contact SILVER NICKEL Weight 0.030 kg Rated operational voltage, max 550 V Rated operational current",
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "8570/12-306-S-XX-X-XX-XXX",
+          "quantity": 27,
+          "unit": "шт",
+          "descriptionRu": "PLUG,ELEC,R-STAHL,8570/12-306,16A,IP66 Ind. power distribution elec. plugs Classification, hazard areas EXPLOSION PROOF Ingress protection IP66 Voltage, rated 200 TO 250 V Poles 3 (2P+E) Current, rate",
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "8146/5-V27-201-085-02-21-1",
+          "quantity": 5,
+          "unit": "шт",
+          "descriptionRu": "SAFETY SWITCH,R-STAHL,8146/5-V27+,FAN MO Electrical switches Pole, quantity 3 Current rating TO 4 A Voltage rating 380-690 VAC 50 - 60 HZ Standard E II 2 G EX DB EB IIC T5 GB Ingress protection IP66 A",
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "8573/15-212",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "SOCKET,ELEC,R-STAHL,8573/15-212,50V,16A Ind. power distribution elec. sockets Application HAZARDOUS AREAS Classification, hazard areas II 2 G EEX ED IIC T6 Ingress protection IP54 Certif, ec type exam",
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "8579/12-506",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "PLUG,ELEC,R-STAHL,8579/12-506,63A Ind. power distribution elec. plugs Manufacturer Model number 8579/12 Classification, hazard areas EXPLOSION PROOF Ingress protection IP66 Voltage, rated 240 TO 415 V",
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        }
+      ],
+      "totalPositions": 29,
+      "detectedBrands": [
+        "R. STAHL",
+        "C.R.",
+        "CROSS",
+        "MASTER PNEUMATIC"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "TO 120 DEG C HAZARD CERT",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "6043/771-204",
+          "name": "BALLAST",
+          "category": null
+        },
+        {
+          "article": "6050/111-12010-100-1",
+          "name": "PENDANT LIGHT FITTING,6050/111+,R-STAHL Pendant light fitting Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer Part Number",
+          "category": null
+        },
+        {
+          "article": "6050/111-30711-000-1",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "8040/1260-R5A",
+          "name": "MODULE TEMP CONT",
+          "category": null
+        },
+        {
+          "article": "1016",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "8290/3-M25",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "8146/1073-3GRP",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "6108/1081-8017-74-00",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "171256",
+          "name": "NI/CD BATTERY",
+          "category": null
+        },
+        {
+          "article": "118013",
+          "name": "BATTERY PACK,R-STAHL",
+          "category": null
+        },
+        {
+          "article": "8040/1260-R5A/0-120°C",
+          "name": "MODULE TEMP CONT,8040/1260-R5A,R-STAHL Instrument systems Type THERMOSTAT MEASURING RANGE : 0 DEG C TO 120 DEG C HAZARD CERT : EEX ED IIC T6 INGRESS CERT : IP66 MAT, HOUSING : FIBRE GLASS MAT, GASKET",
+          "category": null,
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "6050/111-3051-000-1",
+          "name": null,
+          "category": null,
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "8082/1-2-00",
+          "name": "TERMINAL,SCREW,R-STAHL,8082/1-2-00 . Description SCREW TERMINAL Contacts 1 NORMALLY OPEN (NO) Mat, contact SILVER NICKEL Weight 0.030 kg Rated operational voltage, max 550 V Rated operational current",
+          "category": null,
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "8570/12-306-S-XX-X-XX-XXX",
+          "name": "PLUG,ELEC,R-STAHL,8570/12-306,16A,IP66 Ind. power distribution elec. plugs Classification, hazard areas EXPLOSION PROOF Ingress protection IP66 Voltage, rated 200 TO 250 V Poles 3 (2P+E) Current, rate",
+          "category": null,
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "8146/5-V27-201-085-02-21-1",
+          "name": "SAFETY SWITCH,R-STAHL,8146/5-V27+,FAN MO Electrical switches Pole, quantity 3 Current rating TO 4 A Voltage rating 380-690 VAC 50 - 60 HZ Standard E II 2 G EX DB EB IIC T5 GB Ingress protection IP66 A",
+          "category": null,
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "8573/15-212",
+          "name": "SOCKET,ELEC,R-STAHL,8573/15-212,50V,16A Ind. power distribution elec. sockets Application HAZARDOUS AREAS Classification, hazard areas II 2 G EEX ED IIC T6 Ingress protection IP54 Certif, ec type exam",
+          "category": null,
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        },
+        {
+          "article": "8579/12-506",
+          "name": "PLUG,ELEC,R-STAHL,8579/12-506,63A Ind. power distribution elec. plugs Manufacturer Model number 8579/12 Classification, hazard areas EXPLOSION PROOF Ingress protection IP66 Voltage, rated 240 TO 415 V",
+          "category": null,
+          "source": "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Мультибрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "freetext",
+          "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        ],
+        "names": [
+          "attachment:Запрос R. STAHL SCHALTGERATE GMBH.xlsx",
+          "body",
+          "freetext"
+        ],
+        "attachmentsProcessed": [
+          "Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.83,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Вложение: Запрос R. STAHL SCHALTGERATE GMBH.xlsx",
+      "productLineItems": [
+        "MODULE TEMP CONT",
+        "NI/CD BATTERY,171256,R-STAHL Spare parts Part name NI/CD BATTERY Weight kg 0.480 Capacity AH Voltage 6 V Manufacturer R",
+        "BALLAST,6043/771-204,R-STAHL Spare parts Part name ELECTRNIC BALLAST Voltage 220-254 VAC 50/60HZ Power 1X8 W Manufacturer R",
+        "BATTERY PACK,R-STAHL,118013,6V,7A.H Descripiton BATTERY PACK Voltage 6 V Capacity 7 A.h Manufacturer R",
+        "Вложение: Запрос R. STAHL SCHALTGERATE GMBH.xlsx",
+        "TERMINAL BOX,R-STAHL,8146/1073-3GRP,10/4 Connection boxes, Electrical cable Manufacturer model number 8146/1073-3 GRP Type TERMINAL BOX Classification, hazard areas T 80 °C GAS EXPLOSION PROTECTION EX",
+        "MODULE TEMP CONT,8040/1260-R5A,R-STAHL Instrument systems Type THERMOSTAT MEASURING RANGE : 0 DEG C TO 120 DEG C HAZARD CERT : EEX ED IIC T6 INGRESS CERT : IP66 MAT, HOUSING : FIBRE GLASS MAT, GASKET",
+        "BATTERY PACK,R-STAHL,118013,6V,7A.H Descripiton BATTERY PACK Voltage 6 V Capacity 7 A.h Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer part number 118013 VENDOR DOCUMENT REQUIREMENTS: A01 Vendor",
+        "FITTING,LIGHT,PENDANT6050/111+,R-STAHL High pressure sodium lamp Power rating 70 W Voltage rating 230 V Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer Part Number 6050/",
+        "TERMINAL,SCREW,R-STAHL,8082/1-2-00 . Description SCREW TERMINAL Contacts 1 NORMALLY OPEN (NO) Mat, contact SILVER NICKEL Weight 0.030 kg Rated operational voltage, max 550 V Rated operational current",
+        "PLUG,ELEC,R-STAHL,8570/12-306,16A,IP66 Ind. power distribution elec. plugs Classification, hazard areas EXPLOSION PROOF Ingress protection IP66 Voltage, rated 200 TO 250 V Poles 3 (2P+E) Current, rate",
+        "SAFETY SWITCH,R-STAHL,8146/5-V27+,FAN MO Electrical switches Pole, quantity 3 Current rating TO 4 A Voltage rating 380-690 VAC 50 - 60 HZ Standard E II 2 G EX DB EB IIC T5 GB Ingress protection IP66 A",
+        "SOCKET,ELEC,R-STAHL,8573/15-212,50V,16A Ind. power distribution elec. sockets Application HAZARDOUS AREAS Classification, hazard areas II 2 G EEX ED IIC T6 Ingress protection IP54 Certif, ec type exam",
+        "PLUG,ELEC,R-STAHL,8579/12-506,63A Ind. power distribution elec. plugs Manufacturer Model number 8579/12 Classification, hazard areas EXPLOSION PROOF Ingress protection IP66 Voltage, rated 240 TO 415 V"
+      ],
+      "productNamesClean": [
+        "MODULE TEMP CONT",
+        "NI/CD BATTERY,171256,R-STAHL Spare parts Part name NI/CD BATTERY Weight kg 0.480 Capacity AH Voltage 6 V Manufacturer R",
+        "BALLAST,6043/771-204,R-STAHL Spare parts Part name ELECTRNIC BALLAST Voltage 220-254 VAC 50/60HZ Power 1X8 W Manufacturer R",
+        "BATTERY PACK,R-STAHL,118013,6V,7A.H Descripiton BATTERY PACK Voltage 6 V Capacity 7 A.h Manufacturer R",
+        "Вложение: Запрос R. STAHL SCHALTGERATE GMBH.xlsx",
+        "TERMINAL BOX,R-STAHL,8146/1073-3GRP,10/4 Connection boxes, Electrical cable Manufacturer model number 8146/1073-3 GRP Type TERMINAL BOX Classification, hazard areas T 80 °C GAS EXPLOSION PROTECTION EX",
+        "MODULE TEMP CONT,8040/1260-R5A,R-STAHL Instrument systems Type THERMOSTAT MEASURING RANGE : 0 DEG C TO 120 DEG C HAZARD CERT : EEX ED IIC T6 INGRESS CERT : IP66 MAT, HOUSING : FIBRE GLASS MAT, GASKET",
+        "BATTERY PACK,R-STAHL,118013,6V,7A.H Descripiton BATTERY PACK Voltage 6 V Capacity 7 A.h Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer part number 118013 VENDOR DOCUMENT REQUIREMENTS: A01 Vendor",
+        "FITTING,LIGHT,PENDANT6050/111+,R-STAHL High pressure sodium lamp Power rating 70 W Voltage rating 230 V Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer Part Number 6050/",
+        "TERMINAL,SCREW,R-STAHL,8082/1-2-00 . Description SCREW TERMINAL Contacts 1 NORMALLY OPEN (NO) Mat, contact SILVER NICKEL Weight 0.030 kg Rated operational voltage, max 550 V Rated operational current",
+        "PLUG,ELEC,R-STAHL,8570/12-306,16A,IP66 Ind. power distribution elec. plugs Classification, hazard areas EXPLOSION PROOF Ingress protection IP66 Voltage, rated 200 TO 250 V Poles 3 (2P+E) Current, rate",
+        "SAFETY SWITCH,R-STAHL,8146/5-V27+,FAN MO Electrical switches Pole, quantity 3 Current rating TO 4 A Voltage rating 380-690 VAC 50 - 60 HZ Standard E II 2 G EX DB EB IIC T5 GB Ingress protection IP66 A",
+        "SOCKET,ELEC,R-STAHL,8573/15-212,50V,16A Ind. power distribution elec. sockets Application HAZARDOUS AREAS Classification, hazard areas II 2 G EEX ED IIC T6 Ingress protection IP54 Certif, ec type exam",
+        "PLUG,ELEC,R-STAHL,8579/12-506,63A Ind. power distribution elec. plugs Manufacturer Model number 8579/12 Classification, hazard areas EXPLOSION PROOF Ingress protection IP66 Voltage, rated 240 TO 415 V"
+      ],
+      "productNamesRejected": [
+        {
+          "raw": "PENDANT LIGHT FITTING,6050/111+,R-STAHL Pendant light fitting Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer Part Number 6050/111-12010-100-1 ПОДВЕС Д/СВЕТИЛЬНИКА,6050/111+,R-STAHL Подвесной светильник Изготовитель R STAHL SCHALTGERATE Номер детали изготовителя 6050/111-12010-100-1 Производитель R. STAHL SCHALTGERATE GMBH Парт. номер производителя 6050/111-12010-100-1 6050/111-12010-100-1 R. STAHL SCHALTGERATE GMBH",
+          "normalized": "PENDANT LIGHT FITTING,6050/111+,R-STAHL Pendant light fitting Manufacturer R. STAHL SCHALTGERATE GMBH Manufacturer Part Number 6050/111-12010-100-1 ПОДВЕС Д/СВЕТИЛЬНИКА,6050/111+,R-STAHL Подвесной",
+          "reason": "bad_product_name"
+        },
+        {
+          "raw": "LIGHT FITTING,R-STAHL,6108108180177400 Luminaires, Fluorescent, Hazardous areas Type COMPACT EMERGENCY Ingress protection IP66 Voltage, rated 220 TO 254 V Power, rated 8 W Mat, body GLASS FIBRE REINFO",
+          "normalized": "LIGHT FITTING,R-STAHL,6108108180177400 Luminaires, Fluorescent, Hazardous areas Type COMPACT EMERGENCY Ingress protection IP66 Voltage, rated 220 TO 254 V Power, rated 8 W Mat, body GLASS FIBRE REINFO",
+          "reason": "bad_product_name"
+        },
+        {
+          "raw": "LAMP,DISCH,R-STAHL,6050/111-3051-000-1 Lamps, Discharge Type HIGH PRESSURE SODIUM DISCHARGE Shape E 27 Burning position UNIVERSAL Power, rated 50 W Series 6050 Temperature class T5 AT 40 °C T4 AT 50 °",
+          "normalized": "LAMP,DISCH,R-STAHL,6050/111-3051-000-1 Lamps, Discharge Type HIGH PRESSURE SODIUM DISCHARGE Shape E 27 Burning position UNIVERSAL Power, rated 50 W Series 6050 Temperature class T5 AT 40 °C T4 AT 50 °",
+          "reason": "bad_product_name"
+        }
+      ],
+      "primaryQuantity": 3,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "labeled"
+        }
+      ],
+      "totalQuantity": 11,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "6 V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "254 V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "60HZ"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "118013,6V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "118013 V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "01 V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "230 V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "550 V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "66 V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "250 V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "690 V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "60 HZ"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "212,50V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "415 V"
+        }
+      ],
+      "positions": 29,
+      "totalQty": 42,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.83,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.96,
+            "source": "explicit_article_block"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "signature"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "R. STAHL",
+              "C.R.",
+              "CROSS",
+              "MASTER PNEUMATIC"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый company; слабый inn; multiple brands detected",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:TO 120 DEG C HAZARD CERT, 6043/771-204, 6050/111-12010-100-1 | бренды:R. STAHL, C.R., CROSS | компания:ООО «ЦентрСнабИнжиниринг» • email:kae@cs-eng.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:TO 120 DEG C HAZARD CERT, 6043/771-204, 6050/111-12010-100-1",
+          "бренды:R. STAHL, C.R., CROSS",
+          "компания:ООО «ЦентрСнабИнжиниринг»",
+          "ИНН:7730605139",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 7,
+          "attachmentArticles": 9,
+          "matchedRuleCount": 4,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7885
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://cs-eng.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: TO 120 DEG C HAZARD CERT, 6043/771-204, 6050/111-12010-100-1, 6050/111-30711-000-1, 1016",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://cs-eng.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7730605139",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "R. STAHL",
+      "C.R.",
+      "CROSS",
+      "MASTER PNEUMATIC"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Мультибрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Константинов, добрый день!\n\nСпасибо за заявку по R. STAHL, C.R., CROSS, MASTER PNEUMATIC (29 позиций).\nАртикулы: TO 120 DEG C HAZARD CERT, 6043/771-204, 6050/111-12010-100-1, 6050/111-30711-000-1, 1016\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Fwd: R. STAHL SCHALTGERATE GMBH",
+      "attachments": [
+        "Запрос R. STAHL SCHALTGERATE GMBH.xlsx"
+      ],
+      "body": "Добрый день! \n Для проработки закупки прошу в возможно короткий срок (по возможности до 04.04.2026) направить на данный email ТКП с указанием: \n Стоимости продукции; \n возможными сроками поставки; \n Наличие документов о качестве (сертификатов и т.д) указаны в запросе \n гарантийными сроками; \n Места нахождения продукции при самовывозе или условиях при доставке на склад заказчика автотранспортом. \n Массо-габаритными характеристиками для проработки логистики \n Информацией об упаковке \n Страна происхождение \n \nПеерчень во вложении\n С уважением!\nКонстантинов Алексей Евгеньевич\nтел 8-903-540-52-88\nООО \"ЦентрСнабИнжиниринг\" \n \n kae@cs-eng.ru"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Запрос R. STAHL SCHALTGERATE GMBH.xlsx",
+          "safeName": "Запрос R. STAHL SCHALTGERATE GMBH.xlsx",
+          "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "size": 17783,
+          "ext": ".xlsx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 21444,
+          "category": "product_request",
+          "detectedArticles": [
+            "8040/1260-R5A",
+            "IP66",
+            "250VAC",
+            "1000MM",
+            "1.5MM",
+            "5MM",
+            "6MM",
+            "81MM",
+            "8040/1260-R5A/0-120",
+            "8146/1073-3GRP",
+            "8146/1073-3",
+            "A21",
+            "TS35",
+            "3-M25",
+            "M25",
+            "M10",
+            "8290/3-M25",
+            "8146/1073",
+            "7A.H",
+            "A01",
+            "B06",
+            "B07",
+            "6108108180177400",
+            "6108/1081-8017-74-00",
+            "6043/771-204",
+            "220-254",
+            "50/60HZ",
+            "1X8",
+            "6050/111",
+            "6050/111-12010-100-1"
+          ],
+          "detectedBrands": [
+            "CROSS",
+            "Elec-Con",
+            "MASTER PNEUMATIC",
+            "R. STAHL",
+            "R. STAHL SCHALTGERAETE",
+            "Rotary Power",
+            "UNIVERSAL HYDRAULIK"
+          ],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 17783,
+        "totalChars": 12000,
+        "budgetMs": 2201,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-16T20:38:26.571Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": true,
+      "missingForProcessing": [
+        "kpp",
+        "ogrn"
+      ],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 4
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:51:17.385Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

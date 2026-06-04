@@ -1,0 +1,701 @@
+{
+  "messageKey": "c8c0c7eb9729aa2b0dbfb4983e24d5d039be6eb1",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Бренд не заполнен, описание заполнено неверно, вместо наименования там бренд",
+    "Вместо описания указан бренд, а графа бренд не заполнена"
+  ],
+  "subject": "Fwd[4]: Закуп Siemens/Riverwave",
+  "body": "Добрый день!\n\nПрошу на основании позиций ниже выставить счет/ТКП с указанием сроков поставки и адреса отгрузки:\n\nТовары (работы, услуги) Производитель Артикул производителя Цена (без НДС) Срок поставки (в днях) Количество НАСОС RV40PKFF RIVERWAVE ДИАФРАГМЕННЫЙ флис-станция низ RIVERWAVE 1 шт ЭЛЕКТРОННЫЙ МОДУЛЬ 6ES7134-4NB51-0AB0 SIMATIC DP, ДЛЯ ET 200S: 2AI RTD HIGH FEATURE - УЛУЧШЕННЫЕ ХАРАКТЕРИСТИКИ, SIEMENS 6ES7134-4NB51-0AB0 3 шт ПРИВОД С ЭНКОДЕРОМ SERVOTEC UAL 2 RN1 C500 TS SP AC 3-PHASE 0,18 KW 4P VOLT 230/400 VA ТИП UAL2 RN1 C500 TS SP НАЛИЧИЕ ТОРМОЗА: ДА МОНТАЖНАЯ ПОЗИЦИЯ: TERMINAL W ЧАСТОТА 50 HZ МОЩНОСТЬ 0,180 KW ОБОРОТОВ/МИН 1.400 НАПР. ТОРМОЗА 230 V (ШИЛЬДА ПРИЛОЖЕНА) SERVOTEC UAL2 RN1 C500 TS SP 1 шт ЭЛЕКТРОДВИГАТЕЛЬ BUSCK MS 71C-4 B14 0,55КВТ BUSCK MS 71C-4 B14 1 шт ВЫКЛЮЧАТЕЛЬ З-Х ПОЛ. В ИЗОЛ КОЖ. 13КВТ P1-25/I2/SVB-SW/HI11 MOELLER MOELLER ELECTRIC P1-25/I2/SVB-SW/HI11 4 шт МОДУЛЬ ET200SP BU F-DI -FORWARDING 3RK1908-0AP00-0JP0 SIEMENS ТЕРМИНАЛЬНЫЙ SIEMENS 3RK1908-0AP00-0JP0 1 шт МОДУЛЬ ET200 SP 3DI/LC MODULE 3RK1908-1AA00-0BP0 SIEMENS SIEMENS 3RK1908-1AA00-0BP0 2 шт МОДУЛЬ ET200SP BU30-MS1 3RK1908-0AP00-0AP0 SIEMENS ПУСКАТЕЛЯ SIEMENS 3RK1908-0AP00-0AP0 4 шт МОДУЛЬ ET200SP BU30-MS4 3RK1908-0AP00-0DP0 SIEMENS ПУСКАТЕЛЯ SIEMENS 3RK1908-0AP00-0DP0 5 шт\n\nС уважением,\n\nФаткуллин Максим Вячеславович\n\nВедущий специалист отдела снабжения\n\nООО «ПСГ»\n\n+7(985)589-74-05",
+  "attachmentFiles": [
+    {
+      "filename": "Карта_партнера_ООО_ПСГ_Банк_Газпром_Алга_3.pdf",
+      "safeName": "Карта_партнера_ООО_ПСГ_Банк_Газпром_Алга_3.pdf",
+      "contentType": "application/pdf",
+      "size": 596861
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "58a49267-1d1e-4a1d-8101-49c4e0f194b5",
+    "createdAt": "2026-06-01T14:56:13.391Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.85,
+      "detectedBrands": [
+        "BUSCK",
+        "MOELLER",
+        "Siemens",
+        "VOLT"
+      ],
+      "signals": {
+        "clientScore": 12,
+        "spamScore": 0,
+        "vendorScore": 3,
+        "matchedRules": [
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 3,
+            "classifier": "vendor",
+            "scope": "body",
+            "pattern": "предлагаем|каталог|дилер|поставля|прайс|услуг",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal",
+      "sources": {
+        "droppedBrands_noBodyOverlap": [
+          "PHASE MOTION CONTROL"
+        ]
+      }
+    },
+    "sender": {
+      "email": "snab.psgsk@mail.ru",
+      "emailPrimary": "snab.psgsk@mail.ru",
+      "emailDisplayName": "Фаткуллин Максим Вячеславович",
+      "emailLocal": "snab.psgsk",
+      "emailDomain": "mail.ru",
+      "emailType": "role_mailbox",
+      "emailDomainType": "public_provider",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.7,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": false,
+      "emailCanDefineCompany": false,
+      "emailRejected": [],
+      "fullName": "Фаткуллин Максим Вячеславович",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Ведущий специалист отдела снабжения",
+      "positionAlt": "Ведущий специалист отдела снабжения",
+      "departmentName": "отдела снабжения",
+      "positionSource": "signature",
+      "positionConfidence": 1,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Фаткуллин",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "ООО «ПСГ»",
+      "companyAlt": "ООО «ПСГ»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Фаткуллин Максим Вячеславович",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        },
+        {
+          "value": "mail.ru",
+          "source": "email_domain",
+          "reason": "generic_provider"
+        }
+      ],
+      "website": null,
+      "cityPhone": null,
+      "mobilePhone": "+7 (985) 589-74-05",
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "274976323",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "signature",
+        "website": null,
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "signature",
+        "position": "signature",
+        "department": "body"
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день!\n\nПрошу на основании позиций ниже выставить счет/ТКП с указанием сроков поставки и адреса отгрузки:\n\nТовары (работы, услуги) Производитель Артикул производителя Цена (без НДС) Срок поставки (в днях) Количество НАСОС RV40PKFF RIVERWAVE ДИАФРАГМЕННЫЙ флис-станция низ RIVERWAVE 1 шт ЭЛЕКТРОННЫЙ МОДУЛЬ 6ES7134-4NB51-0AB0 SIMATIC DP, ДЛЯ ET 200S: 2AI RTD HIGH FEATURE - УЛУЧШЕННЫЕ ХАРАКТЕРИСТИКИ, SIEMENS 6ES7134-4NB51-0AB0 3 шт ПРИВОД С ЭНКОДЕРОМ SERVOTEC UAL 2 RN1 C500 TS SP AC 3-PHASE 0,18 KW 4P VOLT 230/400 VA ТИП UAL2 RN1 C500 TS SP НАЛИЧИЕ ТОРМОЗА: ДА МОНТАЖНАЯ ПОЗИЦИЯ: TERMINAL W ЧАСТОТА 50 HZ МОЩНОСТЬ 0,180 KW ОБОРОТОВ/МИН 1.400 НАПР. ТОРМОЗА 230 V (ШИЛЬДА ПРИЛОЖЕНА) SERVOTEC UAL2 RN1 C500 TS SP 1 шт ЭЛЕКТРОДВИГАТЕЛЬ BUSCK MS 71C-4 B14 0,55КВТ BUSCK MS 71C-4 B14 1 шт ВЫКЛЮЧАТЕЛЬ З-Х ПОЛ. В ИЗОЛ КОЖ. 13КВТ P1-25/I2/SVB-SW/HI11 MOELLER MOELLER ELECTRIC P1-25/I2/SVB-SW/HI11 4 шт МОДУЛЬ ET200SP BU F-DI -FORWARDING 3RK1908-0AP00-0JP0 SIEMENS ТЕРМИНАЛЬНЫЙ SIEMENS 3RK1908-0AP00-0JP0 1 шт МОДУЛЬ ET200 SP 3DI/LC MODULE 3RK1908-1AA00-0BP0 SIEMENS SIEMENS 3RK1908-1AA00-0BP0 2 шт МОДУЛЬ ET200SP BU30-MS1 3RK1908-0AP00-0AP0 SIEMENS ПУСКАТЕЛЯ SIEMENS 3RK1908-0AP00-0AP0 4 шт МОДУЛЬ ET200SP BU30-MS4 3RK1908-0AP00-0DP0 SIEMENS ПУСКАТЕЛЯ SIEMENS 3RK1908-0AP00-0DP0 5 шт",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "P1-25/I2/SVB-SW/HI11",
+        "BU30-MS1",
+        "BU30-MS4",
+        "RV40PKFF",
+        "6ES7134-4NB51-0AB0",
+        "71C-4",
+        "55КВТ",
+        "13КВТ",
+        "ET200SP",
+        "3RK1908-0AP00-0JP0",
+        "3RK1908-1AA00-0BP0",
+        "3RK1908-0AP00-0AP0",
+        "3RK1908-0AP00-0DP0",
+        "3DI/LC"
+      ],
+      "lineItems": [
+        {
+          "article": "P1-25/I2/SVB-SW/HI11",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "BU30-MS1",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "BU30-MS4",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "RV40PKFF",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "6ES7134-4NB51-0AB0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "71C-4",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "55КВТ",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "13КВТ",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "ET200SP",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "3RK1908-0AP00-0JP0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "3RK1908-1AA00-0BP0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "3RK1908-0AP00-0AP0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "3RK1908-0AP00-0DP0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "3DI/LC",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Fwd[4]: Закуп Siemens/Riverwave",
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 14,
+      "detectedBrands": [
+        "BUSCK",
+        "MOELLER",
+        "PHASE MOTION CONTROL",
+        "Siemens",
+        "VOLT"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "P1-25/I2/SVB-SW/HI11",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "BU30-MS1",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "BU30-MS4",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "RV40PKFF",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "6ES7134-4NB51-0AB0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "71C-4",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "55КВТ",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "13КВТ",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "ET200SP",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3RK1908-0AP00-0JP0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3RK1908-1AA00-0BP0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3RK1908-0AP00-0AP0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3RK1908-0AP00-0DP0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3DI/LC",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Мультибрендовая",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [],
+        "attachmentsProcessed": [
+          "Карта_партнера_ООО_ПСГ_Банк_Газпром_Алга_3.pdf"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.78,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_brand",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Fwd[4]: Закуп Siemens/Riverwave",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Fwd[4]: Закуп Siemens/Riverwave"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 1,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 22,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "0,18 KW"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "400 V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "50 HZ"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "0,180 KW"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "230 V"
+        }
+      ],
+      "positions": 14,
+      "totalQty": 14,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.78,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_brand",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.62,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "signature"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_brand",
+            "field": "brand",
+            "severity": "medium",
+            "confidence": 0.62
+          },
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "BUSCK",
+              "MOELLER",
+              "PHASE MOTION CONTROL",
+              "Siemens",
+              "VOLT"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый brand; слабый company; слабый inn",
+        "decisionReason": "класс:Клиент • conf:85% • сигналы:артикулы:P1-25/I2/SVB-SW/HI11, BU30-MS1, BU30-MS4 | бренды:BUSCK, MOELLER, PHASE MOTION CONTROL | компания:ООО «ПСГ» • email:snab.psgsk@mail.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:P1-25/I2/SVB-SW/HI11, BU30-MS1, BU30-MS4",
+          "бренды:BUSCK, MOELLER, PHASE MOTION CONTROL",
+          "компания:ООО «ПСГ»",
+          "ИНН:274976323",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 14,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 5,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.663
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Сайт не найден автоматически",
+        "Сверить запрос по артикулам: P1-25/I2/SVB-SW/HI11, BU30-MS1, BU30-MS4, RV40PKFF, 6ES7134-4NB51-0AB0",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": null,
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "BY",
+      "deduplicationKey": "274976323",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "BUSCK",
+      "MOELLER",
+      "PHASE MOTION CONTROL",
+      "Siemens",
+      "VOLT"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Мультибрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Фаткуллин, добрый день!\n\nСпасибо за заявку по BUSCK, MOELLER, PHASE MOTION CONTROL, Siemens, VOLT (14 позиций).\nАртикулы: P1-25/I2/SVB-SW/HI11, BU30-MS1, BU30-MS4, RV40PKFF, 6ES7134-4NB51-0AB0\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Fwd[4]: Закуп Siemens/Riverwave",
+      "attachments": [
+        "Карта_партнера_ООО_ПСГ_Банк_Газпром_Алга_3.pdf"
+      ],
+      "body": "Добрый день!\n\nПрошу на основании позиций ниже выставить счет/ТКП с указанием сроков поставки и адреса отгрузки:\n\nТовары (работы, услуги) Производитель Артикул производителя Цена (без НДС) Срок поставки (в днях) Количество НАСОС RV40PKFF RIVERWAVE ДИАФРАГМЕННЫЙ флис-станция низ RIVERWAVE 1 шт ЭЛЕКТРОННЫЙ МОДУЛЬ 6ES7134-4NB51-0AB0 SIMATIC DP, ДЛЯ ET 200S: 2AI RTD HIGH FEATURE - УЛУЧШЕННЫЕ ХАРАКТЕРИСТИКИ, SIEMENS 6ES7134-4NB51-0AB0 3 шт ПРИВОД С ЭНКОДЕРОМ SERVOTEC UAL 2 RN1 C500 TS SP AC 3-PHASE 0,18 KW 4P VOLT 230/400 VA ТИП UAL2 RN1 C500 TS SP НАЛИЧИЕ ТОРМОЗА: ДА МОНТАЖНАЯ ПОЗИЦИЯ: TERMINAL W ЧАСТОТА 50 HZ МОЩНОСТЬ 0,180 KW ОБОРОТОВ/МИН 1.400 НАПР. ТОРМОЗА 230 V (ШИЛЬДА ПРИЛОЖЕНА) SERVOTEC UAL2 RN1 C500 TS SP 1 шт ЭЛЕКТРОДВИГАТЕЛЬ BUSCK MS 71C-4 B14 0,55КВТ BUSCK MS 71C-4 B14 1 шт ВЫКЛЮЧАТЕЛЬ З-Х ПОЛ. В ИЗОЛ КОЖ. 13КВТ P1-25/I2/SVB-SW/HI11 MOELLER MOELLER ELECTRIC P1-25/I2/SVB-SW/HI11 4 шт МОДУЛЬ ET200SP BU F-DI -FORWARDING 3RK1908-0AP00-0JP0 SIEMENS ТЕРМИНАЛЬНЫЙ SIEMENS 3RK1908-0AP00-0JP0 1 шт МОДУЛЬ ET200 SP 3DI/LC MODULE 3RK1908-1AA00-0BP0 SIEMENS SIEMENS 3RK1908-1AA00-0BP0 2 шт МОДУЛЬ ET200SP BU30-MS1 3RK1908-0AP00-0AP0 SIEMENS ПУСКАТЕЛЯ SIEMENS 3RK1908-0AP00-0AP0 4 шт МОДУЛЬ ET200SP BU30-MS4 3RK1908-0AP00-0DP0 SIEMENS ПУСКАТЕЛЯ SIEMENS 3RK1908-0AP00-0DP0 5 шт\n\nС уважением,\n\nФаткуллин Максим Вячеславович\n\nВедущий специалист отдела снабжения\n\nООО «ПСГ»\n\n+7(985)589-74-05"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Карта_партнера_ООО_ПСГ_Банк_Газпром_Алга_3.pdf",
+          "safeName": "Карта_партнера_ООО_ПСГ_Банк_Газпром_Алга_3.pdf",
+          "contentType": "application/pdf",
+          "size": 596861,
+          "ext": ".pdf",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 72,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 596861,
+        "totalChars": 72,
+        "budgetMs": 115,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-05-25T10:38:27.850Z",
+      "model": "google/gemini-2.0-flash-lite-001",
+      "requestType": "order",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 3,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:56:13.407Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "google/gemini-2.0-flash-lite-001",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "logSuggestions": true
+    }
+  }
+}

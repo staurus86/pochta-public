@@ -1,0 +1,678 @@
+{
+  "messageKey": "1f093672c9c16514f2252f6a0b1312e2228826db",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "ссылка с реквизитами не открывается.",
+    "реквизиты не открываются.\nописание не корректно перенеслось"
+  ],
+  "subject": "Запрос",
+  "body": "Добрый день\r\nПрошу дать КП на поставку\r\n\r\n\r\n6.\r\n\r\nЭлектродвигатель с короткозамкнутым ротором\r\nKMR 132 S 6\r\n\r\n\r\n\r\nФланцевый вид крепежа, 5,5кВт.,955 об/мин.,\r\n\r\n~ 380в., схема соединения треугольник, 50Гц.\r\n\r\nшт.\r\n\r\n1\r\n\r\n7.\r\n\r\n\r\nЭлектрогидротолкатель\r\nEB 250/60 С130 R\r\n\r\n380в.50Гц. IP56, с амортизирующей пружиной\r\nВес 33кг ., количество масла 9 л., частота переключения (ц/ч) в режиме работы S3:(2000-2000),потребление тока при 380 В переем. тока, 50 Гц: 0.5 -0,9А., потребляемая мощность 500 Вт., трехфазный асинхронный двигатель, изоляция согласно классу изоляции F., специальное исполнение согласно классу изоляции H., непрерывный режим работы S1 и повторно кратковременный режим работы S3 - 60 % ПВ, соединение по схеме звезда (Y).Номинальный ход: 60мм. Номинальное усилие: 2500 Н,диапазон температур от - 25 °C до + 40 °C. Лапы крепления можно устанавливать со смещением на 90°.Головку подъемной штанги вверху можно поворачивать во всех типах. 2-компонентный полиакриловый лак, толщина слоя 80 мкм. Специальное лакокрасочное покрытие при коррозионном воздействии до C5-M, толщина слоя 240 мкм. Избыточное уплотнение против пыли и влажности снаружи и от потери масла внутри. Твердое хромирование штока поршня. Амортизация переключения режима при закрытии тормоза.\r\n\r\n\r\nшт.\r\n\r\n2\r\n\r\n8.\r\n\r\n\r\nК/контроллер грузовой\r\n\r\n(Джойстик W. Gessmann)\r\n\r\nP5300011983\r\n\r\nS180100331149\r\n\r\nD-74211\r\n\r\n\r\nV64-B1-02ZC+0...\r\n\r\n2А 250V, AC,15,\r\n\r\nс потенциометром\r\n\r\nшт.\r\n\r\n1\r\n\r\n9.\r\n\r\n\r\n\r\nК/контроллер грузовой\r\n\r\n(Джойстик W. Gessmann)\r\n\r\nP5300008401\r\n\r\nS180100330829\r\n\r\nD-74211\r\n\r\n\r\n\r\n\r\nV64-B1-D-01ZC...\r\n\r\n2А 250V, AC,15,\r\n\r\nс потенциометром\r\n\r\n\r\n\r\n\r\nшт.\r\n\r\n\r\n\r\n\r\n\r\n1\r\n\r\n\r\n\r\n------------------------------------------------------------------------\r\nС уважением\r\nАО < Калининградский морской торговый порт>\r\nНачальник ОМТС\r\nВеселов Юрий Сергеевич\r\nТел. (4012) 692-131\r\nМоб. +79097759010\r\n\r\n[cid:image001.png@01DCB079.027F70B0]",
+  "attachmentFiles": [
+    {
+      "filename": "image001.png",
+      "safeName": "image001.png",
+      "contentType": "image/png",
+      "size": 7673
+    },
+    {
+      "filename": "Реквизиты АО КМТП_.doc",
+      "safeName": "Реквизиты АО КМТП_.doc",
+      "contentType": "application/msword",
+      "size": 24576
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "815490d6-e76e-49de-bce9-662859d105b6",
+    "createdAt": "2026-06-01T15:05:57.124Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "W. Gessmann"
+      ],
+      "signals": {
+        "clientScore": 25,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 5,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label",
+            "weight": 2
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "u.veselov@scport.ru",
+      "emailPrimary": "u.veselov@scport.ru",
+      "emailDisplayName": "Веселов Юрий Сергеевич",
+      "emailLocal": "u.veselov",
+      "emailDomain": "scport.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Веселов Юрий Сергеевич",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Начальник ОМТС",
+      "positionAlt": "Начальник ОМТС",
+      "departmentName": null,
+      "positionSource": "signature",
+      "positionConfidence": 0.97,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Веселов",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "АО «КМТП») / JSC KALININGRAD SEA COMMERCIAL PORT",
+      "companyAlt": "Scport",
+      "companyNameSource": "body",
+      "companyNameConfidence": 0.7200000000000001,
+      "companyNameNeedsReview": true,
+      "companyNameRejected": [
+        {
+          "value": "Веселов Юрий Сергеевич",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://scport.ru",
+      "cityPhone": "+7 (401) 269-21-31",
+      "mobilePhone": "+7 (909) 775-90-10",
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [
+        {
+          "value": "80100331149",
+          "source": "current_message",
+          "reason": "normalize_failed"
+        },
+        {
+          "value": "80100330829",
+          "source": "current_message",
+          "reason": "normalize_failed"
+        },
+        {
+          "value": "5300011983",
+          "source": "current_message",
+          "reason": "inn_like"
+        },
+        {
+          "value": "5300008401",
+          "source": "current_message",
+          "reason": "inn_like"
+        }
+      ],
+      "inn": "3908018946",
+      "kpp": null,
+      "ogrn": "1023901862676",
+      "legalCardAttached": true,
+      "sources": {
+        "company": "attachment",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": "attachment",
+        "fullName": "signature",
+        "position": "signature",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день\nПрошу дать КП на поставку\n\n\n6.\n\nЭлектродвигатель с короткозамкнутым ротором\nKMR 132 S 6\n\n\n\nФланцевый вид крепежа, 5,5кВт.,955 об/мин.,\n\n~ 380в., схема соединения треугольник, 50Гц.\n\nшт.\n\n1\n\n7.\n\n\nЭлектрогидротолкатель\nEB 250/60 С130 R\n\n380в.50Гц. IP56, с амортизирующей пружиной\nВес 33кг ., количество масла 9 л., частота переключения (ц/ч) в режиме работы S3:(2000-2000),потребление тока при 380 В переем. тока, 50 Гц: 0.5 -0,9А., потребляемая мощность 500 Вт., трехфазный асинхронный двигатель, изоляция согласно классу изоляции F., специальное исполнение согласно классу изоляции H., непрерывный режим работы S1 и повторно кратковременный режим работы S3 - 60 % ПВ, соединение по схеме звезда (Y).Номинальный ход: 60мм. Номинальное усилие: 2500 Н,диапазон температур от - 25 °C до + 40 °C. Лапы крепления можно устанавливать со смещением на 90°.Головку подъемной штанги вверху можно поворачивать во всех типах. 2-компонентный полиакриловый лак, толщина слоя 80 мкм. Специальное лакокрасочное покрытие при коррозионном воздействии до C5-M, толщина слоя 240 мкм. Избыточное уплотнение против пыли и влажности снаружи и от потери масла внутри. Твердое хромирование штока поршня. Амортизация переключения режима при закрытии тормоза.\n\n\nшт.\n\n2\n\n8.\n\n\nК/контроллер грузовой\n\n(Джойстик W. Gessmann)\n\nP5300011983\n\nS180100331149\n\nD-74211\n\n\nV64-B1-02ZC+0...\n\n2А 250V, AC,15,\n\nс потенциометром\n\nшт.\n\n1\n\n9.\n\n\n\nК/контроллер грузовой\n\n(Джойстик W. Gessmann)\n\nP5300008401\n\nS180100330829\n\nD-74211\n\n\n\n\nV64-B1-D-01ZC...\n\n2А 250V, AC,15,\n\nс потенциометром\n\n\n\n\nшт.\n\n\n\n\n\n1\n\n\n\n------------------------------------------------------------------------",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "V64-B1-D-01ZC",
+        "C5-M",
+        "P5300011983",
+        "S180100331149",
+        "V64-B1-02ZC",
+        "P5300008401",
+        "S180100330829",
+        "D-74211",
+        "380b.50",
+        "KMR 132",
+        "EB 250/60"
+      ],
+      "lineItems": [
+        {
+          "article": "DESC:dzhoystik-w-gessmann",
+          "descriptionRu": "(Джойстик W. Gessmann)",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "V64-B1-D-01ZC",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "(Джойстик W. Gessmann)",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "C5-M",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "(Джойстик W. Gessmann)",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "P5300011983",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "(Джойстик W. Gessmann)",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "S180100331149",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "(Джойстик W. Gessmann)",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "V64-B1-02ZC",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "P5300008401",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "(Джойстик W. Gessmann)",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "S180100330829",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "(Джойстик W. Gessmann)",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "D-74211",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "(Джойстик W. Gessmann)",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "380b.50",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "KMR 132",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "EB 250/60",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "(Джойстик W. Gessmann)",
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 12,
+      "detectedBrands": [
+        "W. Gessmann"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "V64-B1-D-01ZC",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "C5-M",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "P5300011983",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "S180100331149",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "V64-B1-02ZC",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "P5300008401",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "S180100330829",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "D-74211",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "KMR 132",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "EB 250/60",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "freetext",
+          "body",
+          "attachment"
+        ],
+        "names": [
+          "freetext"
+        ],
+        "attachmentsProcessed": [
+          "Реквизиты АО КМТП_.doc"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "(Джойстик W. Gessmann)",
+      "productLineItems": [],
+      "productNamesClean": [
+        "(Джойстик W. Gessmann)"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 1,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        }
+      ],
+      "totalQuantity": 4,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "380в"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "50Гц"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "380 В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "50 Гц"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "500 В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "60мм"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "250V"
+        }
+      ],
+      "positions": 12,
+      "totalQty": 12,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "freetext"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый company; слабый inn",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:V64-B1-D-01ZC, C5-M, P5300011983 | бренды:W. Gessmann | компания:АО «КМТП») / JSC KALININGRAD SEA COMMERCIAL PORT • email:u.veselov@scport.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:V64-B1-D-01ZC, C5-M, P5300011983",
+          "бренды:W. Gessmann",
+          "компания:АО «КМТП») / JSC KALININGRAD SEA COMMERCIAL PORT",
+          "ИНН:3908018946",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 8,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 8,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7695
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://scport.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: V64-B1-D-01ZC, C5-M, P5300011983, S180100331149, V64-B1-02ZC",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://scport.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "3908018946",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "W. Gessmann"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Веселов, добрый день!\n\nСпасибо за заявку по W. Gessmann (12 позиций).\nАртикулы: V64-B1-D-01ZC, C5-M, P5300011983, S180100331149, V64-B1-02ZC\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос",
+      "attachments": [
+        "image001.png",
+        "Реквизиты АО КМТП_.doc"
+      ],
+      "body": "Добрый день\r\nПрошу дать КП на поставку\r\n\r\n\r\n6.\r\n\r\nЭлектродвигатель с короткозамкнутым ротором\r\nKMR 132 S 6\r\n\r\n\r\n\r\nФланцевый вид крепежа, 5,5кВт.,955 об/мин.,\r\n\r\n~ 380в., схема соединения треугольник, 50Гц.\r\n\r\nшт.\r\n\r\n1\r\n\r\n7.\r\n\r\n\r\nЭлектрогидротолкатель\r\nEB 250/60 С130 R\r\n\r\n380в.50Гц. IP56, с амортизирующей пружиной\r\nВес 33кг ., количество масла 9 л., частота переключения (ц/ч) в режиме работы S3:(2000-2000),потребление тока при 380 В переем. тока, 50 Гц: 0.5 -0,9А., потребляемая мощность 500 Вт., трехфазный асинхронный двигатель, изоляция согласно классу изоляции F., специальное исполнение согласно классу изоляции H., непрерывный режим работы S1 и повторно кратковременный режим работы S3 - 60 % ПВ, соединение по схеме звезда (Y).Номинальный ход: 60мм. Номинальное усилие: 2500 Н,диапазон температур от - 25 °C до + 40 °C. Лапы крепления можно устанавливать со смещением на 90°.Головку подъемной штанги вверху можно поворачивать во всех типах. 2-компонентный полиакриловый лак, толщина слоя 80 мкм. Специальное лакокрасочное покрытие при коррозионном воздействии до C5-M, толщина слоя 240 мкм. Избыточное уплотнение против пыли и влажности снаружи и от потери масла внутри. Твердое хромирование штока поршня. Амортизация переключения режима при закрытии тормоза.\r\n\r\n\r\nшт.\r\n\r\n2\r\n\r\n8.\r\n\r\n\r\nК/контроллер грузовой\r\n\r\n(Джойстик W. Gessmann)\r\n\r\nP5300011983\r\n\r\nS180100331149\r\n\r\nD-74211\r\n\r\n\r\nV64-B1-02ZC+0...\r\n\r\n2А 250V, AC,15,\r\n\r\nс потенциометром\r\n\r\nшт.\r\n\r\n1\r\n\r\n9.\r\n\r\n\r\n\r\nК/контроллер грузовой\r\n\r\n(Джойстик W. Gessmann)\r\n\r\nP5300008401\r\n\r\nS180100330829\r\n\r\nD-74211\r\n\r\n\r\n\r\n\r\nV64-B1-D-01ZC...\r\n\r\n2А 250V, AC,15,\r\n\r\nс потенциометром\r\n\r\n\r\n\r\n\r\nшт.\r\n\r\n\r\n\r\n\r\n\r\n1\r\n\r\n\r\n\r\n------------------------------------------------------------------------\r\nС уважением\r\nАО < Калининградский морской торговый порт>\r\nНачальник ОМТС\r\nВеселов Юрий Сергеевич\r\nТел. (4012) 692-131\r\nМоб. +79097759010\r\n\r\n[cid:image001.png@01DCB079.027F70B0]"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "image001.png",
+          "safeName": "image001.png",
+          "contentType": "image/png",
+          "size": 7673,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Реквизиты АО КМТП_.doc",
+          "safeName": "Реквизиты АО КМТП_.doc",
+          "contentType": "application/msword",
+          "size": 24576,
+          "ext": ".doc",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 1053,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "3908018946"
+          ],
+          "detectedKpp": [
+            "390601001",
+            "042748634"
+          ],
+          "detectedOgrn": [
+            "1023901862676"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 1,
+        "totalBytes": 24576,
+        "totalChars": 1053,
+        "budgetMs": 2,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 1
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-18T16:42:52.194Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 2,
+      "detectionGapsCount": 2
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:05:57.137Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

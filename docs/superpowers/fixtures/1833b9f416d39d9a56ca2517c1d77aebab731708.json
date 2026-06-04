@@ -1,0 +1,541 @@
+{
+  "messageKey": "1833b9f416d39d9a56ca2517c1d77aebab731708",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "система взяла бренд и название товара из первой строки и прописала его по всем товарам\nкол-во не проставлено \nартикулы съехали и совсем не совпадают т.к. через пробел с серией указываются."
+  ],
+  "subject": "Запрос 11.03.26 СРОЧНО",
+  "body": "Добрый день!\r\nПрошу сообщить стоимость и срок отгрузки на следующие позиции:\r\n\r\nНабор уплотнителей тубуса включая чулок тубуса и шторки Sodick \r\nAQ300LSEALS0031 1\r\nМуфта Sodic AQ550L 1\r\nСопло аспиратора Sodick B для проволочно-вырезной установки AQ535L \r\n3053081 1\r\nКорпус аспиратора Sodick для проволочно-вырезной установки AQ535L \r\n3050651 1\r\nДатчик уровня Sodick KS-2-A-S-10520 поплавкового типа 2\r\nНабор оснастки Sodick GC-015223 20 позиций 1\r\nКомплект винтов Sodick 3052461 1\r\nУплотнитель войлочный Sodick AQ-535L 3030946 А 1\r\nТрубка автозаправки проволоки Sodick AWT 3085966 D1-2 1\r\nТрубка удаления проволоки Sodick 3054876 L1370 1\r\n\r\n\r\n-- \r\n\r\nС уважением,\r\nМедведев Павел\r\nКомпания \"Микрон\"\r\n\r\nm40@microntools.ru\r\n\r\n(499) 380-86-02 доб. 5340 <tel:+7-499-380-8602P5340>\r\n\r\n(495) 104-72-41 доб. 5340 <tel:+7-495-104-7241P5340>\r\n\r\n(800) 100-32-46 доб. 5340 <tel:+7-800-100-3246P5340>\r\n\r\nwww.microntools.ru <https://www.microntools.ru/>",
+  "attachmentFiles": [
+    {
+      "filename": "1. Карточка предприятия ООО Микрон 2024.doc",
+      "safeName": "1. Карточка предприятия ООО Микрон 2024.doc",
+      "contentType": "application/msword",
+      "size": 121344
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "c6246e74-74c5-4fdf-9148-de7adc1ec8a4",
+    "createdAt": "2026-06-01T15:04:59.484Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Sodick"
+      ],
+      "signals": {
+        "clientScore": 18,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "m40@microntools.ru",
+      "emailPrimary": "m40@microntools.ru",
+      "emailDisplayName": "Медведев Павел",
+      "emailLocal": "m40",
+      "emailDomain": "microntools.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Медведев Павел",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "Медведев Павел",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "Микрон",
+      "companyAlt": "Компания \"Микрон\"",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 0.9199999999999999,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Медведев Павел",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://www.microntools.ru/>",
+      "cityPhone": "+7 (499) 380-86-02",
+      "mobilePhone": "+7 (495) 104-72-41",
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "7719250676",
+      "kpp": null,
+      "ogrn": "1177746893280",
+      "legalCardAttached": true,
+      "sources": {
+        "company": "signature",
+        "website": "body",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": "attachment",
+        "fullName": "signature",
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день!\nПрошу сообщить стоимость и срок отгрузки на следующие позиции:\n\nНабор уплотнителей тубуса включая чулок тубуса и шторки Sodick \nAQ300LSEALS0031 1\nМуфта Sodic AQ550L 1\nСопло аспиратора Sodick B для проволочно-вырезной установки AQ535L \n3053081 1\nКорпус аспиратора Sodick для проволочно-вырезной установки AQ535L \n3050651 1\nДатчик уровня Sodick KS-2-A-S-10520 поплавкового типа 2\nНабор оснастки Sodick GC-015223 20 позиций 1\nКомплект винтов Sodick 3052461 1\nУплотнитель войлочный Sodick AQ-535L 3030946 А 1\nТрубка автозаправки проволоки Sodick AWT 3085966 D1-2 1\nТрубка удаления проволоки Sodick 3054876 L1370 1\n\n\n--",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "KS-2-A-S-10520",
+        "GC-015223",
+        "3052461",
+        "AQ-535L",
+        "3085966",
+        "3054876",
+        "AQ300LSEALS0031",
+        "AQ550L",
+        "AQ535L",
+        "L1370",
+        "D1-2"
+      ],
+      "lineItems": [
+        {
+          "article": "DESC:nabor-uplotniteley-tubusa-vklyuchaya-chulok-tubusa-i-shtorki-sodick",
+          "descriptionRu": "Набор уплотнителей тубуса включая чулок тубуса и шторки Sodick",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "KS-2-A-S-10520",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Набор уплотнителей тубуса включая чулок тубуса и шторки Sodick",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "GC-015223",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Набор уплотнителей тубуса включая чулок тубуса и шторки Sodick",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "AQ-535L",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Набор уплотнителей тубуса включая чулок тубуса и шторки Sodick",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "AQ300LSEALS0031",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Набор уплотнителей тубуса включая чулок тубуса и шторки Sodick",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "AQ550L",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Набор уплотнителей тубуса включая чулок тубуса и шторки Sodick",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "AQ535L",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Набор уплотнителей тубуса включая чулок тубуса и шторки Sodick",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "L1370",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Набор уплотнителей тубуса включая чулок тубуса и шторки Sodick",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "D1-2",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Набор уплотнителей тубуса включая чулок тубуса и шторки Sodick",
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 12,
+      "detectedBrands": [
+        "Sodick"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "KS-2-A-S-10520",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GC-015223",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3052461",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "AQ-535L",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3085966",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3054876",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "AQ300LSEALS0031",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "AQ550L",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "AQ535L",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "L1370",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "D1-2",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "urgent",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "freetext",
+          "body"
+        ],
+        "names": [
+          "freetext"
+        ],
+        "attachmentsProcessed": [
+          "1. Карточка предприятия ООО Микрон 2024.doc"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Набор уплотнителей тубуса включая чулок тубуса и шторки Sodick",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Набор уплотнителей тубуса включая чулок тубуса и шторки Sodick"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 12,
+      "totalQty": 1,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "freetext"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "signature"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый company; слабый inn",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:KS-2-A-S-10520, GC-015223, 3052461 | бренды:Sodick | компания:Микрон • email:m40@microntools.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:KS-2-A-S-10520, GC-015223, 3052461",
+          "бренды:Sodick",
+          "компания:Микрон",
+          "ИНН:7719250676",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 8,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 5,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7695
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://www.microntools.ru/> для поиска реквизитов",
+        "Сверить запрос по артикулам: KS-2-A-S-10520, GC-015223, 3052461, AQ-535L, 3085966",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://www.microntools.ru/>",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7719250676",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Sodick"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Медведев, добрый день!\n\nСпасибо за заявку по Sodick (12 позиций).\nАртикулы: KS-2-A-S-10520, GC-015223, 3052461, AQ-535L, 3085966\nМы подготовим коммерческое предложение и направим в ближайшее время.\nМы понимаем срочность запроса и обработаем его в приоритетном порядке.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос 11.03.26 СРОЧНО",
+      "attachments": [
+        "1. Карточка предприятия ООО Микрон 2024.doc"
+      ],
+      "body": "Добрый день!\r\nПрошу сообщить стоимость и срок отгрузки на следующие позиции:\r\n\r\nНабор уплотнителей тубуса включая чулок тубуса и шторки Sodick \r\nAQ300LSEALS0031 1\r\nМуфта Sodic AQ550L 1\r\nСопло аспиратора Sodick B для проволочно-вырезной установки AQ535L \r\n3053081 1\r\nКорпус аспиратора Sodick для проволочно-вырезной установки AQ535L \r\n3050651 1\r\nДатчик уровня Sodick KS-2-A-S-10520 поплавкового типа 2\r\nНабор оснастки Sodick GC-015223 20 позиций 1\r\nКомплект винтов Sodick 3052461 1\r\nУплотнитель войлочный Sodick AQ-535L 3030946 А 1\r\nТрубка автозаправки проволоки Sodick AWT 3085966 D1-2 1\r\nТрубка удаления проволоки Sodick 3054876 L1370 1\r\n\r\n\r\n-- \r\n\r\nС уважением,\r\nМедведев Павел\r\nКомпания \"Микрон\"\r\n\r\nm40@microntools.ru\r\n\r\n(499) 380-86-02 доб. 5340 <tel:+7-499-380-8602P5340>\r\n\r\n(495) 104-72-41 доб. 5340 <tel:+7-495-104-7241P5340>\r\n\r\n(800) 100-32-46 доб. 5340 <tel:+7-800-100-3246P5340>\r\n\r\nwww.microntools.ru <https://www.microntools.ru/>"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "1. Карточка предприятия ООО Микрон 2024.doc",
+          "safeName": "1. Карточка предприятия ООО Микрон 2024.doc",
+          "contentType": "application/msword",
+          "size": 121344,
+          "ext": ".doc",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 2270,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "7719471570"
+          ],
+          "detectedKpp": [
+            "044525225",
+            "047888717",
+            "771901001"
+          ],
+          "detectedOgrn": [
+            "1177746893280"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 121344,
+        "totalChars": 2270,
+        "budgetMs": 9,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-22T16:54:10.639Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": true,
+      "missingForProcessing": [],
+      "newArticlesAdded": 1,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:04:59.497Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

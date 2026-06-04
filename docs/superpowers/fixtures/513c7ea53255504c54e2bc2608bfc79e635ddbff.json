@@ -1,0 +1,838 @@
+{
+  "messageKey": "513c7ea53255504c54e2bc2608bfc79e635ddbff",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Описание и количество не везде заполнено"
+  ],
+  "subject": "Запрос ТКП",
+  "body": "Добрый день! Во вложении спецификация оборудования КИПиА для проекта модернизация водоводов КИГАЧ. Прошу Вас предоставить ТКП на позиции, которые можете поставить.(в основном датчики вибрации) Обьект находится в районе г.Атырау., наш склад в г.Актау. Для уточнения технических вопросов, прошу связаться со мной Данный проект будет реализовываться в текущем году -- ТОО « A &amp; G SERVICES » С уважением, Инженер КИПиА, Гузиев Виталий Николаевич Республика Казахстан, 130000, г. Актау, пос. Умирзак, жилой массив Приозерный – 2, дом 77, кв. 1 Раб: 8 (7292) 31 77 51 Почта: v.guziyev@psk-es.kz guziev-v@yandex.kz Сайт: www.agservices.kz +7 705 542 9374",
+  "attachmentFiles": [
+    {
+      "filename": "спецификация КИПиА.xlsx",
+      "safeName": "спецификация КИПиА.xlsx",
+      "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "size": 22139
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "7d439895-2405-45af-beb4-2354ed9ca88f",
+    "createdAt": "2026-06-01T15:02:53.379Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [],
+      "signals": {
+        "clientScore": 23,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "guziev-v@yandex.kz",
+      "emailPrimary": "guziev-v@yandex.kz",
+      "emailDisplayName": "Guziev V",
+      "emailLocal": "guziev-v",
+      "emailDomain": "yandex.kz",
+      "emailType": "person_email",
+      "emailDomainType": "public_provider",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.85,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": false,
+      "emailRejected": [],
+      "fullName": "Guziev V",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "sender",
+      "fullNameConfidence": 0.8,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Инженер",
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": "legacy",
+      "positionConfidence": 0.55,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Guziev V",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ТОО «A G SERVICES»",
+      "companyAlt": null,
+      "companyNameSource": "body",
+      "companyNameConfidence": 0.8700000000000001,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Guziev V",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        },
+        {
+          "value": "yandex.kz",
+          "source": "email_domain",
+          "reason": "generic_provider"
+        }
+      ],
+      "website": "https://yandex.kz",
+      "cityPhone": "+7 (729) 231-77-51",
+      "mobilePhone": "+7 (705) 542-93-74",
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "KZ",
+      "phoneSource": "current_message",
+      "phoneConfidence": 0.8,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "5404386158",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "body",
+        "website": "email_domain",
+        "phone": "current_message",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "sender",
+        "position": "legacy",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день! Во вложении спецификация оборудования КИПиА для проекта модернизация водоводов КИГАЧ. Прошу Вас предоставить ТКП на позиции, которые можете поставить.(в основном датчики вибрации) Обьект находится в районе г.Атырау., наш склад в г.Актау. Для уточнения технических вопросов, прошу связаться со мной Данный проект будет реализовываться в текущем году -- ТОО « A &amp; G SERVICES » С уважением, Инженер КИПиА, Гузиев Виталий Николаевич Республика Казахстан, 130000, г. Актау, пос. Умирзак, жилой массив Приозерный – 2, дом 77, кв. 1 Раб: 8 (7292) 31 77 51 Почта: v.guziyev@psk-es.kz guziev-v@yandex.kz Сайт: www.agservices.kz +7 705 542 9374\n\nВложение: спецификация КИПиА.xlsx\n1\tТСП Метран 246-pt100-02-IP65\tшт\t9\nтемпература в пазах статора фаз А В С\n2\tТСП Метран 246-pt100-02-IP65\tшт\t6\nтемпература в узлах заднего подшипника\n3\tТСП Метран 246-pt100-02-IP65\tшт\t6\nтемпература в узлах переднего подшипника\n4\tТ1-40/00/00/8/1/1 датчик вибрации в комплекте с TR-V 1/0/4/2/2/2\tшт\t15\nустанавливаемый в узлах Вибрация подшипников насосов НМП1, НМП2,\nНМП3 передняя горизонтальная, передняя вертикальная, задняя вертикальная\n5\tТ1-40/00/00/8/1/1 датчик вибрации в комплекте с TR-V 1/0/4/2/2/2\tшт\t15\nустанавливаемый в узлах Вибрация подшипников электродвигателей насосов\nНМП1, НМП2,НМП3 передняя горизонтальная, передняя вертикальная,\nзадняя вертикальная\n6\tПогружной Датчик уровня и температуры, двухканальный выход RS 485,\tшт\t1\tHGL-500\tHFSIKO\nкомпактный тип, постоянный ток 8-32 в. Измеряемая температура от\n градусов, измеряемый уровень 0...1m...200mH2O.\nПогружной передатчик уровня и температуры серии HGL-500-полностью\nгерметичный и погружной диффузионный силиконовый инструмент для\nизмерения уровня и температуры. Выходной уровень и температурные п\nередатчики с 4-20 мА,  В, RS 485 Mod_Bus протокол опционально.\n7\tTransmitter EJX530A DPharp датчик давления устанавливаемый на выходе\tшт\t5\tTransmitter EJX530A DPharp\nобщего первого коллектора 16бар.\n8\tN 837-1 Манометр устанавливаемый на выходе общег",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "246-pt100-02-IP65",
+        "FMR52-1JPM9/101",
+        "LP10-31",
+        "A269TP316",
+        "HGL-500",
+        "RS-485",
+        "EJX530A",
+        "FTL51B",
+        "FEL61",
+        "T1-40/00/00/8/1/1",
+        "RS 485",
+        "EN 837-1",
+        "TR-V 1/0/4/0/0/2/0",
+        "OPTIFLUX 4000",
+        "APS Smart UPS SRT 6000VA 230V",
+        "1-40/00/00/8/1/1",
+        "8-32",
+        "0-100",
+        "0...1M...200MH2O",
+        "837-1",
+        "02-IP65",
+        "269TP316",
+        "2000/0"
+      ],
+      "lineItems": [
+        {
+          "article": "246-pt100-02-IP65",
+          "quantity": 9,
+          "unit": "шт",
+          "descriptionRu": "ТСП Метран 246-pt100-02-IP65",
+          "explicitArticle": true,
+          "sourceLine": "1\tТСП Метран 246-pt100-02-IP65\tшт\t9",
+          "source": "body"
+        },
+        {
+          "article": "T1-40/00/00/8/1/1",
+          "quantity": 15,
+          "unit": "шт",
+          "descriptionRu": "Т1-40/00/00/8/1/1 датчик вибрации в комплекте с TR-V 1/0/4/2/2/2",
+          "explicitArticle": true,
+          "sourceLine": "4\tТ1-40/00/00/8/1/1 датчик вибрации в комплекте с TR-V 1/0/4/2/2/2\tшт\t15",
+          "source": "body"
+        },
+        {
+          "article": "HGL-500",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Погружной Датчик уровня и температуры, двухканальный выход RS 485, шт 1",
+          "explicitArticle": true,
+          "sourceLine": "6\tПогружной Датчик уровня и температуры, двухканальный выход RS 485,\tшт\t1\tHGL-500\tHFSIKO",
+          "source": "body"
+        },
+        {
+          "article": "EJX530A",
+          "quantity": 5,
+          "unit": "шт",
+          "descriptionRu": "Transmitter EJX530A DPharp датчик давления устанавливаемый на выходе",
+          "explicitArticle": true,
+          "sourceLine": "7\tTransmitter EJX530A DPharp датчик давления устанавливаемый на выходе\tшт\t5\tTransmitter EJX530A DPharp",
+          "source": "body"
+        },
+        {
+          "article": "LP10-31",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Источник бесперебойного питания LanPro LP10-31, 8 кВт",
+          "explicitArticle": true,
+          "sourceLine": "14\tИсточник бесперебойного питания LanPro LP10-31, 8 кВт,\tшт\t1\tLP10-31, 8 кВт\tGeneral Electric",
+          "source": "body"
+        },
+        {
+          "article": "TR-V 1/0/4/0/0/2/0",
+          "quantity": 30,
+          "unit": "шт",
+          "descriptionRu": "Т1-40/00/00/8/1/1 датчик вибрации в комплекте с TR-V 1/0/4/0/0/2/0 шт 30",
+          "explicitArticle": true,
+          "sourceLine": "4\tТ1-40/00/00/8/1/1 датчик вибрации в комплекте с TR-V 1/0/4/0/0/2/0\tшт\t30\tTR-V 1/0/4/0/0/2/0",
+          "source": "body"
+        },
+        {
+          "article": "OPTIFLUX 4000",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "OPTIFLUX 4000 Электромагнитный расходомер DN 300",
+          "explicitArticle": true,
+          "sourceLine": "6\tOPTIFLUX 4000 Электромагнитный расходомер DN 300\tшт\t1\tKROHNE",
+          "source": "body"
+        },
+        {
+          "article": "EN 837-1",
+          "quantity": 8,
+          "unit": "шт",
+          "descriptionRu": "EN 837-1 Манометр устанавливаемый на выходе общего коллектора 16бар",
+          "explicitArticle": true,
+          "sourceLine": "10\tEN 837-1 Манометр устанавливаемый на выходе общего коллектора 16бар.\tшт\t8",
+          "source": "body"
+        },
+        {
+          "article": "A269TP316",
+          "quantity": 16,
+          "unit": "шт",
+          "descriptionRu": "Труба импульсная 1/2 х 0,065 (AVG) х 6,000мм ASTM А269ТР316",
+          "explicitArticle": true,
+          "sourceLine": "11\tТруба импульсная 1/2 х 0,065 (AVG) х 6,000мм ASTM А269ТР316\tшт\t16\tASTM А269ТР316",
+          "source": "body"
+        },
+        {
+          "article": "RS-485",
+          "quantity": 3,
+          "unit": "шт",
+          "descriptionRu": "Промышленный датчик влажности и температуры воздуха. унифицированный сигнал 4-20ма или В. цифровой сигнал по протоколу MODBUS RTU через интерфейс RS-485",
+          "explicitArticle": true,
+          "sourceLine": "23\tПромышленный датчик влажности и температуры воздуха. унифицированный сигнал 4-20ма или В. цифровой сигнал по протоколу MODBUS RTU через интерфейс RS-485\tшт\t3\tПВТ-100 Овен.",
+          "source": "body"
+        },
+        {
+          "article": "APS Smart UPS SRT 6000VA 230V",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Источник бесперебойного питания APS Smart UPS SRT 6000VA 230V шт 1",
+          "explicitArticle": true,
+          "sourceLine": "12\tИсточник бесперебойного питания APS Smart UPS SRT 6000VA 230V\tшт\t1\tAPS Smart UPS SRT 6000VA 230V\tGeneral Electric",
+          "source": "body"
+        },
+        {
+          "article": "DESC:beshovnaya-impulsnaya-trubka-s-razvetvitelem-diametrom-15",
+          "descriptionRu": "Бешовная импульсная трубка с разветвителем диаметром 15",
+          "quantity": 10,
+          "unit": "м",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:kran-trekhkhodovoy-m-m-m15kh1-5-g1-12",
+          "descriptionRu": "Кран трехходовой м/м, М15х1,5/G1/12",
+          "quantity": 10,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:kabel-kontrolnyy-kvvgng-37kh2-5",
+          "descriptionRu": "Кабель контрольный КВВГнг 37х2,5",
+          "quantity": 370,
+          "unit": "м",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:kabel-kontrolnyy-kvvgng-19kh2-5",
+          "descriptionRu": "Кабель контрольный КВВГнг 19х2,5",
+          "quantity": 1700,
+          "unit": "м",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:kabel-kontrolnyy-kvvgng-7kh2-5",
+          "descriptionRu": "Кабель контрольный КВВГнг 7х2,5",
+          "quantity": 710,
+          "unit": "м",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:truba-impulsnaya-1-2-kh-0-065-avg-kh-6-000mm-astm-a269tr316-sht-16-astm-a269tr31",
+          "descriptionRu": "Труба импульсная 1/2 х 0,065 (AVG) х 6,000мм ASTM А269ТР316 шт 16 ASTM А269ТР316",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:kabel-kontrolnyy-kvvgng-4kh2-5",
+          "descriptionRu": "Кабель контрольный КВВГнг 4х2,5",
+          "quantity": 2170,
+          "unit": "м",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:truba-impulsnaya-1-2-kh-0-065-avg-kh-6-000mm-astm-a269tr316-sht-8-astm-a269tr316",
+          "descriptionRu": "Труба импульсная 1/2 х 0,065 (AVG) х 6,000мм ASTM А269ТР316 шт 8 ASTM А269ТР316",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:kabel-kontrolnyy-kvvgng-10kh2-5",
+          "descriptionRu": "Кабель контрольный КВВГнг 10х2,5",
+          "quantity": 670,
+          "unit": "м",
+          "source": "freetext"
+        },
+        {
+          "article": "FTL51B",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "FEL61",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "RS 485",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": null,
+          "quantity": 500,
+          "unit": "шт",
+          "descriptionRu": "HFSIKO",
+          "source": "attachment:спецификация КИПиА.xlsx"
+        }
+      ],
+      "totalPositions": 32,
+      "detectedBrands": [
+        "ENDRESS+HAUSER",
+        "General Electric",
+        "KROHNE"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "246-pt100-02-IP65",
+          "name": "ТСП Метран",
+          "category": null
+        },
+        {
+          "article": "FMR52-1JPM9/101",
+          "name": "Microplot",
+          "category": null
+        },
+        {
+          "article": "LP10-31",
+          "name": "Источник бесперебойного питания LanPro",
+          "category": null
+        },
+        {
+          "article": "HGL-500",
+          "name": "Погружной Датчик уровня и температуры, двухканальный выход RS 485, шт 1",
+          "category": null
+        },
+        {
+          "article": "RS-485",
+          "name": "Промышленный датчик влажности и температуры воздуха. унифицированный сигнал 4-20ма или В. цифровой сигнал по протоколу MODBUS RTU через интерфейс",
+          "category": null
+        },
+        {
+          "article": "EJX530A",
+          "name": "Transmitter",
+          "category": null
+        },
+        {
+          "article": "FTL51B",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "FEL61",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "RS 485",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "EN 837-1",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "TR-V 1/0/4/0/0/2/0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "OPTIFLUX 4000",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "APS Smart UPS SRT 6000VA 230V",
+          "name": "Источник бесперебойного питания",
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "freetext",
+          "attachment:спецификация КИПиА.xlsx"
+        ],
+        "names": [
+          "body",
+          "freetext",
+          "attachment:спецификация КИПиА.xlsx"
+        ],
+        "attachmentsProcessed": [
+          "спецификация КИПиА.xlsx"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.86,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_inn",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "ТСП Метран 246-pt100-02-IP65",
+      "productLineItems": [
+        "Microplot",
+        "ТСП Метран 246-pt100-02-IP65",
+        "Т1-40/00/00/8/1/1 датчик вибрации в комплекте с TR-V 1/0/4/2/2/2",
+        "Погружной Датчик уровня и температуры, двухканальный выход RS 485, шт 1",
+        "Transmitter EJX530A DPharp датчик давления устанавливаемый на выходе",
+        "Источник бесперебойного питания LanPro LP10-31, 8 кВт",
+        "Т1-40/00/00/8/1/1 датчик вибрации в комплекте с TR-V 1/0/4/0/0/2/0 шт 30",
+        "OPTIFLUX 4000 Электромагнитный расходомер DN 300",
+        "EN 837-1 Манометр устанавливаемый на выходе общего коллектора 16бар",
+        "Труба импульсная 1/2 х 0,065 (AVG) х 6,000мм ASTM А269ТР316",
+        "Промышленный датчик влажности и температуры воздуха. унифицированный сигнал 4-20ма или В. цифровой сигнал по протоколу MODBUS RTU через интерфейс RS-485",
+        "Источник бесперебойного питания APS Smart UPS SRT 6000VA 230V шт 1",
+        "Бешовная импульсная трубка с разветвителем диаметром 15",
+        "Кран трехходовой м/м, М15х1,5/G1/12",
+        "Кабель контрольный КВВГнг 37х2,5",
+        "Кабель контрольный КВВГнг 19х2,5",
+        "Кабель контрольный КВВГнг 7х2,5",
+        "Труба импульсная 1/2 х 0,065 (AVG) х 6,000мм ASTM А269ТР316 шт 16 ASTM А269ТР316",
+        "Кабель контрольный КВВГнг 4х2,5",
+        "Труба импульсная 1/2 х 0,065 (AVG) х 6,000мм ASTM А269ТР316 шт 8 ASTM А269ТР316",
+        "Кабель контрольный КВВГнг 10х2,5",
+        "HFSIKO"
+      ],
+      "productNamesClean": [
+        "Microplot",
+        "ТСП Метран 246-pt100-02-IP65",
+        "Т1-40/00/00/8/1/1 датчик вибрации в комплекте с TR-V 1/0/4/2/2/2",
+        "Погружной Датчик уровня и температуры, двухканальный выход RS 485, шт 1",
+        "Transmitter EJX530A DPharp датчик давления устанавливаемый на выходе",
+        "Источник бесперебойного питания LanPro LP10-31, 8 кВт",
+        "Т1-40/00/00/8/1/1 датчик вибрации в комплекте с TR-V 1/0/4/0/0/2/0 шт 30",
+        "OPTIFLUX 4000 Электромагнитный расходомер DN 300",
+        "EN 837-1 Манометр устанавливаемый на выходе общего коллектора 16бар",
+        "Труба импульсная 1/2 х 0,065 (AVG) х 6,000мм ASTM А269ТР316",
+        "Промышленный датчик влажности и температуры воздуха. унифицированный сигнал 4-20ма или В. цифровой сигнал по протоколу MODBUS RTU через интерфейс RS-485",
+        "Источник бесперебойного питания APS Smart UPS SRT 6000VA 230V шт 1",
+        "Бешовная импульсная трубка с разветвителем диаметром 15",
+        "Кран трехходовой м/м, М15х1,5/G1/12",
+        "Кабель контрольный КВВГнг 37х2,5",
+        "Кабель контрольный КВВГнг 19х2,5",
+        "Кабель контрольный КВВГнг 7х2,5",
+        "Труба импульсная 1/2 х 0,065 (AVG) х 6,000мм ASTM А269ТР316 шт 16 ASTM А269ТР316",
+        "Кабель контрольный КВВГнг 4х2,5",
+        "Труба импульсная 1/2 х 0,065 (AVG) х 6,000мм ASTM А269ТР316 шт 8 ASTM А269ТР316",
+        "Кабель контрольный КВВГнг 10х2,5",
+        "HFSIKO"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 65,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 65,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 300,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 316,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 485,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 316,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 316,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 1800,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "6,000мм"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "6000V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "230V"
+        }
+      ],
+      "positions": 32,
+      "totalQty": 5732,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.86,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_inn",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.96,
+            "source": "explicit_article_block"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "current_message"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "ENDRESS+HAUSER",
+              "General Electric",
+              "KROHNE"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый inn; multiple brands detected",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:246-pt100-02-IP65, FMR52-1JPM9/101, LP10-31 | бренды:ENDRESS+HAUSER, General Electric, KROHNE | компания:ТОО «A G SERVICES» • email:guziev-v@yandex.kz",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:246-pt100-02-IP65, FMR52-1JPM9/101, LP10-31",
+          "бренды:ENDRESS+HAUSER, General Electric, KROHNE",
+          "компания:ТОО «A G SERVICES»",
+          "ИНН:5404386158",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 14,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 7,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.817
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://yandex.kz для поиска реквизитов",
+        "Сверить запрос по артикулам: 246-PT100-02-IP65, FMR52-1JPM9/101, LP10-31, A269TP316, HGL-500",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://yandex.kz",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "5404386158",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "ENDRESS+HAUSER",
+      "General Electric",
+      "KROHNE"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Guziev, добрый день!\n\nСпасибо за заявку по ENDRESS+HAUSER, General Electric, KROHNE (32 позиций).\nАртикулы: 246-pt100-02-IP65, FMR52-1JPM9/101, LP10-31, A269TP316, HGL-500\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос ТКП",
+      "attachments": [
+        "спецификация КИПиА.xlsx"
+      ],
+      "body": "Добрый день! Во вложении спецификация оборудования КИПиА для проекта модернизация водоводов КИГАЧ. Прошу Вас предоставить ТКП на позиции, которые можете поставить.(в основном датчики вибрации) Обьект находится в районе г.Атырау., наш склад в г.Актау. Для уточнения технических вопросов, прошу связаться со мной Данный проект будет реализовываться в текущем году -- ТОО « A &amp; G SERVICES » С уважением, Инженер КИПиА, Гузиев Виталий Николаевич Республика Казахстан, 130000, г. Актау, пос. Умирзак, жилой массив Приозерный – 2, дом 77, кв. 1 Раб: 8 (7292) 31 77 51 Почта: v.guziyev@psk-es.kz guziev-v@yandex.kz Сайт: www.agservices.kz +7 705 542 9374"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "спецификация КИПиА.xlsx",
+          "safeName": "спецификация КИПиА.xlsx",
+          "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "size": 22139,
+          "ext": ".xlsx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 9493,
+          "category": "product_request",
+          "detectedArticles": [
+            "246-PT100-02-IP65",
+            "1-40/00/00/8/1/1",
+            "1/0/4/2/2/2",
+            "HGL-500",
+            "8-32",
+            "0-100",
+            "0...1M...200MH2O",
+            "4-20",
+            "0-10",
+            "EJX530A",
+            "837-1",
+            "15Х1",
+            "86400",
+            "FTL51B",
+            "FEL61",
+            "LP10-31",
+            "410X890X1190",
+            "37Х2",
+            "19Х2",
+            "7Х2",
+            "4Х2",
+            "PT100",
+            "02-IP65",
+            "10000-C4-1-Л-У1.1",
+            "1/0/4/0/0/2/0",
+            "269ТР316",
+            "2000/0",
+            "RS-485",
+            "6000VA",
+            "230V"
+          ],
+          "detectedBrands": [
+            "Autotech Controls / AVG",
+            "ENDRESS+HAUSER",
+            "Endress & Hauser",
+            "General Electric",
+            "KROHNE"
+          ],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 22139,
+        "totalChars": 9493,
+        "budgetMs": 711,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": false,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-05-19T21:37:04.565Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 0,
+      "fromCache": true
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:02:53.407Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "google/gemini-2.0-flash-lite-001",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "logSuggestions": true
+    }
+  }
+}

@@ -1,0 +1,723 @@
+{
+  "messageKey": "7e6a1862df84becd2dd0a3123ecdf3e2ba1022fb",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Ссылка не открывается.",
+    "ссылка не открывается",
+    "у клиента в файле 9 позиций и есть четкое наименование и количество, он плохо все определил."
+  ],
+  "subject": "Запрос комплектующие Wedeco 2026",
+  "body": "Добрый день.\r\nПрошу сообщить о возможности поставки оборудования Wedeco.\r\n\r\n\r\nС уважением,\r\nХудорожков Сергей Владимирович\r\nНачальник службы, Служба материально-технического обеспечения\r\nМУП <Водоканал> Екатеринбурга\r\n+7 (343) 2290154 (доб. 4126)\r\nSVKhudorozhkov@vodokanalekb.ru<mailto:SVKhudorozhkov@vodokanalekb.ru>\r\nводоканалекб.рф<https://водоканалекб.рф/>\r\n[cid:image001.png@01DCBB7B.E8A3C250]<https://водоканалекб.рф/>\r\nПодписывайтесь на Водоканал в социальных сетях! [cid:image002.png@01DCBB7B.E8A3C250] <https://vk.com/vodokanalekb> [cid:image003.png@01DCBB7B.E8A3C250] <https://t.me/vdknlekb>",
+  "attachmentFiles": [
+    {
+      "filename": "image001.png",
+      "safeName": "image001.png",
+      "contentType": "image/png",
+      "size": 13631
+    },
+    {
+      "filename": "image002.png",
+      "safeName": "image002.png",
+      "contentType": "image/png",
+      "size": 977
+    },
+    {
+      "filename": "image003.png",
+      "safeName": "image003.png",
+      "contentType": "image/png",
+      "size": 1408
+    },
+    {
+      "filename": "Запрос комплектующие Wedeco 2026.doc",
+      "safeName": "Запрос комплектующие Wedeco 2026.doc",
+      "contentType": "application/msword",
+      "size": 90112
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "e28f4897-a7df-4b82-b097-3212c7c90def",
+    "createdAt": "2026-06-01T14:59:51.254Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "WEDECO"
+      ],
+      "signals": {
+        "clientScore": 18,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "svkhudorozhkov@vodokanalekb.ru",
+      "emailPrimary": "svkhudorozhkov@vodokanalekb.ru",
+      "emailDisplayName": "Худорожков Сергей Владимирович",
+      "emailLocal": "svkhudorozhkov",
+      "emailDomain": "vodokanalekb.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Худорожков Сергей Владимирович",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Начальник службы, Служба материально-технического обеспечения",
+      "positionAlt": "Начальник службы, Служба материально-технического обеспечения",
+      "departmentName": "службы, Служба материально-технического обеспечения",
+      "positionSource": "signature",
+      "positionConfidence": 0.98,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Худорожков",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "МУП Екатеринбурга",
+      "companyAlt": "Vodokanalekb",
+      "companyNameSource": "body",
+      "companyNameConfidence": 0.92,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Худорожков Сергей Владимирович",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://водоканалекб.рф/>",
+      "cityPhone": "+7 (343) 229-01-54",
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "6608001915",
+      "kpp": "667001001",
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "body",
+        "website": "body",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": "attachment",
+        "ogrn": null,
+        "fullName": "signature",
+        "position": "signature",
+        "department": "body"
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день.\nПрошу сообщить о возможности поставки оборудования Wedeco.\n\nВложение: Запрос комплектующие Wedeco .doc\npeZOD2\nvkv_SG\n4-IDATx\n4/HBFB\ntheme/theme/themeManager.xml\n.xmlPK\ntheme/theme/themeManager.xmlPK\nxml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"\njkXn9H\nMicrosoft Office Word\n_PID_HLINKS\n/b:Sources\nxml version=\"1.0\" encoding=\"UTF-8\" standalone=\"no\"\nds:datastoreItem ds:itemID=\"\nds:schemaRefs\n/ds:schemaRefs\n/ds:datastoreItem\nMicrosoft Word \nMSWordDoc\nЕКАТЕРИНБУРГСКОЕ МУНИЦИПАЛЬНОЕ УНИТАРНОЕ ПРЕДПРИЯТИЕ\nВОДОПРОВОДНО-КАНАЛИЗАЦИОННОГО ХОЗЯЙСТВА\n(МУП «ВОДОКАНАЛ»)\nЦарская ул, д.4, г. Екатеринбург, 620075\nТел.: (343) 371-50-95, факс: (343) 371-36-53\nE-mail:\nHYPERLINK \"mailto:vodokanal@mail.utnet.ru\"\ninfo@vodokanalekb.ru\nОКПО 03301966, ОГРН 1036603485962\nИНН/КПП 6608001915/667001001\nРуководителю предприятия\nЗапрос о предоставлении ценовой информации\nМУП «Водоканал» планирует проведение закупки запасных частей для установки ультрафиолетового обеззараживания Wedeco. В целях исполнения Федерального закона\n223-ФЗ прошу направить коммерческое предложение, оформленное на фирменном бланке вашего предприятия, с указанием ИНН и контактных телефонов.\nНаименование товара\nТребования к качеству, техническим характеристикам, безопасности, функциональным характеристикам (потребительским свойствам), размерам, упаковке, отгрузке товара и иные необходимые показатели\nКол-во\nКольца системы очистки в сборе\nКольца системы очистки в сборе Wiper Holder ТАК48 (PTFE + Viton Артикул\nПневматический цилиндр OSP-P40 760мм\nПневматический цилиндр OSP-P40\nАртикул 29741\nКварцевый модуль 48x2x 1512 (в сборе)\nКварцевый чехол- 48x2x 1512\nАртикул\nЩетка для очистки УФ датчика\nЩетка 32143-48 М8х5 РР/1.4571 для очистки УФ датчика Артикул 36392\nЭлектронная плата балласта\nЭлектронная плата балласта EVG-II YPV 1/4\nКомплект уплотнений\nКомплект уплотнений лампового ввода УФО арт 7600000039498\nПозиционный выключатель KL3199\nПозиционный выключатель KL3199. Артикул 40787\nПлата питания датчиков\nПлата питания",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": true,
+      "articles": [
+        "ТАК48",
+        "РР/1.4571",
+        "KL3199",
+        "OSP-P40",
+        "SO 13599-17-37-39",
+        "48x2x",
+        "32143-48",
+        "YPV 1/4",
+        "PEZOD2",
+        "JKXN9H",
+        "24V/DC",
+        "5873-1:2001-03",
+        "13599-17-37-39",
+        "2026"
+      ],
+      "lineItems": [
+        {
+          "article": "DESC:vlozhenie-zapros-komplektuyushchie-wedeco-doc",
+          "descriptionRu": "Вложение: Запрос комплектующие Wedeco .doc",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:plata-pitaniya-datchikov-uf-intensivnosti-unit-sec-kome-iv-24v-dc-wedeco",
+          "descriptionRu": "Плата питания датчиков УФ интенсивности Unit SEC-KOME IV 24V/DC Wedeco",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "ТАК48",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "РР/1.4571",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "KL3199",
+          "quantity": 40787,
+          "unit": "шт",
+          "descriptionRu": "Позиционный выключатель",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "OSP-P40",
+          "quantity": 760,
+          "unit": "шт",
+          "descriptionRu": "Пневматический цилиндр",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "SO 13599-17-37-39",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "48x2x",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "YPV 1/4",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "PEZOD2",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment:Запрос комплектующие Wedeco 2026.doc"
+        },
+        {
+          "article": "JKXN9H",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment:Запрос комплектующие Wedeco 2026.doc"
+        },
+        {
+          "article": null,
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "ИНН/КПП",
+          "source": "attachment:Запрос комплектующие Wedeco 2026.doc"
+        },
+        {
+          "article": "32143-48",
+          "quantity": 32143,
+          "unit": "шт",
+          "descriptionRu": "Щетка М8х5 РР/1.4571 для очистки УФ датчика Артикул 36392",
+          "source": "attachment:Запрос комплектующие Wedeco 2026.doc"
+        },
+        {
+          "article": "24V/DC",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Плата питания датчиков УФ интенсивности Unit SEC-KOME IV Wedeco",
+          "source": "attachment:Запрос комплектующие Wedeco 2026.doc"
+        },
+        {
+          "article": "5873-1:2001-03",
+          "quantity": 5873,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment:Запрос комплектующие Wedeco 2026.doc"
+        },
+        {
+          "article": "2026",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment_filename",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 16,
+      "detectedBrands": [
+        "WEDECO"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "ТАК48",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "РР/1.4571",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "KL3199",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "OSP-P40",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SO 13599-17-37-39",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "48x2x",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "32143-48",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "YPV 1/4",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "24V/DC",
+          "name": "Плата питания датчиков УФ интенсивности Unit SEC-KOME IV Wedeco",
+          "category": null,
+          "source": "attachment:Запрос комплектующие Wedeco 2026.doc"
+        },
+        {
+          "article": "5873-1:2001-03",
+          "name": null,
+          "category": null,
+          "source": "attachment:Запрос комплектующие Wedeco 2026.doc"
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "freetext",
+          "body",
+          "attachment",
+          "attachment:Запрос комплектующие Wedeco 2026.doc"
+        ],
+        "names": [
+          "attachment:Запрос комплектующие Wedeco 2026.doc",
+          "freetext",
+          "body"
+        ],
+        "attachmentsProcessed": [
+          "Запрос комплектующие Wedeco 2026.doc"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.85,
+        "riskLevel": "high",
+        "primaryIssue": "outlier_quantity",
+        "hasConflicts": true
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Вложение: Запрос комплектующие Wedeco .doc",
+      "productLineItems": [
+        "Вложение: Запрос комплектующие Wedeco .doc",
+        "Плата питания датчиков УФ интенсивности Unit SEC-KOME IV 24V/DC Wedeco",
+        "Позиционный выключатель",
+        "Пневматический цилиндр",
+        "ИНН/КПП",
+        "Щетка М8х5 РР/1.4571 для очистки УФ датчика Артикул 36392",
+        "Плата питания датчиков УФ интенсивности Unit SEC-KOME IV Wedeco"
+      ],
+      "productNamesClean": [
+        "Вложение: Запрос комплектующие Wedeco .doc",
+        "Плата питания датчиков УФ интенсивности Unit SEC-KOME IV 24V/DC Wedeco",
+        "Позиционный выключатель",
+        "Пневматический цилиндр",
+        "ИНН/КПП",
+        "Щетка М8х5 РР/1.4571 для очистки УФ датчика Артикул 36392",
+        "Плата питания датчиков УФ интенсивности Unit SEC-KOME IV Wedeco"
+      ],
+      "productNamesRejected": [
+        {
+          "raw": "Датчик УФ-интенсивности Onorm M SO 13599-17-37-39 Wedeco",
+          "normalized": "Датчик УФ-интенсивности Onorm M SO 13599-17-37-39 Wedeco",
+          "reason": "bad_product_name"
+        }
+      ],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "24V"
+        }
+      ],
+      "positions": 16,
+      "totalQty": 79565,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.85,
+        "riskLevel": "high",
+        "primaryIssue": "outlier_quantity",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "freetext"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [
+          {
+            "code": "outlier_quantity",
+            "field": "quantity",
+            "severity": "medium",
+            "article": "KL3199",
+            "quantity": 40787
+          },
+          {
+            "code": "outlier_quantity",
+            "field": "quantity",
+            "severity": "medium",
+            "article": "32143-48",
+            "quantity": 32143
+          }
+        ],
+        "issues": [
+          {
+            "code": "detection_conflicts_present",
+            "field": "recognition",
+            "severity": "high",
+            "count": 2
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "outlier quantity; outlier quantity",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:ТАК48, РР/1.4571, KL3199 | бренды:WEDECO | компания:МУП Екатеринбурга • email:svkhudorozhkov@vodokanalekb.ru",
+        "suggestion": "Аномально большое количество (>1000) — проверьте.",
+        "triggerSignals": [
+          "артикулы:ТАК48, РР/1.4571, KL3199",
+          "бренды:WEDECO",
+          "компания:МУП Екатеринбурга",
+          "ИНН:6608001915",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 6,
+          "attachmentArticles": 5,
+          "matchedRuleCount": 5,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.8075
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://водоканалекб.рф/> для поиска реквизитов",
+        "Сверить запрос по артикулам: ТАК48, РР/1.4571, KL3199, OSP-P40, SO 13599-17-37-39",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://водоканалекб.рф/>",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "6608001915/667001001",
+      "isFilialByKpp": true
+    },
+    "detectedBrands": [
+      "WEDECO"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Худорожков, добрый день!\n\nСпасибо за заявку по WEDECO (16 позиций).\nАртикулы: ТАК48, РР/1.4571, KL3199, OSP-P40, SO 13599-17-37-39\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос комплектующие Wedeco 2026",
+      "attachments": [
+        "image001.png",
+        "image002.png",
+        "image003.png",
+        "Запрос комплектующие Wedeco 2026.doc"
+      ],
+      "body": "Добрый день.\r\nПрошу сообщить о возможности поставки оборудования Wedeco.\r\n\r\n\r\nС уважением,\r\nХудорожков Сергей Владимирович\r\nНачальник службы, Служба материально-технического обеспечения\r\nМУП <Водоканал> Екатеринбурга\r\n+7 (343) 2290154 (доб. 4126)\r\nSVKhudorozhkov@vodokanalekb.ru<mailto:SVKhudorozhkov@vodokanalekb.ru>\r\nводоканалекб.рф<https://водоканалекб.рф/>\r\n[cid:image001.png@01DCBB7B.E8A3C250]<https://водоканалекб.рф/>\r\nПодписывайтесь на Водоканал в социальных сетях! [cid:image002.png@01DCBB7B.E8A3C250] <https://vk.com/vodokanalekb> [cid:image003.png@01DCBB7B.E8A3C250] <https://t.me/vdknlekb>"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "image001.png",
+          "safeName": "image001.png",
+          "contentType": "image/png",
+          "size": 13631,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image002.png",
+          "safeName": "image002.png",
+          "contentType": "image/png",
+          "size": 977,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image003.png",
+          "safeName": "image003.png",
+          "contentType": "image/png",
+          "size": 1408,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Запрос комплектующие Wedeco 2026.doc",
+          "safeName": "Запрос комплектующие Wedeco 2026.doc",
+          "contentType": "application/msword",
+          "size": 90112,
+          "ext": ".doc",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 4176,
+          "category": "phase3_document",
+          "detectedArticles": [
+            "PEZOD2",
+            "4-IDATX",
+            "JKXN9H",
+            "6608001915/667001001",
+            "OSP-P40",
+            "29741",
+            "48X2X",
+            "32143-48",
+            "8Х5",
+            "36392",
+            "KL3199",
+            "40787",
+            "24V/DC",
+            "5873-1:2001-03",
+            "13599-17-37-39"
+          ],
+          "detectedBrands": [
+            "WEDECO"
+          ],
+          "detectedInn": [
+            "6608001915"
+          ],
+          "detectedKpp": [
+            "667001001"
+          ],
+          "detectedOgrn": [
+            "1036603485962",
+            "7600000039498"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 3,
+        "totalBytes": 90112,
+        "totalChars": 4176,
+        "budgetMs": 257,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 3
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-19T12:16:17.382Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 2,
+      "detectionGapsCount": 2
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:59:51.265Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

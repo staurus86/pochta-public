@@ -1,0 +1,440 @@
+[
+  {
+    "comments": "Наименование компании неверное, не заполнено описание товара, бренд и количество, артикул указан не тот, вместо артикула название модели.",
+    "verification": "есть замечания",
+    "message_key": "1ab382c362c58036b99df7c45320ad9ee37d2394",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "не указаны бренд, описание и кол-во товара, Ф.И.О. конт.лица указано неверно",
+    "verification": "есть замечания",
+    "message_key": "e09c307417c27162efe2cd87ef3f732676d208f1",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "товары заполнены не полностью, не указан ИНН",
+    "verification": "есть замечания",
+    "message_key": "70b7121c67f6b9d8a477501490980660fe677adf",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Товары заполнены некорректно",
+    "verification": "есть замечания",
+    "message_key": "d9f75c5b690b5e2c697ce79abd2f7c3cfe7948de",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Нет ИНН, некорректно заполнены товары",
+    "verification": "есть замечания",
+    "message_key": "d61bb9a20ecb29281cb53959204486f93d7f4933",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Ф.И.О. и товары указаны неправильно",
+    "verification": "есть замечания",
+    "message_key": "b3ae79660f241a856e2f607e304ecb5f3e308945",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "не указан бренд",
+    "verification": "есть замечания",
+    "message_key": "0616faeefa40414b379d863e0e4d6294182e22fe",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Некорректное ФИО контактного лица, нет наименования компании",
+    "verification": "есть замечания",
+    "message_key": "27189d4942e804c67cda5657f1274cfaa4ceae3b",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Наименование компании некорректно заполнено, нет инфо по товарам и артикулам в самом письме и соответственно здесь",
+    "verification": "есть замечания",
+    "message_key": "4fc194fed70ccdf5911f8240d44c7e1b7246a2f3",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "ФИО некорректно, товар не найден",
+    "verification": "есть замечания",
+    "message_key": "9b50668ffee58c53dbdd3c0376fb17a0c1559960",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "в-принципе нет, но смущает название компании ( добавка Руководи)",
+    "verification": "есть замечания",
+    "message_key": "819cbb12a2164e6aeba57223ac58aae88eb8b84a",
+    "project_id": "project-3-mailbox-file"
+  },
+  {
+    "comments": "не определил контактное лицо + по позиции неверная информация ",
+    "verification": "есть замечания",
+    "message_key": "b16af540996dfad4a5b2eb1802799fdaba9b76cb",
+    "project_id": "project-3-mailbox-file"
+  },
+  {
+    "comments": "нет ИНН, хотя карточка открывается ",
+    "verification": "есть замечания",
+    "message_key": "2f48eb66b3379ad4512183f9b3c7777f6ace296f",
+    "project_id": "project-3-mailbox-file"
+  },
+  {
+    "comments": "откуда взял контактное лицо Verber",
+    "verification": "есть замечания",
+    "message_key": "8396b5a0e6db53a0f5a3b62802003515b55784eb",
+    "project_id": "project-3-mailbox-file"
+  },
+  {
+    "comments": "Компания АО Волжский Оргсинтез-не определил\nэто одна позиция Ремонтный комплект для анализатора мутности, количество тоже не определил ",
+    "verification": "есть замечания",
+    "message_key": "443970c35755903d890112a3de2b19b82684565d",
+    "project_id": "project-3-mailbox-file"
+  },
+  {
+    "comments": "задваивает позиции ",
+    "verification": "есть замечания",
+    "message_key": "d03b6a717944cb2cf6449429579423d54b1ab9b0",
+    "project_id": "project-3-mailbox-file"
+  },
+  {
+    "comments": "5 позиций, указал одну ",
+    "verification": "есть замечания",
+    "message_key": "25a983a03f902a1b7103432ab2c0ca2cbd5808f9",
+    "project_id": "project-3-mailbox-file"
+  },
+  {
+    "comments": "откуда 2  позиция ?!\nи у первой наименование некорректное ",
+    "verification": "есть замечания",
+    "message_key": "687e91cf1c39c380d4f26fd2852135f7f98d4830",
+    "project_id": "project-3-mailbox-file"
+  },
+  {
+    "comments": "ИНН не определил, хотя есть карточка клиента с реквизитами\n+некорректно  заполняет описание товара ",
+    "verification": "есть замечания",
+    "message_key": "db084065159bc979802b81c18ce30fcb91141e96",
+    "project_id": "project-3-mailbox-file"
+  },
+  {
+    "comments": "Астрон не указал\n+количество товара 1 штука, а не 11 ",
+    "verification": "есть замечания",
+    "message_key": "c3d4d18268140ca5e3ae02862d7fbad7e7b0a406",
+    "project_id": "project-3-mailbox-file"
+  },
+  {
+    "comments": "Не открываются ссылки во вложении.нет возможности сверить.",
+    "verification": "есть замечания",
+    "message_key": "ec2086b38efe0c74884ea8a836a6cc70c42400f4",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Идентифицирован только один бренд,а их в запросе два.",
+    "verification": "есть замечания",
+    "message_key": "3957aeead3636ada7f449867d4a59a8ac7ae3ff4",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "ссылка с реквизитами не открывается.",
+    "verification": "есть замечания",
+    "message_key": "1f093672c9c16514f2252f6a0b1312e2228826db",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Ссылка не открывается.",
+    "verification": "есть замечания",
+    "message_key": "7e6a1862df84becd2dd0a3123ecdf3e2ba1022fb",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Ссылка не открывается.",
+    "verification": "есть замечания",
+    "message_key": "a58adcbe536a6cf9d117ed07a6650c6886e5ec85",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Не открывается ссылка.\nВ запросе несколько брендов.\n",
+    "verification": "есть замечания",
+    "message_key": "76400796b9428cd5edae658f7177b41740864e57",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "ссылка во вложении не открывается.\nпозиции и артикулы не корректно перенесены",
+    "verification": "есть замечания",
+    "message_key": "d2feefb84d40f2d0ca371a27f8443aed3cf64daa",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "ссылки не открываются.",
+    "verification": "есть замечания",
+    "message_key": "7aeff728e8bc09b945510860675bd5c193ea581e",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "бренды и артикулы перенесены некорректно",
+    "verification": "есть замечания",
+    "message_key": "11d1b010fe65f77b62bf24a5a9a7fc43f518ba53",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "ссылки не открываюся.\nБренды описание и артикулы перенеслись некорректно",
+    "verification": "есть замечания",
+    "message_key": "8f9c8413243af67d635b3dc93a7933c7d2095d51",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "ссылки не открываются",
+    "verification": "есть замечания",
+    "message_key": "ec2086b38efe0c74884ea8a836a6cc70c42400f4",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Файла во вложении нет.\nнекорретно перенеслось описание и бренды",
+    "verification": "есть замечания",
+    "message_key": "3957aeead3636ada7f449867d4a59a8ac7ae3ff4",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "реквизиты не открываются.\nописание не корректно перенеслось",
+    "verification": "есть замечания",
+    "message_key": "1f093672c9c16514f2252f6a0b1312e2228826db",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "ссылка не открывается",
+    "verification": "есть замечания",
+    "message_key": "7e6a1862df84becd2dd0a3123ecdf3e2ba1022fb",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "ссылки не открываются",
+    "verification": "есть замечания",
+    "message_key": "a58adcbe536a6cf9d117ed07a6650c6886e5ec85",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "не корректно перенеслись бренды",
+    "verification": "есть замечания",
+    "message_key": "76400796b9428cd5edae658f7177b41740864e57",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "не корректно перенеслись бренды и артикулы",
+    "verification": "есть замечания",
+    "message_key": "d2feefb84d40f2d0ca371a27f8443aed3cf64daa",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "не открываются ссылки",
+    "verification": "есть замечания",
+    "message_key": "7aeff728e8bc09b945510860675bd5c193ea581e",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "бренды  и артикулы некорректно перенеслись",
+    "verification": "есть замечания",
+    "message_key": "11d1b010fe65f77b62bf24a5a9a7fc43f518ba53",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Ссылки не открываются.",
+    "verification": "есть замечания",
+    "message_key": "8f9c8413243af67d635b3dc93a7933c7d2095d51",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Артикулы определил отлично, но вот описание бренды не подтянул",
+    "verification": "есть замечания",
+    "message_key": "d88cb2edb8177113268faed065145864c67226e8",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "описание товара взял одно на все товары\nс артикулами напутал\nкол-во не записал",
+    "verification": "есть замечания",
+    "message_key": "568fb6dc139efb75fcffb3386ebe4610a9b2a8b0",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "система взяла бренд и название товара из первой строки и прописала его по всем товарам\nкол-во не проставлено \nартикулы съехали и совсем не совпадают т.к. через пробел с серией указываются.",
+    "verification": "есть замечания",
+    "message_key": "1833b9f416d39d9a56ca2517c1d77aebab731708",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "первый товар действительно бренда IFM, но у него нет названия товара, кол-во которое похоже должно было быть указано в таблице разбора 5шт. Сам клиент написал неоднозначно.\nПоследующие товары не являются товарами бренда IFM, скорее всего они бренда производства РФ и их кол-во по 10шт.",
+    "verification": "есть замечания",
+    "message_key": "0197b98a397b7c982a68f5fe4c3ed3611528d44b",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "замечание к описанию строке №1 не должно было в ней быть \"только\"\nПозиции 2 и 3 быть не должно было, т.к. клиент всего запрашивает 1 товар,  а не 3 разных.",
+    "verification": "есть замечания",
+    "message_key": "f5315d02d08341afb988a04254b7b081cab2e778",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "ошибка с назначением бренда, в теле письма он где-то указан, в файле эксель что по сути дублирует запрос но уже в более структурном формате, почему не взять из него, а не из поля текста письма\nНекоторые строки остались без названия товара, хотя в экселе они были.\nошибка с кол-вом во всех строках\nаналогичные запросы требуют двойной обработки, нужно сравнивать то что в теле письма и то во во вложении в эксель файле в данном случае.\nОчень большой запрос, детальную обработку не делал.",
+    "verification": "есть замечания",
+    "message_key": "090de2b124349ee0a7a41fb9a23e48007fa7b620",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Достаточно сложный запрос, как я понял с запросом реквизитов. Сам запрос в теле письма, вёрстка похоже поехала и даже визуально сложно обрабатывать запрос. Один из двух артикул указан верно,  но нет бренда и описания. \nКол-во клиент не указал, собственно его и не проставила система, а по хорошему должна проставлять по умолчанию 1шт.",
+    "verification": "есть замечания",
+    "message_key": "b8f71f18c50c90baf5ea2e4fcab35004c111145f",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Позиция 1\nНе указан бренд\nОписание некорректное\nПозиция 2\nНе указан бренд\nОписание некорректное\nкол-во некорректное\nПозиция 3\nНе указан бренд\nОписание некорректное\nкол-во некорректное",
+    "verification": "есть замечания",
+    "message_key": "13fdf173d5e97ae3d56c6229ca2aa3518b7292d1",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "файл с реквизитами открыть/скачать не смог\nКлиент запросил 1 товар, а разборщик письма разложил на 3 товара, что в корне не верно!!!\nБренд в самом письме вроде как не указан, соответственно его нет после разбора",
+    "verification": "есть замечания",
+    "message_key": "e6134c9caf3d0059000416fec91737811af02e1b",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Наименование компании записано некорректно.\nБренды не распознаны, хотя они явно есть.\nОписание товара не заполнено\nАртикулы расположены не последовательно как в запросе, что затрудняет проверку.\nСчитаю, что некоторые артикулы обрезаны, т.к. они могут быть двух составные через пробел.\nКол-во не указано, хотя в письме оно есть!",
+    "verification": "есть замечания",
+    "message_key": "0d3312eb37cbdf45afd303dac6644a899eadbb98",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "если посмотреть на 1 файл эксел и сопоставить позицию, то сразу видно, что количество неправильно определено.",
+    "verification": "есть замечания",
+    "message_key": "de1aaa47a539fad9d0000c7a8214c04a841ff281",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "у клиента в файле 14 позиций, вначале похоже на правду, но он дополнительно добавил  еще позиции. ",
+    "verification": "есть замечания",
+    "message_key": "a58adcbe536a6cf9d117ed07a6650c6886e5ec85",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "у клиента в файле 9 позиций и есть четкое наименование и количество, он плохо все определил.",
+    "verification": "есть замечания",
+    "message_key": "7e6a1862df84becd2dd0a3123ecdf3e2ba1022fb",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "здесь сразу видно, что неправильно наименование и количество ",
+    "verification": "есть замечания",
+    "message_key": "11d1b010fe65f77b62bf24a5a9a7fc43f518ba53",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "я вижу у клиента 7 позиций, он определил больше и кол-во не указал",
+    "verification": "есть замечания",
+    "message_key": "3957aeead3636ada7f449867d4a59a8ac7ae3ff4",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "неверное количество позиций указывает ",
+    "verification": "есть замечания",
+    "message_key": "a5e158af697bee6a481b610acc074c84d36c8513",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "неверное количество ",
+    "verification": "есть замечания",
+    "message_key": "13fdf173d5e97ae3d56c6229ca2aa3518b7292d1",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "неправильно указал позицию.\nона одна , а он всю информацию разделил на несколько",
+    "verification": "есть замечания",
+    "message_key": "7a936304f5c12752da309e0f7aae994334ab8cd8",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "не указал количество товара  и не совпадает количество позиций.",
+    "verification": "есть замечания",
+    "message_key": "568fb6dc139efb75fcffb3386ebe4610a9b2a8b0",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": null,
+    "verification": "готово к импорту",
+    "message_key": "1833b9f416d39d9a56ca2517c1d77aebab731708",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "не заполнено количество и в описании не то",
+    "verification": "есть замечания",
+    "message_key": "1e1fad97c836ca55605c65af88ab4a0b2382130a",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "графа \"Бренд\" не заполнена",
+    "verification": "есть замечания",
+    "message_key": "d4fe53852bd05b3e3a00a0346c66f6d82ba85725",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": null,
+    "verification": "готово к импорту",
+    "message_key": "101f69099a70ec921b55a8ba76174694abed8c70",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Бренд и описание не везде заполнено",
+    "verification": "есть замечания",
+    "message_key": "de1aaa47a539fad9d0000c7a8214c04a841ff281",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Описание и количество не везде заполнено",
+    "verification": "есть замечания",
+    "message_key": "513c7ea53255504c54e2bc2608bfc79e635ddbff",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Описание и количество не везде заполнены",
+    "verification": "есть замечания",
+    "message_key": "d13fa0cfee88453d3c2f66cd98d8dc4a4f764907",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Описание и количество не везде заполнены",
+    "verification": "есть замечания",
+    "message_key": "081345f6ba7e78132575d5c4616a6321a0452f28",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Бренд не заполнен, количество не везде и как-то неправильно заполнено описание",
+    "verification": "есть замечания",
+    "message_key": "a324ed0d4d9afa64f6bf12403a34b24b4d77edc2",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Бренд не заполнен, описание заполнено неверно, вместо наименования там бренд",
+    "verification": "есть замечания",
+    "message_key": "c8c0c7eb9729aa2b0dbfb4983e24d5d039be6eb1",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Бренд, описание и количество не везде заполнены",
+    "verification": "есть замечания",
+    "message_key": "ebc186b07f7368df6a59225be0d0c745c3f9ce7d",
+    "project_id": "project-3-mailbox-file"
+  },
+  {
+    "comments": "Вместо описания указан бренд, а графа бренд не заполнена",
+    "verification": "есть замечания",
+    "message_key": "c8c0c7eb9729aa2b0dbfb4983e24d5d039be6eb1",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Описание и количество не везде заполнены",
+    "verification": "есть замечания",
+    "message_key": "d13fa0cfee88453d3c2f66cd98d8dc4a4f764907",
+    "project_id": "project-4-klvrt-mail"
+  },
+  {
+    "comments": "Описание и количество не везде заполнены",
+    "verification": "есть замечания",
+    "message_key": "081345f6ba7e78132575d5c4616a6321a0452f28",
+    "project_id": "project-4-klvrt-mail"
+  }
+]

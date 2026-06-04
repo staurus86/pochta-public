@@ -1,0 +1,512 @@
+{
+  "messageKey": "0d3312eb37cbdf45afd303dac6644a899eadbb98",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Наименование компании записано некорректно.\nБренды не распознаны, хотя они явно есть.\nОписание товара не заполнено\nАртикулы расположены не последовательно как в запросе, что затрудняет проверку.\nСчитаю, что некоторые артикулы обрезаны, т.к. они могут быть двух составные через пробел.\nКол-во не указано, хотя в письме оно есть!"
+  ],
+  "subject": "FW: Запрос цены на клапана и привод  ( наш заказ 220)",
+  "body": "Добрый день.\r\nПрошу рассмотреть возможность поставки следующей продукции:\r\n(аналоги рассматриваются при наличии описания)\r\nКлапан электромагнитный двухходовой 21HT4K0Y160 ODE\r\n\r\n3\r\n\r\nшт\r\n\r\nПривод пневматический 82DA0007 DA32 Valbia\r\n\r\n4\r\n\r\nшт\r\n\r\nКлапан NM52W1S-PR-IL Vesta\r\n\r\n4\r\n\r\nшт\r\n\r\n\r\n\r\n\r\nПри положительном решении направить в наш адрес счет на оплату или коммерческое предложение с условиями оплаты и сроками поставки.\r\n\r\nНадеюсь на Ваше понимание и дальнейшее взаимовыгодное сотрудничество.\r\n\r\nВ коммерческом предложении или счете необходимо указать:\r\n - Срок действия счета или КП на менее 30 дней.\r\n ∙ Наименование и количество продукции;\r\n∙ Сроки и место поставки;\r\n∙ Условия оплаты- приветствуется 30% аванс или отсрочка платежа\r\n∙ Условия доставки;\r\n\r\nИНФОРМАЦИЯ ДЛЯ ПОСТАВЩИКОВ:\r\nСчета-фактуры, универсальные передаточные документы (УПД)\r\nГрузополучатель: Завод УРБО -филиал Общества с ограниченной ответственностью \"Уралмаш Нефтегазовое Оборудование Холдинг\" в Екатеринбурге, 620012, г. Екатеринбург, площадь 1-ой Пятилетки\r\nПокупатель: ООО <Уралмаш НГО Холдинг>,\r\nАдрес: 117292, РФ, г. Москва, пр. 60-летия Октября, д.21, корп.4\r\nИНН/КПП: 7707727918/ 668643001\r\n\r\n\r\nС уважением,\r\n\r\nГлавный специалист отдела закупки металлургической заготовки\r\nКовалева Елена Зотиевна\r\nтел.: +7 (343) 270-12-00 доб. 66483\r\nмоб.: +7 912 203 06 12\r\ne-mail: ezkovaleva@uralmash-ngo.com<mailto:ezkovaleva@uralmash-ngo.com>\r\nhttps: //www.uralmash-ngo.com/<https://www.uralmash-ngo.com/>\r\n<Завод УРБО> - Филиал ООО <УНГОХ> в г. Екатеринбурге\r\n620012, г. Екатеринбург, пл. Первой Пятилетки\r\n[Описание: Описание: cid:image002.png@01D80D13.E80A79D0]",
+  "attachmentFiles": [
+    {
+      "filename": "image001.png",
+      "safeName": "image001.png",
+      "contentType": "image/png",
+      "size": 26822
+    },
+    {
+      "filename": "Карта предприятия от 04.09.2024год.pdf",
+      "safeName": "Карта предприятия от 04.09.2024год.pdf",
+      "contentType": "application/pdf",
+      "size": 92609
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "6cbbcd26-2654-4d1a-9e8c-91e565668b5d",
+    "createdAt": "2026-06-01T15:03:32.840Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "ODE",
+        "Valbia"
+      ],
+      "signals": {
+        "clientScore": 21,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal",
+      "sources": {
+        "droppedBrands_noBodyOverlap": [
+          "Vesta Automation"
+        ]
+      }
+    },
+    "sender": {
+      "email": "ezkovaleva@uralmash-ngo.com",
+      "emailPrimary": "ezkovaleva@uralmash-ngo.com",
+      "emailDisplayName": "Ковалева Елена Зотиевна",
+      "emailLocal": "ezkovaleva",
+      "emailDomain": "uralmash-ngo.com",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Ковалева Елена Зотиевна",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Главный специалист отдела закупки металлургической заготовки",
+      "positionAlt": "Главный специалист отдела закупки металлургической заготовки",
+      "departmentName": "отдела закупки металлургической заготовки",
+      "positionSource": "signature",
+      "positionConfidence": 1,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Ковалева",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "УРАЛМАШ НЕФТЕГАЗОВОЕ ОБОРУДОВАНИЕ ХОЛДИНГ",
+      "companyAlt": null,
+      "companyNameSource": "email_domain",
+      "companyNameConfidence": 0.37,
+      "companyNameNeedsReview": true,
+      "companyNameRejected": [
+        {
+          "value": "Ковалева Елена Зотиевна",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://www.uralmash-ngo.com/>",
+      "cityPhone": "+7 (343) 270-12-00",
+      "mobilePhone": "+7 (912) 203-06-12",
+      "phoneExt": "66483",
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [
+        {
+          "value": "7707727918",
+          "source": "current_message",
+          "reason": "inn_like"
+        }
+      ],
+      "inn": "7707727918",
+      "kpp": "770772791",
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "company_directory",
+        "website": "body",
+        "phone": "signature",
+        "inn": "body",
+        "kpp": "body",
+        "ogrn": null,
+        "fullName": "signature",
+        "position": "signature",
+        "department": "body"
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день.\nПрошу рассмотреть возможность поставки следующей продукции:\n(аналоги рассматриваются при наличии описания)\nКлапан электромагнитный двухходовой 21HT4K0Y160 ODE\n\n3\n\nшт\n\nПривод пневматический 82DA0007 DA32 Valbia\n\n4\n\nшт\n\nКлапан NM52W1S-PR-IL Vesta\n\n4\n\nшт\n\n\n\n\nПри положительном решении направить в наш адрес счет на оплату или коммерческое предложение с условиями оплаты и сроками поставки.\n\nНадеюсь на Ваше понимание и дальнейшее взаимовыгодное сотрудничество.\n\nВ коммерческом предложении или счете необходимо указать:\n - Срок действия счета или КП на менее 30 дней.\n ∙ Наименование и количество продукции;\n∙ Сроки и место поставки;\n∙ Условия оплаты- приветствуется 30% аванс или отсрочка платежа\n∙ Условия доставки;\n\nИНФОРМАЦИЯ ДЛЯ ПОСТАВЩИКОВ:\nСчета-фактуры, универсальные передаточные документы (УПД)\nГрузополучатель: Завод УРБО -филиал Общества с ограниченной ответственностью \"Уралмаш Нефтегазовое Оборудование Холдинг\" в Екатеринбурге, 620012, г. Екатеринбург, площадь 1-ой Пятилетки\nПокупатель: ООО <Уралмаш НГО Холдинг>,\nАдрес: 117292, РФ, г. Москва, пр. 60-летия Октября, д.21, корп.4\nИНН/КПП: 7707727918/ 668643001",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "NM52W1S-PR-IL",
+        "21HT4K0Y160",
+        "82DA0007"
+      ],
+      "lineItems": [
+        {
+          "article": "NM52W1S-PR-IL",
+          "quantity": 3,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "21HT4K0Y160",
+          "quantity": 3,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "82DA0007",
+          "quantity": 3,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 3,
+      "detectedBrands": [
+        "ODE",
+        "Valbia",
+        "Vesta Automation"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "NM52W1S-PR-IL",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "21HT4K0Y160",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "82DA0007",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [],
+        "attachmentsProcessed": [
+          "Карта предприятия от 04.09.2024год.pdf"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": false,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [
+          "name"
+        ],
+        "completenessScore": 83,
+        "overallConfidence": 0.83,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": null,
+      "productLineItems": [],
+      "productNamesClean": [],
+      "productNamesRejected": [],
+      "primaryQuantity": 3,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "multiline_table"
+        }
+      ],
+      "totalQuantity": 11,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "32 V"
+        }
+      ],
+      "positions": 3,
+      "totalQty": 9,
+      "recognitionDiagnostics": {
+        "completenessScore": 83,
+        "overallConfidence": 0.83,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "company_directory"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.93,
+            "source": "body"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "missing_name",
+            "field": "name",
+            "severity": "medium"
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "ODE",
+              "Valbia",
+              "Vesta Automation"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый company; нет name; multiple brands detected",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:NM52W1S-PR-IL, 21HT4K0Y160, 82DA0007 | бренды:ODE, Valbia, Vesta Automation | компания:УРАЛМАШ НЕФТЕГАЗОВОЕ ОБОРУДОВАНИЕ ХОЛДИНГ • email:ezkovaleva@uralmash-ngo.com",
+        "suggestion": "Не хватает: наименование. Дополните через быструю коррекцию или запросите у клиента. Добавьте наименование для артикула — закрепите через feedback.",
+        "triggerSignals": [
+          "артикулы:NM52W1S-PR-IL, 21HT4K0Y160, 82DA0007",
+          "бренды:ODE, Valbia, Vesta Automation",
+          "компания:УРАЛМАШ НЕФТЕГАЗОВОЕ ОБОРУДОВАНИЕ ХОЛДИНГ",
+          "ИНН:7707727918",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 3,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 6,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7885
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://www.uralmash-ngo.com/> для поиска реквизитов",
+        "Сверить запрос по артикулам: NM52W1S-PR-IL, 21HT4K0Y160, 82DA0007",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://www.uralmash-ngo.com/>",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7707727918/770772791",
+      "isFilialByKpp": true
+    },
+    "detectedBrands": [
+      "ODE",
+      "Valbia",
+      "Vesta Automation"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Ковалева, добрый день!\n\nСпасибо за заявку по ODE, Valbia, Vesta Automation.\nАртикулы: NM52W1S-PR-IL, 21HT4K0Y160, 82DA0007\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "FW: Запрос цены на клапана и привод  ( наш заказ 220)",
+      "attachments": [
+        "image001.png",
+        "Карта предприятия от 04.09.2024год.pdf"
+      ],
+      "body": "Добрый день.\r\nПрошу рассмотреть возможность поставки следующей продукции:\r\n(аналоги рассматриваются при наличии описания)\r\nКлапан электромагнитный двухходовой 21HT4K0Y160 ODE\r\n\r\n3\r\n\r\nшт\r\n\r\nПривод пневматический 82DA0007 DA32 Valbia\r\n\r\n4\r\n\r\nшт\r\n\r\nКлапан NM52W1S-PR-IL Vesta\r\n\r\n4\r\n\r\nшт\r\n\r\n\r\n\r\n\r\nПри положительном решении направить в наш адрес счет на оплату или коммерческое предложение с условиями оплаты и сроками поставки.\r\n\r\nНадеюсь на Ваше понимание и дальнейшее взаимовыгодное сотрудничество.\r\n\r\nВ коммерческом предложении или счете необходимо указать:\r\n - Срок действия счета или КП на менее 30 дней.\r\n ∙ Наименование и количество продукции;\r\n∙ Сроки и место поставки;\r\n∙ Условия оплаты- приветствуется 30% аванс или отсрочка платежа\r\n∙ Условия доставки;\r\n\r\nИНФОРМАЦИЯ ДЛЯ ПОСТАВЩИКОВ:\r\nСчета-фактуры, универсальные передаточные документы (УПД)\r\nГрузополучатель: Завод УРБО -филиал Общества с ограниченной ответственностью \"Уралмаш Нефтегазовое Оборудование Холдинг\" в Екатеринбурге, 620012, г. Екатеринбург, площадь 1-ой Пятилетки\r\nПокупатель: ООО <Уралмаш НГО Холдинг>,\r\nАдрес: 117292, РФ, г. Москва, пр. 60-летия Октября, д.21, корп.4\r\nИНН/КПП: 7707727918/ 668643001\r\n\r\n\r\nС уважением,\r\n\r\nГлавный специалист отдела закупки металлургической заготовки\r\nКовалева Елена Зотиевна\r\nтел.: +7 (343) 270-12-00 доб. 66483\r\nмоб.: +7 912 203 06 12\r\ne-mail: ezkovaleva@uralmash-ngo.com<mailto:ezkovaleva@uralmash-ngo.com>\r\nhttps: //www.uralmash-ngo.com/<https://www.uralmash-ngo.com/>\r\n<Завод УРБО> - Филиал ООО <УНГОХ> в г. Екатеринбурге\r\n620012, г. Екатеринбург, пл. Первой Пятилетки\r\n[Описание: Описание: cid:image002.png@01D80D13.E80A79D0]"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "image001.png",
+          "safeName": "image001.png",
+          "contentType": "image/png",
+          "size": 26822,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Карта предприятия от 04.09.2024год.pdf",
+          "safeName": "Карта предприятия от 04.09.2024год.pdf",
+          "contentType": "application/pdf",
+          "size": 92609,
+          "ext": ".pdf",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 769,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 1,
+        "totalBytes": 92609,
+        "totalChars": 769,
+        "budgetMs": 71,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 1
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-22T06:58:28.378Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:03:32.856Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

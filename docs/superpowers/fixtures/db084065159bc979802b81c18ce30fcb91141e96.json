@@ -1,0 +1,464 @@
+{
+  "messageKey": "db084065159bc979802b81c18ce30fcb91141e96",
+  "projectId": "project-3-mailbox-file",
+  "comments": [
+    "ИНН не определил, хотя есть карточка клиента с реквизитами\n+некорректно  заполняет описание товара"
+  ],
+  "subject": "Заявка №2681 от ООО «ГК» ",
+  "body": "Добрый день!\r\n\r\nПрошу выставить счет и указать стоимость и сроки поставки товаров :\r\nКонтактная щетка Vahle 0780920 SCHLEIFKOHLE MK 55 F/38-14 - 32 шт\r\n\r\n\r\n\r\nС Уважением!\r\nПоправкин Александр\r\nОтдел закупок ООО \"ГК\"\r\nТел.: +7(499)394-48-50\r\nТел.: +7(962)922-06-43\r\nЭл. Почта: snab@gcexpress.ru",
+  "attachmentFiles": [
+    {
+      "filename": "Карточка Модульбанк ООО ГК 18.07.25.pdf",
+      "safeName": "Карточка Модульбанк ООО ГК 18.07.25.pdf",
+      "contentType": "application/pdf",
+      "size": 110741
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "e865bf61-3a18-4951-804e-3fc5f06b3667",
+    "createdAt": "2026-06-01T14:50:53.884Z",
+    "mailbox": "multi-mailbox@project3.local",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Vahle"
+      ],
+      "signals": {
+        "clientScore": 22,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 14,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "наличие\\s+на\\s+складе|сроки\\s+поставки|с\\s+доставкой|просьба\\s+выставить|реквизиты\\s+прилагаются|карточка\\s+предприятия",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "snab@gcexpress.ru",
+      "emailPrimary": "snab@gcexpress.ru",
+      "emailDisplayName": "Поправкин Александр",
+      "emailLocal": "snab",
+      "emailDomain": "gcexpress.ru",
+      "emailType": "role_mailbox",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.7,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": false,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Поправкин Александр",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Отдел закупок ООО \"ГК\"",
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": "legacy",
+      "positionConfidence": 0.55,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Поправкин Александр",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «ГК»",
+      "companyAlt": "ООО «ГК»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Отдел закупок ООО «ГК»",
+          "source": "body",
+          "reason": "department"
+        },
+        {
+          "value": "Поправкин Александр",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://gcexpress.ru",
+      "cityPhone": "+7 (499) 394-48-50",
+      "mobilePhone": "+7 (962) 922-06-43",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "9703148335",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": true,
+      "sources": {
+        "company": "signature",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "signature",
+        "position": "legacy",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день!\n\nПрошу выставить счет и указать стоимость и сроки поставки товаров :\nКонтактная щетка Vahle 0780920 SCHLEIFKOHLE MK 55 F/38-14 - 32 шт",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "MK 55",
+        "0780920"
+      ],
+      "lineItems": [
+        {
+          "article": "MK 55",
+          "quantity": 32,
+          "unit": "шт",
+          "descriptionRu": "Заявка №2681 от ООО «ГК»",
+          "sourceLine": "Контактная щетка Vahle 0780920 SCHLEIFKOHLE MK 55 F/38-14 - 32 шт",
+          "source": "body"
+        }
+      ],
+      "totalPositions": 2,
+      "detectedBrands": [
+        "Vahle"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "MK 55",
+          "name": "Контактная щетка Vahle 0780920 SCHLEIFKOHLE",
+          "category": null
+        },
+        {
+          "article": "0780920",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [
+          "body"
+        ],
+        "attachmentsProcessed": [
+          "Карточка Модульбанк ООО ГК 18.07.25.pdf"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "high",
+        "primaryIssue": "article_name_conflict",
+        "hasConflicts": true
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Заявка №2681 от ООО «ГК»",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Заявка №2681 от ООО «ГК»"
+      ],
+      "productNamesRejected": [
+        {
+          "raw": "Контактная щетка Vahle 0780920 SCHLEIFKOHLE MK 55 F/38-14 - 32 шт",
+          "normalized": "Контактная щетка Vahle 0780920 SCHLEIFKOHLE MK 55 F/38-14",
+          "reason": "bad_product_name"
+        }
+      ],
+      "primaryQuantity": 32,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 32,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 32,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 64,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 2,
+      "totalQty": 32,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "high",
+        "primaryIssue": "article_name_conflict",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "signature"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [
+          {
+            "code": "article_name_conflict",
+            "field": "name",
+            "severity": "medium",
+            "article": "MK 55",
+            "values": [
+              "Заявка №2681 от ООО «ГК»",
+              "Контактная щетка Vahle 0780920 SCHLEIFKOHLE"
+            ],
+            "sources": [
+              "body"
+            ]
+          }
+        ],
+        "issues": [
+          {
+            "code": "detection_conflicts_present",
+            "field": "recognition",
+            "severity": "high",
+            "count": 1
+          },
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "article name conflict",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:MK 55, 0780920 | бренды:Vahle | компания:ООО «ГК» • email:snab@gcexpress.ru",
+        "suggestion": "Разные описания для одного артикула — уточните.",
+        "triggerSignals": [
+          "артикулы:MK 55, 0780920",
+          "бренды:Vahle",
+          "компания:ООО «ГК»",
+          "ИНН:9703148335",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 1,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 6,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7695
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://gcexpress.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: MK 55, 0780920",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://gcexpress.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "9703148335",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Vahle"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Поправкин, добрый день!\n\nСпасибо за заявку по Vahle.\nАртикулы: MK 55, 0780920\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Заявка №2681 от ООО «ГК» ",
+      "attachments": [
+        "Карточка Модульбанк ООО ГК 18.07.25.pdf"
+      ],
+      "body": "Добрый день!\r\n\r\nПрошу выставить счет и указать стоимость и сроки поставки товаров :\r\nКонтактная щетка Vahle 0780920 SCHLEIFKOHLE MK 55 F/38-14 - 32 шт\r\n\r\n\r\n\r\nС Уважением!\r\nПоправкин Александр\r\nОтдел закупок ООО \"ГК\"\r\nТел.: +7(499)394-48-50\r\nТел.: +7(962)922-06-43\r\nЭл. Почта: snab@gcexpress.ru"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Карточка Модульбанк ООО ГК 18.07.25.pdf",
+          "safeName": "Карточка Модульбанк ООО ГК 18.07.25.pdf",
+          "contentType": "application/pdf",
+          "size": 110741,
+          "ext": ".pdf",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 3580,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 110741,
+        "totalChars": 3580,
+        "budgetMs": 55,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-16T22:02:40.707Z",
+      "model": "gpt-4o-mini",
+      "requestType": "order",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 1
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:50:53.896Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

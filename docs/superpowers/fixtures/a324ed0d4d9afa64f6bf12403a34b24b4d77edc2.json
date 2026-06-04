@@ -1,0 +1,1234 @@
+{
+  "messageKey": "a324ed0d4d9afa64f6bf12403a34b24b4d77edc2",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Бренд не заполнен, количество не везде и как-то неправильно заполнено описание"
+  ],
+  "subject": "Запрос КП",
+  "body": "Добрый день!\r\nПрошу предоставить коммерческое предложение на интересующие позиции, которые по вашему профилю компании (цена, сроки поставки, стоимость доставки (базис: 117246, г. Москва, вн. тер. г. муниципальный округ Черемушки, проезд Научный, д. 14а стр. 3, помещение 1))\r\nВо вложении файл\r\n\r\n[Описание: Описание: Описание: Описание: шапка чердак]\r\nС уважением,\r\nГолубев Дмитрий Олегович\r\nРуководитель проектов\r\nРоссия г. Москва, ул. Научный проезд 14а/3, 117246\r\nтел.: +7 (495) 283-00-23 доб.158\r\nмобильный: +7 (977)-770-30-03\r\ne-mail: 158@monotest.ru<mailto:158@monotest.ru>\r\nweb: www.monotest.ru<http://www.monotest.ru/>\r\n\r\n\r\nSincerely,\r\nGolubev Dmitriy Olegovich\r\nProject manager\r\nLLC Nauchniy proezd 14a/3, Moscow,\r\nRussia, 117246\r\ntel.: +7 (495) 283-00-23 (158)\r\nmob.: +7 (977)-770-30-03\r\ne-mail: 158@monotest.ru<mailto:158@monotest.ru>\r\nweb: www.monotest.ru<http://www.monotest.ru/>",
+  "attachmentFiles": [
+    {
+      "filename": "image001.jpg",
+      "safeName": "image001.jpg",
+      "contentType": "image/jpeg",
+      "size": 8447
+    },
+    {
+      "filename": "Реквизиты МОНОТЕСТ.pdf",
+      "safeName": "Реквизиты МОНОТЕСТ.pdf",
+      "contentType": "application/pdf",
+      "size": 232992
+    },
+    {
+      "filename": "Запрос.docx",
+      "safeName": "Запрос.docx",
+      "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size": 17938
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "665e6e48-80e2-4b18-bad2-e15cb15ebca3",
+    "createdAt": "2026-06-01T15:06:55.169Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Hiwin",
+        "SMC",
+        "THK",
+        "nanotec"
+      ],
+      "signals": {
+        "clientScore": 29,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 14,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "наличие\\s+на\\s+складе|сроки\\s+поставки|с\\s+доставкой|просьба\\s+выставить|реквизиты\\s+прилагаются|карточка\\s+предприятия",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 5,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label",
+            "weight": 2
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "158@monotest.ru",
+      "emailPrimary": "158@monotest.ru",
+      "emailDisplayName": "Голубев Дмитрий Олегович",
+      "emailLocal": "158",
+      "emailDomain": "monotest.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Голубев Дмитрий Олегович",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "body",
+      "fullNameConfidence": 0.9,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Руководитель проектов",
+      "positionAlt": "Руководитель проектов",
+      "departmentName": null,
+      "positionSource": "body",
+      "positionConfidence": 0.8700000000000001,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Голубев",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "Dmitriy Olegovich Project manager LLC",
+      "companyAlt": "Golubev Dmitriy Olegovich Project manager LLC",
+      "companyNameSource": "body",
+      "companyNameConfidence": 0.92,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Голубев Дмитрий Олегович",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "http://www.monotest.ru/>",
+      "cityPhone": "+7 (495) 283-00-23",
+      "mobilePhone": "+7 (977) 770-30-03",
+      "phoneExt": "158",
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "current_message",
+      "phoneConfidence": 0.8,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "7734350675",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": true,
+      "sources": {
+        "company": "body",
+        "website": "body",
+        "phone": "current_message",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "body",
+        "position": "body",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день!\nПрошу предоставить коммерческое предложение на интересующие позиции, которые по вашему профилю компании (цена, сроки поставки, стоимость доставки (базис: 117246, г. Москва, вн. тер. г. муниципальный округ Черемушки, проезд Научный, д. 14а стр. 3, помещение 1))\nВо вложении файл\n\n[Описание: Описание: Описание: Описание: шапка чердак]\nС уважением,\nГолубев Дмитрий Олегович\nРуководитель проектов\nРоссия г. Москва, ул. Научный проезд 14а/3, 117246\nтел.: +7 (495) 283-00-23 доб.158\nмобильный: +7 (977)-770-30-03\ne-mail: 158@monotest.ru<mailto:158@monotest.ru>\nweb: www.monotest.ru<http://www.monotest.ru/>\n\n\nSincerely,\nGolubev Dmitriy Olegovich\nProject manager\nLLC Nauchniy proezd 14a/3, Moscow,\nRussia, 117246\ntel.: +7 (495) 283-00-23 (158)\nmob.: +7 (977)-770-30-03\ne-mail: 158@monotest.ru<mailto:158@monotest.ru>\nweb: www.monotest.ru<http://www.monotest.ru/>\n\nВложение: Запрос.docx\nНаименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный E37441-05-A15 Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Втулка шариковая LMH 6M THK 3 ШТ. 5 Двигатель DMN42E Hiwin 2 ШТ. 6 Двигатель шаговый LE080K-E04025-50-AR0-S-040 Moons ' 1 ШТ. 7 Двигатель шаговый ST2818S1006 Nanotec 1 ШТ. 8 Двигатель шаговый с редуктором VSS 33.200.1,2-E-VGPL 32/50-FV Phytron 1 ШТ. 9 Каретка MGW7HZ0HM Hiwin 9 ШТ. 10 Мотор - редуктор AM-BL3660AN-2410+AM-EN3612T103-+AM-36GPC-43 Assun Motor 1 ШТ. 11 Муфта AM №15 Ф25 Girard Transmissions 3 ШТ. 12 Муфта EAMC-30-32-6-8 Festo 533708 1 ШТ. 13 Муфта EAMC-30-35-8-12 Festo 123043 1 ШТ. 14 Муфта Toolflex 5M 1,1-d3 1,1-d4 KTR 4 ШТ. 15 Муфта Toolflex 5M 1,1-d4 1,1-d4 KTR 1 ШТ. 16 Муфта гибкая 5x8 D19 L25 PCMOUNT 66891 3 ШТ. 17 Муфта жесткая 5x8 D14 L25 PCMOUNT 67596 1 ШТ. 18 Направляющая HR1530M+1190LTM(G25g25) THK 1 ШТ. 19 Направляющая линейная MGW7R110HM Hiwin 9 ШТ. 20 Опора шаровая 0535 115 10 Bosch Rexroth 3 ШТ. 21 Передача шарико -винтовая MIF0602-130-165-C5 type C Screw Te",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "E37441-05-A15",
+        "LGA421S14-A-TJBA-019",
+        "LE080K-E04025-50-AR0-S-040",
+        "AM-BL3660AN-2410",
+        "EAMC-30-32-6-8",
+        "EAMC-30-35-8-12",
+        "66891",
+        "67596",
+        "MIF0602-130-165-C5",
+        "D181027804B",
+        "DGE-40-500-SP-KF-GK-SV",
+        "90-2P-H1-BM",
+        "90-2P-H2-BM",
+        "T2.5",
+        "HF-KP43",
+        "MR-J3-40A",
+        "LM-SB2",
+        "LM-SE-X1",
+        "LM-SE-X2",
+        "UKT65-FGS",
+        "LM-PB8",
+        "LM-PE-X6",
+        "EC-max16",
+        "EC-max30",
+        "P48-J6C4096Q14-001",
+        "533708",
+        "123043",
+        "272768",
+        "225778",
+        "200K",
+        "F70/50-AM",
+        "RBQC2007",
+        "DMN42E",
+        "ST2818S1006",
+        "MGW7HZ0HM",
+        "HR1530M",
+        "MGW7R110HM",
+        "SH3UU",
+        "RT24-63-25-C-GS1-KF-PR-3000-N0-B",
+        "RT24-94-25-C-GS1-KF-PR-3000-N0-B",
+        "GP16A",
+        "AM-36GPC-43",
+        "RSMR-T-36-115-25-C-HS-KF-AM",
+        "LSIM-P-40-148-50-W-HE1--D9-L",
+        "LSIM-P-40-148-50-W-HE1--D9-R",
+        "20-H1-02",
+        "VGPL 32/50-FV",
+        "NJ 306",
+        "EXPERT 90-2P",
+        "2-E-VGPL",
+        "32/50-FV",
+        "AM-EN3612T103-2048",
+        "1-D3",
+        "1-D4",
+        "D19",
+        "L25",
+        "D14",
+        "1190LTM",
+        "G25G25",
+        "1000094"
+      ],
+      "lineItems": [
+        {
+          "article": "E37441-05-A15",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LGA421S14-A-TJBA-019",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LE080K-E04025-50-AR0-S-040",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "AM-BL3660AN-2410",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "EAMC-30-32-6-8",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "EAMC-30-35-8-12",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "MIF0602-130-165-C5",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "D181027804B",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "DGE-40-500-SP-KF-GK-SV",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "90-2P-H1-BM",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "90-2P-H2-BM",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "T2.5",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "HF-KP43",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "MR-J3-40A",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LM-SB2",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LM-SE-X1",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LM-SE-X2",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "UKT65-FGS",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LM-PB8",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LM-PE-X6",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "EC-max16",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "EC-max30",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "P48-J6C4096Q14-001",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "200K",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "F70/50-AM",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "RBQC2007",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "DMN42E",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "ST2818S1006",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "MGW7HZ0HM",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "HR1530M",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "MGW7R110HM",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "SH3UU",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "RT24-63-25-C-GS1-KF-PR-3000-N0-B",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "RT24-94-25-C-GS1-KF-PR-3000-N0-B",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "GP16A",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "AM-EN3612T103",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "AM-36GPC-43",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "RSMR-T-36-115-25-C-HS-KF-AM",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "LSIM-P-40-148-50-W-HE1--D9-L",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LSIM-P-40-148-50-W-HE1--D9-R",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "20-H1-02",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "VGPL 32/50-FV",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "NJ 306",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "EXPERT 90-2P",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 61,
+      "detectedBrands": [
+        "Hiwin",
+        "SMC",
+        "THK",
+        "nanotec",
+        "Bosch Rexroth",
+        "FESTO",
+        "GIRARD TRANSMISSIONS",
+        "Megadyne",
+        "Mitsubishi Electric",
+        "Phytron",
+        "Maxon Motors",
+        "Precision Digital"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "E37441-05-A15",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LGA421S14-A-TJBA-019",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LE080K-E04025-50-AR0-S-040",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "AM-BL3660AN-2410",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "EAMC-30-32-6-8",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "EAMC-30-35-8-12",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "66891",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "67596",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "MIF0602-130-165-C5",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "D181027804B",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "DGE-40-500-SP-KF-GK-SV",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "90-2P-H1-BM",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "90-2P-H2-BM",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "HF-KP43",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "MR-J3-40A",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LM-SB2",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LM-SE-X1",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LM-SE-X2",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "UKT65-FGS",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LM-PB8",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LM-PE-X6",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "EC-max16",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "EC-max30",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "P48-J6C4096Q14-001",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "533708",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "123043",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "272768",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "225778",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "200K",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "F70/50-AM",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "RBQC2007",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "DMN42E",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "ST2818S1006",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "MGW7HZ0HM",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "HR1530M",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "MGW7R110HM",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SH3UU",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "RT24-63-25-C-GS1-KF-PR-3000-N0-B",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "RT24-94-25-C-GS1-KF-PR-3000-N0-B",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GP16A",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "AM-EN3612T103",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "AM-36GPC-43",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "RSMR-T-36-115-25-C-HS-KF-AM",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LSIM-P-40-148-50-W-HE1--D9-L",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LSIM-P-40-148-50-W-HE1--D9-R",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "VGPL 32/50-FV",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "NJ 306",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "EXPERT 90-2P",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "attachment"
+        ],
+        "names": [
+          "body"
+        ],
+        "attachmentsProcessed": [
+          "Реквизиты МОНОТЕСТ.pdf",
+          "Запрос.docx"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.82,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_brand",
+        "hasConflicts": false
+      },
+      "brandContext": "suspicious",
+      "brandMassFlag": true,
+      "productNamePrimary": "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Наименование изделия / материала детали Производитель Кол-во Ед. изм. 1 Актуатор линейный Haydon Kerk 1 ШТ. 2 Актуатор линейный LGA421S14-A-TJBA-019 Nanotec 1 ШТ. 3 Амортизатор RBQC2007 SMC 8 ШТ. 4 Вт"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 1,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 8,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 10,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "4 Вт"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "4 В"
+        }
+      ],
+      "positions": 61,
+      "totalQty": 1,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.82,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_brand",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.62,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "current_message"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_brand",
+            "field": "brand",
+            "severity": "medium",
+            "confidence": 0.62
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "Hiwin",
+              "SMC",
+              "THK",
+              "nanotec",
+              "Bosch Rexroth"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый brand; слабый inn; multiple brands detected",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:E37441-05-A15, LGA421S14-A-TJBA-019, LE080K-E04025-50-AR0-S-040 | бренды:Hiwin, SMC, THK | компания:Dmitriy Olegovich Project manager LLC • email:158@monotest.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:E37441-05-A15, LGA421S14-A-TJBA-019, LE080K-E04025-50-AR0-S-040",
+          "бренды:Hiwin, SMC, THK",
+          "компания:Dmitriy Olegovich Project manager LLC",
+          "ИНН:7734350675",
+          "вложения:2",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 35,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 9,
+          "processedAttachments": 2
+        }
+      },
+      "confidence": 0.7789999999999999
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт http://www.monotest.ru/> для поиска реквизитов",
+        "Сверить запрос по артикулам: E37441-05-A15, LGA421S14-A-TJBA-019, LE080K-E04025-50-AR0-S-040, AM-BL3660AN-2410, EAMC-30-32-6-8",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "http://www.monotest.ru/>",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7734350675",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Hiwin",
+      "SMC",
+      "THK",
+      "nanotec",
+      "Bosch Rexroth",
+      "FESTO",
+      "GIRARD TRANSMISSIONS",
+      "Megadyne",
+      "Mitsubishi Electric",
+      "Phytron",
+      "Maxon Motors",
+      "Precision Digital"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Голубев, добрый день!\n\nСпасибо за заявку по Hiwin, SMC, THK, nanotec, Bosch Rexroth, FESTO, GIRARD TRANSMISSIONS, Megadyne, Mitsubishi Electric, Phytron, Maxon Motors, Precision Digital (61 позиций).\nАртикулы: E37441-05-A15, LGA421S14-A-TJBA-019, LE080K-E04025-50-AR0-S-040, AM-BL3660AN-2410, EAMC-30-32-6-8\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос КП",
+      "attachments": [
+        "image001.jpg",
+        "Реквизиты МОНОТЕСТ.pdf",
+        "Запрос.docx"
+      ],
+      "body": "Добрый день!\r\nПрошу предоставить коммерческое предложение на интересующие позиции, которые по вашему профилю компании (цена, сроки поставки, стоимость доставки (базис: 117246, г. Москва, вн. тер. г. муниципальный округ Черемушки, проезд Научный, д. 14а стр. 3, помещение 1))\r\nВо вложении файл\r\n\r\n[Описание: Описание: Описание: Описание: шапка чердак]\r\nС уважением,\r\nГолубев Дмитрий Олегович\r\nРуководитель проектов\r\nРоссия г. Москва, ул. Научный проезд 14а/3, 117246\r\nтел.: +7 (495) 283-00-23 доб.158\r\nмобильный: +7 (977)-770-30-03\r\ne-mail: 158@monotest.ru<mailto:158@monotest.ru>\r\nweb: www.monotest.ru<http://www.monotest.ru/>\r\n\r\n\r\nSincerely,\r\nGolubev Dmitriy Olegovich\r\nProject manager\r\nLLC Nauchniy proezd 14a/3, Moscow,\r\nRussia, 117246\r\ntel.: +7 (495) 283-00-23 (158)\r\nmob.: +7 (977)-770-30-03\r\ne-mail: 158@monotest.ru<mailto:158@monotest.ru>\r\nweb: www.monotest.ru<http://www.monotest.ru/>"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "image001.jpg",
+          "safeName": "image001.jpg",
+          "contentType": "image/jpeg",
+          "size": 8447,
+          "ext": ".jpg",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Реквизиты МОНОТЕСТ.pdf",
+          "safeName": "Реквизиты МОНОТЕСТ.pdf",
+          "contentType": "application/pdf",
+          "size": 232992,
+          "ext": ".pdf",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 3466,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Запрос.docx",
+          "safeName": "Запрос.docx",
+          "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "size": 17938,
+          "ext": ".docx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 3086,
+          "category": "office_document",
+          "detectedArticles": [
+            "E37441-05-A15",
+            "LGA421S14-A-TJBA-019",
+            "RBQC2007",
+            "DMN42E",
+            "LE080K-E04025-50-AR0-S-040",
+            "ST2818S1006",
+            "33.200.1",
+            "2-E-VGPL",
+            "32/50-FV",
+            "MGW7HZ0HM",
+            "AM-BL3660AN-2410",
+            "AM-EN3612T103-2048",
+            "AM-36GPC-43",
+            "EAMC-30-32-6-8",
+            "EAMC-30-35-8-12",
+            "1-D3",
+            "1-D4",
+            "5X8",
+            "D19",
+            "L25",
+            "66891",
+            "D14",
+            "67596",
+            "HR1530M",
+            "1190LTM",
+            "G25G25",
+            "MGW7R110HM",
+            "MIF0602-130-165-C5",
+            "D181027804B",
+            "1000094"
+          ],
+          "detectedBrands": [
+            "Bosch Rexroth",
+            "FESTO",
+            "GIRARD TRANSMISSIONS",
+            "Hiwin",
+            "KTR",
+            "Maxon Motors",
+            "Megadyne",
+            "Mitsubishi Electric",
+            "Phytron",
+            "Precision Digital",
+            "SKF",
+            "SMC",
+            "THK",
+            "nanotec"
+          ],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 2,
+        "skippedCount": 1,
+        "totalBytes": 250930,
+        "totalChars": 6552,
+        "budgetMs": 403,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": false,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 2,
+      "attachmentsSkipped": 1
+    },
+    "llmExtraction": {
+      "processedAt": null,
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 4
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:06:55.191Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

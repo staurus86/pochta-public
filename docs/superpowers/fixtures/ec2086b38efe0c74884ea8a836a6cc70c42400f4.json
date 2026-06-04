@@ -1,0 +1,1501 @@
+{
+  "messageKey": "ec2086b38efe0c74884ea8a836a6cc70c42400f4",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Не открываются ссылки во вложении.нет возможности сверить.",
+    "ссылки не открываются"
+  ],
+  "subject": "запрос",
+  "body": "Добрый день!\n\nПрошу рассмотреть наш запрос и дать предложение по «вашим» позициям, аналоги рассматриваем.\n\nФайл с запросом и реквизиты нашей организации во вложении\n\n*С уважением,*\n*Аревик*\n*Менеджер ОМТС*\n\n*ООО «1П Технолоджиз»*\n*тел: +7(495)640-80-28*\nwww.1ptech.ru ( https://1ptech.ru )\nsnab16@1ptech.ru\n\n*При ответе на полученное письмо, просьба сохранять переписку, тему письма!!!*",
+  "attachmentFiles": [
+    {
+      "filename": "mailrusigimg_GrfdKnXe.png",
+      "safeName": "mailrusigimg_GrfdKnXe.png",
+      "contentType": "image/png",
+      "size": 24223
+    },
+    {
+      "filename": "СБЕР 1П Технолоджиз Карточка предприятия.docx",
+      "safeName": "СБЕР 1П Технолоджиз Карточка предприятия.docx",
+      "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size": 14978
+    },
+    {
+      "filename": "ЗАПРОС.xlsx",
+      "safeName": "ЗАПРОС.xlsx",
+      "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "size": 12257
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "c6c4b5c6-6e25-4d3b-857e-2c0378755e4a",
+    "createdAt": "2026-06-01T15:00:08.352Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [],
+      "signals": {
+        "clientScore": 24,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 35,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП)\\s+[\"«]",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal",
+      "sources": {
+        "droppedBrands_noBodyOverlap": [
+          "ARGUS Fluidtechnik"
+        ]
+      }
+    },
+    "sender": {
+      "email": "snab16@1ptech.ru",
+      "emailPrimary": "snab16@1ptech.ru",
+      "emailDisplayName": "Не Определено",
+      "emailLocal": "snab16",
+      "emailDomain": "1ptech.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Не Определено",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "sender",
+      "fullNameConfidence": 0.85,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Менеджер",
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": "legacy",
+      "positionConfidence": 0.55,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Не Определено",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «1П Технолоджиз»",
+      "companyAlt": "ООО «1П Технолоджиз»",
+      "companyNameSource": "body",
+      "companyNameConfidence": 0.9700000000000001,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Не Определено",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://1ptech.ru",
+      "cityPhone": "+7 (495) 640-80-28",
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "current_message",
+      "phoneConfidence": 0.8,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "7714905135",
+      "kpp": null,
+      "ogrn": "1137746400120",
+      "legalCardAttached": true,
+      "sources": {
+        "company": "attachment",
+        "website": "body",
+        "phone": "current_message",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": "attachment",
+        "fullName": "sender",
+        "position": "legacy",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день!\n\nПрошу рассмотреть наш запрос и дать предложение по «вашим» позициям, аналоги рассматриваем.\n\nФайл с запросом и реквизиты нашей организации во вложении\n\n*С уважением,*\n*Аревик*\n*Менеджер ОМТС*\n\n*ООО «1П Технолоджиз»*\n*тел: +7(495)640-80-28*\nwww.1ptech.ru ( https://1ptech.ru )\nsnab16@1ptech.ru\n\n*При ответе на полученное письмо, просьба сохранять переписку, тему письма!!!*\n\nВложение: ЗАПРОС.xlsx\n№ п/п\tНаименование\tЕдиница измерения\tтребуемое кол-во\n1\tПривод электрический ARGUS E-25 EX 6211-0100-670840 MOD/G82G неполноповоротный, взрывозащищенный, крутящий момент: 500Нм; класс защиты: IP54; в комплекте: электродвигатель 220В, ток 0,95А, мощность 205Вт, контрольные выключатели 24В, макс.ток 1,5А, электрический тормоз 220В, подогрев 220В\tшт.\t2\n2\tРемень зубчатый электропривода артикул 6203-0100-620229 Argus\tшт.\t5\n3\tДатчик газов стационарный Dräger Polytron SE Ex PR M1 DD, стандартный корпус малого размера, 0 ... 100 % НПВ артикул 6812711\tшт.\t3\n4\tДатчик давления Hydac EDS 345-1-250-000\tшт.\t2\n5\tСигнализатор положения электронный С73451-А383-А1 Заказной номер: C73000-B7640-C11-6\tшт.\t1\n6\tКонтроллер цифровой пневматического клапана Flowserve 3200MD-28-N6-E-04-40-0G-0F\tшт.\t1\n7\tРеле давления Nautilus XMLB010A2S11\tшт.\t2\n8\tПанель концевых выключателей 624014 привода ARGUS E-25 EX 6211-0100-670840 MOD/G82G\tшт.\t3\n9\tИндуктивный датчик приближения Bero 3RG4014-4AB02\tшт.\t1\n10\tИндуктивный датчик приближения Bero 3RG4013-4СD00\tшт.\t1\n11\tЭлектромеханический сервоклапан Rexroth 4WS2E M 10-4X/10B 3 T315 K8/DV-24\tшт.\t1\n12\tКабель для датчиков контроля пламени BFI KW5 SSL-2XH(St+C)11Y + 2x0,5 AiMF 4x0,5\tшт.\t1\n13\tРедуктор (для электропривода EUBA) Nord SK 205F-80 S/4 TF SH № 1006548899.00\tшт.\t1\n14\tТрансформатор зажигания Trafo Union ZE 5/5 ENR 4041 663\tшт.\t1\n15\tКлапан Coax FK15 NO 2E\tшт.\t1\n16\tЦифровой контроллер пневматического клапана Flowserve 3200MD-10-D6-E-04-40-0G-0F\tшт.\t1\n17\tЗаслонка газовая UNI-GERATE 47652 Weeze 40-EVSA 10NH-4\tшт.\t1\n18\tКлапан электромагнитный Parker 73317BN2",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": true,
+      "articles": [
+        "6812711",
+        "LE 70",
+        "LE 25",
+        "KI.2",
+        "P14436-0-1072510",
+        "G631-30158-5",
+        "0-800C",
+        "33158068",
+        "K8/DV-24",
+        "CA901-EX",
+        "DBL-205B",
+        "EDS 345-1-250-000",
+        "ENR 4041 663",
+        "KUN 672",
+        "PNR 144-901-000-282",
+        "E-25",
+        "3200MD-28-N6-E-04-40-0G-0F",
+        "XMLB010A2S11",
+        "3RG4014-4AB02",
+        "3RG4013-4CD00",
+        "205F-80",
+        "3200MD-10-D6-E-04-40-0G-0F",
+        "10NH-4",
+        "73317BN2PN90N05910N7",
+        "672.20/1-В300x6000",
+        "РВ0000038388",
+        "5NH-4.P.Xn.09.29.32",
+        "H20JOFM5VBQ",
+        "7MF4433-1DA02-1AB1-Z-A01-H03-Y01",
+        "TSA101-A1_S2-D6-P5-B2-D3-Y1-AZ",
+        "АМ01.1",
+        "205Bt",
+        "4WS2E",
+        "3f/380-480V/50-60Hz",
+        "SA14.2",
+        "SAR07.6",
+        "47652",
+        "SSL-2XH",
+        "ACV01.2",
+        "73451-A383-A1",
+        "10-4X/10B",
+        "3R.Xn.W",
+        "50-450C",
+        "ZE 5/5",
+        "UNI 40-EVSA",
+        "UNI 12-EVDF",
+        "FK 15",
+        "ZE 15/5",
+        "6211-0100-670840",
+        "6203-0100-620229",
+        "345-1-250-000",
+        "T315",
+        "KW5",
+        "11Y",
+        "FK15",
+        "330909-00-60-10-02-05",
+        "330902-00-40-10-02-05"
+      ],
+      "lineItems": [
+        {
+          "article": "E-25",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": null,
+          "explicitArticle": true,
+          "sourceLine": "1\tПривод электрический ARGUS E-25 EX 6211-0100-670840 MOD/G82G неполноповоротный, взрывозащищенный, крутящий момент: 500Нм; класс защиты: IP54; в комплекте: электродвигатель 220В, ток 0,95А, мощность 205Вт, контрольные выключатели 24В, макс.ток 1,5А, электрический тормоз 220В, подогрев 220В\tшт.\t2",
+          "source": "body"
+        },
+        {
+          "article": "6812711",
+          "quantity": 3,
+          "unit": "шт",
+          "descriptionRu": null,
+          "explicitArticle": true,
+          "sourceLine": "3\tДатчик газов стационарный Dräger Polytron SE Ex PR M1 DD, стандартный корпус малого размера, 0 ... 100 % НПВ артикул 6812711\tшт.\t3",
+          "source": "body"
+        },
+        {
+          "article": "73451-A383-A1",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Сигнализатор положения электронный С73451-А383-А1 Заказной номер: C73000-B7640-C11-6",
+          "explicitArticle": true,
+          "sourceLine": "5\tСигнализатор положения электронный С73451-А383-А1 Заказной номер: C73000-B7640-C11-6\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "XMLB010A2S11",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "Реле давления Nautilus XMLB010A2S11",
+          "explicitArticle": true,
+          "sourceLine": "7\tРеле давления Nautilus XMLB010A2S11\tшт.\t2",
+          "source": "body"
+        },
+        {
+          "article": "3RG4014-4AB02",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Индуктивный датчик приближения Bero 3RG4014-4AB02",
+          "explicitArticle": true,
+          "sourceLine": "9\tИндуктивный датчик приближения Bero 3RG4014-4AB02\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "3RG4013-4CD00",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Индуктивный датчик приближения Bero 3RG4013-4СD00",
+          "explicitArticle": true,
+          "sourceLine": "10\tИндуктивный датчик приближения Bero 3RG4013-4СD00\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "10-4X/10B",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Электромеханический сервоклапан Rexroth 4WS2E M 10-4X/10B 3 T315 K8/DV-24",
+          "explicitArticle": true,
+          "sourceLine": "11\tЭлектромеханический сервоклапан Rexroth 4WS2E M 10-4X/10B 3 T315 K8/DV-24\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "SSL-2XH",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Кабель для датчиков контроля пламени BFI KW5 SSL-2XH(St+C)11Y + 2x0,5 AiMF 4x0,5",
+          "explicitArticle": true,
+          "sourceLine": "12\tКабель для датчиков контроля пламени BFI KW5 SSL-2XH(St+C)11Y + 2x0,5 AiMF 4x0,5\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "205F-80",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "explicitArticle": true,
+          "sourceLine": "13\tРедуктор (для электропривода EUBA) Nord SK 205F-80 S/4 TF SH № 1006548899.00\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "ZE 5/5",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Трансформатор зажигания Trafo Union ZE 5/5 ENR 4041 663",
+          "explicitArticle": true,
+          "sourceLine": "14\tТрансформатор зажигания Trafo Union ZE 5/5 ENR 4041 663\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "10NH-4",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Заслонка газовая UNI-GERATE 47652 Weeze 40-EVSA 10NH-4",
+          "explicitArticle": true,
+          "sourceLine": "17\tЗаслонка газовая UNI-GERATE 47652 Weeze 40-EVSA 10NH-4\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "73317BN2PN90N05910N7",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Клапан электромагнитный Parker 73317BN2PN90N05910N7",
+          "explicitArticle": true,
+          "sourceLine": "18\tКлапан электромагнитный Parker 73317BN2PN90N05910N7\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "672.20/1-B300x6000",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Датчик температуры Termocouple KUN 672.20/1-В300x6000 -ЗК (NiCr - Ni), fhnbrek: РВ",
+          "explicitArticle": true,
+          "sourceLine": "21\tДатчик температуры Termocouple KUN 672.20/1-В300x6000 -ЗК (NiCr - Ni), fhnbrek: РВ0000038388\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "5NH-4.P.Xn.09.29.32",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Клапан электромагнитный UNI 40-EVSADu 5NH-4.P.Xn.09.29.32",
+          "explicitArticle": true,
+          "sourceLine": "23\tКлапан электромагнитный UNI 40-EVSADu 5NH-4.P.Xn.09.29.32\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "3R.Xn.W",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Клапан электромагнитный UNI 12-EVDF 3R.Xn.W.Ü.P.09.29",
+          "explicitArticle": true,
+          "sourceLine": "25\tКлапан электромагнитный UNI 12-EVDF 3R.Xn.W.Ü.P.09.29\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "FK 15",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Клапан электромагнитный FK 15 N02E Дn15 Рn40",
+          "explicitArticle": true,
+          "sourceLine": "26\tКлапан электромагнитный FK 15 N02E Дn15 Рn40\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "ZE 15/5",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Трансформатор зажигания Модель: ZE 15/5",
+          "explicitArticle": true,
+          "sourceLine": "27\tТрансформатор зажигания Модель: ZE 15/5\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "CA901-EX",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "explicitArticle": true,
+          "sourceLine": "28\tДатчик акселерации CA901-EX / PNR 144-901-000-282 (в комплекте с вибропреобразователем IP704)\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "P14436-0-1072510",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Датчик угла поворота ABB TGM 5 P",
+          "explicitArticle": true,
+          "sourceLine": "29\tДатчик угла поворота ABB TGM 5 P14436-0-1072510\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "G631-30158-5",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "explicitArticle": true,
+          "sourceLine": "31\tпневматический регулятор газа MOD G631-30158-5, Type H20JOFM5VBQ\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "DBL-205B",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "Датчик перепада INDUSTRIE TECHNIK DBL-205B 1.0(0.4)A 250VAC IP54 0.1A 24VDC",
+          "explicitArticle": true,
+          "sourceLine": "32\tДатчик перепада INDUSTRIE TECHNIK DBL-205B 1.0(0.4)A 250VAC IP54 0.1A 24VDC\tшт.\t2",
+          "source": "body"
+        },
+        {
+          "article": "7MF4433-1DA02-1AB1-Z-A01-H03-Y01",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Датчик перепада давления SITRANS P TRANSMITTERS DS III SERIES - MODEL 7MF4433-1DA02-1AB1-Z-A01-H03-Y01",
+          "explicitArticle": true,
+          "sourceLine": "35\tДатчик перепада давления SITRANS P TRANSMITTERS DS III SERIES - MODEL 7MF4433-1DA02-1AB1-Z-A01-H03-Y01\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "D6-P5-B2-D3-Y1-AZ",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Вставка измерительная ABB SensyTemp TSA101-A1_S2-D6-P5-B2-D3-Y1-AZ (-50-450C)",
+          "explicitArticle": true,
+          "sourceLine": "37\tВставка измерительная ABB SensyTemp TSA101-A1_S2-D6-P5-B2-D3-Y1-AZ (-50-450C)\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "0-800C",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": null,
+          "explicitArticle": true,
+          "sourceLine": "38\tДатчик температуры ROSEMOUNT 0-800C 33158068,2 K DIN EN60584-1 KI.2, артикул 49459761/002/003\tшт.\t2",
+          "source": "body"
+        },
+        {
+          "article": "3f/380-480V/50-60Hz",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Общепромышленный многооборотный регулирующий привод с изменяемой скоростью Тип: SARV 14.2. Питание 3ф/380-480V/50-60Hz с блоком управления AUMATIC для приводов с изменяемой скоростью Тип: ACV01.2",
+          "explicitArticle": true,
+          "sourceLine": "39\tОбщепромышленный многооборотный регулирующий привод с изменяемой скоростью Тип: SARV 14.2. Питание 3ф/380-480V/50-60Hz с блоком управления AUMATIC для приводов с изменяемой скоростью Тип: ACV01.2. в сборе с прямоходным модулем, модель LE 70.1, макс. ход штока 160 мм. Присоединение к арматуре: F14 || || 64 kN || 42,0 - 420,0 mm/min || 14,9 - 148,6 s / 104 mm\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "SA14.2",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "Механизм Аuma SA14.2 IP68 EN 60 529",
+          "explicitArticle": true,
+          "sourceLine": "42\tМеханизм Аuma SA14.2 IP68 EN 60 529\tшт.\t2",
+          "source": "body"
+        },
+        {
+          "article": "SAR07.6",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Механизм SAR07.6 с АМ01.1 IP68 EN 60 529",
+          "explicitArticle": true,
+          "sourceLine": "43\tМеханизм SAR07.6 с АМ01.1 IP68 EN 60 529\tшт.\t1",
+          "source": "body"
+        },
+        {
+          "article": "DESC:klapan-coax-fk15-no-2e",
+          "descriptionRu": "Клапан Coax FK15 NO 2E",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:datchik-temperatury-wika-c-k-din-en60584-1-ki-2",
+          "descriptionRu": "Датчик температуры Wika ̊C K DIN EN60584-1 Ki. 2",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:blok-upravleniya-privodom-auma-aumatic-ac-01-2",
+          "descriptionRu": "Блок управления приводом AUMA AUMATIC AC 01.2",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "LE 70",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LE 25",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "KI.2",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "K8/DV-24",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "EDS 345-1-250-000",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "ENR 4041 663",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "KUN 672",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "PNR 144-901-000-282",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "3200MD-28-N6-E-04-40-0G-0F",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "3200MD-10-D6-E-04-40-0G-0F",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "РВ0000038388",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "H20JOFM5VBQ",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "TSA101-A1_S2-D6-P5-B2-D3-Y1-AZ",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "АМ01.1",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "205Bt",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "4WS2E",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "ACV01.2",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "50-450C",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "UNI 40-EVSA",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "UNI 12-EVDF",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": null,
+          "quantity": 220,
+          "unit": "класс защиты: ip54",
+          "descriptionRu": null,
+          "source": "attachment:ЗАПРОС.xlsx"
+        }
+      ],
+      "totalPositions": 61,
+      "detectedBrands": [
+        "ARGUS Fluidtechnik",
+        "AUMA",
+        "Coax",
+        "Hydac",
+        "INDUSTRIE TECHNIK",
+        "ROSEMOUNT",
+        "WIKA",
+        "EUBA Antriebstechnik",
+        "NORD Getriebe"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "6812711",
+          "name": "Датчик газов стационарный Dräger Polytron SE Ex PR M1 DD, стандартный корпус малого размера, 0 ... 100 % НПВ артикул",
+          "category": null
+        },
+        {
+          "article": "LE 70",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LE 25",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "KI.2",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "P14436-0-1072510",
+          "name": "Датчик угла поворота ABB TGM 5",
+          "category": null
+        },
+        {
+          "article": "G631-30158-5",
+          "name": "пневматический регулятор газа MOD",
+          "category": null
+        },
+        {
+          "article": "0-800C",
+          "name": "Датчик температуры ROSEMOUNT",
+          "category": null
+        },
+        {
+          "article": "33158068",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "K8/DV-24",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "CA901-EX",
+          "name": "Датчик акселерации",
+          "category": null
+        },
+        {
+          "article": "DBL-205B",
+          "name": "Датчик перепада INDUSTRIE TECHNIK",
+          "category": null
+        },
+        {
+          "article": "EDS 345-1-250-000",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "ENR 4041 663",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "KUN 672",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "PNR 144-901-000-282",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "E-25",
+          "name": "Привод электрический ARGUS",
+          "category": null
+        },
+        {
+          "article": "3200MD-28-N6-E-04-40-0G-0F",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "XMLB010A2S11",
+          "name": "Реле давления Nautilus",
+          "category": null
+        },
+        {
+          "article": "3RG4014-4AB02",
+          "name": "Индуктивный датчик приближения Bero",
+          "category": null
+        },
+        {
+          "article": "205F-80",
+          "name": "Редуктор (для электропривода EUBA) Nord SK",
+          "category": null
+        },
+        {
+          "article": "3200MD-10-D6-E-04-40-0G-0F",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "10NH-4",
+          "name": "Заслонка газовая UNI-GERATE 47652 Weeze 40-EVSA",
+          "category": null
+        },
+        {
+          "article": "73317BN2PN90N05910N7",
+          "name": "Клапан электромагнитный Parker",
+          "category": null
+        },
+        {
+          "article": "672.20/1-В300x6000",
+          "name": "Датчик температуры Termocouple KUN 672.20/1-В300x6000 -ЗК (NiCr - Ni), fhnbrek: РВ",
+          "category": null
+        },
+        {
+          "article": "РВ0000038388",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "5NH-4.P.Xn.09.29.32",
+          "name": "Клапан электромагнитный UNI 40-EVSADu",
+          "category": null
+        },
+        {
+          "article": "H20JOFM5VBQ",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "7MF4433-1DA02-1AB1-Z-A01-H03-Y01",
+          "name": "Датчик перепада давления SITRANS P TRANSMITTERS DS III SERIES - MODEL",
+          "category": null
+        },
+        {
+          "article": "TSA101-A1_S2-D6-P5-B2-D3-Y1-AZ",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "АМ01.1",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "4WS2E",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SA14.2",
+          "name": "Механизм Аuma",
+          "category": null
+        },
+        {
+          "article": "SAR07.6",
+          "name": "Механизм",
+          "category": null
+        },
+        {
+          "article": "47652",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SSL-2XH",
+          "name": "Кабель для датчиков контроля пламени BFI KW5",
+          "category": null
+        },
+        {
+          "article": "ACV01.2",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "10-4X/10B",
+          "name": "Электромеханический сервоклапан Rexroth 4WS2E M",
+          "category": null
+        },
+        {
+          "article": "3R.Xn.W",
+          "name": "Клапан электромагнитный UNI 12-EVDF",
+          "category": null
+        },
+        {
+          "article": "50-450C",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "ZE 5/5",
+          "name": "Трансформатор зажигания Trafo Union",
+          "category": null
+        },
+        {
+          "article": "UNI 40-EVSA",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "UNI 12-EVDF",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "FK 15",
+          "name": "Клапан электромагнитный",
+          "category": null
+        },
+        {
+          "article": "ZE 15/5",
+          "name": "Трансформатор зажигания Модель",
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "freetext",
+          "attachment",
+          "attachment:ЗАПРОС.xlsx"
+        ],
+        "names": [
+          "body",
+          "freetext",
+          "attachment:ЗАПРОС.xlsx"
+        ],
+        "attachmentsProcessed": [
+          "СБЕР 1П Технолоджиз Карточка предприятия.docx",
+          "ЗАПРОС.xlsx"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.8,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_brand",
+        "hasConflicts": false
+      },
+      "brandContext": "suspicious",
+      "brandMassFlag": true,
+      "productNamePrimary": "Датчик угла поворота ABB TGM 5 P",
+      "productLineItems": [
+        "Датчик температуры Termocouple KUN 672.20/1-В300x6000 -ЗК (NiCr - Ni), fhnbrek: РВ",
+        "класс защиты: IP54",
+        "в комплекте: электродвигатель 220В, ток 0,95А, мощность 205Вт, контрольные выключатели 24В, макс.ток 1,5А, электрический тормоз 220В, подогрев 220В",
+        "Сигнализатор положения электронный С73451-А383-А1 Заказной номер: C73000-B7640-C11-6",
+        "Реле давления Nautilus XMLB010A2S11",
+        "Индуктивный датчик приближения Bero 3RG4014-4AB02",
+        "Индуктивный датчик приближения Bero 3RG4013-4СD00",
+        "Электромеханический сервоклапан Rexroth 4WS2E M 10-4X/10B 3 T315 K8/DV-24",
+        "Кабель для датчиков контроля пламени BFI KW5 SSL-2XH(St+C)11Y + 2x0,5 AiMF 4x0,5",
+        "Трансформатор зажигания Trafo Union ZE 5/5 ENR 4041 663",
+        "Заслонка газовая UNI-GERATE 47652 Weeze 40-EVSA 10NH-4",
+        "Клапан электромагнитный Parker 73317BN2PN90N05910N7",
+        "Клапан электромагнитный UNI 40-EVSADu 5NH-4.P.Xn.09.29.32",
+        "Клапан электромагнитный UNI 12-EVDF 3R.Xn.W.Ü.P.09.29",
+        "Клапан электромагнитный FK 15 N02E Дn15 Рn40",
+        "Трансформатор зажигания Модель: ZE 15/5",
+        "Датчик угла поворота ABB TGM 5 P",
+        "Датчик перепада INDUSTRIE TECHNIK DBL-205B 1.0(0.4)A 250VAC IP54 0.1A 24VDC",
+        "Датчик перепада давления SITRANS P TRANSMITTERS DS III SERIES - MODEL 7MF4433-1DA02-1AB1-Z-A01-H03-Y01",
+        "Вставка измерительная ABB SensyTemp TSA101-A1_S2-D6-P5-B2-D3-Y1-AZ (-50-450C)",
+        "Общепромышленный многооборотный регулирующий привод с изменяемой скоростью Тип: SARV 14.2. Питание 3ф/380-480V/50-60Hz с блоком управления AUMATIC для приводов с изменяемой скоростью Тип: ACV01.2",
+        "Механизм Аuma SA14.2 IP68 EN 60 529",
+        "Механизм SAR07.6 с АМ01.1 IP68 EN 60 529",
+        "Клапан Coax FK15 NO 2E",
+        "Датчик температуры Wika ̊C K DIN EN60584-1 Ki. 2",
+        "Блок управления приводом AUMA AUMATIC AC 01.2"
+      ],
+      "productNamesClean": [
+        "Датчик температуры Termocouple KUN 672.20/1-В300x6000 -ЗК (NiCr - Ni), fhnbrek: РВ",
+        "класс защиты: IP54",
+        "в комплекте: электродвигатель 220В, ток 0,95А, мощность 205Вт, контрольные выключатели 24В, макс.ток 1,5А, электрический тормоз 220В, подогрев 220В",
+        "Сигнализатор положения электронный С73451-А383-А1 Заказной номер: C73000-B7640-C11-6",
+        "Реле давления Nautilus XMLB010A2S11",
+        "Индуктивный датчик приближения Bero 3RG4014-4AB02",
+        "Индуктивный датчик приближения Bero 3RG4013-4СD00",
+        "Электромеханический сервоклапан Rexroth 4WS2E M 10-4X/10B 3 T315 K8/DV-24",
+        "Кабель для датчиков контроля пламени BFI KW5 SSL-2XH(St+C)11Y + 2x0,5 AiMF 4x0,5",
+        "Трансформатор зажигания Trafo Union ZE 5/5 ENR 4041 663",
+        "Заслонка газовая UNI-GERATE 47652 Weeze 40-EVSA 10NH-4",
+        "Клапан электромагнитный Parker 73317BN2PN90N05910N7",
+        "Клапан электромагнитный UNI 40-EVSADu 5NH-4.P.Xn.09.29.32",
+        "Клапан электромагнитный UNI 12-EVDF 3R.Xn.W.Ü.P.09.29",
+        "Клапан электромагнитный FK 15 N02E Дn15 Рn40",
+        "Трансформатор зажигания Модель: ZE 15/5",
+        "Датчик угла поворота ABB TGM 5 P",
+        "Датчик перепада INDUSTRIE TECHNIK DBL-205B 1.0(0.4)A 250VAC IP54 0.1A 24VDC",
+        "Датчик перепада давления SITRANS P TRANSMITTERS DS III SERIES - MODEL 7MF4433-1DA02-1AB1-Z-A01-H03-Y01",
+        "Вставка измерительная ABB SensyTemp TSA101-A1_S2-D6-P5-B2-D3-Y1-AZ (-50-450C)",
+        "Общепромышленный многооборотный регулирующий привод с изменяемой скоростью Тип: SARV 14.2. Питание 3ф/380-480V/50-60Hz с блоком управления AUMATIC для приводов с изменяемой скоростью Тип: ACV01.2",
+        "Механизм Аuma SA14.2 IP68 EN 60 529",
+        "Механизм SAR07.6 с АМ01.1 IP68 EN 60 529",
+        "Клапан Coax FK15 NO 2E",
+        "Датчик температуры Wika ̊C K DIN EN60584-1 Ki. 2",
+        "Блок управления приводом AUMA AUMATIC AC 01.2"
+      ],
+      "productNamesRejected": [
+        {
+          "raw": "Привод электрический ARGUS E-25 EX 6211-0100-670840 MOD/G82G неполноповоротный, взрывозащищенный, крутящий момент: 500Нм",
+          "normalized": "Привод электрический ARGUS E-25 EX 6211-0100-670840 MOD/G82G неполноповоротный, взрывозащищенный, крутящий момент: 500Нм",
+          "reason": "bad_product_name"
+        },
+        {
+          "raw": "Датчик газов стационарный Dräger Polytron SE Ex PR M1 DD, стандартный корпус малого размера, 0 ... 100 % НПВ артикул 6812711",
+          "normalized": "Датчик газов стационарный Dräger Polytron SE Ex PR M1 DD, стандартный корпус малого размера, 0 ... 100 % НПВ артикул 6812711",
+          "reason": "bad_product_name"
+        },
+        {
+          "raw": "Редуктор (для электропривода EUBA) Nord SK 205F-80 S/4 TF SH № 1006548899.00",
+          "normalized": "Редуктор (для электропривода EUBA) Nord SK 205F-80 S/4 TF SH № 1006548899.00",
+          "reason": "bad_product_name"
+        },
+        {
+          "raw": "Датчик акселерации CA901-EX / PNR 144-901-000-282 (в комплекте с вибропреобразователем IP704)",
+          "normalized": "Датчик акселерации CA901-EX / PNR 144-901-000-282 (в комплекте с вибропреобразователем IP704)",
+          "reason": "bad_product_name"
+        },
+        {
+          "raw": "пневматический регулятор газа MOD G631-30158-5, Type H20JOFM5VBQ",
+          "normalized": "пневматический регулятор газа MOD G631-30158-5, Type H20JOFM5VBQ",
+          "reason": "bad_product_name"
+        },
+        {
+          "raw": "Датчик температуры ROSEMOUNT 0-800C 33158068,2 K DIN EN60584-1 KI.2, артикул 49459761/002/003",
+          "normalized": "Датчик температуры ROSEMOUNT 0-800C 33158068,2 K DIN EN60584-1 KI.2, артикул 49459761/002/003",
+          "reason": "bad_product_name"
+        },
+        {
+          "raw": "Привод электрический ARGUS E-25 EX 6211-0100-670840 MOD/G82G неполноповоротный, взрывозащищенный, крутящий момент: 500Нм",
+          "normalized": "Привод электрический ARGUS E-25 EX 6211-0100-670840 MOD/G82G неполноповоротный, взрывозащищенный, крутящий момент: 500Нм",
+          "reason": "bad_product_name"
+        }
+      ],
+      "primaryQuantity": 6,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 6,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 11,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 24,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 0.5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 663,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 7,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 38388,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 40,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 529,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 529,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 40212.5,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "220В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "205В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "24В"
+        },
+        {
+          "value": 6812711,
+          "unit": "шт",
+          "reason": "outlier",
+          "sourceLine": "100 % НПВ артикул 6812711\tшт"
+        },
+        {
+          "value": 1006548899,
+          "unit": "шт",
+          "reason": "outlier",
+          "sourceLine": "13\tРедуктор (для электропривода EUBA) Nord SK 205F-80 S/4 TF SH № 1006548899.00\tшт"
+        },
+        {
+          "value": 1072510,
+          "unit": "шт",
+          "reason": "outlier",
+          "sourceLine": "29\tДатчик угла поворота ABB TGM 5 P14436-0-1072510\tшт"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "5V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "250V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "24V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "37\tВ"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "480V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "60Hz"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "160 мм"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "420,0 mm"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "104 mm"
+        }
+      ],
+      "positions": 61,
+      "totalQty": 37,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.8,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_brand",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.96,
+            "source": "explicit_article_block"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.62,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "current_message"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_brand",
+            "field": "brand",
+            "severity": "medium",
+            "confidence": 0.62
+          },
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "ARGUS Fluidtechnik",
+              "AUMA",
+              "Coax",
+              "Hydac",
+              "INDUSTRIE TECHNIK"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый brand; слабый company; слабый inn",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:6812711, LE 70, LE 25 | бренды:ARGUS Fluidtechnik, AUMA, Coax | компания:ООО «1П Технолоджиз» • email:snab16@1ptech.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:6812711, LE 70, LE 25",
+          "бренды:ARGUS Fluidtechnik, AUMA, Coax",
+          "компания:ООО «1П Технолоджиз»",
+          "ИНН:7714905135",
+          "вложения:2",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 43,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 7,
+          "processedAttachments": 2
+        }
+      },
+      "confidence": 0.76
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://1ptech.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: 6812711, LE 70, LE 25, KI.2, P14436-0-1072510",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://1ptech.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7714905135",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "ARGUS Fluidtechnik",
+      "AUMA",
+      "Coax",
+      "Hydac",
+      "INDUSTRIE TECHNIK",
+      "ROSEMOUNT",
+      "WIKA",
+      "EUBA Antriebstechnik",
+      "NORD Getriebe"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Не, добрый день!\n\nСпасибо за заявку по ARGUS Fluidtechnik, AUMA, Coax, Hydac, INDUSTRIE TECHNIK, ROSEMOUNT, WIKA, EUBA Antriebstechnik, NORD Getriebe (61 позиций).\nАртикулы: 6812711, LE 70, LE 25, KI.2, P14436-0-1072510\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "запрос",
+      "attachments": [
+        "mailrusigimg_GrfdKnXe.png",
+        "СБЕР 1П Технолоджиз Карточка предприятия.docx",
+        "ЗАПРОС.xlsx"
+      ],
+      "body": "Добрый день!\n\nПрошу рассмотреть наш запрос и дать предложение по «вашим» позициям, аналоги рассматриваем.\n\nФайл с запросом и реквизиты нашей организации во вложении\n\n*С уважением,*\n*Аревик*\n*Менеджер ОМТС*\n\n*ООО «1П Технолоджиз»*\n*тел: +7(495)640-80-28*\nwww.1ptech.ru ( https://1ptech.ru )\nsnab16@1ptech.ru\n\n*При ответе на полученное письмо, просьба сохранять переписку, тему письма!!!*"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "mailrusigimg_GrfdKnXe.png",
+          "safeName": "mailrusigimg_GrfdKnXe.png",
+          "contentType": "image/png",
+          "size": 24223,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "СБЕР 1П Технолоджиз Карточка предприятия.docx",
+          "safeName": "СБЕР 1П Технолоджиз Карточка предприятия.docx",
+          "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "size": 14978,
+          "ext": ".docx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 792,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "7714905135"
+          ],
+          "detectedKpp": [
+            "770901001",
+            "044525225"
+          ],
+          "detectedOgrn": [
+            "1137746400120"
+          ]
+        },
+        {
+          "filename": "ЗАПРОС.xlsx",
+          "safeName": "ЗАПРОС.xlsx",
+          "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "size": 12257,
+          "ext": ".xlsx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 4296,
+          "category": "product_request",
+          "detectedArticles": [
+            "E-25",
+            "6211-0100-670840",
+            "IP54",
+            "6203-0100-620229",
+            "6812711",
+            "345-1-250-000",
+            "73451-А383-А1",
+            "C73000-B7640-C11-6",
+            "3200MD-28-N6-E-04-40-0G-0F",
+            "XMLB010A2S11",
+            "3RG4014-4AB02",
+            "3RG4013-4СD00",
+            "4WS2E",
+            "10-4X/10B",
+            "T315",
+            "K8/DV-24",
+            "KW5",
+            "SSL-2XH",
+            "11Y",
+            "2X0",
+            "4X0",
+            "205F-80",
+            "FK15",
+            "3200MD-10-D6-E-04-40-0G-0F",
+            "47652",
+            "40-EVSA",
+            "10NH-4",
+            "73317BN2PN90N05910N7",
+            "330909-00-60-10-02-05",
+            "330902-00-40-10-02-05"
+          ],
+          "detectedBrands": [
+            "ABB",
+            "ARGUS Fluidtechnik",
+            "AUMA",
+            "Coax",
+            "EUBA Antriebstechnik",
+            "Hydac",
+            "INDUSTRIE TECHNIK",
+            "NORD Getriebe",
+            "PNR",
+            "ROSEMOUNT",
+            "WIKA"
+          ],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 2,
+        "skippedCount": 1,
+        "totalBytes": 27235,
+        "totalChars": 5088,
+        "budgetMs": 506,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": false,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 2,
+      "attachmentsSkipped": 1
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-20T07:14:14.848Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 1,
+      "detectionGapsCount": 2
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:00:08.371Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

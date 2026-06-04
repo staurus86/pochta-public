@@ -1,0 +1,397 @@
+{
+  "messageKey": "d9f75c5b690b5e2c697ce79abd2f7c3cfe7948de",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Товары заполнены некорректно"
+  ],
+  "subject": "принтэкс",
+  "body": "Добрый день, пришлите пожалуйчта КП на\r\nМембрана PS 6-200-15-1 PTFE\r\n\r\nPS6-200-15-1\r\n\r\n10\r\n\r\nшт\r\n\r\n\r\n\r\nС уважением,\r\n\r\nМакарова Анастасия Александровна\r\nМенеджер по закупкам\r\nООО «ПринтЭкс»\r\n\r\nПочта: a.makarova@printx-group.com\r\nТелефон: +7 930 984-25-64\r\nОфис: +7 (495) 777-39-27\r\nwww.printx-group.com",
+  "attachmentFiles": [
+    {
+      "filename": "Карточка партнера ООО ПринтЭкс на новом бланке.docx",
+      "safeName": "Карточка партнера ООО ПринтЭкс на новом бланке.docx",
+      "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size": 126489
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "4ca27a26-b4bc-4fa1-9f5e-d6f4da2d4a38",
+    "createdAt": "2026-06-01T14:51:29.815Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [],
+      "signals": {
+        "clientScore": 4,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "a.makarova@printx-group.com",
+      "emailPrimary": "a.makarova@printx-group.com",
+      "emailDisplayName": "Макарова Анастасия Александровна",
+      "emailLocal": "a.makarova",
+      "emailDomain": "printx-group.com",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Макарова Анастасия Александровна",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Менеджер по закупкам",
+      "positionAlt": "Менеджер по закупкам",
+      "departmentName": null,
+      "positionSource": "signature",
+      "positionConfidence": 0.97,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Макарова",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "ООО «ПринтЭкс»",
+      "companyAlt": "ООО «ПринтЭкс»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Макарова Анастасия Александровна",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://printx-group.com",
+      "cityPhone": "+7 (495) 777-39-27",
+      "mobilePhone": "+7 (930) 984-25-64",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "5074112170",
+      "kpp": null,
+      "ogrn": "1245000087640",
+      "legalCardAttached": true,
+      "sources": {
+        "company": "attachment",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": "attachment",
+        "fullName": "signature",
+        "position": "signature",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день, пришлите пожалуйчта КП на\nМембрана PS 6-200-15-1 PTFE\n\nPS6-200-15-1\n\n10\n\nшт",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "PS6-200-15-1"
+      ],
+      "lineItems": [
+        {
+          "article": "PS6-200-15-1",
+          "quantity": 10,
+          "unit": "шт",
+          "descriptionRu": "принтэкс",
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 1,
+      "detectedBrands": [],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "PS6-200-15-1",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "PS 6-200-15",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Не определено (есть артикулы)",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [],
+        "attachmentsProcessed": [
+          "Карточка партнера ООО ПринтЭкс на новом бланке.docx"
+        ],
+        "brands": []
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": false,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [
+          "brand"
+        ],
+        "completenessScore": 83,
+        "overallConfidence": 0.82,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "productNamePrimary": "принтэкс",
+      "productLineItems": [],
+      "productNamesClean": [
+        "принтэкс"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 10,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "multiline_table"
+        }
+      ],
+      "totalQuantity": 10,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 1,
+      "totalQty": 10,
+      "recognitionDiagnostics": {
+        "completenessScore": 83,
+        "overallConfidence": 0.82,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "missing_brand",
+            "field": "brand",
+            "severity": "medium"
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый company; слабый inn; нет brand",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:PS6-200-15-1 | компания:ООО «ПринтЭкс» | ИНН:5074112170 • email:a.makarova@printx-group.com",
+        "suggestion": "Не хватает: бренд. Дополните через быструю коррекцию или запросите у клиента.",
+        "triggerSignals": [
+          "артикулы:PS6-200-15-1",
+          "компания:ООО «ПринтЭкс»",
+          "ИНН:5074112170",
+          "вложения:1",
+          "правила:client"
+        ],
+        "pipeline": {
+          "bodyArticles": 1,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 1,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7789999999999999
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://printx-group.com для поиска реквизитов",
+        "Сверить запрос по артикулам: PS6-200-15-1",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://printx-group.com",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "5074112170",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Не определено (есть артикулы)",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Макарова, добрый день!\n\nСпасибо за заявку.\nАртикулы: PS6-200-15-1\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "принтэкс",
+      "attachments": [
+        "Карточка партнера ООО ПринтЭкс на новом бланке.docx"
+      ],
+      "body": "Добрый день, пришлите пожалуйчта КП на\r\nМембрана PS 6-200-15-1 PTFE\r\n\r\nPS6-200-15-1\r\n\r\n10\r\n\r\nшт\r\n\r\n\r\n\r\nС уважением,\r\n\r\nМакарова Анастасия Александровна\r\nМенеджер по закупкам\r\nООО «ПринтЭкс»\r\n\r\nПочта: a.makarova@printx-group.com\r\nТелефон: +7 930 984-25-64\r\nОфис: +7 (495) 777-39-27\r\nwww.printx-group.com"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Карточка партнера ООО ПринтЭкс на новом бланке.docx",
+          "safeName": "Карточка партнера ООО ПринтЭкс на новом бланке.docx",
+          "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "size": 126489,
+          "ext": ".docx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 1648,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "5043086650"
+          ],
+          "detectedKpp": [
+            "504301001",
+            "044525225",
+            "044525700"
+          ],
+          "detectedOgrn": [
+            "1245000087640"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 126489,
+        "totalChars": 1648,
+        "budgetMs": 80,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-21T10:27:22.215Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "brand"
+      ],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 2
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:51:29.833Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

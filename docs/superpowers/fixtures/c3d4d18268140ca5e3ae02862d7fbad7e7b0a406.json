@@ -1,0 +1,441 @@
+{
+  "messageKey": "c3d4d18268140ca5e3ae02862d7fbad7e7b0a406",
+  "projectId": "project-3-mailbox-file",
+  "comments": [
+    "Астрон не указал\n+количество товара 1 штука, а не 11"
+  ],
+  "subject": "6103",
+  "body": "Добрый день!\r\n\r\nПрошу выставить ТКП на нижеперечисленную продукцию и указать срок поставки:\r\n\r\n\r\n\r\n\r\nМодуль связи Stahl 9186/12-11-11\r\n\r\n1 шт\r\n\r\n\r\n\r\nРеквизиты во вложении\r\n\r\n\r\n\r\nС уважением,\r\n\r\nМурадян Вера Михайловна\r\n\r\nТехнико-коммерческий инженер\r\n\r\nООО ПИК \"Астрон\" г.Иркутск \r\n\r\nТел. 8-914-950-18-69\r\n\r\ne-mail: muradyan@astron-irk.ru,\r\n\r\n110@astron-irk.ru",
+  "attachmentFiles": [
+    {
+      "filename": "Реквизиты ООО ПИК Астрон.doc",
+      "safeName": "Реквизиты ООО ПИК Астрон.doc",
+      "contentType": "application/msword",
+      "size": 28160
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "5d5c0073-44d6-457f-b945-5f8ed634bdbd",
+    "createdAt": "2026-06-01T14:50:55.594Z",
+    "mailbox": "multi-mailbox@project3.local",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [],
+      "signals": {
+        "clientScore": 17,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 5,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label",
+            "weight": 2
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal",
+      "sources": {
+        "droppedBrands_noBodyOverlap": [
+          "R. STAHL"
+        ]
+      }
+    },
+    "sender": {
+      "email": "muradyan@astron-irk.ru",
+      "emailPrimary": "muradyan@astron-irk.ru",
+      "emailDisplayName": "Мурадян Вера Михайловна",
+      "emailLocal": "muradyan",
+      "emailDomain": "astron-irk.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Мурадян Вера Михайловна",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Технико-коммерческий инженер",
+      "positionAlt": "Технико-коммерческий инженер",
+      "departmentName": null,
+      "positionSource": "signature",
+      "positionConfidence": 0.97,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Мурадян",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "ООО Проектно-инжиниринговая компания",
+      "companyAlt": "ООО ПИК",
+      "companyNameSource": "body",
+      "companyNameConfidence": 0.9700000000000001,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Мурадян Вера Михайловна",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://astron-irk.ru",
+      "cityPhone": null,
+      "mobilePhone": "+7 (914) 950-18-69",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "3812080904",
+      "kpp": null,
+      "ogrn": "1053812002419",
+      "legalCardAttached": true,
+      "sources": {
+        "company": "attachment",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": "attachment",
+        "fullName": "signature",
+        "position": "signature",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день!\n\nПрошу выставить ТКП на нижеперечисленную продукцию и указать срок поставки:\n\n\n\n\nМодуль связи Stahl 9186/12-11-11\n\n1 шт\n\n\n\nРеквизиты во вложении",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "9186/12-11-11"
+      ],
+      "lineItems": [
+        {
+          "article": "9186/12-11-11",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "articles_synth",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 1,
+      "detectedBrands": [
+        "R. STAHL"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "9186/12-11-11",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [],
+        "attachmentsProcessed": [
+          "Реквизиты ООО ПИК Астрон.doc"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": false,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [
+          "name"
+        ],
+        "completenessScore": 83,
+        "overallConfidence": 0.77,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_article",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": null,
+      "productLineItems": [],
+      "productNamesClean": [],
+      "productNamesRejected": [],
+      "primaryQuantity": 1,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 1,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 1,
+      "totalQty": 1,
+      "recognitionDiagnostics": {
+        "completenessScore": 83,
+        "overallConfidence": 0.77,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_article",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.74,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_article",
+            "field": "article",
+            "severity": "medium",
+            "confidence": 0.74
+          },
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "missing_name",
+            "field": "name",
+            "severity": "medium"
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый article; слабый company; слабый inn",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:9186/12-11-11 | бренды:R. STAHL | компания:ООО Проектно-инжиниринговая компания • email:muradyan@astron-irk.ru",
+        "suggestion": "Не хватает: наименование. Дополните через быструю коррекцию или запросите у клиента. Добавьте наименование для артикула — закрепите через feedback.",
+        "triggerSignals": [
+          "артикулы:9186/12-11-11",
+          "бренды:R. STAHL",
+          "компания:ООО Проектно-инжиниринговая компания",
+          "ИНН:3812080904",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 1,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 6,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7314999999999999
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://astron-irk.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: 9186/12-11-11",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://astron-irk.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "3812080904",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "R. STAHL"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Мурадян, добрый день!\n\nСпасибо за заявку по R. STAHL.\nАртикулы: 9186/12-11-11\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "6103",
+      "attachments": [
+        "Реквизиты ООО ПИК Астрон.doc"
+      ],
+      "body": "Добрый день!\r\n\r\nПрошу выставить ТКП на нижеперечисленную продукцию и указать срок поставки:\r\n\r\n\r\n\r\n\r\nМодуль связи Stahl 9186/12-11-11\r\n\r\n1 шт\r\n\r\n\r\n\r\nРеквизиты во вложении\r\n\r\n\r\n\r\nС уважением,\r\n\r\nМурадян Вера Михайловна\r\n\r\nТехнико-коммерческий инженер\r\n\r\nООО ПИК \"Астрон\" г.Иркутск \r\n\r\nТел. 8-914-950-18-69\r\n\r\ne-mail: muradyan@astron-irk.ru,\r\n\r\n110@astron-irk.ru"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Реквизиты ООО ПИК Астрон.doc",
+          "safeName": "Реквизиты ООО ПИК Астрон.doc",
+          "contentType": "application/msword",
+          "size": 28160,
+          "ext": ".doc",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 1619,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "3812080904"
+          ],
+          "detectedKpp": [
+            "381101001",
+            "042520607"
+          ],
+          "detectedOgrn": [
+            "1053812002419"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 28160,
+        "totalChars": 1619,
+        "budgetMs": 5,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-16T22:03:03.917Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 5
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:50:55.608Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

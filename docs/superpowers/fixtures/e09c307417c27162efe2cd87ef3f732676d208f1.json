@@ -1,0 +1,415 @@
+{
+  "messageKey": "e09c307417c27162efe2cd87ef3f732676d208f1",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "не указаны бренд, описание и кол-во товара, Ф.И.О. конт.лица указано неверно"
+  ],
+  "subject": "Запрос КП 20.04.2026",
+  "body": "Добрый день!\r\nПросьба уточнить актуальную цену и сроки поставки:\r\n№\r\n\r\nНоменклатура\r\n\r\nПроизводитель\r\n\r\nКоличество к закупке\r\n\r\nЕдиница измерения\r\n\r\n1\r\n\r\nOTT Pluvio² 200 RH датчик осадков с обогревательным элементом\r\n\r\nLUFFT\r\n\r\n1\r\n\r\nшт\r\n\r\n\r\nPS – по поводу предыдущих запросов -в работе, ждем обратную связь от заказчика( спасибо за понимание\r\n\r\n\r\n\r\n________________________________\r\nThank you!\r\n\r\nBest regards,\r\nGulya Gaisina\r\nPurchasing department specialist\r\nSmart Solutions co., JSC\r\n[cid:image001.png@01DCD0F0.6903FDF0]",
+  "attachmentFiles": [
+    {
+      "filename": "image001.png",
+      "safeName": "image001.png",
+      "contentType": "image/png",
+      "size": 14534
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "e1d72820-ae45-4fc4-97ea-aaf3243b61ce",
+    "createdAt": "2026-06-01T14:51:25.676Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Lufft"
+      ],
+      "signals": {
+        "clientScore": 16,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 14,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "наличие\\s+на\\s+складе|сроки\\s+поставки|с\\s+доставкой|просьба\\s+выставить|реквизиты\\s+прилагаются|карточка\\s+предприятия",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "gg@aosmartsolutions.ru",
+      "emailPrimary": "gg@aosmartsolutions.ru",
+      "emailDisplayName": "За Понимание",
+      "emailLocal": "gg",
+      "emailDomain": "aosmartsolutions.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Не определено",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": null,
+      "fullNameConfidence": 0,
+      "fullNameNeedsReview": true,
+      "fullNameRejected": [
+        {
+          "value": "За Понимание",
+          "source": "sender",
+          "reason": "bad_name"
+        }
+      ],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "За Понимание",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "СМАРТ РЕШЕНИЯ",
+      "companyAlt": null,
+      "companyNameSource": "email_domain",
+      "companyNameConfidence": 0.16999999999999996,
+      "companyNameNeedsReview": true,
+      "companyNameRejected": [
+        {
+          "value": "За Понимание",
+          "source": "sender",
+          "reason": "person_like"
+        }
+      ],
+      "website": "https://aosmartsolutions.ru",
+      "cityPhone": null,
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "unknown",
+      "phoneSource": null,
+      "phoneConfidence": 0,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "7816756010",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "company_directory",
+        "website": "email_domain",
+        "phone": null,
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": null,
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день!\nПросьба уточнить актуальную цену и сроки поставки:\n№\n\nНоменклатура\n\nПроизводитель\n\nКоличество к закупке\n\nЕдиница измерения\n\n1\n\nOTT Pluvio² 200 RH датчик осадков с обогревательным элементом\n\nLUFFT\n\n1\n\nшт\n\n\nPS – по поводу предыдущих запросов -в работе, ждем обратную связь от заказчика( спасибо за понимание",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [],
+      "lineItems": [
+        {
+          "article": "DESC:lufft",
+          "descriptionRu": "LUFFT",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        }
+      ],
+      "totalPositions": 1,
+      "detectedBrands": [
+        "Lufft"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [],
+        "names": [
+          "freetext"
+        ],
+        "attachmentsProcessed": [],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": false,
+        "brand": true,
+        "name": true,
+        "phone": false,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": false,
+        "missing": [
+          "article",
+          "phone"
+        ],
+        "completenessScore": 67,
+        "overallConfidence": 0.78,
+        "riskLevel": "high",
+        "primaryIssue": "missing_article",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "LUFFT",
+      "productLineItems": [],
+      "productNamesClean": [
+        "LUFFT"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 1,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        }
+      ],
+      "totalQuantity": 1,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 1,
+      "totalQty": 1,
+      "recognitionDiagnostics": {
+        "completenessScore": 67,
+        "overallConfidence": 0.78,
+        "riskLevel": "high",
+        "primaryIssue": "missing_article",
+        "fields": {
+          "article": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "freetext"
+          },
+          "phone": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "company_directory"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "missing_article",
+            "field": "article",
+            "severity": "high"
+          },
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "missing_phone",
+            "field": "phone",
+            "severity": "medium"
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "нет article; слабый company; слабый inn",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:бренды:Lufft | компания:СМАРТ РЕШЕНИЯ | ИНН:7816756010 • email:gg@aosmartsolutions.ru",
+        "suggestion": "Не хватает: артикулы, телефон. Дополните через быструю коррекцию или запросите у клиента.",
+        "triggerSignals": [
+          "бренды:Lufft",
+          "компания:СМАРТ РЕШЕНИЯ",
+          "ИНН:7816756010",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 0,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 4,
+          "processedAttachments": 0
+        }
+      },
+      "confidence": 0.741
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://aosmartsolutions.ru для поиска реквизитов",
+        "Сверить номенклатуру вручную не требуется",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://aosmartsolutions.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7816756010",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Lufft"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Добрый день!\n\nСпасибо за заявку по Lufft.\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос КП 20.04.2026",
+      "attachments": [
+        "image001.png"
+      ],
+      "body": "Добрый день!\r\nПросьба уточнить актуальную цену и сроки поставки:\r\n№\r\n\r\nНоменклатура\r\n\r\nПроизводитель\r\n\r\nКоличество к закупке\r\n\r\nЕдиница измерения\r\n\r\n1\r\n\r\nOTT Pluvio² 200 RH датчик осадков с обогревательным элементом\r\n\r\nLUFFT\r\n\r\n1\r\n\r\nшт\r\n\r\n\r\nPS – по поводу предыдущих запросов -в работе, ждем обратную связь от заказчика( спасибо за понимание\r\n\r\n\r\n\r\n________________________________\r\nThank you!\r\n\r\nBest regards,\r\nGulya Gaisina\r\nPurchasing department specialist\r\nSmart Solutions co., JSC\r\n[cid:image001.png@01DCD0F0.6903FDF0]"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "image001.png",
+          "safeName": "image001.png",
+          "contentType": "image/png",
+          "size": 14534,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 0,
+        "skippedCount": 1,
+        "totalBytes": 0,
+        "totalChars": 0,
+        "budgetMs": 0,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": false,
+      "quotedTextDetected": true,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 0,
+      "attachmentsSkipped": 1
+    },
+    "llmExtraction": {
+      "processedAt": "2026-05-25T10:20:13.883Z",
+      "model": "google/gemini-2.0-flash-lite-001",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "phone",
+        "article"
+      ],
+      "newArticlesAdded": 1,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:51:25.690Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "google/gemini-2.0-flash-lite-001",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "logSuggestions": true
+    }
+  }
+}

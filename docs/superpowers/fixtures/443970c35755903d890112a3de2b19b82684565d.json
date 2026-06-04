@@ -1,0 +1,391 @@
+{
+  "messageKey": "443970c35755903d890112a3de2b19b82684565d",
+  "projectId": "project-3-mailbox-file",
+  "comments": [
+    "Компания АО Волжский Оргсинтез-не определил\nэто одна позиция Ремонтный комплект для анализатора мутности, количество тоже не определил"
+  ],
+  "subject": "Запрос на поставку оборудования",
+  "body": "Добрый день! Компания АО Волжский Оргсинтез просит рассмотреть возможность поставки оборудования:\r\nРемонтный комплект для проточной арматуры Flowfit CUA252 анализатора мутности Turbimax CUS52D Endress+Hauser Швейцария.\r\n\r\n3\r\n\r\nКомпл\r\n\r\n\r\n\r\nС уважением, Розинский Ефим\r\nМенеджер группы ЭО и КИПиА\r\nОтдела материально-технического\r\nобеспечения и оборудования\r\nАО \r\nТел. (8443) 22-58-05\r\ne-mail : 31004@zos-v.ru \r\nwww.zos-v.ru",
+  "attachmentFiles": [],
+  "currentAnalysis": {
+    "analysisId": "fb63017e-5f73-409e-b3ba-bebfe115615f",
+    "createdAt": "2026-06-01T14:50:52.931Z",
+    "mailbox": "multi-mailbox@project3.local",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "ENDRESS+HAUSER"
+      ],
+      "signals": {
+        "clientScore": 9,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "31004@zos-v.ru",
+      "emailPrimary": "31004@zos-v.ru",
+      "emailDisplayName": "Розинский Ефим",
+      "emailLocal": "31004",
+      "emailDomain": "zos-v.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Розинский Ефим",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Менеджер группы ЭО и КИПиА",
+      "positionAlt": "Менеджер группы ЭО и КИПиА",
+      "departmentName": null,
+      "positionSource": "signature",
+      "positionConfidence": 0.97,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Розинский Ефим",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "АО Волжский Оргсинтез",
+      "companyAlt": "АО Волжский Оргсинтез просит рассмотреть возможность поставки оборудования:",
+      "companyNameSource": "body",
+      "companyNameConfidence": 0.92,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "АО Тел",
+          "source": "signature",
+          "reason": "bad_company"
+        },
+        {
+          "value": "АО Тел.",
+          "source": "signature",
+          "reason": "bad_company"
+        },
+        {
+          "value": "АО Тел",
+          "source": "body",
+          "reason": "bad_company"
+        },
+        {
+          "value": "АО Тел.",
+          "source": "body",
+          "reason": "bad_company"
+        },
+        {
+          "value": "Отдела материально-технического",
+          "source": "body",
+          "reason": "department"
+        }
+      ],
+      "website": "https://zos-v.ru",
+      "cityPhone": "+7 (844) 322-58-05",
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "3435900563",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "body",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "signature",
+        "position": "signature",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день! Компания АО Волжский Оргсинтез просит рассмотреть возможность поставки оборудования:\nРемонтный комплект для проточной арматуры Flowfit CUA252 анализатора мутности Turbimax CUS52D Endress+Hauser Швейцария.\n\n3\n\nКомпл",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "CUA252",
+        "CUS52D"
+      ],
+      "lineItems": [
+        {
+          "article": "CUA252",
+          "quantity": 3,
+          "unit": "шт",
+          "descriptionRu": "Запрос на поставку оборудования",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "CUS52D",
+          "quantity": 3,
+          "unit": "шт",
+          "descriptionRu": "Запрос на поставку оборудования",
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 2,
+      "detectedBrands": [
+        "ENDRESS+HAUSER"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "CUA252",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "CUS52D",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [],
+        "attachmentsProcessed": [],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": false,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.85,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_inn",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Запрос на поставку оборудования",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Запрос на поставку оборудования"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 3,
+      "quantityUnit": "компл",
+      "quantitiesClean": [
+        {
+          "value": 3,
+          "unit": "компл",
+          "source": "multiline_table"
+        }
+      ],
+      "totalQuantity": 3,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 2,
+      "totalQty": 6,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.85,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_inn",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый inn",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:CUA252, CUS52D | бренды:ENDRESS+HAUSER | компания:АО Волжский Оргсинтез • email:31004@zos-v.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:CUA252, CUS52D",
+          "бренды:ENDRESS+HAUSER",
+          "компания:АО Волжский Оргсинтез",
+          "ИНН:3435900563",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 2,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 2,
+          "processedAttachments": 0
+        }
+      },
+      "confidence": 0.8075
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://zos-v.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: CUA252, CUS52D",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://zos-v.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "3435900563",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "ENDRESS+HAUSER"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Розинский, добрый день!\n\nСпасибо за заявку по ENDRESS+HAUSER.\nАртикулы: CUA252, CUS52D\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос на поставку оборудования",
+      "attachments": [],
+      "body": "Добрый день! Компания АО Волжский Оргсинтез просит рассмотреть возможность поставки оборудования:\r\nРемонтный комплект для проточной арматуры Flowfit CUA252 анализатора мутности Turbimax CUS52D Endress+Hauser Швейцария.\r\n\r\n3\r\n\r\nКомпл\r\n\r\n\r\n\r\nС уважением, Розинский Ефим\r\nМенеджер группы ЭО и КИПиА\r\nОтдела материально-технического\r\nобеспечения и оборудования\r\nАО \r\nТел. (8443) 22-58-05\r\ne-mail : 31004@zos-v.ru \r\nwww.zos-v.ru"
+    },
+    "attachmentAnalysis": {
+      "files": [],
+      "meta": {
+        "processedCount": 0,
+        "skippedCount": 0,
+        "totalBytes": 0,
+        "totalChars": 0,
+        "budgetMs": 0,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 0,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-21T05:58:28.171Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 1,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:50:52.944Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

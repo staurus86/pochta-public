@@ -1,0 +1,776 @@
+{
+  "messageKey": "101f69099a70ec921b55a8ba76174694abed8c70",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [],
+  "subject": "Запрос Siefer",
+  "body": "Доброго дня!\r\n\r\nПрошу Вас рассмотреть возможность поставки в наш адрес следующей продукции:\r\n\r\n1\r\n\r\nИгольчатый роликовый подшипник NU219E.TVP2\r\nDIA.95x170x32 din5412 «М»\r\n\r\nшт.\r\n\r\n1\r\n\r\n2\r\n\r\nПодшипник FAG7219B.TVP.UA SKF7219B.EC.BP\r\nDIA.95x170x32 din628 «М»\r\n\r\nшт.\r\n\r\n2\r\n\r\n3\r\n\r\nСальник DIN 3760 BAUM 85x110x12 «М»\r\n\r\nшт.\r\n\r\n2\r\n\r\n4\r\n\r\nКМ18 «М» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n5\r\n\r\nD3-M-42.0 «М» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n6\r\n\r\nD3-W6-2.0 «W» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n7\r\n\r\nD3-W6-3.0 «W» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n8\r\n\r\nD3-W6-4.0 «W» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n9\r\n\r\nD3-W6-8.0 «W» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n10\r\n\r\nD3-W6-9.0 «W» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n11\r\n\r\nD3-W6-10.0 «W» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n12\r\n\r\nD3-A1-1.9 «A1» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n13\r\n\r\nD3-A1-4.0 «A1» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n3\r\n\r\n14\r\n\r\nУплотнительное кольцо O-RING NO.: 233 «A1»\r\n\r\nшт.\r\n\r\n1\r\n\r\n15\r\n\r\nУплотнительное кольцо\r\nO-RING NO.: 239 «A1»\r\n\r\nшт.\r\n\r\n1\r\n\r\n16\r\n\r\nУплотнительное кольцо графитовое\r\nPACKING RING\r\nGRAPHITE «A1»\r\n\r\nшт.\r\n\r\n2\r\n\r\n17\r\n\r\nУплотнительное кольцо графитовое\r\nPACKING RING\r\nTRIPP1375 «A1»\r\n\r\nшт.\r\n\r\n3\r\n\r\n\r\nВ стоимость прошу заложить доставку до нашего склада по адресу:\r\n\r\nФилиал ООО «ЛЛК-Интернешнл» «Битумные Технологии» г. Екатеринбург\r\n620902, г.Екатеринбург, пр-д 2-й ЕКАД Южный, стр. 4\r\n\r\nСпасибо!\r\n\r\n\r\nС уважением,\r\n\r\nЕвгений Куляшов,\r\n\r\nСтарший менеджер, Управление материально-технического обеспечения\r\nООО «ЛЛК-Интернешнл» (LUKOIL Lubricants Co)\r\nТел.: +7 (342) 220-74-15 (вн. 08 (342) 2-74-15)\r\nWeb: www.lukoil-masla.ru<http://www.lukoil-masla.ru/>\r\nE-mail: Evgenij.Kuljashov@lukoil.com<mailto:Evgenij.Kuljashov@lukoil.com>\r\n\r\n[cid:image001.png@01D8B891.8D68BD50]",
+  "attachmentFiles": [
+    {
+      "filename": "image001.png",
+      "safeName": "image001.png",
+      "contentType": "image/png",
+      "size": 8580
+    },
+    {
+      "filename": "Реквизиты ЛЛК для предоставления в адрес контрагентов..pdf",
+      "safeName": "Реквизиты ЛЛК для предоставления в адрес контрагентов..pdf",
+      "contentType": "application/pdf",
+      "size": 1425052
+    },
+    {
+      "filename": "Реквизиты ЛЛК.docx",
+      "safeName": "Реквизиты ЛЛК.docx",
+      "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size": 264242
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "465dbaea-abda-4662-9a0c-087a9b86eb7f",
+    "createdAt": "2026-06-01T15:00:24.107Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Siefer"
+      ],
+      "signals": {
+        "clientScore": 25,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 35,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП)\\s+[\"«]",
+            "weight": 3
+          },
+          {
+            "id": 5,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label",
+            "weight": 2
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "evgenij.kuljashov@lukoil.com",
+      "emailPrimary": "evgenij.kuljashov@lukoil.com",
+      "emailDisplayName": "Евгений Куляшов",
+      "emailLocal": "evgenij.kuljashov",
+      "emailDomain": "lukoil.com",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Евгений Куляшов",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.9,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Старший менеджер, Управление материально-технического обеспечения",
+      "positionAlt": "Старший менеджер, Управление материально-технического обеспечения",
+      "departmentName": "Управление материально-технического обеспечения",
+      "positionSource": "signature",
+      "positionConfidence": 0.98,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Евгений Куляшов",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "ООО «ЛЛК-Интернешнл»",
+      "companyAlt": "ООО «ЛЛК-Интернешнл»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Евгений Куляшов",
+          "source": "sender",
+          "reason": "person_like"
+        }
+      ],
+      "website": "http://www.lukoil-masla.ru/>",
+      "cityPhone": "+7 (342) 220-74-15",
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "7702583250",
+      "kpp": null,
+      "ogrn": "1057748902144",
+      "legalCardAttached": true,
+      "sources": {
+        "company": "attachment",
+        "website": "body",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": "attachment",
+        "fullName": "signature",
+        "position": "signature",
+        "department": "body"
+      }
+    },
+    "lead": {
+      "freeText": "Доброго дня!\n\nПрошу Вас рассмотреть возможность поставки в наш адрес следующей продукции:\n\n1\n\nИгольчатый роликовый подшипник NU219E.TVP2\nDIA.95x170x32 din5412 «М»\n\nшт.\n\n1\n\n2\n\nПодшипник FAG7219B.TVP.UA SKF7219B.EC.BP\nDIA.95x170x32 din628 «М»\n\nшт.\n\n2\n\n3\n\nСальник DIN 3760 BAUM 85x110x12 «М»\n\nшт.\n\n2\n\n4\n\nКМ18 «М» Siefer-Trigonal\n\nшт.\n\n1\n\n5\n\nD3-M-42.0 «М» Siefer-Trigonal\n\nшт.\n\n1\n\n6\n\nD3-W6-2.0 «W» Siefer-Trigonal\n\nшт.\n\n1\n\n7\n\nD3-W6-3.0 «W» Siefer-Trigonal\n\nшт.\n\n1\n\n8\n\nD3-W6-4.0 «W» Siefer-Trigonal\n\nшт.\n\n1\n\n9\n\nD3-W6-8.0 «W» Siefer-Trigonal\n\nшт.\n\n1\n\n10\n\nD3-W6-9.0 «W» Siefer-Trigonal\n\nшт.\n\n1\n\n11\n\nD3-W6-10.0 «W» Siefer-Trigonal\n\nшт.\n\n1\n\n12\n\nD3-A1-1.9 «A1» Siefer-Trigonal\n\nшт.\n\n1\n\n13\n\nD3-A1-4.0 «A1» Siefer-Trigonal\n\nшт.\n\n3\n\n14\n\nУплотнительное кольцо O-RING NO.: 233 «A1»\n\nшт.\n\n1\n\n15\n\nУплотнительное кольцо\nO-RING NO.: 239 «A1»\n\nшт.\n\n1\n\n16\n\nУплотнительное кольцо графитовое\nPACKING RING\nGRAPHITE «A1»\n\nшт.\n\n2\n\n17\n\nУплотнительное кольцо графитовое\nPACKING RING\nTRIPP1375 «A1»\n\nшт.\n\n3\n\n\nВ стоимость прошу заложить доставку до нашего склада по адресу:\n\nФилиал ООО «ЛЛК-Интернешнл» «Битумные Технологии» г. Екатеринбург\n620902, г.Екатеринбург, пр-д 2-й ЕКАД Южный, стр. 4\n\nСпасибо!",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "NU219E.TVP2",
+        "FAG7219B.TVP.UA",
+        "3760",
+        "SKF7219B.EC.BP",
+        "TRIPP1375",
+        "DIA.95x170x32",
+        "D3-M-42.0",
+        "D3-W6-2.0",
+        "D3-W6-3.0",
+        "D3-W6-4.0",
+        "D3-W6-8.0",
+        "D3-W6-9.0",
+        "D3-W6-10.0",
+        "D3-A1-1.9",
+        "D3-A1-4.0"
+      ],
+      "lineItems": [
+        {
+          "article": "DESC:vas-rassmotret-vozmozhnost-postavki-v-nash-adres-sleduyushchey-produktsii",
+          "descriptionRu": "Вас рассмотреть возможность поставки в наш адрес следующей продукции",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "DESC:km18-m-siefer-trigonal",
+          "descriptionRu": "КМ18 «М» Siefer-Trigonal",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "NU219E.TVP2",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "FAG7219B.TVP.UA",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "SKF7219B.EC.BP",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "TRIPP1375",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "DIA.95x170x32",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "D3-M-42.0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "D3-W6-2.0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "D3-W6-3.0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "D3-W6-4.0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "D3-W6-8.0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "D3-W6-9.0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "D3-W6-10.0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "D3-A1-1.9",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "D3-A1-4.0",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 17,
+      "detectedBrands": [
+        "Siefer"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "NU219E.TVP2",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "FAG7219B.TVP.UA",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3760",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SKF7219B.EC.BP",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "TRIPP1375",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "DIA.95x170x32",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "D3-M-42.0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "D3-W6-2.0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "D3-W6-3.0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "D3-W6-4.0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "D3-W6-8.0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "D3-W6-9.0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "D3-W6-10.0",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "D3-A1-1.9",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "D3-A1-4.0",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "freetext",
+          "body"
+        ],
+        "names": [
+          "freetext"
+        ],
+        "attachmentsProcessed": [
+          "Реквизиты ЛЛК для предоставления в адрес контрагентов..pdf",
+          "Реквизиты ЛЛК.docx"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "КМ18 «М» Siefer-Trigonal",
+      "productLineItems": [
+        "Вас рассмотреть возможность поставки в наш адрес следующей продукции",
+        "КМ18 «М» Siefer-Trigonal"
+      ],
+      "productNamesClean": [
+        "Вас рассмотреть возможность поставки в наш адрес следующей продукции",
+        "КМ18 «М» Siefer-Trigonal"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 1,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "multiline_table"
+        }
+      ],
+      "totalQuantity": 24,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 17,
+      "totalQty": 16,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "freetext"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый company; слабый inn",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:NU219E.TVP2, FAG7219B.TVP.UA, 3760 | бренды:Siefer | компания:ООО «ЛЛК-Интернешнл» • email:evgenij.kuljashov@lukoil.com",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:NU219E.TVP2, FAG7219B.TVP.UA, 3760",
+          "бренды:Siefer",
+          "компания:ООО «ЛЛК-Интернешнл»",
+          "ИНН:7702583250",
+          "вложения:2",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 14,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 8,
+          "processedAttachments": 2
+        }
+      },
+      "confidence": 0.7194999999999999
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт http://www.lukoil-masla.ru/> для поиска реквизитов",
+        "Сверить запрос по артикулам: NU219E.TVP2, FAG7219B.TVP.UA, 3760, SKF7219B.EC.BP, TRIPP1375",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "http://www.lukoil-masla.ru/>",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7702583250",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Siefer"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Евгений, добрый день!\n\nСпасибо за заявку по Siefer (17 позиций).\nАртикулы: NU219E.TVP2, FAG7219B.TVP.UA, 3760, SKF7219B.EC.BP, TRIPP1375\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос Siefer",
+      "attachments": [
+        "image001.png",
+        "Реквизиты ЛЛК для предоставления в адрес контрагентов..pdf",
+        "Реквизиты ЛЛК.docx"
+      ],
+      "body": "Доброго дня!\r\n\r\nПрошу Вас рассмотреть возможность поставки в наш адрес следующей продукции:\r\n\r\n1\r\n\r\nИгольчатый роликовый подшипник NU219E.TVP2\r\nDIA.95x170x32 din5412 «М»\r\n\r\nшт.\r\n\r\n1\r\n\r\n2\r\n\r\nПодшипник FAG7219B.TVP.UA SKF7219B.EC.BP\r\nDIA.95x170x32 din628 «М»\r\n\r\nшт.\r\n\r\n2\r\n\r\n3\r\n\r\nСальник DIN 3760 BAUM 85x110x12 «М»\r\n\r\nшт.\r\n\r\n2\r\n\r\n4\r\n\r\nКМ18 «М» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n5\r\n\r\nD3-M-42.0 «М» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n6\r\n\r\nD3-W6-2.0 «W» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n7\r\n\r\nD3-W6-3.0 «W» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n8\r\n\r\nD3-W6-4.0 «W» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n9\r\n\r\nD3-W6-8.0 «W» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n10\r\n\r\nD3-W6-9.0 «W» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n11\r\n\r\nD3-W6-10.0 «W» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n12\r\n\r\nD3-A1-1.9 «A1» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n1\r\n\r\n13\r\n\r\nD3-A1-4.0 «A1» Siefer-Trigonal\r\n\r\nшт.\r\n\r\n3\r\n\r\n14\r\n\r\nУплотнительное кольцо O-RING NO.: 233 «A1»\r\n\r\nшт.\r\n\r\n1\r\n\r\n15\r\n\r\nУплотнительное кольцо\r\nO-RING NO.: 239 «A1»\r\n\r\nшт.\r\n\r\n1\r\n\r\n16\r\n\r\nУплотнительное кольцо графитовое\r\nPACKING RING\r\nGRAPHITE «A1»\r\n\r\nшт.\r\n\r\n2\r\n\r\n17\r\n\r\nУплотнительное кольцо графитовое\r\nPACKING RING\r\nTRIPP1375 «A1»\r\n\r\nшт.\r\n\r\n3\r\n\r\n\r\nВ стоимость прошу заложить доставку до нашего склада по адресу:\r\n\r\nФилиал ООО «ЛЛК-Интернешнл» «Битумные Технологии» г. Екатеринбург\r\n620902, г.Екатеринбург, пр-д 2-й ЕКАД Южный, стр. 4\r\n\r\nСпасибо!\r\n\r\n\r\nС уважением,\r\n\r\nЕвгений Куляшов,\r\n\r\nСтарший менеджер, Управление материально-технического обеспечения\r\nООО «ЛЛК-Интернешнл» (LUKOIL Lubricants Co)\r\nТел.: +7 (342) 220-74-15 (вн. 08 (342) 2-74-15)\r\nWeb: www.lukoil-masla.ru<http://www.lukoil-masla.ru/>\r\nE-mail: Evgenij.Kuljashov@lukoil.com<mailto:Evgenij.Kuljashov@lukoil.com>\r\n\r\n[cid:image001.png@01D8B891.8D68BD50]"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "image001.png",
+          "safeName": "image001.png",
+          "contentType": "image/png",
+          "size": 8580,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Реквизиты ЛЛК для предоставления в адрес контрагентов..pdf",
+          "safeName": "Реквизиты ЛЛК для предоставления в адрес контрагентов..pdf",
+          "contentType": "application/pdf",
+          "size": 1425052,
+          "ext": ".pdf",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 428,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Реквизиты ЛЛК.docx",
+          "safeName": "Реквизиты ЛЛК.docx",
+          "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "size": 264242,
+          "ext": ".docx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 1089,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "7702583250"
+          ],
+          "detectedKpp": [
+            "770501001",
+            "997250001",
+            "044525187"
+          ],
+          "detectedOgrn": [
+            "1057748902144"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 2,
+        "skippedCount": 1,
+        "totalBytes": 1689294,
+        "totalChars": 1517,
+        "budgetMs": 183,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 2,
+      "attachmentsSkipped": 1
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-20T22:28:03.931Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 5,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:00:24.125Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

@@ -1,0 +1,538 @@
+{
+  "messageKey": "f5315d02d08341afb988a04254b7b081cab2e778",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "замечание к описанию строке №1 не должно было в ней быть \"только\"\nПозиции 2 и 3 быть не должно было, т.к. клиент всего запрашивает 1 товар,  а не 3 разных."
+  ],
+  "subject": "207-2044",
+  "body": "Добрый день!\r\n\r\n\r\nПрошу выставить счет или КП\r\n\r\nНе забудьте указать:\r\n 1- Срок поставки\r\n 2- Условия оплаты\r\n 3- В стоимость товара прошу включить доставку ДЛ до терминала в СПБ (если нахождение Поставщика не в СПБ )\r\n\r\nАналог допустим\r\nТребуется только электродвигатель\r\n\r\nНаименование, модель: Электродвигатель вентилятора фанкойла: ELCO, BTNB41TB0353S\r\nModel: 3BTB-CO 70-45-0/7\r\nCODE:4-017-1816\r\n230V 50Hz\r\n0.73A 60/160W 1100pm C=2.5/3.15/4mf\r\n\r\n\r\n\r\n\r\nПросьба не удалять переписку.\r\n\r\nВНИМАНИЕ!!!!\r\nИзменилось наименование организации\r\nПолное фирменное наименование\r\nАкционерное общество «Научно-производственное объединение «Северо-Западный региональный центр Концерна ВКО «Алмаз-Антей» - Обуховский завод»\r\nСокращенное наименование\r\nАО «НПО «Обуховский завод»\r\nИНН 7811144648\r\n\r\nС уважением\r\nВедущий специалист управления закупок\r\nАО «НПО «Обуховский завод»\r\nСартакова Людмила Олеговна\r\n8-953-3727583",
+  "attachmentFiles": [
+    {
+      "filename": "Размеры двигателя.pdf",
+      "safeName": "Размеры двигателя.pdf",
+      "contentType": "application/pdf",
+      "size": 350693
+    },
+    {
+      "filename": "2026-03-19_10-22-37 д..png",
+      "safeName": "2026-03-19_10-22-37 д..png",
+      "contentType": "image/png",
+      "size": 53535
+    },
+    {
+      "filename": "2026-03-19_10-22-37 д.png",
+      "safeName": "2026-03-19_10-22-37 д.png",
+      "contentType": "image/png",
+      "size": 53535
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "3bcd9272-c72c-4fc3-b688-3cbdc2af6bbd",
+    "createdAt": "2026-06-01T15:00:43.847Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "ELCO"
+      ],
+      "signals": {
+        "clientScore": 16,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 35,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП)\\s+[\"«]",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal",
+      "sources": {
+        "droppedBrands_noBodyOverlap": [
+          "Elco Burners",
+          "Elco Industrie Automation",
+          "Elco Motors"
+        ]
+      }
+    },
+    "sender": {
+      "email": "l.sartakova@goz.ru",
+      "emailPrimary": "l.sartakova@goz.ru",
+      "emailDisplayName": "Сартакова Людмила Олеговна",
+      "emailLocal": "l.sartakova",
+      "emailDomain": "goz.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Сартакова Людмила Олеговна",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Ведущий специалист управления закупок",
+      "positionAlt": "Ведущий специалист управления закупок",
+      "departmentName": "управления закупок",
+      "positionSource": "signature",
+      "positionConfidence": 1,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Сартакова",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "АО «НПО «Обуховский завод»»",
+      "companyAlt": "АО «НПО «Обуховский завод»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Сартакова Людмила Олеговна",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://goz.ru",
+      "cityPhone": null,
+      "mobilePhone": "+7 (953) 372-75-83",
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [
+        {
+          "value": "811144648",
+          "source": "current_message",
+          "reason": "kpp_like"
+        },
+        {
+          "value": "7811144648",
+          "source": "current_message",
+          "reason": "inn_like"
+        }
+      ],
+      "inn": "7811144648",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "signature",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "body",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "signature",
+        "position": "signature",
+        "department": "body"
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день!\n\n\nПрошу выставить счет или КП\n\nНе забудьте указать:\n 1- Срок поставки\n 2- Условия оплаты\n 3- В стоимость товара прошу включить доставку ДЛ до терминала в СПБ (если нахождение Поставщика не в СПБ )\n\nАналог допустим\nТребуется только электродвигатель\n\nНаименование, модель: Электродвигатель вентилятора фанкойла: ELCO, BTNB41TB0353S\nModel: 3BTB-CO 70-45-0/7\nCODE:4-017-1816\n230V 50Hz\n0.73A 60/160W 1100pm C=2.5/3.15/4mf\n\n\n\n\nПросьба не удалять переписку.\n\nВНИМАНИЕ!!!!\nИзменилось наименование организации\nПолное фирменное наименование\nАкционерное общество «Научно-производственное объединение «Северо-Западный региональный центр Концерна ВКО «Алмаз-Антей» - Обуховский завод»\nСокращенное наименование\nАО «НПО «Обуховский завод»\nИНН 7811144648\n\nВложение: Размеры двигателя.pdf\n/Subtype /Image\n/Name /Im0\n/ColorSpace /DeviceRGB\n/Filter /DCTDecode\n0 R\n349620\nq\n595.200 0 0 841.680 0.000 0.000 cm\n/Im0 Do\nQ\nType /Page\n/Parent 1 0 R\n/Rotate 0\n/Resources 6 0 R\n/MediaBox 0.000 0.000 595.200 841.680 0.000 0.000 595.200 841.680 Type /Pages\n/Count 1\n/Pages 1 0 R\n0 9\n0000000000 65535 f\n0000350190 00000 n\n0000350250 00000 n\n0000350299 00000 n\n0000349818 00000 n\n0000000016 00000 n\n0000349840 00000 n\n0000349914 00000 n\n0000350012 00000 n\nSize 9\n/Root 2 0 R\n/Info 3 0 R\n350360",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "BTNB41TB0353S",
+        "3BTB-CO",
+        "15/4mf",
+        "CO 70-45-0",
+        "2026-03-19-10-22-37"
+      ],
+      "lineItems": [
+        {
+          "article": "DESC:tolko-elektrodvigatel",
+          "descriptionRu": "только электродвигатель",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "BTNB41TB0353S",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "только электродвигатель",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "3BTB-CO",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "только электродвигатель",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "15/4mf",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "CO 70-45-0",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "2026-03-19-10-22-37",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment_filename",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 6,
+      "detectedBrands": [
+        "ELCO"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "BTNB41TB0353S",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3BTB-CO",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "15/4mf",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "CO 70-45-0",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "freetext",
+          "body",
+          "attachment"
+        ],
+        "names": [
+          "freetext"
+        ],
+        "attachmentsProcessed": [
+          "Размеры двигателя.pdf"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.84,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "только электродвигатель",
+      "productLineItems": [],
+      "productNamesClean": [
+        "только электродвигатель"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "230V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "50Hz"
+        }
+      ],
+      "positions": 6,
+      "totalQty": 1,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.84,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "freetext"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "signature"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.93,
+            "source": "body"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый company",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:BTNB41TB0353S, 3BTB-CO, 15/4mf | бренды:ELCO | компания:АО «НПО «Обуховский завод»» • email:l.sartakova@goz.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:BTNB41TB0353S, 3BTB-CO, 15/4mf",
+          "бренды:ELCO",
+          "компания:АО «НПО «Обуховский завод»»",
+          "ИНН:7811144648",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 2,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 5,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7979999999999999
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://goz.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: BTNB41TB0353S, 3BTB-CO, 15/4MF, CO 70-45-0, 2026-03-19-10-22-37",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://goz.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7811144648",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "ELCO"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Сартакова, добрый день!\n\nСпасибо за заявку по ELCO (6 позиций).\nАртикулы: BTNB41TB0353S, 3BTB-CO, 15/4mf, CO 70-45-0, 2026-03-19-10-22-37\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "207-2044",
+      "attachments": [
+        "Размеры двигателя.pdf",
+        "2026-03-19_10-22-37 д..png",
+        "2026-03-19_10-22-37 д.png"
+      ],
+      "body": "Добрый день!\r\n\r\n\r\nПрошу выставить счет или КП\r\n\r\nНе забудьте указать:\r\n 1- Срок поставки\r\n 2- Условия оплаты\r\n 3- В стоимость товара прошу включить доставку ДЛ до терминала в СПБ (если нахождение Поставщика не в СПБ )\r\n\r\nАналог допустим\r\nТребуется только электродвигатель\r\n\r\nНаименование, модель: Электродвигатель вентилятора фанкойла: ELCO, BTNB41TB0353S\r\nModel: 3BTB-CO 70-45-0/7\r\nCODE:4-017-1816\r\n230V 50Hz\r\n0.73A 60/160W 1100pm C=2.5/3.15/4mf\r\n\r\n\r\n\r\n\r\nПросьба не удалять переписку.\r\n\r\nВНИМАНИЕ!!!!\r\nИзменилось наименование организации\r\nПолное фирменное наименование\r\nАкционерное общество «Научно-производственное объединение «Северо-Западный региональный центр Концерна ВКО «Алмаз-Антей» - Обуховский завод»\r\nСокращенное наименование\r\nАО «НПО «Обуховский завод»\r\nИНН 7811144648\r\n\r\nС уважением\r\nВедущий специалист управления закупок\r\nАО «НПО «Обуховский завод»\r\nСартакова Людмила Олеговна\r\n8-953-3727583"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Размеры двигателя.pdf",
+          "safeName": "Размеры двигателя.pdf",
+          "contentType": "application/pdf",
+          "size": 350693,
+          "ext": ".pdf",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 491,
+          "category": "pdf",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "2026-03-19_10-22-37 д..png",
+          "safeName": "2026-03-19_10-22-37 д..png",
+          "contentType": "image/png",
+          "size": 53535,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "2026-03-19_10-22-37 д.png",
+          "safeName": "2026-03-19_10-22-37 д.png",
+          "contentType": "image/png",
+          "size": 53535,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 2,
+        "totalBytes": 350693,
+        "totalChars": 491,
+        "budgetMs": 145,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 2
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-20T19:08:50.467Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 1,
+      "detectionGapsCount": 1
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:00:43.863Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

@@ -1,0 +1,425 @@
+{
+  "messageKey": "b3ae79660f241a856e2f607e304ecb5f3e308945",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Ф.И.О. и товары указаны неправильно"
+  ],
+  "subject": "3D taster",
+  "body": "Добрый день!\r\n\r\nИнтересует «80.364.40.FHN Универсальный 3Д-щупUniversal 3D-Tastermit \r\nintegrierter Aufnahme SK40inkl. Kurzem Tasteinsatz ø 4 mm A=138,60 mm, \r\nB=65 mm.\r\n\r\nЖдем коммерческое предложение.\r\n\r\nС уважением Куцевич Т.И.\r\n\r\nС уважением, ЦНИИ РТК, ведущий инженер снабжения Гушло Георгий Игоревич\r\nРаб. 8(812)-552-08-15 доб. 1411\r\nМоб. 8-950-000-89-19\r\nАдрес: 194064, Санкт-Петербург,\r\nТихорецкий пр., д.21\r\nИНН 7804023410 КПП 780401001\r\nОГРН 1027802484852\r\nПолучатель: ЦНИИ РТК\r\nР/с 03214643000000017200\r\nЛицевой счет 30726Ч33150\r\nБанк: СЕВЕРО-ЗАПАДНОЕ ГУ БАНКА РОССИИ//УФК по г. Санкт-Петербургу, г.\r\nСанкт-Петербург\r\nБИК 014030106\r\nК/с 40102810945370000005",
+  "attachmentFiles": [],
+  "currentAnalysis": {
+    "analysisId": "e15c1cf2-a0ce-4692-9cff-1fb903734647",
+    "createdAt": "2026-06-01T14:51:33.223Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [],
+      "signals": {
+        "clientScore": 10,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal",
+      "sources": {
+        "droppedBrands_noBodyOverlap": [
+          "UNIVERSAL HYDRAULIK"
+        ]
+      }
+    },
+    "sender": {
+      "email": "t.kucevich@rtc.ru",
+      "emailPrimary": "t.kucevich@rtc.ru",
+      "emailDisplayName": "T Kucevich",
+      "emailLocal": "t.kucevich",
+      "emailDomain": "rtc.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "T Kucevich",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "sender",
+      "fullNameConfidence": 0.8,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [
+        {
+          "value": "Адрес: 194064, Санкт-Петербург,",
+          "source": "signature",
+          "reason": "bad_name"
+        }
+      ],
+      "position": "ЦНИИ РТК, ведущий инженер снабжения",
+      "positionAlt": "ЦНИИ РТК, ведущий инженер снабжения",
+      "departmentName": null,
+      "positionSource": "signature",
+      "positionConfidence": 0.97,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "T Kucevich",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ АВТОНОМНОЕ НАУЧНОЕ УЧРЕЖДЕНИЕ ЦЕНТРАЛЬНЫЙ НАУЧНО-ИССЛЕДОВАТЕЛЬСКИЙ И ОПЫТНО-КОНСТРУКТОРСКИЙ ИНСТИТУТ РОБОТОТЕХНИКИ И ТЕХНИЧЕСКОЙ КИБЕРНЕТИКИ",
+      "companyAlt": null,
+      "companyNameSource": "email_domain",
+      "companyNameConfidence": 0.14999999999999997,
+      "companyNameNeedsReview": true,
+      "companyNameRejected": [
+        {
+          "value": "T Kucevich",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://rtc.ru",
+      "cityPhone": "+7 (812) 552-08-15",
+      "mobilePhone": "+7 (950) 000-89-19",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [
+        {
+          "value": "804023410",
+          "source": "signature",
+          "reason": "kpp_like"
+        },
+        {
+          "value": "80401001",
+          "source": "signature",
+          "reason": "normalize_failed"
+        },
+        {
+          "value": "802484852",
+          "source": "signature",
+          "reason": "kpp_like"
+        },
+        {
+          "value": "810945370000005",
+          "source": "signature",
+          "reason": "ogrn_like"
+        },
+        {
+          "value": "7804023410",
+          "source": "signature",
+          "reason": "inn_like"
+        }
+      ],
+      "inn": "7804023410",
+      "kpp": "780401001",
+      "ogrn": "1027802484852",
+      "legalCardAttached": false,
+      "sources": {
+        "company": "company_directory",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "body",
+        "kpp": "body",
+        "ogrn": "body",
+        "fullName": "sender",
+        "position": "signature",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день!\n\nИнтересует «80.364.40.FHN Универсальный 3Д-щупUniversal 3D-Tastermit \nintegrierter Aufnahme SK40inkl. Kurzem Tasteinsatz ø 4 mm A=138,60 mm, \nB=65 mm.\n\nЖдем коммерческое предложение.\n\nС уважением Куцевич Т.И.",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "80.364.40.FHN",
+        "3D-Tastermit"
+      ],
+      "lineItems": [
+        {
+          "article": "80.364.40.FHN",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "3D taster",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "3D-Tastermit",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "3D taster",
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 2,
+      "detectedBrands": [
+        "UNIVERSAL HYDRAULIK"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "80.364.40.FHN",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3D-Tastermit",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [],
+        "attachmentsProcessed": [],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": false,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.84,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "3D taster",
+      "productLineItems": [],
+      "productNamesClean": [
+        "3D taster"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "4 mm"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "138,60 mm"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "65 mm"
+        }
+      ],
+      "positions": 2,
+      "totalQty": 0,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.84,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "company_directory"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.93,
+            "source": "body"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый company",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:80.364.40.FHN, 3D-Tastermit | бренды:UNIVERSAL HYDRAULIK | компания:ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ АВТОНОМНОЕ НАУЧНОЕ УЧРЕЖДЕНИЕ ЦЕНТРАЛЬНЫЙ НАУЧНО-ИССЛЕДОВАТЕЛЬСКИЙ И ОПЫТНО-КОНСТРУКТОРСКИЙ ИНСТИТУТ РОБОТОТЕХНИКИ И ТЕХНИЧЕСКОЙ КИБЕРНЕТИКИ • email:t.kucevich@rtc.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:80.364.40.FHN, 3D-Tastermit",
+          "бренды:UNIVERSAL HYDRAULIK",
+          "компания:ФЕДЕРАЛЬНОЕ ГОСУДАРСТВЕННОЕ АВТОНОМНОЕ НАУЧНОЕ УЧРЕЖДЕНИЕ ЦЕНТРАЛЬНЫЙ НАУЧНО-ИССЛЕДОВАТЕЛЬСКИЙ И ОПЫТНО-КОНСТРУКТОРСКИЙ ИНСТИТУТ РОБОТОТЕХНИКИ И ТЕХНИЧЕСКОЙ КИБЕРНЕТИКИ",
+          "ИНН:7804023410",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 2,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 3,
+          "processedAttachments": 0
+        }
+      },
+      "confidence": 0.7979999999999999
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://rtc.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: 80.364.40.FHN, 3D-TASTERMIT",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://rtc.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7804023410/780401001",
+      "isFilialByKpp": true
+    },
+    "detectedBrands": [
+      "UNIVERSAL HYDRAULIK"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "T, добрый день!\n\nСпасибо за заявку по UNIVERSAL HYDRAULIK.\nАртикулы: 80.364.40.FHN, 3D-Tastermit\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "3D taster",
+      "attachments": [],
+      "body": "Добрый день!\r\n\r\nИнтересует «80.364.40.FHN Универсальный 3Д-щупUniversal 3D-Tastermit \r\nintegrierter Aufnahme SK40inkl. Kurzem Tasteinsatz ø 4 mm A=138,60 mm, \r\nB=65 mm.\r\n\r\nЖдем коммерческое предложение.\r\n\r\nС уважением Куцевич Т.И.\r\n\r\nС уважением, ЦНИИ РТК, ведущий инженер снабжения Гушло Георгий Игоревич\r\nРаб. 8(812)-552-08-15 доб. 1411\r\nМоб. 8-950-000-89-19\r\nАдрес: 194064, Санкт-Петербург,\r\nТихорецкий пр., д.21\r\nИНН 7804023410 КПП 780401001\r\nОГРН 1027802484852\r\nПолучатель: ЦНИИ РТК\r\nР/с 03214643000000017200\r\nЛицевой счет 30726Ч33150\r\nБанк: СЕВЕРО-ЗАПАДНОЕ ГУ БАНКА РОССИИ//УФК по г. Санкт-Петербургу, г.\r\nСанкт-Петербург\r\nБИК 014030106\r\nК/с 40102810945370000005"
+    },
+    "attachmentAnalysis": {
+      "files": [],
+      "meta": {
+        "processedCount": 0,
+        "skippedCount": 0,
+        "totalBytes": 0,
+        "totalChars": 0,
+        "budgetMs": 0,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 0,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-21T06:32:09.612Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "quantity"
+      ],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 2
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:51:33.235Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

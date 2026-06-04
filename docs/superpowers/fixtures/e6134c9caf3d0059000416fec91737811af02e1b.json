@@ -1,0 +1,618 @@
+{
+  "messageKey": "e6134c9caf3d0059000416fec91737811af02e1b",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "файл с реквизитами открыть/скачать не смог\nКлиент запросил 1 товар, а разборщик письма разложил на 3 товара, что в корне не верно!!!\nБренд в самом письме вроде как не указан, соответственно его нет после разбора"
+  ],
+  "subject": "Ячейка электродеионизации/ООО Апиценна",
+  "body": "Доброе утро.\r\n\r\nПрошу подсказать возможность поставки позиции: IP-LXM24X-4, Ячейка электродеионизации (ЭДИ) LX-X24 IONPURE EVOQUA для пищевой пром., поток: макс 4.2 м3/ч, номин. 2.8 м3/ч, мин. 1.4 м3/ч, 601.7х605.5х318.4 мм\r\n\r\nПри возможности поставки, прошу прислать КП.\r\nКарточка предприятия во вложении.\r\n\r\n\r\nС уважением,\r\nЛевин Максим Михайлович\r\nСпециалист по закупкам\r\nООО \"Апиценна\"\r\nраб.тел. +7 (495) 580-77-13 доб. 1628\r\n[cid:image001.png@01DCB6B7.853CB190]<https://apicenna.ru/>\r\n[cid:image002.png@01DCB6B7.853CB190]<https://vk.com/apicenna>[cid:image003.png@01DCB6B7.853CB190]<https://ok.ru/apicenna.p> [cid:image004.png@01DCB6B7.853CB190] <https://www.youtube.com/channel/UCotmgBKmuYFpsmwrPBjIbig> [cid:image005.png@01DCB6B7.853CB190] <https://dzen.ru/vetpharmacy?lang=ru> [cid:image006.png@01DCB6B7.853CB190] <https://rutube.ru/channel/39478457/>\r\nНаши каналы в Телеграм\r\nМДЖ:[cid:image007.png@01DCB6B7.853CB190]<https://t.me/Apicenna_Zoobusiness>\r\nСХЖ:[cid:image007.png@01DCB6B7.853CB190]<https://t.me/Apicenna_Farmbusiness>",
+  "attachmentFiles": [
+    {
+      "filename": "image001.png",
+      "safeName": "image001.png",
+      "contentType": "image/png",
+      "size": 13418
+    },
+    {
+      "filename": "image002.png",
+      "safeName": "image002.png",
+      "contentType": "image/png",
+      "size": 1004
+    },
+    {
+      "filename": "image003.png",
+      "safeName": "image003.png",
+      "contentType": "image/png",
+      "size": 990
+    },
+    {
+      "filename": "image004.png",
+      "safeName": "image004.png",
+      "contentType": "image/png",
+      "size": 1230
+    },
+    {
+      "filename": "image005.png",
+      "safeName": "image005.png",
+      "contentType": "image/png",
+      "size": 570
+    },
+    {
+      "filename": "image006.png",
+      "safeName": "image006.png",
+      "contentType": "image/png",
+      "size": 1361
+    },
+    {
+      "filename": "image007.png",
+      "safeName": "image007.png",
+      "contentType": "image/png",
+      "size": 1003
+    },
+    {
+      "filename": "Карточка предприятия Апиценна Сбербанк НОВЫЙ СЧЁТ.doc",
+      "safeName": "Карточка предприятия Апиценна Сбербанк НОВЫЙ СЧЁТ.doc",
+      "contentType": "application/msword",
+      "size": 40960
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "a7094e37-81f8-4813-8618-98393f18a780",
+    "createdAt": "2026-06-01T15:01:45.747Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Ionpure"
+      ],
+      "signals": {
+        "clientScore": 17,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 14,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "наличие\\s+на\\s+складе|сроки\\s+поставки|с\\s+доставкой|просьба\\s+выставить|реквизиты\\s+прилагаются|карточка\\s+предприятия",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal",
+      "sources": {
+        "droppedBrands_noBodyOverlap": [
+          "Evoqua Water Technologies"
+        ]
+      }
+    },
+    "sender": {
+      "email": "mm_levin@apicenna.ru",
+      "emailPrimary": "mm_levin@apicenna.ru",
+      "emailDisplayName": "Левин Максим Михайлович",
+      "emailLocal": "mm_levin",
+      "emailDomain": "apicenna.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Левин Максим Михайлович",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Специалист по закупкам",
+      "positionAlt": "Специалист по закупкам",
+      "departmentName": null,
+      "positionSource": "signature",
+      "positionConfidence": 0.97,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Левин",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "ООО \"Апиценна\"",
+      "companyAlt": "ООО «Апиценна»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Левин Максим Михайлович",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://apicenna.ru/>",
+      "cityPhone": "+7 (495) 580-77-13",
+      "mobilePhone": null,
+      "phoneExt": "1628",
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "7703440336",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": true,
+      "sources": {
+        "company": "attachment",
+        "website": "body",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "signature",
+        "position": "signature",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Доброе утро.\n\nПрошу подсказать возможность поставки позиции: IP-LXM24X-4, Ячейка электродеионизации (ЭДИ) LX-X24 IONPURE EVOQUA для пищевой пром., поток: макс 4.2 м3/ч, номин. 2.8 м3/ч, мин. 1.4 м3/ч, 601.7х605.5х318.4 мм\n\nПри возможности поставки, прошу прислать КП.\nКарточка предприятия во вложении.",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "IP-LXM24X-4",
+        "LX-X24",
+        "601.7x605.5x318.4"
+      ],
+      "lineItems": [
+        {
+          "article": "IP-LXM24X-4",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Ячейка электродеионизации/ООО Апиценна",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LX-X24",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Ячейка электродеионизации/ООО Апиценна",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "601.7x605.5x318.4",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 3,
+      "detectedBrands": [
+        "Evoqua Water Technologies",
+        "Ionpure"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "IP-LXM24X-4",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LX-X24",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Мультибрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "attachment"
+        ],
+        "names": [],
+        "attachmentsProcessed": [
+          "Карточка предприятия Апиценна Сбербанк НОВЫЙ СЧЁТ.doc"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Ячейка электродеионизации/ООО Апиценна",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Ячейка электродеионизации/ООО Апиценна"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "318.4 мм"
+        }
+      ],
+      "positions": 3,
+      "totalQty": 0,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "Evoqua Water Technologies",
+              "Ionpure"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый company; слабый inn; multiple brands detected",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:IP-LXM24X-4, LX-X24, 601.7x605.5x318.4 | бренды:Evoqua Water Technologies, Ionpure | компания:ООО \"Апиценна\" • email:mm_levin@apicenna.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:IP-LXM24X-4, LX-X24, 601.7x605.5x318.4",
+          "бренды:Evoqua Water Technologies, Ionpure",
+          "компания:ООО \"Апиценна\"",
+          "ИНН:7703440336",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 2,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 5,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7695
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://apicenna.ru/> для поиска реквизитов",
+        "Сверить запрос по артикулам: IP-LXM24X-4, LX-X24, 601.7X605.5X318.4",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://apicenna.ru/>",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7703440336",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Evoqua Water Technologies",
+      "Ionpure"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Мультибрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Левин, добрый день!\n\nСпасибо за заявку по Evoqua Water Technologies, Ionpure.\nАртикулы: IP-LXM24X-4, LX-X24, 601.7x605.5x318.4\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Ячейка электродеионизации/ООО Апиценна",
+      "attachments": [
+        "image001.png",
+        "image002.png",
+        "image003.png",
+        "image004.png",
+        "image005.png",
+        "image006.png",
+        "image007.png",
+        "Карточка предприятия Апиценна Сбербанк НОВЫЙ СЧЁТ.doc"
+      ],
+      "body": "Доброе утро.\r\n\r\nПрошу подсказать возможность поставки позиции: IP-LXM24X-4, Ячейка электродеионизации (ЭДИ) LX-X24 IONPURE EVOQUA для пищевой пром., поток: макс 4.2 м3/ч, номин. 2.8 м3/ч, мин. 1.4 м3/ч, 601.7х605.5х318.4 мм\r\n\r\nПри возможности поставки, прошу прислать КП.\r\nКарточка предприятия во вложении.\r\n\r\n\r\nС уважением,\r\nЛевин Максим Михайлович\r\nСпециалист по закупкам\r\nООО \"Апиценна\"\r\nраб.тел. +7 (495) 580-77-13 доб. 1628\r\n[cid:image001.png@01DCB6B7.853CB190]<https://apicenna.ru/>\r\n[cid:image002.png@01DCB6B7.853CB190]<https://vk.com/apicenna>[cid:image003.png@01DCB6B7.853CB190]<https://ok.ru/apicenna.p> [cid:image004.png@01DCB6B7.853CB190] <https://www.youtube.com/channel/UCotmgBKmuYFpsmwrPBjIbig> [cid:image005.png@01DCB6B7.853CB190] <https://dzen.ru/vetpharmacy?lang=ru> [cid:image006.png@01DCB6B7.853CB190] <https://rutube.ru/channel/39478457/>\r\nНаши каналы в Телеграм\r\nМДЖ:[cid:image007.png@01DCB6B7.853CB190]<https://t.me/Apicenna_Zoobusiness>\r\nСХЖ:[cid:image007.png@01DCB6B7.853CB190]<https://t.me/Apicenna_Farmbusiness>"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "image001.png",
+          "safeName": "image001.png",
+          "contentType": "image/png",
+          "size": 13418,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image002.png",
+          "safeName": "image002.png",
+          "contentType": "image/png",
+          "size": 1004,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image003.png",
+          "safeName": "image003.png",
+          "contentType": "image/png",
+          "size": 990,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image004.png",
+          "safeName": "image004.png",
+          "contentType": "image/png",
+          "size": 1230,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image005.png",
+          "safeName": "image005.png",
+          "contentType": "image/png",
+          "size": 570,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image006.png",
+          "safeName": "image006.png",
+          "contentType": "image/png",
+          "size": 1361,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image007.png",
+          "safeName": "image007.png",
+          "contentType": "image/png",
+          "size": 1003,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Карточка предприятия Апиценна Сбербанк НОВЫЙ СЧЁТ.doc",
+          "safeName": "Карточка предприятия Апиценна Сбербанк НОВЫЙ СЧЁТ.doc",
+          "contentType": "application/msword",
+          "size": 40960,
+          "ext": ".doc",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 1366,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "7703440336"
+          ],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 7,
+        "totalBytes": 40960,
+        "totalChars": 1366,
+        "budgetMs": 6,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 7
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-18T16:38:23.518Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "quantity"
+      ],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 2
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:01:45.760Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

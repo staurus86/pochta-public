@@ -1,0 +1,392 @@
+{
+  "messageKey": "0616faeefa40414b379d863e0e4d6294182e22fe",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "не указан бренд"
+  ],
+  "subject": "shf-25e sodick ",
+  "body": "Добрый день! Прошу дать сроки поставки и цену на следующую позицию:\nshf-25e sodick (2065374) - 96 шт\n\n--\nС уважением,\nВедущий специалист ОП компрессорного оборудования\nОдинцов Антон Вадимович.\n\nООО \"ПроВоздух\"\n\nТел.: +7 (495) 187-77-73\nМессенджеры (Ватсап, Телеграмм): +7 (925) 817-77-73\ninfo@ps24.ru\nmanager@ps24.ru",
+  "attachmentFiles": [],
+  "currentAnalysis": {
+    "analysisId": "98e1b145-6941-4581-a29e-027230a715a2",
+    "createdAt": "2026-06-01T14:51:38.355Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Sodick"
+      ],
+      "signals": {
+        "clientScore": 20,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 14,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "наличие\\s+на\\s+складе|сроки\\s+поставки|с\\s+доставкой|просьба\\s+выставить|реквизиты\\s+прилагаются|карточка\\s+предприятия",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 35,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП)\\s+[\"«]",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "manager@ps24.ru",
+      "emailPrimary": "manager@ps24.ru",
+      "emailDisplayName": "Одинцов Антон Вадимович",
+      "emailLocal": "manager",
+      "emailDomain": "ps24.ru",
+      "emailType": "role_mailbox",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.7,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": false,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Одинцов Антон Вадимович",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "body",
+      "fullNameConfidence": 0.9,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Ведущий специалист ОП компрессорного оборудования",
+      "positionAlt": "Ведущий специалист ОП компрессорного оборудования",
+      "departmentName": null,
+      "positionSource": "body",
+      "positionConfidence": 0.8700000000000001,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Одинцов",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "ООО «ПроВоздух»",
+      "companyAlt": "ООО «ПроВоздух»",
+      "companyNameSource": "body",
+      "companyNameConfidence": 0.9700000000000001,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Одинцов Антон Вадимович",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://ps24.ru",
+      "cityPhone": "+7 (495) 187-77-73",
+      "mobilePhone": "+7 (925) 817-77-73",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "current_message",
+      "phoneConfidence": 0.8,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "7733356071",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "body",
+        "website": "email_domain",
+        "phone": "current_message",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "body",
+        "position": "body",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день! Прошу дать сроки поставки и цену на следующую позицию:\nshf-25e sodick (2065374) - 96 шт\n\n--\nС уважением,\nВедущий специалист ОП компрессорного оборудования\nОдинцов Антон Вадимович.\n\nООО \"ПроВоздух\"\n\nТел.: +7 (495) 187-77-73\nМессенджеры (Ватсап, Телеграмм): +7 (925) 817-77-73\ninfo@ps24.ru\nmanager@ps24.ru",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "shf-25e"
+      ],
+      "lineItems": [
+        {
+          "article": "shf-25e",
+          "quantity": 96,
+          "unit": "шт",
+          "descriptionRu": "shf-25e sodick (2065374)",
+          "sourceLine": "shf-25e sodick (2065374) - 96 шт",
+          "source": "body"
+        }
+      ],
+      "totalPositions": 1,
+      "detectedBrands": [
+        "Sodick"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "shf-25e",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "planned",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [
+          "body"
+        ],
+        "attachmentsProcessed": [],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": false,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.85,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_inn",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "shf-25e sodick (2065374)",
+      "productLineItems": [],
+      "productNamesClean": [
+        "shf-25e sodick (2065374)"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 96,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 96,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 96,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 192,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 1,
+      "totalQty": 96,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.85,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_inn",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "current_message"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый inn",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:shf-25e | бренды:Sodick | компания:ООО «ПроВоздух» • email:manager@ps24.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:shf-25e",
+          "бренды:Sodick",
+          "компания:ООО «ПроВоздух»",
+          "ИНН:7733356071",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 1,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 6,
+          "processedAttachments": 0
+        }
+      },
+      "confidence": 0.8075
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://ps24.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: SHF-25E",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://ps24.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "7733356071",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Sodick"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Одинцов, добрый день!\n\nСпасибо за заявку по Sodick.\nАртикулы: shf-25e\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "shf-25e sodick ",
+      "attachments": [],
+      "body": "Добрый день! Прошу дать сроки поставки и цену на следующую позицию:\nshf-25e sodick (2065374) - 96 шт\n\n--\nС уважением,\nВедущий специалист ОП компрессорного оборудования\nОдинцов Антон Вадимович.\n\nООО \"ПроВоздух\"\n\nТел.: +7 (495) 187-77-73\nМессенджеры (Ватсап, Телеграмм): +7 (925) 817-77-73\ninfo@ps24.ru\nmanager@ps24.ru"
+    },
+    "attachmentAnalysis": {
+      "files": [],
+      "meta": {
+        "processedCount": 0,
+        "skippedCount": 0,
+        "totalBytes": 0,
+        "totalChars": 0,
+        "budgetMs": 0,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": false,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 0,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-05-25T10:21:11.224Z",
+      "model": "google/gemini-2.0-flash-lite-001",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:51:38.367Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "google/gemini-2.0-flash-lite-001",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "logSuggestions": true
+    }
+  }
+}

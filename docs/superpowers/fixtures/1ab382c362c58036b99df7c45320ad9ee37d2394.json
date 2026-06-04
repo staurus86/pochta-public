@@ -1,0 +1,523 @@
+{
+  "messageKey": "1ab382c362c58036b99df7c45320ad9ee37d2394",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Наименование компании неверное, не заполнено описание товара, бренд и количество, артикул указан не тот, вместо артикула название модели."
+  ],
+  "subject": "Запрос КП на Редуктор TCTTRAD-25E-63-SP  (производитель TSUNTIEN) 14 шт.",
+  "body": "Добрый день.\nПросим выставить КП с самой минимальной ценой на:\nРедуктор TCTTRAD-25E-63-SP TSUNTIEN , в кол-ве 14 шт.\nОписание:\nТехнические характеристики и эскиз - во вложении.\nКачество редуктора должно соответствовать требованиям ГОСТ, ТУ изготовителя, а в случае отсутствия, аналогичным требованиям, принятым на международном уровне и иметь сертификаты соответствия.\nПоставщик несет ответственность за получение всех необходимых лицензий и разрешений при осуществлении поставки редуктора.\nВАЖНО: Разработанные исполнителем габаритный чертеж и характеристики редуктора должны быть в обязательном порядке согласованы с заказчиком до запуска производства.\nДокументация:\n1) Паспорт изделия, гарантийный талон, сертификат соответствия\n2) Характеристики - мы сравним с запрашиваемыми.\nПросим, пожалуйста, направить с КП/счетом вышеуказанные документы.\n\nТак же интересует информация о сроках производства/поставки; ВЕС,ОБЪЕМ,откуда забирать-для расчета ТК. Самовывоз.\nУсловия поставки: Срок поставки: 112 (сто двенадцать) календарных дней.\n\nБудем благодарны за оперативный ответ.\nДля выставления счета прикладываем реквизиты организации.\nС уважением, zakaz@saszzz.myjino.ru\n#60852:",
+  "attachmentFiles": [
+    {
+      "filename": "Реквизиты ИП Герин С.А..docx",
+      "safeName": "Реквизиты ИП Герин С.А..docx",
+      "contentType": "application/msword",
+      "size": 13705
+    },
+    {
+      "filename": "Эскиз редуктора.docx",
+      "safeName": "Эскиз редуктора.docx",
+      "contentType": "application/msword",
+      "size": 382744
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "402ae497-9851-4652-97c9-dd36c3810408",
+    "createdAt": "2026-06-01T14:51:25.320Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "TSUNTIEN"
+      ],
+      "signals": {
+        "clientScore": 25,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 5,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label",
+            "weight": 2
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "zakaz@saszzz.myjino.ru",
+      "emailPrimary": "zakaz@saszzz.myjino.ru",
+      "emailDisplayName": "Не Определено",
+      "emailLocal": "zakaz",
+      "emailDomain": "saszzz.myjino.ru",
+      "emailType": "role_mailbox",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.7,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": false,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Не Определено",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "sender",
+      "fullNameConfidence": 0.85,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "Не Определено",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": null,
+      "companyAlt": null,
+      "companyNameSource": "email_domain",
+      "companyNameConfidence": 0.16999999999999996,
+      "companyNameNeedsReview": true,
+      "companyNameRejected": [
+        {
+          "value": "Не Определено",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://saszzz.myjino.ru",
+      "cityPhone": null,
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "unknown",
+      "phoneSource": null,
+      "phoneConfidence": 0,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "662330482375",
+      "kpp": "044525974",
+      "ogrn": "323890100019039",
+      "legalCardAttached": true,
+      "sources": {
+        "company": null,
+        "website": "email_domain",
+        "phone": null,
+        "inn": "company_directory",
+        "kpp": "attachment",
+        "ogrn": "attachment",
+        "fullName": "sender",
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день.\nПросим выставить КП с самой минимальной ценой на:\nРедуктор TCTTRAD-25E-63-SP TSUNTIEN , в кол-ве 14 шт.\nОписание:\nТехнические характеристики и эскиз - во вложении.\nКачество редуктора должно соответствовать требованиям ГОСТ, ТУ изготовителя, а в случае отсутствия, аналогичным требованиям, принятым на международном уровне и иметь сертификаты соответствия.\nПоставщик несет ответственность за получение всех необходимых лицензий и разрешений при осуществлении поставки редуктора.\nВАЖНО: Разработанные исполнителем габаритный чертеж и характеристики редуктора должны быть в обязательном порядке согласованы с заказчиком до запуска производства.\nДокументация:\n1) Паспорт изделия, гарантийный талон, сертификат соответствия\n2) Характеристики - мы сравним с запрашиваемыми.\nПросим, пожалуйста, направить с КП/счетом вышеуказанные документы.\n\nТак же интересует информация о сроках производства/поставки; ВЕС,ОБЪЕМ,откуда забирать-для расчета ТК. Самовывоз.\nУсловия поставки: Срок поставки: 112 (сто двенадцать) календарных дней.\n\nБудем благодарны за оперативный ответ.\nДля выставления счета прикладываем реквизиты организации.\n\nВложение: Эскиз редуктора.docx\nПоставка редуктора для комплектации центра обрабатывающего модели VMB 800 Общие положения 1. Техническое задание разработано на основании и в соответствии с техническим заданием заказчика. 2. Поставляемый редуктор соответствует требованиям Технического регламента Таможенного союза «О безопасности машин и оборудования» ( ТР ТС 010/), утвержденного Решением Комиссии Таможенного союза от 18 октября  г. № 823, требованиям качества и безопасности, установленным для оборудования действующими стандартами и правилами, а в случае их отсутствия аналогичным требованиям, принятым на международном уровне, и иметь сертификат соответствия (качества). Поставщик несёт ответственность за приобретение всех необходимых разрешений при осуществлении поставки редуктора. 3. Поставляемый редуктор новый (не был в употреблении, не прошел ремонт, в то",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "TCTTRAD-25E-63-SP",
+        "VMB 800",
+        "010/2011"
+      ],
+      "lineItems": [
+        {
+          "article": "TCTTRAD-25E-63-SP",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Поставка редуктора для комплектации центра обрабатывающего модели VMB 800 Общие положения 1. Техническое задание разработано на основании и в соответствии с техническим заданием заказчика. 2. Поставля",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "VMB 800",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Поставка редуктора для комплектации центра обрабатывающего модели VMB 800 Общие положения 1. Техническое задание разработано на основании и в соответствии с техническим заданием заказчика. 2. Поставля",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "010/2011",
+          "quantity": 800,
+          "unit": "шт",
+          "descriptionRu": "Поставка редуктора для комплектации центра обрабатывающего модели VMB 800 Общие положения 1. Техническое задание разработано на основании и в соответствии с техническим заданием заказчика. 2. Поставля",
+          "source": "attachment:Эскиз редуктора.docx"
+        }
+      ],
+      "totalPositions": 3,
+      "detectedBrands": [
+        "TSUNTIEN"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "TCTTRAD-25E-63-SP",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "VMB 800",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "010/2011",
+          "name": "Поставка редуктора для комплектации центра обрабатывающего модели VMB 800 Общие положения 1. Техническое задание разработано на основании и в соответствии с техническим заданием заказчика. 2. Поставля",
+          "category": null,
+          "source": "attachment:Эскиз редуктора.docx"
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "attachment:Эскиз редуктора.docx"
+        ],
+        "names": [
+          "attachment:Эскиз редуктора.docx"
+        ],
+        "attachmentsProcessed": [
+          "Реквизиты ИП Герин С.А..docx",
+          "Эскиз редуктора.docx"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": false,
+        "company": false,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [
+          "phone",
+          "company"
+        ],
+        "completenessScore": 67,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_inn",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Поставка редуктора для комплектации центра обрабатывающего модели VMB 800 Общие положения 1. Техническое задание разработано на основании и в соответствии с техническим заданием заказчика. 2. Поставля",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Поставка редуктора для комплектации центра обрабатывающего модели VMB 800 Общие положения 1. Техническое задание разработано на основании и в соответствии с техническим заданием заказчика. 2. Поставля"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 14,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 14,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 14,
+          "unit": "шт",
+          "source": "labeled"
+        },
+        {
+          "value": 14,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 42,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 3,
+      "totalQty": 800,
+      "recognitionDiagnostics": {
+        "completenessScore": 67,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_inn",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "company": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "missing_company",
+            "field": "company",
+            "severity": "medium"
+          },
+          {
+            "code": "missing_phone",
+            "field": "phone",
+            "severity": "medium"
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый inn; нет company; нет phone",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:TCTTRAD-25E-63-SP, VMB 800, 010/2011 | бренды:TSUNTIEN | ИНН:662330482375 • email:zakaz@saszzz.myjino.ru",
+        "suggestion": "Не хватает: компанию, телефон. Дополните через быструю коррекцию или запросите у клиента.",
+        "triggerSignals": [
+          "артикулы:TCTTRAD-25E-63-SP, VMB 800, 010/2011",
+          "бренды:TSUNTIEN",
+          "ИНН:662330482375",
+          "вложения:2",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 2,
+          "attachmentArticles": 1,
+          "matchedRuleCount": 8,
+          "processedAttachments": 2
+        }
+      },
+      "confidence": 0.7194999999999999
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://saszzz.myjino.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: TCTTRAD-25E-63-SP, VMB 800, 010/2011",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://saszzz.myjino.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_IP",
+      "deduplicationKey": "662330482375/044525974",
+      "isFilialByKpp": true
+    },
+    "detectedBrands": [
+      "TSUNTIEN"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Не, добрый день!\n\nСпасибо за заявку по TSUNTIEN.\nАртикулы: TCTTRAD-25E-63-SP, VMB 800, 010/2011\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос КП на Редуктор TCTTRAD-25E-63-SP  (производитель TSUNTIEN) 14 шт.",
+      "attachments": [
+        "Реквизиты ИП Герин С.А..docx",
+        "Эскиз редуктора.docx"
+      ],
+      "body": "Добрый день.\nПросим выставить КП с самой минимальной ценой на:\nРедуктор TCTTRAD-25E-63-SP TSUNTIEN , в кол-ве 14 шт.\nОписание:\nТехнические характеристики и эскиз - во вложении.\nКачество редуктора должно соответствовать требованиям ГОСТ, ТУ изготовителя, а в случае отсутствия, аналогичным требованиям, принятым на международном уровне и иметь сертификаты соответствия.\nПоставщик несет ответственность за получение всех необходимых лицензий и разрешений при осуществлении поставки редуктора.\nВАЖНО: Разработанные исполнителем габаритный чертеж и характеристики редуктора должны быть в обязательном порядке согласованы с заказчиком до запуска производства.\nДокументация:\n1) Паспорт изделия, гарантийный талон, сертификат соответствия\n2) Характеристики - мы сравним с запрашиваемыми.\nПросим, пожалуйста, направить с КП/счетом вышеуказанные документы.\n\nТак же интересует информация о сроках производства/поставки; ВЕС,ОБЪЕМ,откуда забирать-для расчета ТК. Самовывоз.\nУсловия поставки: Срок поставки: 112 (сто двенадцать) календарных дней.\n\nБудем благодарны за оперативный ответ.\nДля выставления счета прикладываем реквизиты организации.\nС уважением, zakaz@saszzz.myjino.ru\n#60852:"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Реквизиты ИП Герин С.А..docx",
+          "safeName": "Реквизиты ИП Герин С.А..docx",
+          "contentType": "application/msword",
+          "size": 13705,
+          "ext": ".docx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 475,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "890410058162",
+            "7710140679"
+          ],
+          "detectedKpp": [
+            "044525974"
+          ],
+          "detectedOgrn": [
+            "323890100019039"
+          ]
+        },
+        {
+          "filename": "Эскиз редуктора.docx",
+          "safeName": "Эскиз редуктора.docx",
+          "contentType": "application/msword",
+          "size": 382744,
+          "ext": ".docx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 3788,
+          "category": "office_document",
+          "detectedArticles": [
+            "010/2011",
+            "TCTTRAD-25E-63-SP",
+            "10.3.5",
+            "28.15.24.11",
+            "TCTTRAD-25E-63"
+          ],
+          "detectedBrands": [
+            "TSUNTIEN"
+          ],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 2,
+        "skippedCount": 0,
+        "totalBytes": 396449,
+        "totalChars": 4263,
+        "budgetMs": 359,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 2,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-05-25T10:20:10.424Z",
+      "model": "google/gemini-2.0-flash-lite-001",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "phone",
+        "company"
+      ],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:51:25.333Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "google/gemini-2.0-flash-lite-001",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "logSuggestions": true
+    }
+  }
+}

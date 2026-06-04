@@ -1,0 +1,822 @@
+{
+  "messageKey": "11d1b010fe65f77b62bf24a5a9a7fc43f518ba53",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "бренды и артикулы перенесены некорректно",
+    "бренды  и артикулы некорректно перенеслись",
+    "здесь сразу видно, что неправильно наименование и количество"
+  ],
+  "subject": "Заказ на комплектующие для насосов",
+  "body": "добрый день!\nпрошу вас дать предложение на комплектующие из списка, что можно у вас заказать:\nзаранее благодарю.\n\nНаименование Ед. изм. Кол-во 1 Колесо рабочее Pedrollo F40/160A 866GRF4116 ШТ 1 2 Колесо рабочее Varisco JE2-10 / JE2-100 G10ET20/10005251 ШТ 2 3 Корпус (кожух) насоса Varisco JE2-100, Артикул № 1000 8027 ШТ 1 4 Насос высокого давления MО 37 D сер. номер 950946 ШТ 1 5 Генератор розжига ZT 870 ШТ 4 6 Манжета армированная 1.1-30х52-3 ШТ 1 7 Комплект рем.РР 16/0,01…0,03-20/40ПС ШТ 1 8 Узел мембранный М404 для анализатора растворенного кислорода МАРК-404. Обозначение ВР16.12.150 ШТ 1 9 Клапан EuroSIT-630 арт. 0.006.441 ШТ 2 10 Комплект рем к клапану КПЗ-50Н10 ШТ 1 11 Комплект ремонтный к клапану предохранительному ПСК-25ПВ ШТ 1 12 Комплект ремонтный к клапану предохранительному ПСК-25ПВ ШТ 1 13 Комплект запасных частей ДК-409Т ШТ 3 14 Муфта обжимная ВР 25x1\" ШТ 24 15 Ремень приводной Л-2240 ШТ 1 16 Манжета 1.2-12х22-5 ШТ 2 17 Ремень клиновой SL998/ROFLEX XPZ 1700/3V КОМПЛ 4 18 Ремень Optibelt SK SPB 2180 ШТ 4 19 Шайба 6.02.Ст3сп.019 ШТ 16 20 Фильтр БАПИ 2-160-1/70 ШТ 3 21 Блок управления насосом Stout BRIO-2000M, артикул SCS-0001-000061 ШТ 1 22 Комплект (ЗИП) GASTEH 149-BV-V/N КОМПЛ 1 23 Комплект ремонтный к регулятору давления газа 122-BV-v/n-s ШТ 1 24 Шток Ца 2.504.186.202 (для устройства, регулирующего DN150. PN 160 с приводом ПЭМ и вкладышами D 50). ШТ 4 25 Колесо рабочее Pedrollo 2CP / Pedrollo 2CP 25/14B 863GR2C181MD ШТ 2\n\n--\nС уважением,\nПлатонова Ольга\nООО \"Техсервис-МП\"\n+79162351357\n+74953318680",
+  "attachmentFiles": [
+    {
+      "filename": "ТЕХСЕРВИС-МП -3 банка Живаго банк РЕКВИЗИТЫ.doc",
+      "safeName": "ТЕХСЕРВИС-МП -3 банка Живаго банк РЕКВИЗИТЫ.doc",
+      "contentType": "application/msword",
+      "size": 43520
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "56c2bdec-1181-4b91-822a-296cedf3fe07",
+    "createdAt": "2026-06-01T15:00:04.277Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Pedrollo",
+        "VARISCO",
+        "optibelt"
+      ],
+      "signals": {
+        "clientScore": 16,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 5,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label",
+            "weight": 2
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "tehservismp@list.ru",
+      "emailPrimary": "tehservismp@list.ru",
+      "emailDisplayName": "Платонова Ольга",
+      "emailLocal": "tehservismp",
+      "emailDomain": "list.ru",
+      "emailType": "person_email",
+      "emailDomainType": "public_provider",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.85,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": false,
+      "emailRejected": [],
+      "fullName": "Платонова Ольга",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "Платонова Ольга",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «Техсервис-МП»",
+      "companyAlt": "ООО «Техсервис-МП»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Платонова Ольга",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        },
+        {
+          "value": "list.ru",
+          "source": "email_domain",
+          "reason": "generic_provider"
+        }
+      ],
+      "website": null,
+      "cityPhone": "+7 (495) 331-86-80",
+      "mobilePhone": "+7 (916) 235-13-57",
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "9729090560",
+      "kpp": "772801001",
+      "ogrn": null,
+      "legalCardAttached": true,
+      "sources": {
+        "company": "attachment",
+        "website": null,
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": "attachment",
+        "ogrn": null,
+        "fullName": "signature",
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "добрый день!\nпрошу вас дать предложение на комплектующие из списка, что можно у вас заказать:\nзаранее благодарю.\n\nНаименование Ед. изм. Кол-во 1 Колесо рабочее Pedrollo F40/160A 866GRF4116 ШТ 1 2 Колесо рабочее Varisco JE2-10 / JE2-100 G10ET20/10005251 ШТ 2 3 Корпус (кожух) насоса Varisco JE2-100, Артикул № 1000 8027 ШТ 1 4 Насос высокого давления MО 37 D сер. номер 950946 ШТ 1 5 Генератор розжига ZT 870 ШТ 4 6 Манжета армированная 1.1-30х52-3 ШТ 1 7 Комплект рем.РР 16/0,01…0,03-20/40ПС ШТ 1 8 Узел мембранный М404 для анализатора растворенного кислорода МАРК-404. Обозначение ВР16.12.150 ШТ 1 9 Клапан EuroSIT-630 арт. 0.006.441 ШТ 2 10 Комплект рем к клапану КПЗ-50Н10 ШТ 1 11 Комплект ремонтный к клапану предохранительному ПСК-25ПВ ШТ 1 12 Комплект ремонтный к клапану предохранительному ПСК-25ПВ ШТ 1 13 Комплект запасных частей ДК-409Т ШТ 3 14 Муфта обжимная ВР 25x1\" ШТ 24 15 Ремень приводной Л-2240 ШТ 1 16 Манжета 1.2-12х22-5 ШТ 2 17 Ремень клиновой SL998/ROFLEX XPZ 1700/3V КОМПЛ 4 18 Ремень Optibelt SK SPB 2180 ШТ 4 19 Шайба 6.02.Ст3сп.019 ШТ 16 20 Фильтр БАПИ 2-160-1/70 ШТ 3 21 Блок управления насосом Stout BRIO-2000M, артикул SCS-0001-000061 ШТ 1 22 Комплект (ЗИП) GASTEH 149-BV-V/N КОМПЛ 1 23 Комплект ремонтный к регулятору давления газа 122-BV-v/n-s ШТ 1 24 Шток Ца 2.504.186.202 (для устройства, регулирующего DN150. PN 160 с приводом ПЭМ и вкладышами D 50). ШТ 4 25 Колесо рабочее Pedrollo 2CP / Pedrollo 2CP 25/14B 863GR2C181MD ШТ 2\n\n--",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "SCS-0001-000061",
+        "MAPK-404",
+        "F40/160A",
+        "JE2-100",
+        "EuroSIT-630",
+        "BRIO-2000M",
+        "ZT 870",
+        "SPB 2180",
+        "866GRF4116",
+        "ВР16.12.150",
+        "0.006.441",
+        "ДK-409T",
+        "Л-2240",
+        "2-160-1/70",
+        "863GR2C181MD",
+        "149-BV-V/N",
+        "122-BV-v/n-s",
+        "1700",
+        "30x52-3",
+        "12x22-5",
+        "504.186.202",
+        "25/14B",
+        "GASTEH 149-BV"
+      ],
+      "lineItems": [
+        {
+          "article": "DESC:vas-dat-predlozhenie-na-komplektuyushchie-iz-spiska-chto-mozhno-u-vas-zakazat",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "quantity": 1,
+          "unit": "шт",
+          "source": "freetext"
+        },
+        {
+          "article": "SCS-0001-000061",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "MAPK-404",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "F40/160A",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "JE2-100",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "EuroSIT-630",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "BRIO-2000M",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "ZT 870",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "SPB 2180",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "866GRF4116",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "ВР16.12.150",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "ДK-409T",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "Л-2240",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "863GR2C181MD",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "149-BV-V/N",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "122-BV-v/n-s",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "30x52-3",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "12x22-5",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "25/14B",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "GASTEH 149-BV",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 24,
+      "detectedBrands": [
+        "Pedrollo",
+        "VARISCO",
+        "optibelt"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "SCS-0001-000061",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "F40/160A",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "JE2-10",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "JE2-100",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "EuroSIT-630",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "BRIO-2000M",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "ZT 870",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "SPB 2180",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "866GRF4116",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "ВР16.12.150",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "0.006.441",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "Л-2240",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "2-160-1/70",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "863GR2C181MD",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "149-BV-V/N",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "122-BV-v/n-s",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "1700",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "504.186.202",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "25/14B",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GASTEH 149-BV",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Мультибрендовая",
+      "sources": {
+        "articles": [
+          "freetext",
+          "body",
+          "attachment"
+        ],
+        "names": [
+          "freetext"
+        ],
+        "attachmentsProcessed": [
+          "ТЕХСЕРВИС-МП -3 банка Живаго банк РЕКВИЗИТЫ.doc"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "вас дать предложение на комплектующие из списка, что можно у вас заказать",
+      "productLineItems": [],
+      "productNamesClean": [
+        "вас дать предложение на комплектующие из списка, что можно у вас заказать"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 1,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "labeled"
+        },
+        {
+          "value": 4116,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 8027,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 870,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 3,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 7,
+          "unit": "компл",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "компл",
+          "source": "inline"
+        },
+        {
+          "value": 10,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 11,
+          "unit": "компл",
+          "source": "inline"
+        },
+        {
+          "value": 12,
+          "unit": "компл",
+          "source": "inline"
+        },
+        {
+          "value": 13,
+          "unit": "компл",
+          "source": "inline"
+        },
+        {
+          "value": 2240,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 5,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2180,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 70,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 61,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 22,
+          "unit": "компл",
+          "source": "inline"
+        },
+        {
+          "value": 23,
+          "unit": "компл",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 17681,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": 10005251,
+          "unit": "шт",
+          "reason": "outlier",
+          "sourceLine": "Кол-во 1 Колесо рабочее Pedrollo F40/160A 866GRF4116 ШТ 1 2 Колесо рабочее Varisco JE2-10 / JE2-100 G10ET20/10005251 ШТ 2 3 Корпус (кожух) насоса Varisco JE2-100, Артикул № 1000 8027 ШТ 1 4 Насос высокого давления MО 37 D сер"
+        },
+        {
+          "value": 950946,
+          "unit": "шт",
+          "reason": "outlier",
+          "sourceLine": "номер 950946 ШТ 1 5 Генератор розжига ZT 870 ШТ 4 6 Манжета армированная 1.1-30х52-3 ШТ 1 7 Комплект рем.РР 16/0,01…0,03-20/40ПС ШТ 1 8 Узел мембранный М404 для анализатора растворенного кислорода МАРК-404"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "3V"
+        }
+      ],
+      "positions": 24,
+      "totalQty": 1,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "freetext"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "Pedrollo",
+              "VARISCO",
+              "optibelt"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый company; слабый inn; multiple brands detected",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:SCS-0001-000061, MAPK-404, F40/160A | бренды:Pedrollo, VARISCO, optibelt | компания:ООО «Техсервис-МП» • email:tehservismp@list.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:SCS-0001-000061, MAPK-404, F40/160A",
+          "бренды:Pedrollo, VARISCO, optibelt",
+          "компания:ООО «Техсервис-МП»",
+          "ИНН:9729090560",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 16,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 6,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7695
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Сайт не найден автоматически",
+        "Сверить запрос по артикулам: SCS-0001-000061, MAPK-404, F40/160A, JE2-100, EUROSIT-630",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": null,
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "9729090560/772801001",
+      "isFilialByKpp": true
+    },
+    "detectedBrands": [
+      "Pedrollo",
+      "VARISCO",
+      "optibelt"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Мультибрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Платонова, добрый день!\n\nСпасибо за заявку по Pedrollo, VARISCO, optibelt (24 позиций).\nАртикулы: SCS-0001-000061, MAPK-404, F40/160A, JE2-100, EuroSIT-630\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Заказ на комплектующие для насосов",
+      "attachments": [
+        "ТЕХСЕРВИС-МП -3 банка Живаго банк РЕКВИЗИТЫ.doc"
+      ],
+      "body": "добрый день!\nпрошу вас дать предложение на комплектующие из списка, что можно у вас заказать:\nзаранее благодарю.\n\nНаименование Ед. изм. Кол-во 1 Колесо рабочее Pedrollo F40/160A 866GRF4116 ШТ 1 2 Колесо рабочее Varisco JE2-10 / JE2-100 G10ET20/10005251 ШТ 2 3 Корпус (кожух) насоса Varisco JE2-100, Артикул № 1000 8027 ШТ 1 4 Насос высокого давления MО 37 D сер. номер 950946 ШТ 1 5 Генератор розжига ZT 870 ШТ 4 6 Манжета армированная 1.1-30х52-3 ШТ 1 7 Комплект рем.РР 16/0,01…0,03-20/40ПС ШТ 1 8 Узел мембранный М404 для анализатора растворенного кислорода МАРК-404. Обозначение ВР16.12.150 ШТ 1 9 Клапан EuroSIT-630 арт. 0.006.441 ШТ 2 10 Комплект рем к клапану КПЗ-50Н10 ШТ 1 11 Комплект ремонтный к клапану предохранительному ПСК-25ПВ ШТ 1 12 Комплект ремонтный к клапану предохранительному ПСК-25ПВ ШТ 1 13 Комплект запасных частей ДК-409Т ШТ 3 14 Муфта обжимная ВР 25x1\" ШТ 24 15 Ремень приводной Л-2240 ШТ 1 16 Манжета 1.2-12х22-5 ШТ 2 17 Ремень клиновой SL998/ROFLEX XPZ 1700/3V КОМПЛ 4 18 Ремень Optibelt SK SPB 2180 ШТ 4 19 Шайба 6.02.Ст3сп.019 ШТ 16 20 Фильтр БАПИ 2-160-1/70 ШТ 3 21 Блок управления насосом Stout BRIO-2000M, артикул SCS-0001-000061 ШТ 1 22 Комплект (ЗИП) GASTEH 149-BV-V/N КОМПЛ 1 23 Комплект ремонтный к регулятору давления газа 122-BV-v/n-s ШТ 1 24 Шток Ца 2.504.186.202 (для устройства, регулирующего DN150. PN 160 с приводом ПЭМ и вкладышами D 50). ШТ 4 25 Колесо рабочее Pedrollo 2CP / Pedrollo 2CP 25/14B 863GR2C181MD ШТ 2\n\n--\nС уважением,\nПлатонова Ольга\nООО \"Техсервис-МП\"\n+79162351357\n+74953318680"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "ТЕХСЕРВИС-МП -3 банка Живаго банк РЕКВИЗИТЫ.doc",
+          "safeName": "ТЕХСЕРВИС-МП -3 банка Живаго банк РЕКВИЗИТЫ.doc",
+          "contentType": "application/msword",
+          "size": 43520,
+          "ext": ".doc",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 1049,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "9729090560"
+          ],
+          "detectedKpp": [
+            "772801001"
+          ],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 43520,
+        "totalChars": 1049,
+        "budgetMs": 4,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-20T16:43:04.929Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 20,
+      "detectionGapsCount": 2
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:00:04.293Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

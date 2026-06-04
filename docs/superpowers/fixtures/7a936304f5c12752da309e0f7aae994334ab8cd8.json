@@ -1,0 +1,512 @@
+{
+  "messageKey": "7a936304f5c12752da309e0f7aae994334ab8cd8",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "неправильно указал позицию.\nона одна , а он всю информацию разделил на несколько"
+  ],
+  "subject": "гелиевый течеискатель LINXON  LX218 DRY - 1 штука",
+  "body": "Добрый день! Прошу КП на\n\n1. гелиевый течеискатель LINXON (LINXON® is a registered trademark of INFICON HOLDING AG) LX218 DRY 8200-002 - 1 штука\n\nкомплектация :\n\na) устройство для обдувки гелием с пистолетом HELIJET\n\nб) мера потока (внешняя калибровочная гелиевая течь) с потоком = от 10 в -7 степени мБар*л\\с, и отсекающим вентилем (FV4610)\n\nв) щуп 4м для работы по методу \"щупа\"\n\nссылка на сайт производителя.\n\nhttps://www.linxon.net/products/lx218-helium-leak-detector\n\nС уважением\nБелоус Вячеслав\nООО \"АЛТЕРМО\" ИНН 9722061376\nтел.: +7(495) 921-65-00\n9216500@mail.ru\nwww.altermo.ru\n\nКомплектующие: ESBE, BELIMO, BUSCH, SAUTER, SIEMENS, DUNGS, GUCUM.",
+  "attachmentFiles": [
+    {
+      "filename": "Реквизиты АЛТЕРМО 2023-2.doc",
+      "safeName": "Реквизиты АЛТЕРМО 2023-2.doc",
+      "contentType": "application/msword",
+      "size": 74240
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "b07cb5f9-99a8-4998-9ae4-8fbc4b912154",
+    "createdAt": "2026-06-01T15:05:15.309Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Inficon",
+        "LEAK-DETECT",
+        "LINXON"
+      ],
+      "signals": {
+        "clientScore": 16,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 5,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label",
+            "weight": 2
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal",
+      "sources": {
+        "droppedBrands_noBodyOverlap": [
+          "Detector France"
+        ]
+      }
+    },
+    "sender": {
+      "email": "9216500@mail.ru",
+      "emailPrimary": "9216500@mail.ru",
+      "emailDisplayName": "Белоус Вячеслав",
+      "emailLocal": "9216500",
+      "emailDomain": "mail.ru",
+      "emailType": "person_email",
+      "emailDomainType": "public_provider",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.85,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": false,
+      "emailRejected": [],
+      "fullName": "Белоус Вячеслав",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "Белоус Вячеслав",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «АЛТЕРМО»",
+      "companyAlt": "ООО «АЛТЕРМО»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Белоус Вячеслав",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        },
+        {
+          "value": "mail.ru",
+          "source": "email_domain",
+          "reason": "generic_provider"
+        }
+      ],
+      "website": "https://www.linxon.net/products/lx218-helium-leak-detector",
+      "cityPhone": "+7 (495) 921-65-00",
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [
+        {
+          "value": "9722061376",
+          "source": "signature",
+          "reason": "inn_like"
+        },
+        {
+          "value": "9722061376",
+          "source": "current_message",
+          "reason": "inn_like"
+        }
+      ],
+      "inn": "9722061376",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": true,
+      "sources": {
+        "company": "signature",
+        "website": "body",
+        "phone": "signature",
+        "inn": "body",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "signature",
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день! Прошу КП на\n\n1. гелиевый течеискатель LINXON (LINXON® is a registered trademark of INFICON HOLDING AG) LX218 DRY 8200-002 - 1 штука\n\nкомплектация :\n\na) устройство для обдувки гелием с пистолетом HELIJET\n\nб) мера потока (внешняя калибровочная гелиевая течь) с потоком = от 10 в -7 степени мБар*л\\с, и отсекающим вентилем (FV4610)\n\nв) щуп 4м для работы по методу \"щупа\"\n\nссылка на сайт производителя.\n\nhttps://www.linxon.net/products/lx218-helium-leak-detector",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "LX218",
+        "DRY 8200-002",
+        "FV4610"
+      ],
+      "lineItems": [
+        {
+          "article": "8200-002",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "гелиевый течеискатель LINXON (LINXON® is a registered trademark of INFICON HOLDING AG) LX218 DRY 8200-002",
+          "source": "body"
+        },
+        {
+          "article": "LX218",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "гелиевый течеискатель LINXON (LINXON® is a registered trademark of INFICON HOLDING AG) LX218 DRY 8200-002",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "DRY 8200-002",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "гелиевый течеискатель LINXON (LINXON® is a registered trademark of INFICON HOLDING AG) LX218 DRY 8200-002",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "FV4610",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "гелиевый течеискатель LINXON (LINXON® is a registered trademark of INFICON HOLDING AG) LX218 DRY 8200-002",
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 4,
+      "detectedBrands": [
+        "Detector France",
+        "Inficon",
+        "LEAK-DETECT",
+        "LINXON"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "LX218",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "DRY 8200-002",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "FV4610",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Мультибрендовая",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [
+          "body"
+        ],
+        "attachmentsProcessed": [
+          "Реквизиты АЛТЕРМО 2023-2.doc"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.84,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "гелиевый течеискатель LINXON (LINXON® is a registered trademark of INFICON HOLDING AG) LX218 DRY 8200-002",
+      "productLineItems": [],
+      "productNamesClean": [
+        "гелиевый течеискатель LINXON (LINXON® is a registered trademark of INFICON HOLDING AG) LX218 DRY 8200-002"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 1,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 3,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "10 в"
+        }
+      ],
+      "positions": 4,
+      "totalQty": 1,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.84,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "signature"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.93,
+            "source": "body"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "Detector France",
+              "Inficon",
+              "LEAK-DETECT",
+              "LINXON"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый company; multiple brands detected",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:LX218, DRY 8200-002, FV4610 | бренды:Detector France, Inficon, LEAK-DETECT | компания:ООО «АЛТЕРМО» • email:9216500@mail.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:LX218, DRY 8200-002, FV4610",
+          "бренды:Detector France, Inficon, LEAK-DETECT",
+          "компания:ООО «АЛТЕРМО»",
+          "ИНН:9722061376",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 4,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 6,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7979999999999999
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://www.linxon.net/products/lx218-helium-leak-detector для поиска реквизитов",
+        "Сверить запрос по артикулам: LX218, DRY 8200-002, FV4610",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://www.linxon.net/products/lx218-helium-leak-detector",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "9722061376",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Detector France",
+      "Inficon",
+      "LEAK-DETECT",
+      "LINXON"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Мультибрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Белоус, добрый день!\n\nСпасибо за заявку по Detector France, Inficon, LEAK-DETECT, LINXON (4 позиций).\nАртикулы: LX218, DRY 8200-002, FV4610\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "гелиевый течеискатель LINXON  LX218 DRY - 1 штука",
+      "attachments": [
+        "Реквизиты АЛТЕРМО 2023-2.doc"
+      ],
+      "body": "Добрый день! Прошу КП на\n\n1. гелиевый течеискатель LINXON (LINXON® is a registered trademark of INFICON HOLDING AG) LX218 DRY 8200-002 - 1 штука\n\nкомплектация :\n\na) устройство для обдувки гелием с пистолетом HELIJET\n\nб) мера потока (внешняя калибровочная гелиевая течь) с потоком = от 10 в -7 степени мБар*л\\с, и отсекающим вентилем (FV4610)\n\nв) щуп 4м для работы по методу \"щупа\"\n\nссылка на сайт производителя.\n\nhttps://www.linxon.net/products/lx218-helium-leak-detector\n\nС уважением\nБелоус Вячеслав\nООО \"АЛТЕРМО\" ИНН 9722061376\nтел.: +7(495) 921-65-00\n9216500@mail.ru\nwww.altermo.ru\n\nКомплектующие: ESBE, BELIMO, BUSCH, SAUTER, SIEMENS, DUNGS, GUCUM."
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Реквизиты АЛТЕРМО 2023-2.doc",
+          "safeName": "Реквизиты АЛТЕРМО 2023-2.doc",
+          "contentType": "application/msword",
+          "size": 74240,
+          "ext": ".doc",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 2318,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "9722061376"
+          ],
+          "detectedKpp": [
+            "044525360",
+            "044525104"
+          ],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 74240,
+        "totalChars": 2318,
+        "budgetMs": 6,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-20T12:47:19.921Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:05:15.327Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

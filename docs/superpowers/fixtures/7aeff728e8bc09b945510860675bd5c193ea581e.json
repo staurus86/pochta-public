@@ -1,0 +1,614 @@
+{
+  "messageKey": "7aeff728e8bc09b945510860675bd5c193ea581e",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "ссылки не открываются.",
+    "не открываются ссылки"
+  ],
+  "subject": "Запрос КП",
+  "body": "Добрый день. Прошу направить коммерческое предложение согласно запросу во вложении. Конечный заказчик Лукойл. Готовы к сотрудничеству на ваших условиях оплаты.\n \n -- \n С уважением, Иван Чиянов\n ООО \"Реновация\"\n Тел.: +7(917) 208 24 31",
+  "attachmentFiles": [
+    {
+      "filename": "Запрос КП 2026.docx",
+      "safeName": "Запрос КП 2026.docx",
+      "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size": 98721
+    },
+    {
+      "filename": "Карточка предприятия реновация.docx",
+      "safeName": "Карточка предприятия реновация.docx",
+      "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size": 14770
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "aa057034-36fd-4566-9f36-0b66b56ed196",
+    "createdAt": "2026-06-01T14:56:16.641Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [],
+      "signals": {
+        "clientScore": 17,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "vch.renova@yandex.ru",
+      "emailPrimary": "vch.renova@yandex.ru",
+      "emailDisplayName": "Иван Чиянов",
+      "emailLocal": "vch.renova",
+      "emailDomain": "yandex.ru",
+      "emailType": "person_email",
+      "emailDomainType": "public_provider",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.85,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": false,
+      "emailRejected": [],
+      "fullName": "Иван Чиянов",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "Иван Чиянов",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «Р е н ов а ци я»",
+      "companyAlt": "ООО «Реновация»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Иван Чиянов",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        },
+        {
+          "value": "yandex.ru",
+          "source": "email_domain",
+          "reason": "generic_provider"
+        }
+      ],
+      "website": null,
+      "cityPhone": null,
+      "mobilePhone": "+7 (917) 208-24-31",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "6454105277",
+      "kpp": null,
+      "ogrn": "1156451027920",
+      "legalCardAttached": true,
+      "sources": {
+        "company": "attachment",
+        "website": null,
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": "attachment",
+        "fullName": "signature",
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день. Прошу направить коммерческое предложение согласно запросу во вложении. Конечный заказчик Лукойл. Готовы к сотрудничеству на ваших условиях оплаты.\n \n --\n\nВложение: Запрос КП .docx\nООО « Р е н ов а ци я » 410056, Са р а то в с кая о б л а с ть, г. Са р а тов, Ильин ск ий про е з д , д .11, о ф . 2 1 5 ИНН 6454105277 К П П 645401001 e - m ai l : r e nov a 164@ y a nd e x. r u Исх . 1 5 4 9 2 от 2 6 . 0 3 .202 6 г . В отдел продаж Уважаемые господа! Прошу рассмотреть возможность поставки в адрес нашего предприятия следующего оборудования: № п/п Наименование Характеристики Ед. изм. Кол-во 1 Клапан трехходовой регултрующий с электроприводом Клапан трехходовой регулирующий с электроприводом ARI STEVI 34.450 PREMIO-Plus 2G; DN, мм 32; PN, Мпа 2,5; L 180; H 589; Масса 37; Стандартный размер фланца ØD, мм140; Температура рабочей среды t, ºC +20/+150; Материал 1.0619+N. ШТ 1 2 Клапан трехходовой регултрующий с электроприводом Клапан трехходовой регулирующий с электроприводом ARI STEVI 34.450 PREMIO-Plus 2G; DN, мм 150; PN, Мпа 2,5; L 480; H 947; Масса 166; Стандартный размер фланца ØD, мм300; Температура рабочей среды t, ºC +20/+150; Материал 1.0619+N. ШТ 1 3 Клапан запорный сильфонный с пневмоприводом Клапан запорный сильфонный с пневмоприводом ARI-STEVI 405+FRI-DP32; DN, мм 25; PN, Мпа 2,5; L 160; H 439; Масса 14; Стандартный размер фланца ØD, мм115; Температура рабочей среды t, ºC +20/+150; Материал 1.0619+N. ШТ 1 4 Клапан запорный сильфонный с пневмоприводом Клапан запорный сильфонный с пневмоприводом ARI-STEVI 405+FRI-DP33; DN, мм 80; PN, Мпа 2,5; L 310; H 153; Масса 37; Стандартный размер фланца ØD, мм200; Температура рабочей среды t, ºC +20/+150; Материал 1.0619+N. ШТ 1 5 Клапан запорный сильфонный с пневмоприводом Клапан запорный сильфонный с пневмоприводом ARI-STEVI 405+FRI-DP32; DN, мм 150; PN, Мпа 2,5; L 480; H 596; Масса 138; Стандартный размер фланца ØD, мм300; Температура рабочей среды t, ºC +20/+150; Материал 1.0619+N. ШТ 1 6 Регулятор давления про",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "GRTVTV-MF-8N-P-STEL",
+        "405+FRI-DP32",
+        "405+FRI-DP33",
+        "4x18/8x22",
+        "55-08-F.O",
+        "mm140",
+        "mm300",
+        "mm115",
+        "mm200",
+        "STEVI 405",
+        "STEVI 460",
+        "PE 55-08-F",
+        "FRI-DP32",
+        "FRI-DP33",
+        "DP34",
+        "DP32"
+      ],
+      "lineItems": [
+        {
+          "article": "GRTVTV-MF-8N-P-STEL",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Запрос КП",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "405+FRI-DP32",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Запрос КП",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "405+FRI-DP33",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Запрос КП",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "4x18/8x22",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "55-08-F.O",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": "Запрос КП",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "mm140",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "mm300",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "mm115",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "mm200",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "STEVI 405",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "STEVI 460",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "PE 55-08-F",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 16,
+      "detectedBrands": [
+        "ARI-Armaturen",
+        "FABA",
+        "ARIS Antriebe und Steuerungen"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "GRTVTV-MF-8N-P-STEL",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "405+FRI-DP32",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "405+FRI-DP33",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "55-08-F.O",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "STEVI 405",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "STEVI 460",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "PE 55-08-F",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Мультибрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "attachment"
+        ],
+        "names": [],
+        "attachmentsProcessed": [
+          "Запрос КП 2026.docx",
+          "Карточка предприятия реновация.docx"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Запрос КП",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Запрос КП"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 16,
+      "totalQty": 0,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "ARI-Armaturen",
+              "FABA",
+              "ARIS Antriebe und Steuerungen"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый company; слабый inn; multiple brands detected",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:GRTVTV-MF-8N-P-STEL, 405+FRI-DP32, 405+FRI-DP33 | бренды:ARI-Armaturen, FABA, ARIS Antriebe und Steuerungen | компания:ООО «Р е н ов а ци я» • email:vch.renova@yandex.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:GRTVTV-MF-8N-P-STEL, 405+FRI-DP32, 405+FRI-DP33",
+          "бренды:ARI-Armaturen, FABA, ARIS Antriebe und Steuerungen",
+          "компания:ООО «Р е н ов а ци я»",
+          "ИНН:6454105277",
+          "вложения:2",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 4,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 5,
+          "processedAttachments": 2
+        }
+      },
+      "confidence": 0.7695
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Сайт не найден автоматически",
+        "Сверить запрос по артикулам: GRTVTV-MF-8N-P-STEL, 405+FRI-DP32, 405+FRI-DP33, 4X18/8X22, 55-08-F.O",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": null,
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "6454105277",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "ARI-Armaturen",
+      "FABA",
+      "ARIS Antriebe und Steuerungen"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Мультибрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Иван, добрый день!\n\nСпасибо за заявку по ARI-Armaturen, FABA, ARIS Antriebe und Steuerungen (16 позиций).\nАртикулы: GRTVTV-MF-8N-P-STEL, 405+FRI-DP32, 405+FRI-DP33, 4x18/8x22, 55-08-F.O\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос КП",
+      "attachments": [
+        "Запрос КП 2026.docx",
+        "Карточка предприятия реновация.docx"
+      ],
+      "body": "Добрый день. Прошу направить коммерческое предложение согласно запросу во вложении. Конечный заказчик Лукойл. Готовы к сотрудничеству на ваших условиях оплаты.\n \n -- \n С уважением, Иван Чиянов\n ООО \"Реновация\"\n Тел.: +7(917) 208 24 31"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Запрос КП 2026.docx",
+          "safeName": "Запрос КП 2026.docx",
+          "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "size": 98721,
+          "ext": ".docx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 9222,
+          "category": "office_document",
+          "detectedArticles": [
+            "FRI-DP32",
+            "FRI-DP33",
+            "140/165",
+            "100/125",
+            "4Х18",
+            "65/100",
+            "165/220",
+            "145/190",
+            "4Х18/8Х22",
+            "GRTVTV-MF-8N-P-STEL",
+            "DP34",
+            "DP32",
+            "55-08-F.O"
+          ],
+          "detectedBrands": [
+            "ARI-Armaturen",
+            "ARIS Antriebe und Steuerungen",
+            "FABA"
+          ],
+          "detectedInn": [
+            "6454105277"
+          ],
+          "detectedKpp": [
+            "645401001"
+          ],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Карточка предприятия реновация.docx",
+          "safeName": "Карточка предприятия реновация.docx",
+          "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "size": 14770,
+          "ext": ".docx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 714,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "6454105277"
+          ],
+          "detectedKpp": [
+            "645401001",
+            "042202803"
+          ],
+          "detectedOgrn": [
+            "1156451027920"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 2,
+        "skippedCount": 0,
+        "totalBytes": 113491,
+        "totalChars": 9936,
+        "budgetMs": 765,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 2,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-18T10:41:38.344Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "quantity"
+      ],
+      "newArticlesAdded": 1,
+      "detectionGapsCount": 5
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:56:16.657Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

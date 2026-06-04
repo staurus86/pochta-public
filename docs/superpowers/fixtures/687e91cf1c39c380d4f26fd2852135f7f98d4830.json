@@ -1,0 +1,499 @@
+{
+  "messageKey": "687e91cf1c39c380d4f26fd2852135f7f98d4830",
+  "projectId": "project-3-mailbox-file",
+  "comments": [
+    "откуда 2  позиция ?!\nи у первой наименование некорректное"
+  ],
+  "subject": "Заявка ",
+  "body": "Добрый день\n\nЗаявка:\n* Токосъемник SA-KSW4/40-1HS28-60 VAHLE 0600096/00 — 2 шт.\n\n---\nС уважением, Ильнур\nООО «ТехноМаркет»\nИНН 1650431207\n+7(927)4821969\n+7(939)7352020",
+  "attachmentFiles": [
+    {
+      "filename": "Реквизты ТМ.doc",
+      "safeName": "Реквизты ТМ.doc",
+      "contentType": "application/msword",
+      "size": 29696
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "a056086c-c33f-4afd-85c4-98c08a1797c5",
+    "createdAt": "2026-06-01T14:50:53.610Z",
+    "mailbox": "multi-mailbox@project3.local",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Vahle"
+      ],
+      "signals": {
+        "clientScore": 21,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 5,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label",
+            "weight": 2
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "tm716@mail.ru",
+      "emailPrimary": "tm716@mail.ru",
+      "emailDisplayName": "Ильнур",
+      "emailLocal": "tm716",
+      "emailDomain": "mail.ru",
+      "emailType": "person_email",
+      "emailDomainType": "public_provider",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.85,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": false,
+      "emailRejected": [],
+      "fullName": "Ильнур",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.6,
+      "fullNameNeedsReview": true,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "Ильнур",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «ТехноМаркет»",
+      "companyAlt": "ООО «ТехноМаркет»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Ильнур",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        },
+        {
+          "value": "mail.ru",
+          "source": "email_domain",
+          "reason": "generic_provider"
+        }
+      ],
+      "website": null,
+      "cityPhone": "+7 (939) 735-20-20",
+      "mobilePhone": "+7 (927) 482-19-69",
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [
+        {
+          "value": "1650431207",
+          "source": "signature",
+          "reason": "inn_like"
+        },
+        {
+          "value": "1650431207",
+          "source": "current_message",
+          "reason": "inn_like"
+        }
+      ],
+      "inn": "1650431207",
+      "kpp": null,
+      "ogrn": "1241600001532",
+      "legalCardAttached": true,
+      "sources": {
+        "company": "signature",
+        "website": null,
+        "phone": "signature",
+        "inn": "body",
+        "kpp": null,
+        "ogrn": "attachment",
+        "fullName": "signature",
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день\n\nЗаявка:\n* Токосъемник SA-KSW4/40-1HS28-60 VAHLE 0600096/00 — 2 шт.\n\n---",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "SA-KSW4/40-1HS28-60",
+        "0600096/00"
+      ],
+      "lineItems": [
+        {
+          "article": "SA-KSW4/40-1HS28-60",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "Заявка",
+          "sourceLine": "* Токосъемник SA-KSW4/40-1HS28-60 VAHLE 0600096/00 — 2 шт.",
+          "source": "body"
+        }
+      ],
+      "totalPositions": 2,
+      "detectedBrands": [
+        "Vahle"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "SA-KSW4/40-1HS28-60",
+          "name": "Токосъемник",
+          "category": null
+        },
+        {
+          "article": "0600096/00",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [
+          "body"
+        ],
+        "attachmentsProcessed": [
+          "Реквизты ТМ.doc"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.84,
+        "riskLevel": "high",
+        "primaryIssue": "article_name_conflict",
+        "hasConflicts": true
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Заявка",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Заявка"
+      ],
+      "productNamesRejected": [
+        {
+          "raw": "* Токосъемник SA-KSW4/40-1HS28-60 VAHLE 0600096/00 — 2 шт.",
+          "normalized": "Токосъемник SA-KSW4/40-1HS28-60 VAHLE 0600096/00",
+          "reason": "bad_product_name"
+        }
+      ],
+      "primaryQuantity": 2,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 8,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "60 V"
+        }
+      ],
+      "positions": 2,
+      "totalQty": 2,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.84,
+        "riskLevel": "high",
+        "primaryIssue": "article_name_conflict",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "signature"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.93,
+            "source": "body"
+          }
+        },
+        "conflicts": [
+          {
+            "code": "article_name_conflict",
+            "field": "name",
+            "severity": "medium",
+            "article": "SA-KSW4/40-1HS28-60",
+            "values": [
+              "Заявка",
+              "Токосъемник"
+            ],
+            "sources": [
+              "body"
+            ]
+          }
+        ],
+        "issues": [
+          {
+            "code": "detection_conflicts_present",
+            "field": "recognition",
+            "severity": "high",
+            "count": 1
+          },
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "article name conflict",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:SA-KSW4/40-1HS28-60, 0600096/00 | бренды:Vahle | компания:ООО «ТехноМаркет» • email:tm716@mail.ru",
+        "suggestion": "Разные описания для одного артикула — уточните.",
+        "triggerSignals": [
+          "артикулы:SA-KSW4/40-1HS28-60, 0600096/00",
+          "бренды:Vahle",
+          "компания:ООО «ТехноМаркет»",
+          "ИНН:1650431207",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 1,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 7,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7979999999999999
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Сайт не найден автоматически",
+        "Сверить запрос по артикулам: SA-KSW4/40-1HS28-60, 0600096/00",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": null,
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "1650431207",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Vahle"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Ильнур, добрый день!\n\nСпасибо за заявку по Vahle.\nАртикулы: SA-KSW4/40-1HS28-60, 0600096/00\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Заявка ",
+      "attachments": [
+        "Реквизты ТМ.doc"
+      ],
+      "body": "Добрый день\n\nЗаявка:\n* Токосъемник SA-KSW4/40-1HS28-60 VAHLE 0600096/00 — 2 шт.\n\n---\nС уважением, Ильнур\nООО «ТехноМаркет»\nИНН 1650431207\n+7(927)4821969\n+7(939)7352020"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Реквизты ТМ.doc",
+          "safeName": "Реквизты ТМ.doc",
+          "contentType": "application/msword",
+          "size": 29696,
+          "ext": ".doc",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 978,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "1650431207"
+          ],
+          "detectedKpp": [
+            "165001001",
+            "044525104"
+          ],
+          "detectedOgrn": [
+            "1241600001532"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 29696,
+        "totalChars": 978,
+        "budgetMs": 4,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-16T22:02:31.023Z",
+      "model": "gpt-4o-mini",
+      "requestType": "order",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 1
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:50:53.621Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

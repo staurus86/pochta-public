@@ -1,0 +1,416 @@
+{
+  "messageKey": "d03b6a717944cb2cf6449429579423d54b1ab9b0",
+  "projectId": "project-3-mailbox-file",
+  "comments": [
+    "задваивает позиции"
+  ],
+  "subject": "заявка",
+  "body": "Барьер искробезопасности STAHL 9165/16-11-11s (201270) 82ШТ\n\n--\nС Уважением, Надежда, ООО \"ЦЕНТРПРОМСНАБ\" конт тел 89270480966, 89509462020, сот 89600849797",
+  "attachmentFiles": [
+    {
+      "filename": "реквизиты цпс нов.doc",
+      "safeName": "реквизиты цпс нов.doc",
+      "contentType": "application/msword",
+      "size": 38912
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "ec0ef910-b61b-45f6-b40f-efbf9a6343e0",
+    "createdAt": "2026-06-01T14:50:53.117Z",
+    "mailbox": "multi-mailbox@project3.local",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [],
+      "signals": {
+        "clientScore": 12,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 5,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label",
+            "weight": 2
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal",
+      "sources": {
+        "droppedBrands_noBodyOverlap": [
+          "R. STAHL"
+        ]
+      }
+    },
+    "sender": {
+      "email": "ovis85@mail.ru",
+      "emailPrimary": "ovis85@mail.ru",
+      "emailDisplayName": "Надежда",
+      "emailLocal": "ovis85",
+      "emailDomain": "mail.ru",
+      "emailType": "person_email",
+      "emailDomainType": "public_provider",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.85,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": false,
+      "emailRejected": [],
+      "fullName": "Надежда",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "body",
+      "fullNameConfidence": 0.55,
+      "fullNameNeedsReview": true,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "Надежда",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «ЦЕНТРПРОМСНАБ»",
+      "companyAlt": "ООО «ЦЕНТРПРОМСНАБ»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Надежда",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        },
+        {
+          "value": "mail.ru",
+          "source": "email_domain",
+          "reason": "generic_provider"
+        }
+      ],
+      "website": null,
+      "cityPhone": "+7 (950) 946-20-20",
+      "mobilePhone": "+7 (927) 048-09-66",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "1650311220",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": true,
+      "sources": {
+        "company": "signature",
+        "website": null,
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "body",
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Барьер искробезопасности STAHL 9165/16-11-11s (201270) 82ШТ\n\n--",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "9165/16-11-11s"
+      ],
+      "lineItems": [
+        {
+          "article": "9165/16-11-11s",
+          "quantity": 82,
+          "unit": "шт",
+          "descriptionRu": "заявка",
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 1,
+      "detectedBrands": [
+        "R. STAHL"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "9165/16-11-11s",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [],
+        "attachmentsProcessed": [
+          "реквизиты цпс нов.doc"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "заявка",
+      "productLineItems": [],
+      "productNamesClean": [
+        "заявка"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 82,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 82,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 82,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 1,
+      "totalQty": 82,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "signature"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый company; слабый inn",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:9165/16-11-11s | бренды:R. STAHL | компания:ООО «ЦЕНТРПРОМСНАБ» • email:ovis85@mail.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:9165/16-11-11s",
+          "бренды:R. STAHL",
+          "компания:ООО «ЦЕНТРПРОМСНАБ»",
+          "ИНН:1650311220",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 1,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 4,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7695
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Сайт не найден автоматически",
+        "Сверить запрос по артикулам: 9165/16-11-11S",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": null,
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "1650311220",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "R. STAHL"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Надежда, добрый день!\n\nСпасибо за заявку по R. STAHL.\nАртикулы: 9165/16-11-11s\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "заявка",
+      "attachments": [
+        "реквизиты цпс нов.doc"
+      ],
+      "body": "Барьер искробезопасности STAHL 9165/16-11-11s (201270) 82ШТ\n\n--\nС Уважением, Надежда, ООО \"ЦЕНТРПРОМСНАБ\" конт тел 89270480966, 89509462020, сот 89600849797"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "реквизиты цпс нов.doc",
+          "safeName": "реквизиты цпс нов.doc",
+          "contentType": "application/msword",
+          "size": 38912,
+          "ext": ".doc",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 1315,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "1650311220"
+          ],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 38912,
+        "totalChars": 1315,
+        "budgetMs": 6,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-17T01:14:46.787Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 6
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:50:53.131Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

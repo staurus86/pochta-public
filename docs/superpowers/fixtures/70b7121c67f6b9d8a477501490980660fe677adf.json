@@ -1,0 +1,504 @@
+{
+  "messageKey": "70b7121c67f6b9d8a477501490980660fe677adf",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "товары заполнены не полностью, не указан ИНН"
+  ],
+  "subject": "Re: Чертеж 110G 001 D-1120 (1) (1).pdf, Чертеж 30A-5454-13 (1) (1).pdf, Карточка ООО ЭйПиАй-Технолоджи 2025  ВТБ-1.pdf",
+  "body": "Карта предприятия во вложении. По срокам приемлемо. Ожидаю КП.\n\n--\nC уважением,\nЗаместитель Главного инженера\nБахмутов Дамир Маратович\nООО «ЭйПиАй-Технолоджи»\nLLC «API Technology»\nРаб. тел.: +7-499-322-21-28 ( tel:+7-499-322-21-28 )\nМоб.тел.: +7-906-458-05-35 ( tel:+7-906-458-05-35 )\nwww.api-tech.ru ( http://www.api-tech.ru/ )\nE-mail:info@api-tech.ru, bahmutov@api-tech.ru\n\n>\n> От кого: SIDERUS\n> Кому: bahmutov@api-tech.ru\n> Дата: Понедельник, 20 апреля 2026, 17:54 +03:00\n>\n>\n> Здравствуйте.\n>\n>\n>\n> Данная позиция заказная.\n>\n>\n>\n> 9-12 недель -срок поставки до склада в России.\n>\n>\n>\n> Цена под запрос у поставщика.\n>\n>\n>\n> Если по срокам все устраивает, направляю заявку в работу менеджеру.\n>\n>\n>\n> Для обработки запроса вышлите,пожалуйста,ваши реквизиты.\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> *From:* Дамир Бахмутов\n> *Sent:* Monday, April 20, 2026 1:25 PM\n> *To:* info+257115@siderus.ru\n> *Subject:* Чертеж 110G 001 D-1120 (1) (1).pdf, Чертеж 30A-5454-13 (1)\n> (1).pdf, Карточка ООО ЭйПиАй-Технолоджи 2025 ВТБ-1.pdf\n>\n>\n>\n>\n>\n>\n>\n>\n> Добрый день! Прошу уточнить возможность поставки ТМЦ.\n>\n>\n>\n>\n>\n>\n>\n> * Пружина Autoclave Engineers P-6757 поз.7 черт. 30A-5454-9 — артикул\n> P-6757\n> * Кольцо Autoclave Engineers P-1914 поз.19 черт. 30A-5454-9 — артикул\n> P-1914\n> * Подшипник Autoclave Engineers 103B-0317 поз.16 черт. 30A-5454-9 — артикул\n> 103B-0317\n> * Пружина Autoclave Engineers P-6757 поз.7 черт. 30A-5454-9 — артикул\n> P-6757\n> * Кольцо Autoclave Engineers P-1914 поз.19 черт. 30A-5454-9 — артикул\n> P-1914\n> * Подшипник Autoclave Engineers 103B-0317 поз.16 черт. 30A-5454-9 — артикул\n> 103B-0317\n> * Магнит противодействующий Autoclave Engineers (201А-8363) — артикул\n> 201А-8363\n> * Магнит наружний Autoclave Engineers (201B-6705) — артикул 201B-6705\n>\n>\n>\n>\n>\n>\n>\n>\n> --\n>\n>\n>\n> C уважением,\n>\n>\n>\n>\n> Заместитель Главного инженера\n>\n>\n>\n>\n> Бахмутов Дамир Маратович\n>\n>\n>\n>\n> ООО «ЭйПиАй-Технолоджи»\n>\n>\n>\n>\n> LLC «API Technology»\n>\n>\n>\n>\n> Раб. тел.: +7-499-322-21-28 ( tel:+7-499-322-21-28 )\n>\n>\n>\n>\n> Моб.тел.: +7-906-458-05-35 ( tel:+7-906-458-05-35 )\n> www.api-tech.ru ( http://www.api-tech.ru/ )\n>\n>\n>\n>\n> E-mail:info@api-tech.ru, bahmutov@api-tech.ru\n>\n>\n>\n>\n>\n>\n>\n>",
+  "attachmentFiles": [
+    {
+      "filename": "mailrusigimg_YQPnrc7c.png",
+      "safeName": "mailrusigimg_YQPnrc7c.png",
+      "contentType": "image/png",
+      "size": 21884
+    },
+    {
+      "filename": "mailrusigimg_YQPnrc7c.png",
+      "safeName": "mailrusigimg_YQPnrc7c.png",
+      "contentType": "image/png",
+      "size": 21884
+    },
+    {
+      "filename": "Карточка ООО ЭйПиАй-Технолоджи 2025  ВТБ-1.pdf",
+      "safeName": "Карточка ООО ЭйПиАй-Технолоджи 2025  ВТБ-1.pdf",
+      "contentType": "application/pdf",
+      "size": 520705
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "2fc16344-4021-4410-8a26-4148beb86eb2",
+    "createdAt": "2026-06-01T14:51:29.526Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [],
+      "signals": {
+        "clientScore": 7,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 35,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП)\\s+[\"«]",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "bahmutov@api-tech.ru",
+      "emailPrimary": "bahmutov@api-tech.ru",
+      "emailDisplayName": "Бахмутов Дамир Маратович",
+      "emailLocal": "bahmutov",
+      "emailDomain": "api-tech.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Бахмутов Дамир Маратович",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "body",
+      "fullNameConfidence": 0.9,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Заместитель Главного инженера",
+      "positionAlt": "Заместитель Главного инженера",
+      "departmentName": null,
+      "positionSource": "body",
+      "positionConfidence": 0.8700000000000001,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Бахмутов",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "ООО «ЭйПиАй-Технолоджи»",
+      "companyAlt": "ООО «ЭйПиАй-Технолоджи»",
+      "companyNameSource": "body",
+      "companyNameConfidence": 0.9700000000000001,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Бахмутов Дамир Маратович",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "http://www.api-tech.ru/",
+      "cityPhone": "+7 (499) 322-21-28",
+      "mobilePhone": "+7 (906) 458-05-35",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "current_message",
+      "phoneConfidence": 0.8,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": null,
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": true,
+      "sources": {
+        "company": "body",
+        "website": "body",
+        "phone": "current_message",
+        "inn": null,
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "body",
+        "position": "body",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Карта предприятия во вложении. По срокам приемлемо. Ожидаю КП.\n\n--\nC уважением,\nЗаместитель Главного инженера\nБахмутов Дамир Маратович\nООО «ЭйПиАй-Технолоджи»\nLLC «API Technology»\nРаб. тел.: +7-499-322-21-28 ( tel:+7-499-322-21-28 )\nМоб.тел.: +7-906-458-05-35 ( tel:+7-906-458-05-35 )\nwww.api-tech.ru ( http://www.api-tech.ru/ )\nE-mail:info@api-tech.ru, bahmutov@api-tech.ru\n\nОт кого: SIDERUS\n\n\n\n\nЗдравствуйте.\n\n\n\nДанная позиция заказная.\n\n\n\n9-12 недель -срок поставки до склада в России.\n\n\n\nЦена под запрос у поставщика.\n\n\n\nЕсли по срокам все устраивает, направляю заявку в работу менеджеру.\n\n\n\nДля обработки запроса вышлите,пожалуйста,ваши реквизиты.\n\n\n\n\n\n\n\n\n\n\n\n*From:* Дамир Бахмутов\n*Sent:* Monday, April 20, 2026 1:25 PM\n*To:* info+257115@siderus.ru\n*Subject:* Чертеж 110G 001 D-1120 (1) (1).pdf, Чертеж 30A-5454-13 (1)\n(1).pdf, Карточка ООО ЭйПиАй-Технолоджи 2025 ВТБ-1.pdf\n\n\n\n\n\n\n\n\nДобрый день! Прошу уточнить возможность поставки ТМЦ.\n\n\n\n\n\n\n\n* Пружина Autoclave Engineers P-6757 поз.7 черт. 30A-5454-9 — артикул\nP-6757\n* Кольцо Autoclave Engineers P-1914 поз.19 черт. 30A-5454-9 — артикул\nP-1914\n* Подшипник Autoclave Engineers 103B-0317 поз.16 черт. 30A-5454-9 — артикул\n103B-0317\n* Пружина Autoclave Engineers P-6757 поз.7 черт. 30A-5454-9 — артикул\nP-6757\n* Кольцо Autoclave Engineers P-1914 поз.19 черт. 30A-5454-9 — артикул\nP-1914\n* Подшипник Autoclave Engineers 103B-0317 поз.16 черт. 30A-5454-9 — артикул\n103B-0317\n* Магнит противодействующий Autoclave Engineers (201А-8363) — артикул\n201А-8363\n* Магнит наружний Autoclave Engineers (201B-6705) — артикул 201B-6705\n\n\n\n\n\n\n\n\n--\n\n\n\nC уважением,\n\n\n\n\nЗаместитель Главного инженера\n\n\n\n\nБахмутов Дамир Маратович\n\n\n\n\nООО «ЭйПиАй-Технолоджи»\n\n\n\n\nLLC «API Technology»\n\n\n\n\nРаб. тел.: +7-499-322-21-28 ( tel:+7-499-322-21-28 )\n\n\n\n\nМоб.тел.: +7-906-458-05-35 ( tel:+7-906-458-05-35 )\nwww.api-tech.ru ( http://www.api-tech.ru/ )\n\n\n\n\nE-mail:info@api-tech.ru, bahmutov@api-tech.ru",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "103B-0317",
+        "201B-6705",
+        "P-6757",
+        "P-1914",
+        "D-1120",
+        "A-8363"
+      ],
+      "lineItems": [
+        {
+          "article": "D-1120",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Subject:* Чертеж 110G 001 D-1120 (1) (1).pdf, Чертеж 30A",
+          "sourceLine": "*Subject:* Чертеж 110G 001 D-1120 (1) (1).pdf, Чертеж 30A-5454-13 (1)",
+          "source": "body"
+        },
+        {
+          "article": "103B-0317",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "201B-6705",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "P-6757",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "P-1914",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "A-8363",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "Магнит противодействующий Autoclave Engineers (201А-8363) — артикул",
+          "source": "attachment",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 6,
+      "detectedBrands": [
+        "AUTOCLAVE ENGINEERS"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "103B-0317",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "201B-6705",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "P-6757",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "P-1914",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "D-1120",
+          "name": "Subject:* Чертеж 110G 001",
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "attachment"
+        ],
+        "names": [
+          "body",
+          "attachment"
+        ],
+        "attachmentsProcessed": [],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": false,
+        "parsedAttachment": false,
+        "missing": [
+          "inn"
+        ],
+        "completenessScore": 83,
+        "overallConfidence": 0.87,
+        "riskLevel": "medium",
+        "primaryIssue": "attachment_parse_gap",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Subject:* Чертеж 110G 001 D-1120 (1) (1).pdf, Чертеж 30A",
+      "productLineItems": [
+        "Subject:* Чертеж 110G 001 D-1120 (1) (1).pdf, Чертеж 30A",
+        "Магнит противодействующий Autoclave Engineers (201А-8363) — артикул"
+      ],
+      "productNamesClean": [
+        "Subject:* Чертеж 110G 001 D-1120 (1) (1).pdf, Чертеж 30A",
+        "Магнит противодействующий Autoclave Engineers (201А-8363) — артикул"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "2025  В"
+        }
+      ],
+      "positions": 6,
+      "totalQty": 2,
+      "recognitionDiagnostics": {
+        "completenessScore": 83,
+        "overallConfidence": 0.87,
+        "riskLevel": "medium",
+        "primaryIssue": "attachment_parse_gap",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "current_message"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "inn": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "attachment_parse_gap",
+            "field": "attachment",
+            "severity": "medium"
+          },
+          {
+            "code": "missing_inn",
+            "field": "inn",
+            "severity": "medium"
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "attachment parse gap; нет inn",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:103B-0317, 201B-6705, P-6757 | бренды:AUTOCLAVE ENGINEERS | компания:ООО «ЭйПиАй-Технолоджи» • email:bahmutov@api-tech.ru",
+        "suggestion": "Есть вложения без разбора — откройте PDF/скан и добавьте артикулы вручную. Не хватает: ИНН. Дополните через быструю коррекцию или запросите у клиента.",
+        "triggerSignals": [
+          "артикулы:103B-0317, 201B-6705, P-6757",
+          "бренды:AUTOCLAVE ENGINEERS",
+          "компания:ООО «ЭйПиАй-Технолоджи»",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 5,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 2,
+          "processedAttachments": 0
+        }
+      },
+      "confidence": 0.8265
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт http://www.api-tech.ru/ для поиска реквизитов",
+        "Сверить запрос по артикулам: 103B-0317, 201B-6705, P-6757, P-1914, D-1120",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "http://www.api-tech.ru/",
+      "matchMethod": "none",
+      "matchConfidence": 0
+    },
+    "detectedBrands": [
+      "AUTOCLAVE ENGINEERS"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Бахмутов, добрый день!\n\nСпасибо за заявку по AUTOCLAVE ENGINEERS (6 позиций).\nАртикулы: 103B-0317, 201B-6705, P-6757, P-1914, D-1120\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Re: Чертеж 110G 001 D-1120 (1) (1).pdf, Чертеж 30A-5454-13 (1) (1).pdf, Карточка ООО ЭйПиАй-Технолоджи 2025  ВТБ-1.pdf",
+      "attachments": [
+        "mailrusigimg_YQPnrc7c.png",
+        "mailrusigimg_YQPnrc7c.png",
+        "Карточка ООО ЭйПиАй-Технолоджи 2025  ВТБ-1.pdf"
+      ],
+      "body": "Карта предприятия во вложении. По срокам приемлемо. Ожидаю КП.\n\n--\nC уважением,\nЗаместитель Главного инженера\nБахмутов Дамир Маратович\nООО «ЭйПиАй-Технолоджи»\nLLC «API Technology»\nРаб. тел.: +7-499-322-21-28 ( tel:+7-499-322-21-28 )\nМоб.тел.: +7-906-458-05-35 ( tel:+7-906-458-05-35 )\nwww.api-tech.ru ( http://www.api-tech.ru/ )\nE-mail:info@api-tech.ru, bahmutov@api-tech.ru\n\n>\n> От кого: SIDERUS\n> Кому: bahmutov@api-tech.ru\n> Дата: Понедельник, 20 апреля 2026, 17:54 +03:00\n>\n>\n> Здравствуйте.\n>\n>\n>\n> Данная позиция заказная.\n>\n>\n>\n> 9-12 недель -срок поставки до склада в России.\n>\n>\n>\n> Цена под запрос у поставщика.\n>\n>\n>\n> Если по срокам все устраивает, направляю заявку в работу менеджеру.\n>\n>\n>\n> Для обработки запроса вышлите,пожалуйста,ваши реквизиты.\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n>\n> *From:* Дамир Бахмутов\n> *Sent:* Monday, April 20, 2026 1:25 PM\n> *To:* info+257115@siderus.ru\n> *Subject:* Чертеж 110G 001 D-1120 (1) (1).pdf, Чертеж 30A-5454-13 (1)\n> (1).pdf, Карточка ООО ЭйПиАй-Технолоджи 2025 ВТБ-1.pdf\n>\n>\n>\n>\n>\n>\n>\n>\n> Добрый день! Прошу уточнить возможность поставки ТМЦ.\n>\n>\n>\n>\n>\n>\n>\n> * Пружина Autoclave Engineers P-6757 поз.7 черт. 30A-5454-9 — артикул\n> P-6757\n> * Кольцо Autoclave Engineers P-1914 поз.19 черт. 30A-5454-9 — артикул\n> P-1914\n> * Подшипник Autoclave Engineers 103B-0317 поз.16 черт. 30A-5454-9 — артикул\n> 103B-0317\n> * Пружина Autoclave Engineers P-6757 поз.7 черт. 30A-5454-9 — артикул\n> P-6757\n> * Кольцо Autoclave Engineers P-1914 поз.19 черт. 30A-5454-9 — артикул\n> P-1914\n> * Подшипник Autoclave Engineers 103B-0317 поз.16 черт. 30A-5454-9 — артикул\n> 103B-0317\n> * Магнит противодействующий Autoclave Engineers (201А-8363) — артикул\n> 201А-8363\n> * Магнит наружний Autoclave Engineers (201B-6705) — артикул 201B-6705\n>\n>\n>\n>\n>\n>\n>\n>\n> --\n>\n>\n>\n> C уважением,\n>\n>\n>\n>\n> Заместитель Главного инженера\n>\n>\n>\n>\n> Бахмутов Дамир Маратович\n>\n>\n>\n>\n> ООО «ЭйПиАй-Технолоджи»\n>\n>\n>\n>\n> LLC «API Technology»\n>\n>\n>\n>\n> Раб. тел.: +7-499-322-21-28 ( tel:+7-499-322-21-28 )\n>\n>\n>\n>\n> Моб.тел.: +7-906-458-05-35 ( tel:+7-906-458-05-35 )\n> www.api-tech.ru ( http://www.api-tech.ru/ )\n>\n>\n>\n>\n> E-mail:info@api-tech.ru, bahmutov@api-tech.ru\n>\n>\n>\n>\n>\n>\n>\n>"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "mailrusigimg_YQPnrc7c.png",
+          "safeName": "mailrusigimg_YQPnrc7c.png",
+          "contentType": "image/png",
+          "size": 21884,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "mailrusigimg_YQPnrc7c.png",
+          "safeName": "mailrusigimg_YQPnrc7c.png",
+          "contentType": "image/png",
+          "size": 21884,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Карточка ООО ЭйПиАй-Технолоджи 2025  ВТБ-1.pdf",
+          "safeName": "Карточка ООО ЭйПиАй-Технолоджи 2025  ВТБ-1.pdf",
+          "contentType": "application/pdf",
+          "size": 520705,
+          "ext": ".pdf",
+          "status": "skipped",
+          "reason": "low_quality_pdf_text",
+          "extractedChars": 0,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 0,
+        "skippedCount": 3,
+        "totalBytes": 520705,
+        "totalChars": 0,
+        "budgetMs": 66,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": false,
+      "quotedTextDetected": true,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 0,
+      "attachmentsSkipped": 3
+    },
+    "llmExtraction": {
+      "processedAt": "2026-05-25T10:20:19.270Z",
+      "model": "google/gemini-2.0-flash-lite-001",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "inn"
+      ],
+      "newArticlesAdded": 1,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:51:29.538Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "google/gemini-2.0-flash-lite-001",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "logSuggestions": true
+    }
+  }
+}

@@ -1,0 +1,459 @@
+{
+  "messageKey": "27189d4942e804c67cda5657f1274cfaa4ceae3b",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Некорректное ФИО контактного лица, нет наименования компании"
+  ],
+  "subject": "Запрос на поставку тисков для электроэрозионной обработки",
+  "body": "Добрый день!\n\nПрошу выставить счет-договор с максимальной скидкой на поставку:\n1) тиски для электроэрозионной обработки 3R-232.8 - 1.00 шт\n\nВ счете обязательно указать:\n- стоимость доставки до ПВЗ ТК;\n- срок отгрузки/изготовления (счета без указания в них срока отгрузки не рассматриваем);\n- адрес отгрузки;\n- прописать габариты в упаковке: вес,д*ш*в\n\nНеобходимые документы: Сертификат (паспорт) качества.\n\nС уважением к Вам и Вашему бизнесу!\nАлексей\nКонтактный телефон по запросу\n!Работаем без НДС!\n!Счет с НДС рассматривается!\nОтправки в регионы любой ТК!\nГрафик работы пн-пт с 8-17ч. по Мск.\n#60834:",
+  "attachmentFiles": [
+    {
+      "filename": "Карта партнера.xlsx",
+      "safeName": "Карта партнера.xlsx",
+      "contentType": "application/vnd.ms-excel",
+      "size": 12354
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "75fe4843-b0f3-4929-b343-2d4734e354f8",
+    "createdAt": "2026-06-01T14:51:38.874Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [],
+      "signals": {
+        "clientScore": 18,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "alllex86@snipermail.ru",
+      "emailPrimary": "alllex86@snipermail.ru",
+      "emailDisplayName": "ИП Серебряков А.А. - Алексей",
+      "emailLocal": "alllex86",
+      "emailDomain": "snipermail.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": null,
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.75,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "ИП Серебряков А.А. - Алексей",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "ИП Серебряков А.А",
+      "companyAlt": "Snipermail",
+      "companyNameSource": "sender",
+      "companyNameConfidence": 0.82,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Алексей",
+          "source": "body",
+          "reason": "person_like"
+        }
+      ],
+      "website": "https://snipermail.ru",
+      "cityPhone": null,
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "unknown",
+      "phoneSource": null,
+      "phoneConfidence": 0,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "333801077600",
+      "kpp": "041708602",
+      "ogrn": "318332800035684",
+      "legalCardAttached": false,
+      "sources": {
+        "company": "sender",
+        "website": "email_domain",
+        "phone": null,
+        "inn": "company_directory",
+        "kpp": "attachment",
+        "ogrn": "attachment",
+        "fullName": "signature",
+        "position": null,
+        "department": null,
+        "name": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день!\n\nПрошу выставить счет-договор с максимальной скидкой на поставку:\n1) тиски для электроэрозионной обработки 3R-232.8 - 1.00 шт\n\nВ счете обязательно указать:\n- стоимость доставки до ПВЗ ТК;\n- срок отгрузки/изготовления (счета без указания в них срока отгрузки не рассматриваем);\n- адрес отгрузки;\n- прописать габариты в упаковке: вес,д*ш*в\n\nНеобходимые документы: Сертификат (паспорт) качества.\n\nВложение: Карта партнера.xlsx\nКарта предприятия\nОрганизационно - правовая форма\tИндивидуальный предприниматель\nПолное наименование юридического лица\tИндивидуальный предприниматель Серебряков Алексей Александрович\nИНН\t333801077600\nАдрес регистрации\t600014, Владимирская область, г Владимир, ул Мира, д. 2Г, оф. 2\nСайт в Интернете\t-\nE-mail\t@snipermail.ru\nДата регистрации в органах ФНС\t43266\nОрган регистрации\tУправление Федеральной налоговой службы по Владимирской области\nИНН\t333801077600\nОГРНИП\t318332800035684\nОКПО\t0132435594\nНазвание банка\tВладимирское отделение №8611 ПАО Сбербанк г. Владимир\nРасчетный счет\t40802810910000009305\nБИК\t041708602\nКор/ счет\t30101810000000000602\nИдентификатор ЭДО (СБИС)\t2BEbef3395674604e9eb06a3b95d75549ed",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "3R-232.8"
+      ],
+      "lineItems": [
+        {
+          "article": "3R-232.8",
+          "quantity": 1,
+          "unit": "шт",
+          "descriptionRu": "тиски для электроэрозионной обработки 3R-232.8",
+          "sourceLine": "1) тиски для электроэрозионной обработки 3R-232.8 - 1.00 шт",
+          "source": "body"
+        },
+        {
+          "article": null,
+          "quantity": null,
+          "unit": "333801077600",
+          "descriptionRu": "ИНН",
+          "source": "attachment:Карта партнера.xlsx"
+        }
+      ],
+      "totalPositions": 1,
+      "detectedBrands": [],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "3R-232.8",
+          "name": "тиски для электроэрозионной обработки",
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Не определено (есть артикулы)",
+      "sources": {
+        "articles": [
+          "body",
+          "attachment:Карта партнера.xlsx"
+        ],
+        "names": [
+          "body",
+          "attachment:Карта партнера.xlsx"
+        ],
+        "attachmentsProcessed": [
+          "Карта партнера.xlsx"
+        ],
+        "brands": []
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": false,
+        "name": true,
+        "phone": false,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [
+          "brand",
+          "phone"
+        ],
+        "completenessScore": 67,
+        "overallConfidence": 0.79,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "productNamePrimary": "тиски для электроэрозионной обработки 3R-232.8",
+      "productLineItems": [
+        "тиски для электроэрозионной обработки 3R-232.8",
+        "ИНН"
+      ],
+      "productNamesClean": [
+        "тиски для электроэрозионной обработки 3R-232.8",
+        "ИНН"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 1,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "article_boundary"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 4,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 1,
+      "totalQty": 1,
+      "recognitionDiagnostics": {
+        "completenessScore": 67,
+        "overallConfidence": 0.79,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "sender"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "missing_brand",
+            "field": "brand",
+            "severity": "medium"
+          },
+          {
+            "code": "missing_phone",
+            "field": "phone",
+            "severity": "medium"
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый company; слабый inn; нет brand",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:3R-232.8 | компания:ИП Серебряков А.А | ИНН:333801077600 • email:alllex86@snipermail.ru",
+        "suggestion": "Не хватает: бренд, телефон. Дополните через быструю коррекцию или запросите у клиента.",
+        "triggerSignals": [
+          "артикулы:3R-232.8",
+          "компания:ИП Серебряков А.А",
+          "ИНН:333801077600",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 1,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 5,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7004999999999999
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://snipermail.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: 3R-232.8",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://snipermail.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_IP",
+      "deduplicationKey": "333801077600/041708602",
+      "isFilialByKpp": true
+    },
+    "detectedBrands": [],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Не определено (есть артикулы)",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Добрый день!\n\nСпасибо за заявку.\nАртикулы: 3R-232.8\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос на поставку тисков для электроэрозионной обработки",
+      "attachments": [
+        "Карта партнера.xlsx"
+      ],
+      "body": "Добрый день!\n\nПрошу выставить счет-договор с максимальной скидкой на поставку:\n1) тиски для электроэрозионной обработки 3R-232.8 - 1.00 шт\n\nВ счете обязательно указать:\n- стоимость доставки до ПВЗ ТК;\n- срок отгрузки/изготовления (счета без указания в них срока отгрузки не рассматриваем);\n- адрес отгрузки;\n- прописать габариты в упаковке: вес,д*ш*в\n\nНеобходимые документы: Сертификат (паспорт) качества.\n\nС уважением к Вам и Вашему бизнесу!\nАлексей\nКонтактный телефон по запросу\n!Работаем без НДС!\n!Счет с НДС рассматривается!\nОтправки в регионы любой ТК!\nГрафик работы пн-пт с 8-17ч. по Мск.\n#60834:"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Карта партнера.xlsx",
+          "safeName": "Карта партнера.xlsx",
+          "contentType": "application/vnd.ms-excel",
+          "size": 12354,
+          "ext": ".xlsx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 716,
+          "category": "office_document",
+          "detectedArticles": [
+            "43266"
+          ],
+          "detectedBrands": [],
+          "detectedInn": [
+            "333801077600"
+          ],
+          "detectedKpp": [
+            "041708602"
+          ],
+          "detectedOgrn": [
+            "318332800035684"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 0,
+        "totalBytes": 12354,
+        "totalChars": 716,
+        "budgetMs": 116,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 0
+    },
+    "llmExtraction": {
+      "processedAt": "2026-05-25T10:21:14.231Z",
+      "model": "google/gemini-2.0-flash-lite-001",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "phone",
+        "brand",
+        "contact_name"
+      ],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:51:38.886Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "google/gemini-2.0-flash-lite-001",
+      "baseUrl": "https://openrouter.ai/api/v1",
+      "logSuggestions": true
+    }
+  }
+}

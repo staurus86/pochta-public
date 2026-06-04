@@ -1,0 +1,536 @@
+{
+  "messageKey": "b16af540996dfad4a5b2eb1802799fdaba9b76cb",
+  "projectId": "project-3-mailbox-file",
+  "comments": [
+    "не определил контактное лицо + по позиции неверная информация"
+  ],
+  "subject": "20260326-ADO21-M до 05-май-2026\t\t",
+  "body": "Добрый день!\r\n\r\n\r\n\r\nПрошу сообщить о возможности поставки и выслать счет/кп на следующее\r\nоборудование: \r\n\r\n\r\n\r\n\r\n10\r\n\r\n1000780717\r\n\r\nPLUG,ELEC,R-STAHL,8579/12-506,63A\r\nInd. power distribution elec. plugs\r\n\r\nManufacturer Model number 8579/12\r\nClassification, hazard areas EXPLOSION PROOF\r\nIngress protection IP66\r\nVoltage, rated 240 TO 415 V\r\n200 TO 346 V\r\nPoles 5 (3P+N+E)\r\nCurrent, rated 63 A\r\nCable entry 24 TO 36 mm OUTER DIAMETER\r\n\r\nFrequency 50 / 60 Hz\r\nColor code RED\r\nGas explosion protection EX II 2 G EEx ed [ib] IIC T5\r\nPTB 01 ATEX 1150\r\nDust explosion protection EX II 2 D IP 66 T95 °C T130 °C\r\nPTB 01 ATEX 1150\r\nAmbient temperature -20 TO +40 °C\r\nEnclosure material POLYAMIDE\r\n\r\nManufacturer R. STAHL SCHALTGERATE GMBH\r\nManufacturer Part Number 8579/12-506\r\n\r\nVENDOR DOCUMENT REQUIREMENTS:\r\nK41 CU TR Explosion Proof Certificate/Declaration (Ex Certificate)\r\nH18 Catalogue Data\r\n\r\nBase Unit of Measure: EA\r\n\r\nШТЕПСЕЛЬ,R-STAHL,8579/12-506,63A\r\nInd. power distribution elem. plug\r\n\r\nНомер модели изготовителя 8579/12\r\nКлассификация, опасные зоны EXPLOSION PROOF\r\nКласс защиты IP66\r\nНоминальное напряжение 200 TO 346 V\r\n240 TO 415 V\r\nПолюса 5 (3P+N+E)\r\nНоминальный ток 63 A\r\nКабельный ввод 24 TO 36 MM OUTER DIAMETER\r\n\r\nШтепсельные вилки для пром электросетей\r\n\r\nНомер модели изготовителя 8579/12\r\nКлассификация,опасные зоны ВЗРЫВОЗАЩИЩЕННОЕ ИСПОЛНЕНИЕ\r\nКласс защиты IP66\r\nНоминальное напряжение 200-346 В\r\n240-415 В\r\nПолюса 5 (3P+N+E)\r\nНоминальный ток 63 A\r\nКабельный ввод НАРУЖНЫЙ ДИАМЕТР 24-36 мм\r\n\r\nЧастота 50/60 Гц\r\nЦветовая маркировка КРАСНЫЙ\r\nГазовзрывозащита EX II 2 G EEx ed [ib] IIC T5\r\nPTB 01 ATEX 1150\r\nПылевзрывозащита EX II 2 D IP 66 T95 °C T130 °C\r\nPTB 01 ATEX 1150\r\nТемпература окружающей среды ОТ -20 ДО +40 °C\r\nМатериал кожуха ПОЛИАМИД\r\n\r\nПроизводитель R. STAHL SCHALTGERATE GMBH\r\nПарт. номер производителя 8579/12-506\r\n\r\nТРЕБОВАНИЕ ДОКУМЕНТАЦИИ ПОСТАВШИКА:\r\nK41 Сертификат/декларация ТР ТС для взрывозащищенного оборудования (Ех\r\nсертификат)\r\nH18 Данные каталога\r\n\r\nБазовая единица измерения: ШТ\r\n\r\n7\r\n\r\nEA\r\n\r\n\r\n\r\nС уважением, // Sincerely,\r\n\r\n\r\n\r\nДенис Вавилов // Denis Vavilov\r\n\r\nСпециалист отдела МТС // Procurement Specialist\r\n\r\nООО // LLC\r\n\r\nПочтовый адрес: 693020, РФ, г. Южно-Сахалинск, ул. Пушкина, 80 // Postal\r\naddress: 693020, RF, Yuzhno-Sakhalinsk, Pushkina str. 80\r\n\r\nЭл. адрес // E-mail: \r\nd.vavilov@vms-engineering.com \r\n\r\nМоб. тел. // Mob. phone: +7 984 184 23 93\r\n\r\nЧасовой пояс // Time zone: GMT +11",
+  "attachmentFiles": [
+    {
+      "filename": "image001.png",
+      "safeName": "image001.png",
+      "contentType": "image/png",
+      "size": 16173
+    },
+    {
+      "filename": "!Карточка ООО ВМС Инжиниринг АЛЬФА.docx",
+      "safeName": "!Карточка ООО ВМС Инжиниринг АЛЬФА.docx",
+      "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size": 164940
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "1f06ca0c-0669-46dc-a367-2f323de41966",
+    "createdAt": "2026-06-01T14:50:49.892Z",
+    "mailbox": "multi-mailbox@project3.local",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.86,
+      "detectedBrands": [
+        "Elec-Con",
+        "R. STAHL",
+        "R. STAHL SCHALTGERAETE"
+      ],
+      "signals": {
+        "clientScore": 13,
+        "spamScore": 0,
+        "vendorScore": 3,
+        "matchedRules": [
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 3,
+            "classifier": "vendor",
+            "scope": "body",
+            "pattern": "предлагаем|каталог|дилер|поставля|прайс|услуг",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "d.vavilov@vms-engineering.com",
+      "emailPrimary": "d.vavilov@vms-engineering.com",
+      "emailDisplayName": "Sincerely",
+      "emailLocal": "d.vavilov",
+      "emailDomain": "vms-engineering.com",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "D Vavilov",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "email_local",
+      "fullNameConfidence": 0.35,
+      "fullNameNeedsReview": true,
+      "fullNameRejected": [
+        {
+          "value": "Sincerely",
+          "source": "sender",
+          "reason": "bad_name"
+        },
+        {
+          "value": "Sincerely,",
+          "source": "signature",
+          "reason": "bad_name"
+        }
+      ],
+      "position": "Специалист отдела МТС",
+      "positionAlt": "Procurement Specialist",
+      "departmentName": "отдела МТС",
+      "positionSource": "signature",
+      "positionConfidence": 1,
+      "positionNeedsReview": false,
+      "positionRejected": [],
+      "companyName": "ООО «ВМС Инжиниринг»",
+      "companyAlt": "Vms-engineering",
+      "companyNameSource": "body",
+      "companyNameConfidence": 0.8200000000000001,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Sincerely",
+          "source": "sender",
+          "reason": "domain_label_only"
+        }
+      ],
+      "website": "https://vms-engineering.com",
+      "cityPhone": null,
+      "mobilePhone": "+7 (984) 184-23-93",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [
+        {
+          "value": "1000780717",
+          "source": "current_message",
+          "reason": "inn_like"
+        }
+      ],
+      "inn": "6500004004",
+      "kpp": null,
+      "ogrn": "1226500002893",
+      "legalCardAttached": true,
+      "sources": {
+        "company": "attachment",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": "attachment",
+        "fullName": "email_local",
+        "position": "signature",
+        "department": "body"
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день!\n\n\n\nПрошу сообщить о возможности поставки и выслать счет/кп на следующее\nоборудование: \n\n\n\n\n10\n\n1000780717\n\nPLUG,ELEC,R-STAHL,8579/12-506,63A\nInd. power distribution elec. plugs\n\nManufacturer Model number 8579/12\nClassification, hazard areas EXPLOSION PROOF\nIngress protection IP66\nVoltage, rated 240 TO 415 V\n200 TO 346 V\nPoles 5 (3P+N+E)\nCurrent, rated 63 A\nCable entry 24 TO 36 mm OUTER DIAMETER\n\nFrequency 50 / 60 Hz\nColor code RED\nGas explosion protection EX II 2 G EEx ed [ib] IIC T5\nPTB 01 ATEX 1150\nDust explosion protection EX II 2 D IP 66 T95 °C T130 °C\nPTB 01 ATEX 1150\nAmbient temperature -20 TO +40 °C\nEnclosure material POLYAMIDE\n\nManufacturer R. STAHL SCHALTGERATE GMBH\nManufacturer Part Number 8579/12-506\n\nVENDOR DOCUMENT REQUIREMENTS:\nK41 CU TR Explosion Proof Certificate/Declaration (Ex Certificate)\nH18 Catalogue Data\n\nBase Unit of Measure: EA\n\nШТЕПСЕЛЬ,R-STAHL,8579/12-506,63A\nInd. power distribution elem. plug\n\nНомер модели изготовителя 8579/12\nКлассификация, опасные зоны EXPLOSION PROOF\nКласс защиты IP66\nНоминальное напряжение 200 TO 346 V\n240 TO 415 V\nПолюса 5 (3P+N+E)\nНоминальный ток 63 A\nКабельный ввод 24 TO 36 MM OUTER DIAMETER\n\nШтепсельные вилки для пром электросетей\n\nНомер модели изготовителя 8579/12\nКлассификация,опасные зоны ВЗРЫВОЗАЩИЩЕННОЕ ИСПОЛНЕНИЕ\nКласс защиты IP66\nНоминальное напряжение 200-346 В\n240-415 В\nПолюса 5 (3P+N+E)\nНоминальный ток 63 A\nКабельный ввод НАРУЖНЫЙ ДИАМЕТР 24-36 мм\n\nЧастота 50/60 Гц\nЦветовая маркировка КРАСНЫЙ\nГазовзрывозащита EX II 2 G EEx ed [ib] IIC T5\nPTB 01 ATEX 1150\nПылевзрывозащита EX II 2 D IP 66 T95 °C T130 °C\nPTB 01 ATEX 1150\nТемпература окружающей среды ОТ -20 ДО +40 °C\nМатериал кожуха ПОЛИАМИД\n\nПроизводитель R. STAHL SCHALTGERATE GMBH\nПарт. номер производителя 8579/12-506\n\nТРЕБОВАНИЕ ДОКУМЕНТАЦИИ ПОСТАВШИКА:\nK41 Сертификат/декларация ТР ТС для взрывозащищенного оборудования (Ех\nсертификат)\nH18 Данные каталога\n\nБазовая единица измерения: ШТ\n\n7\n\nEA",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "1150",
+        "8579/12-506"
+      ],
+      "lineItems": [
+        {
+          "article": "1150",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "articles_synth",
+          "explicitArticle": false
+        },
+        {
+          "article": "8579/12-506",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "articles_synth",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 2,
+      "detectedBrands": [
+        "Elec-Con",
+        "R. STAHL"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "1150",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "8579/12-506",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "planned",
+      "attachmentHints": [],
+      "requestType": "Мультибрендовая",
+      "sources": {
+        "articles": [
+          "freetext"
+        ],
+        "names": [
+          "freetext"
+        ],
+        "attachmentsProcessed": [
+          "!Карточка ООО ВМС Инжиниринг АЛЬФА.docx"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": false,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [
+          "name"
+        ],
+        "completenessScore": 83,
+        "overallConfidence": 0.76,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_article",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": null,
+      "productLineItems": [],
+      "productNamesClean": [],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "415 V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "346 V"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "36 mm"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "60 Hz"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "36 MM"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "346 В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "415 В"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "36 мм"
+        },
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "60 Гц"
+        }
+      ],
+      "positions": 2,
+      "totalQty": 0,
+      "recognitionDiagnostics": {
+        "completenessScore": 83,
+        "overallConfidence": 0.76,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_article",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.74,
+            "source": "freetext"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": false,
+            "confidence": 0,
+            "source": "freetext"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_article",
+            "field": "article",
+            "severity": "medium",
+            "confidence": 0.74
+          },
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "missing_name",
+            "field": "name",
+            "severity": "medium"
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "Elec-Con",
+              "R. STAHL"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый article; слабый company; слабый inn",
+        "decisionReason": "класс:Клиент • conf:86% • сигналы:артикулы:1150, 8579/12-506 | бренды:Elec-Con, R. STAHL | компания:ООО «ВМС Инжиниринг» • email:d.vavilov@vms-engineering.com",
+        "suggestion": "Не хватает: наименование. Дополните через быструю коррекцию или запросите у клиента. Добавьте наименование для артикула — закрепите через feedback.",
+        "triggerSignals": [
+          "артикулы:1150, 8579/12-506",
+          "бренды:Elec-Con, R. STAHL",
+          "компания:ООО «ВМС Инжиниринг»",
+          "ИНН:6500004004",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 2,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 5,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.6536
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://vms-engineering.com для поиска реквизитов",
+        "Сверить запрос по артикулам: 1150, 8579/12-506",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://vms-engineering.com",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "6500004004",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Elec-Con",
+      "R. STAHL"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Мультибрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "D, добрый день!\n\nСпасибо за заявку по Elec-Con, R. STAHL.\nАртикулы: 1150, 8579/12-506\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "20260326-ADO21-M до 05-май-2026\t\t",
+      "attachments": [
+        "image001.png",
+        "!Карточка ООО ВМС Инжиниринг АЛЬФА.docx"
+      ],
+      "body": "Добрый день!\r\n\r\n\r\n\r\nПрошу сообщить о возможности поставки и выслать счет/кп на следующее\r\nоборудование: \r\n\r\n\r\n\r\n\r\n10\r\n\r\n1000780717\r\n\r\nPLUG,ELEC,R-STAHL,8579/12-506,63A\r\nInd. power distribution elec. plugs\r\n\r\nManufacturer Model number 8579/12\r\nClassification, hazard areas EXPLOSION PROOF\r\nIngress protection IP66\r\nVoltage, rated 240 TO 415 V\r\n200 TO 346 V\r\nPoles 5 (3P+N+E)\r\nCurrent, rated 63 A\r\nCable entry 24 TO 36 mm OUTER DIAMETER\r\n\r\nFrequency 50 / 60 Hz\r\nColor code RED\r\nGas explosion protection EX II 2 G EEx ed [ib] IIC T5\r\nPTB 01 ATEX 1150\r\nDust explosion protection EX II 2 D IP 66 T95 °C T130 °C\r\nPTB 01 ATEX 1150\r\nAmbient temperature -20 TO +40 °C\r\nEnclosure material POLYAMIDE\r\n\r\nManufacturer R. STAHL SCHALTGERATE GMBH\r\nManufacturer Part Number 8579/12-506\r\n\r\nVENDOR DOCUMENT REQUIREMENTS:\r\nK41 CU TR Explosion Proof Certificate/Declaration (Ex Certificate)\r\nH18 Catalogue Data\r\n\r\nBase Unit of Measure: EA\r\n\r\nШТЕПСЕЛЬ,R-STAHL,8579/12-506,63A\r\nInd. power distribution elem. plug\r\n\r\nНомер модели изготовителя 8579/12\r\nКлассификация, опасные зоны EXPLOSION PROOF\r\nКласс защиты IP66\r\nНоминальное напряжение 200 TO 346 V\r\n240 TO 415 V\r\nПолюса 5 (3P+N+E)\r\nНоминальный ток 63 A\r\nКабельный ввод 24 TO 36 MM OUTER DIAMETER\r\n\r\nШтепсельные вилки для пром электросетей\r\n\r\nНомер модели изготовителя 8579/12\r\nКлассификация,опасные зоны ВЗРЫВОЗАЩИЩЕННОЕ ИСПОЛНЕНИЕ\r\nКласс защиты IP66\r\nНоминальное напряжение 200-346 В\r\n240-415 В\r\nПолюса 5 (3P+N+E)\r\nНоминальный ток 63 A\r\nКабельный ввод НАРУЖНЫЙ ДИАМЕТР 24-36 мм\r\n\r\nЧастота 50/60 Гц\r\nЦветовая маркировка КРАСНЫЙ\r\nГазовзрывозащита EX II 2 G EEx ed [ib] IIC T5\r\nPTB 01 ATEX 1150\r\nПылевзрывозащита EX II 2 D IP 66 T95 °C T130 °C\r\nPTB 01 ATEX 1150\r\nТемпература окружающей среды ОТ -20 ДО +40 °C\r\nМатериал кожуха ПОЛИАМИД\r\n\r\nПроизводитель R. STAHL SCHALTGERATE GMBH\r\nПарт. номер производителя 8579/12-506\r\n\r\nТРЕБОВАНИЕ ДОКУМЕНТАЦИИ ПОСТАВШИКА:\r\nK41 Сертификат/декларация ТР ТС для взрывозащищенного оборудования (Ех\r\nсертификат)\r\nH18 Данные каталога\r\n\r\nБазовая единица измерения: ШТ\r\n\r\n7\r\n\r\nEA\r\n\r\n\r\n\r\nС уважением, // Sincerely,\r\n\r\n\r\n\r\nДенис Вавилов // Denis Vavilov\r\n\r\nСпециалист отдела МТС // Procurement Specialist\r\n\r\nООО // LLC\r\n\r\nПочтовый адрес: 693020, РФ, г. Южно-Сахалинск, ул. Пушкина, 80 // Postal\r\naddress: 693020, RF, Yuzhno-Sakhalinsk, Pushkina str. 80\r\n\r\nЭл. адрес // E-mail: \r\nd.vavilov@vms-engineering.com \r\n\r\nМоб. тел. // Mob. phone: +7 984 184 23 93\r\n\r\nЧасовой пояс // Time zone: GMT +11"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "image001.png",
+          "safeName": "image001.png",
+          "contentType": "image/png",
+          "size": 16173,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "!Карточка ООО ВМС Инжиниринг АЛЬФА.docx",
+          "safeName": "!Карточка ООО ВМС Инжиниринг АЛЬФА.docx",
+          "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "size": 164940,
+          "ext": ".docx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 965,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "6500004004"
+          ],
+          "detectedKpp": [
+            "044525593",
+            "650101001"
+          ],
+          "detectedOgrn": [
+            "1226500002893"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 1,
+        "totalBytes": 164940,
+        "totalChars": 965,
+        "budgetMs": 61,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 1
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-21T05:58:21.033Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "quantity"
+      ],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 1
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:50:49.908Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

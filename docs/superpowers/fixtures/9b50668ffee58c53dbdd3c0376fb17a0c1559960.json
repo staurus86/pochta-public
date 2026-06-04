@@ -1,0 +1,453 @@
+{
+  "messageKey": "9b50668ffee58c53dbdd3c0376fb17a0c1559960",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "ФИО некорректно, товар не найден"
+  ],
+  "subject": "Pattyn -ПА1",
+  "body": "Добрый день.\nПрошу сообщить возможность поставки продукции Pattyn :\n\n*Наконечник резиновый 16мм Pattyn M035760 =1 упаковка*\n\nПросим сохранять историю переписки.\n\nС уважением, *ООО ``ТК`` Санкт-Петербург- Белгород``*\n*(ООО «ТК «СПБ» ИНН 3123314250)*\nГен. директор Лобкин Владислав Львович\nтел./факс: (4722) 34-21-78\nтел. (4722) 34-18-44\nмоб. +7 (905) 674-94-10\n\nE-mail: TCSPB67@mail.ru ( tcspb67@mail.ru )\nhttp://peter-bel.ru ( http://www.peter-bel.ru/ )\n\n*308023, Белгородская обл., г. Белгород*\n*Проспект Б. Хмельницкого, дом № 137, офис 317*\n\nИдентификатор в ЭДО: 2AECED138A4-7E5B-4C22-B921-F901BE33C4E2",
+  "attachmentFiles": [
+    {
+      "filename": "mailrusigimg_s8TtIm99.png",
+      "safeName": "mailrusigimg_s8TtIm99.png",
+      "contentType": "image/png",
+      "size": 3145
+    },
+    {
+      "filename": "mailrusigimg_EmVYLXzx.png",
+      "safeName": "mailrusigimg_EmVYLXzx.png",
+      "contentType": "image/png",
+      "size": 4593
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "22cd1662-acf0-443c-84b0-42bd86d6dd57",
+    "createdAt": "2026-06-01T14:51:41.109Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Pattyn Packing Lines"
+      ],
+      "signals": {
+        "clientScore": 9,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "tcspb67@mail.ru",
+      "emailPrimary": "tcspb67@mail.ru",
+      "emailDisplayName": "Не Определено",
+      "emailLocal": "tcspb67",
+      "emailDomain": "mail.ru",
+      "emailType": "person_email",
+      "emailDomainType": "public_provider",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.85,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": false,
+      "emailRejected": [],
+      "fullName": "Не Определено",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "sender",
+      "fullNameConfidence": 0.85,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [
+        {
+          "value": "*ООО ``ТК`` Санкт-Петербург- Белгород``*",
+          "source": "signature",
+          "reason": "markdown_noise"
+        }
+      ],
+      "position": "Ген. директор",
+      "positionAlt": "Ген. директор",
+      "departmentName": null,
+      "positionSource": "signature",
+      "positionConfidence": 0.97,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Не Определено",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «ТК «СПБ»»",
+      "companyAlt": "ТК «СПБ»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Не Определено",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        },
+        {
+          "value": "mail.ru",
+          "source": "email_domain",
+          "reason": "generic_provider"
+        }
+      ],
+      "website": "http://peter-bel.ru",
+      "cityPhone": "+7 (472) 234-18-44",
+      "mobilePhone": "+7 (905) 674-94-10",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [
+        {
+          "value": "3123314250",
+          "source": "signature",
+          "reason": "inn_like"
+        },
+        {
+          "value": "3123314250",
+          "source": "current_message",
+          "reason": "inn_like"
+        }
+      ],
+      "inn": "3123314250",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "signature",
+        "website": "body",
+        "phone": "signature",
+        "inn": "body",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "sender",
+        "position": "signature",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день.\nПрошу сообщить возможность поставки продукции Pattyn :\n\n*Наконечник резиновый 16мм Pattyn M035760 =1 упаковка*\n\nПросим сохранять историю переписки.\n\nС уважением, *ООО ``ТК`` Санкт-Петербург- Белгород``*\n*(ООО «ТК «СПБ» ИНН 3123314250)*\nГен. директор Лобкин Владислав Львович\nтел./факс: (4722) 34-21-78\nтел. (4722) 34-18-44\nмоб. +7 (905) 674-94-10\n\nE-mail: TCSPB67@mail.ru ( tcspb67@mail.ru )\nhttp://peter-bel.ru ( http://www.peter-bel.ru/ )\n\n*308023, Белгородская обл., г. Белгород*\n*Проспект Б. Хмельницкого, дом № 137, офис 317*\n\nИдентификатор в ЭДО: 2AECED138A4-7E5B-4C22-B921-F901BE33C4E2",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [],
+      "lineItems": [],
+      "totalPositions": 0,
+      "detectedBrands": [
+        "Pattyn Packing Lines",
+        "Peter Electronic",
+        "Peter Schmitz Wickeltechnik"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "attachment"
+        ],
+        "names": [],
+        "attachmentsProcessed": [],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": false,
+        "brand": true,
+        "name": false,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": false,
+        "missing": [
+          "article",
+          "name"
+        ],
+        "completenessScore": 67,
+        "overallConfidence": 0.82,
+        "riskLevel": "high",
+        "primaryIssue": "missing_article",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Pattyn -ПА1",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Pattyn -ПА1"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 1,
+      "quantityUnit": "уп",
+      "quantitiesClean": [
+        {
+          "value": 1,
+          "unit": "уп",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 1,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "16мм"
+        }
+      ],
+      "positions": 0,
+      "totalQty": 0,
+      "recognitionDiagnostics": {
+        "completenessScore": 67,
+        "overallConfidence": 0.82,
+        "riskLevel": "high",
+        "primaryIssue": "missing_article",
+        "fields": {
+          "article": {
+            "found": false,
+            "confidence": 0,
+            "source": "attachment"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "signature"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.93,
+            "source": "body"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "missing_article",
+            "field": "article",
+            "severity": "high"
+          },
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "missing_name",
+            "field": "name",
+            "severity": "medium"
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "Pattyn Packing Lines",
+              "Peter Electronic",
+              "Peter Schmitz Wickeltechnik"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "нет article; слабый company; нет name",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:бренды:Pattyn Packing Lines, Peter Electronic, Peter Schmitz Wickeltechnik | компания:ООО «ТК «СПБ»» | ИНН:3123314250 • email:tcspb67@mail.ru",
+        "suggestion": "Не хватает: артикулы, наименование. Дополните через быструю коррекцию или запросите у клиента.",
+        "triggerSignals": [
+          "бренды:Pattyn Packing Lines, Peter Electronic, Peter Schmitz Wickeltechnik",
+          "компания:ООО «ТК «СПБ»»",
+          "ИНН:3123314250",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 0,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 3,
+          "processedAttachments": 0
+        }
+      },
+      "confidence": 0.7789999999999999
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт http://peter-bel.ru для поиска реквизитов",
+        "Сверить номенклатуру вручную не требуется",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "http://peter-bel.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "3123314250",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Pattyn Packing Lines",
+      "Peter Electronic",
+      "Peter Schmitz Wickeltechnik"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Не, добрый день!\n\nСпасибо за заявку по Pattyn Packing Lines, Peter Electronic, Peter Schmitz Wickeltechnik.\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Pattyn -ПА1",
+      "attachments": [
+        "mailrusigimg_s8TtIm99.png",
+        "mailrusigimg_EmVYLXzx.png"
+      ],
+      "body": "Добрый день.\nПрошу сообщить возможность поставки продукции Pattyn :\n\n*Наконечник резиновый 16мм Pattyn M035760 =1 упаковка*\n\nПросим сохранять историю переписки.\n\nС уважением, *ООО ``ТК`` Санкт-Петербург- Белгород``*\n*(ООО «ТК «СПБ» ИНН 3123314250)*\nГен. директор Лобкин Владислав Львович\nтел./факс: (4722) 34-21-78\nтел. (4722) 34-18-44\nмоб. +7 (905) 674-94-10\n\nE-mail: TCSPB67@mail.ru ( tcspb67@mail.ru )\nhttp://peter-bel.ru ( http://www.peter-bel.ru/ )\n\n*308023, Белгородская обл., г. Белгород*\n*Проспект Б. Хмельницкого, дом № 137, офис 317*\n\nИдентификатор в ЭДО: 2AECED138A4-7E5B-4C22-B921-F901BE33C4E2"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "mailrusigimg_s8TtIm99.png",
+          "safeName": "mailrusigimg_s8TtIm99.png",
+          "contentType": "image/png",
+          "size": 3145,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "mailrusigimg_EmVYLXzx.png",
+          "safeName": "mailrusigimg_EmVYLXzx.png",
+          "contentType": "image/png",
+          "size": 4593,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 0,
+        "skippedCount": 2,
+        "totalBytes": 0,
+        "totalChars": 0,
+        "budgetMs": 0,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 0,
+      "attachmentsSkipped": 2
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-21T08:28:15.198Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "article",
+        "quantity"
+      ],
+      "newArticlesAdded": 1,
+      "detectionGapsCount": 0
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:51:41.121Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

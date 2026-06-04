@@ -1,0 +1,588 @@
+{
+  "messageKey": "568fb6dc139efb75fcffb3386ebe4610a9b2a8b0",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "описание товара взял одно на все товары\nс артикулами напутал\nкол-во не записал",
+    "не указал количество товара  и не совпадает количество позиций."
+  ],
+  "subject": "запрос шинопровода Wampfler 811",
+  "body": "Добрый день!\r\nПрошу рассмотреть возможность поставки кольцевого шинопровод WAMPFLER серии 811, для обмотчика паллетов.\r\n\r\n\r\n\r\nНаименование\r\n\r\nЕд.изм.\r\n\r\nКол-во\r\n\r\n1\r\n\r\nШинопровод изогнутый 0811 CU100A PVCPH VBO BJ 081116-VBX11# номер материала 3004595, Conductix Wampfler\r\n\r\nшт\r\n\r\n12\r\n\r\n2\r\n\r\nДержатель шинопровода 081143-1X6X20 номер материала 18491, Conductix Wampfler\r\n\r\nшт\r\n\r\n16\r\n\r\n3\r\n\r\nЛинейный ввод питания, соединитель полуколец, 081151-61 номер материала 18502й, Conductix Wampfler\r\n\r\nшт\r\n\r\n12\r\n\r\n4\r\n\r\nТокосъемник программы 0811 1P1PH 16A REV 081101-0031 номер материала 18326, Conductix Wampfler\r\n\r\nшт\r\n\r\n12\r\n\r\n5\r\n\r\nЩетка токосъемника графит 16A PH L=48MM, 081002-1X1 номер материала 18294, Conductix Wampfler\r\n\r\nшт\r\n\r\n12\r\n\r\n6\r\n\r\nСтабилизирующая пружина 08-RZ-056 I номер материала 18281, Conductix Wampfler\r\n\r\nшт\r\n\r\n20\r\n\r\n\r\n\r\n\r\n[cid:image001.png@01DC9140.C87CD170]\r\n\r\nОськин Илья Алексеевич\r\nГлавный энергетик\r\nТел.: 8 (800) 555-71-67, +7(812)327-4445\r\nМоб.: +7(960) 280-00-55\r\nSkype: Ilia.Oskin@mc-bauchemie.ru<mailto:Ilia.Oskin@mc-bauchemie.ru>\r\nEmail: Ilia.Oskin@mc-bauchemie.ru<mailto:Ilia.Oskin@mc-bauchemie.ru>\r\n\r\n\r\nMC-Bauchemie Россия, Ленинградская область,\r\nг. Кировск, ул. Набережная, д. 1/17\r\n\r\n________________________________\r\n\r\nПредупреждение: Полученная информация предназначена только для физического или юридического лица, которому она адресована, может являться конфиденциальной и содержать охраняемую тайну. Ознакомление, распространение, разглашение либо использование ее в любой форме, а также совершение любого действия, вытекающего из знания этой информации, физическим и/или юридическим лицом, не являющимся надлежащим получателем, запрещено. Если Вы получили это сообщение по ошибке, пожалуйста, незамедлительно уведомите об этом отправителя путем ответа по электронной почте или по телефону +7 (812) 327-44-45, а затем удалите и уничтожьте всю полученную информацию, включая все копии, содержащиеся в компьютере получателя, распечатанные или сохраненные на диск.\r\n\r\n________________________________\r\n\r\nThe information contained in this email and in any attachments is confidential and is designated solely for the attention and use of the intended recipient(s).This information may be subject to legal professional privilege. If you are not an intended recipient of this email you must not use, disclose, copy, distribute or retain this message or any part of it. If you have received this email in error please notify us immediately and delete all copies of this email from your computer system(s).",
+  "attachmentFiles": [
+    {
+      "filename": "image001.png",
+      "safeName": "image001.png",
+      "contentType": "image/png",
+      "size": 9815
+    },
+    {
+      "filename": "РЕКВИЗИТЫ Эм-Си Баухеми для ПОСТАВЩИКОВ.docx",
+      "safeName": "РЕКВИЗИТЫ Эм-Си Баухеми для ПОСТАВЩИКОВ.docx",
+      "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+      "size": 12964
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "08910d10-1099-4369-b29e-01ad1c5db354",
+    "createdAt": "2026-06-01T15:06:49.731Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "CONDUCTIX-WAMPFLER"
+      ],
+      "signals": {
+        "clientScore": 22,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 5,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label",
+            "weight": 2
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "ilia.oskin@mc-bauchemie.ru",
+      "emailPrimary": "ilia.oskin@mc-bauchemie.ru",
+      "emailDisplayName": "Оськин Илья",
+      "emailLocal": "ilia.oskin",
+      "emailDomain": "mc-bauchemie.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Оськин Илья",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "sender",
+      "fullNameConfidence": 0.85,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Главный энергетик",
+      "positionAlt": "Главный энергетик",
+      "departmentName": null,
+      "positionSource": "body",
+      "positionConfidence": 0.8700000000000001,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Оськин Илья",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «Эм-Си Баухеми»",
+      "companyAlt": null,
+      "companyNameSource": "email_domain",
+      "companyNameConfidence": 0.37,
+      "companyNameNeedsReview": true,
+      "companyNameRejected": [
+        {
+          "value": "Оськин Илья",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "https://mc-bauchemie.ru",
+      "cityPhone": "+7 (800) 555-71-67",
+      "mobilePhone": "+7 (960) 280-00-55",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "current_message",
+      "phoneConfidence": 0.8,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [
+        {
+          "value": "81101-0031",
+          "source": "current_message",
+          "reason": "normalize_failed"
+        }
+      ],
+      "inn": "4706015486",
+      "kpp": null,
+      "ogrn": "1024701330917",
+      "legalCardAttached": true,
+      "sources": {
+        "company": "attachment",
+        "website": "email_domain",
+        "phone": "current_message",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": "attachment",
+        "fullName": "sender",
+        "position": "body",
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день!\nПрошу рассмотреть возможность поставки кольцевого шинопровод WAMPFLER серии 811, для обмотчика паллетов.\n\n\n\nНаименование\n\nЕд.изм.\n\nКол-во\n\n1\n\nШинопровод изогнутый 0811 CU100A PVCPH VBO BJ 081116-VBX11# номер материала 3004595, Conductix Wampfler\n\nшт\n\n12\n\n2\n\nДержатель шинопровода 081143-1X6X20 номер материала 18491, Conductix Wampfler\n\nшт\n\n16\n\n3\n\nЛинейный ввод питания, соединитель полуколец, 081151-61 номер материала 18502й, Conductix Wampfler\n\nшт\n\n12\n\n4\n\nТокосъемник программы 0811 1P1PH 16A REV 081101-0031 номер материала 18326, Conductix Wampfler\n\nшт\n\n12\n\n5\n\nЩетка токосъемника графит 16A PH L=48MM, 081002-1X1 номер материала 18294, Conductix Wampfler\n\nшт\n\n12\n\n6\n\nСтабилизирующая пружина 08-RZ-056 I номер материала 18281, Conductix Wampfler\n\nшт\n\n20\n\n\n\n\n[cid:image001.png@01DC9140.C87CD170]\n\nОськин Илья Алексеевич\nГлавный энергетик\nТел.: 8 (800) 555-71-67, +7(812)327-4445\nМоб.: +7(960) 280-00-55\nSkype: Ilia.Oskin@mc-bauchemie.ru<mailto:Ilia.Oskin@mc-bauchemie.ru>\nEmail: Ilia.Oskin@mc-bauchemie.ru<mailto:Ilia.Oskin@mc-bauchemie.ru>\n\n\nMC-Bauchemie Россия, Ленинградская область,\nг. Кировск, ул. Набережная, д. 1/17",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "081116-VBX11",
+        "081143-1X6X20",
+        "18502й",
+        "08-RZ-056",
+        "081101",
+        "CU100A",
+        "C87CD170",
+        "081002-1X1"
+      ],
+      "lineItems": [
+        {
+          "article": "081116-VBX11",
+          "quantity": 12,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "081143-1X6X20",
+          "quantity": 12,
+          "unit": "шт",
+          "descriptionRu": "запрос шинопровода Wampfler 811",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "18502й",
+          "quantity": 12,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "08-RZ-056",
+          "quantity": 12,
+          "unit": "шт",
+          "descriptionRu": "запрос шинопровода Wampfler 811",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "CU100A",
+          "quantity": 12,
+          "unit": "шт",
+          "descriptionRu": "запрос шинопровода Wampfler 811",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "C87CD170",
+          "quantity": 12,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "081002-1X1",
+          "quantity": 12,
+          "unit": "шт",
+          "descriptionRu": "запрос шинопровода Wampfler 811",
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 8,
+      "detectedBrands": [
+        "CONDUCTIX-WAMPFLER"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "081116-VBX11",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "081143-1X6X20",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "18502й",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "08-RZ-056",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "081101",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "CU100A",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "C87CD170",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "081002-1X1",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "attachment",
+          "body"
+        ],
+        "names": [],
+        "attachmentsProcessed": [
+          "РЕКВИЗИТЫ Эм-Си Баухеми для ПОСТАВЩИКОВ.docx"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "запрос шинопровода Wampfler 811",
+      "productLineItems": [],
+      "productNamesClean": [
+        "запрос шинопровода Wampfler 811"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 12,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 12,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 16,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 12,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 12,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 12,
+          "unit": "шт",
+          "source": "multiline_table"
+        },
+        {
+          "value": 20,
+          "unit": "шт",
+          "source": "multiline_table"
+        }
+      ],
+      "totalQuantity": 84,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "48MM"
+        }
+      ],
+      "positions": 8,
+      "totalQty": 84,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "current_message"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "attachment"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый company; слабый inn",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:081116-VBX11, 081143-1X6X20, 18502й | бренды:CONDUCTIX-WAMPFLER | компания:ООО «Эм-Си Баухеми» • email:ilia.oskin@mc-bauchemie.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:081116-VBX11, 081143-1X6X20, 18502й",
+          "бренды:CONDUCTIX-WAMPFLER",
+          "компания:ООО «Эм-Си Баухеми»",
+          "ИНН:4706015486",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 4,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 7,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7695
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://mc-bauchemie.ru для поиска реквизитов",
+        "Сверить запрос по артикулам: 081116-VBX11, 081143-1X6X20, 18502Й, 08-RZ-056, 081101",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://mc-bauchemie.ru",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "4706015486",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "CONDUCTIX-WAMPFLER"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Оськин, добрый день!\n\nСпасибо за заявку по CONDUCTIX-WAMPFLER (8 позиций).\nАртикулы: 081116-VBX11, 081143-1X6X20, 18502й, 08-RZ-056, 081101\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "запрос шинопровода Wampfler 811",
+      "attachments": [
+        "image001.png",
+        "РЕКВИЗИТЫ Эм-Си Баухеми для ПОСТАВЩИКОВ.docx"
+      ],
+      "body": "Добрый день!\r\nПрошу рассмотреть возможность поставки кольцевого шинопровод WAMPFLER серии 811, для обмотчика паллетов.\r\n\r\n\r\n\r\nНаименование\r\n\r\nЕд.изм.\r\n\r\nКол-во\r\n\r\n1\r\n\r\nШинопровод изогнутый 0811 CU100A PVCPH VBO BJ 081116-VBX11# номер материала 3004595, Conductix Wampfler\r\n\r\nшт\r\n\r\n12\r\n\r\n2\r\n\r\nДержатель шинопровода 081143-1X6X20 номер материала 18491, Conductix Wampfler\r\n\r\nшт\r\n\r\n16\r\n\r\n3\r\n\r\nЛинейный ввод питания, соединитель полуколец, 081151-61 номер материала 18502й, Conductix Wampfler\r\n\r\nшт\r\n\r\n12\r\n\r\n4\r\n\r\nТокосъемник программы 0811 1P1PH 16A REV 081101-0031 номер материала 18326, Conductix Wampfler\r\n\r\nшт\r\n\r\n12\r\n\r\n5\r\n\r\nЩетка токосъемника графит 16A PH L=48MM, 081002-1X1 номер материала 18294, Conductix Wampfler\r\n\r\nшт\r\n\r\n12\r\n\r\n6\r\n\r\nСтабилизирующая пружина 08-RZ-056 I номер материала 18281, Conductix Wampfler\r\n\r\nшт\r\n\r\n20\r\n\r\n\r\n\r\n\r\n[cid:image001.png@01DC9140.C87CD170]\r\n\r\nОськин Илья Алексеевич\r\nГлавный энергетик\r\nТел.: 8 (800) 555-71-67, +7(812)327-4445\r\nМоб.: +7(960) 280-00-55\r\nSkype: Ilia.Oskin@mc-bauchemie.ru<mailto:Ilia.Oskin@mc-bauchemie.ru>\r\nEmail: Ilia.Oskin@mc-bauchemie.ru<mailto:Ilia.Oskin@mc-bauchemie.ru>\r\n\r\n\r\nMC-Bauchemie Россия, Ленинградская область,\r\nг. Кировск, ул. Набережная, д. 1/17\r\n\r\n________________________________\r\n\r\nПредупреждение: Полученная информация предназначена только для физического или юридического лица, которому она адресована, может являться конфиденциальной и содержать охраняемую тайну. Ознакомление, распространение, разглашение либо использование ее в любой форме, а также совершение любого действия, вытекающего из знания этой информации, физическим и/или юридическим лицом, не являющимся надлежащим получателем, запрещено. Если Вы получили это сообщение по ошибке, пожалуйста, незамедлительно уведомите об этом отправителя путем ответа по электронной почте или по телефону +7 (812) 327-44-45, а затем удалите и уничтожьте всю полученную информацию, включая все копии, содержащиеся в компьютере получателя, распечатанные или сохраненные на диск.\r\n\r\n________________________________\r\n\r\nThe information contained in this email and in any attachments is confidential and is designated solely for the attention and use of the intended recipient(s).This information may be subject to legal professional privilege. If you are not an intended recipient of this email you must not use, disclose, copy, distribute or retain this message or any part of it. If you have received this email in error please notify us immediately and delete all copies of this email from your computer system(s)."
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "image001.png",
+          "safeName": "image001.png",
+          "contentType": "image/png",
+          "size": 9815,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "РЕКВИЗИТЫ Эм-Си Баухеми для ПОСТАВЩИКОВ.docx",
+          "safeName": "РЕКВИЗИТЫ Эм-Си Баухеми для ПОСТАВЩИКОВ.docx",
+          "contentType": "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+          "size": 12964,
+          "ext": ".docx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 672,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "4706015486",
+            "7831000027"
+          ],
+          "detectedKpp": [
+            "781401001",
+            "044030790",
+            "780601001"
+          ],
+          "detectedOgrn": [
+            "1024701330917"
+          ]
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 1,
+        "totalBytes": 12964,
+        "totalChars": 672,
+        "budgetMs": 49,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": false,
+      "quotedTextDetected": true,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 1
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-19T12:21:42.915Z",
+      "model": "gpt-4o-mini",
+      "requestType": "order",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 2
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:06:49.747Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

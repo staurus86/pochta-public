@@ -1,0 +1,524 @@
+{
+  "messageKey": "13fdf173d5e97ae3d56c6229ca2aa3518b7292d1",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Позиция 1\nНе указан бренд\nОписание некорректное\nПозиция 2\nНе указан бренд\nОписание некорректное\nкол-во некорректное\nПозиция 3\nНе указан бренд\nОписание некорректное\nкол-во некорректное",
+    "неверное количество"
+  ],
+  "subject": "Запрос",
+  "body": "Добрый день\r\nПрошу выставить счёт на:\r\n\r\nБАРЬЕР ИСКРОЗАЩИТЫ MTL INSTRUMENTS MTL5514 2 шт\r\nБАРЬЕР ИСКРОЗАЩИТЫ MTL INSTRUMENTS MTL5526 4 шт\r\nПЛАТА ОБЪЕДИНИТЕЛЬНАЯ CPY-RS-AI16-KS 1 шт\r\n\r\nСпасибо\r\n\r\n\r\n\r\n\r\n \r\n\r\nС уважением,\r\nФлягин Дмитрий\r\nСпециалист отдела снабжения\r\nООО \"ИНСТРОЙСНАБ\"\r\n(343) 382-00-94 (многоканальный) доб. 401\r\n <mailto:snab8@ingstroysnab.ru> snab8@ingstroysnab.ru\r\n <http://ingstroysnab.ru/> http://ingstroysnab.ru/\r\n\r\n <http://ingstroysnab.ru/> \r\nВНИМАНИЕ! С 1 ФЕВРАЛЯ 2025 ГОДА\r\nУ ООО <ИНСТРОЙСНАБ> НОВЫЙ СКЛАД:\r\n\r\nТерритория УЗТМ, Проспект Космонавтов, 22/1. \r\n\r\nКоординаты: 56.874980,60.602690 \r\n\r\nQR-код с маршрутом: \r\n\r\nПропуск оформляется заранее.\r\n\r\n \r\n\r\n \r\n\r\nС уважением,\r\nФлягин Дмитрий\r\nСпециалист отдела снабжения\r\nООО \"ИНСТРОЙСНАБ\"\r\n(343) 382-00-94 (многоканальный) доб. 401\r\n <mailto:snab8@ingstroysnab.ru> snab8@ingstroysnab.ru\r\n <http://ingstroysnab.ru/> http://ingstroysnab.ru/\r\n\r\n <http://ingstroysnab.ru/> \r\nВНИМАНИЕ! С 1 ФЕВРАЛЯ 2025 ГОДА\r\nУ ООО <ИНСТРОЙСНАБ> НОВЫЙ СКЛАД:\r\n\r\nТерритория УЗТМ, Проспект Космонавтов, 22/1. \r\n\r\nКоординаты: 56.874980,60.602690 \r\n\r\nQR-код с маршрутом: \r\n\r\nПропуск оформляется заранее.\r\n\r\n \r\n\r\n \r\n\r\nС уважением,\r\nФлягин Дмитрий\r\nСпециалист отдела снабжения\r\nООО \"ИНСТРОЙСНАБ\"\r\n(343) 382-00-94 (многоканальный) доб. 401\r\n <mailto:snab8@ingstroysnab.ru> snab8@ingstroysnab.ru\r\n <http://ingstroysnab.ru/> http://ingstroysnab.ru/\r\n\r\n <http://ingstroysnab.ru/> \r\nВНИМАНИЕ! С 1 ФЕВРАЛЯ 2025 ГОДА\r\nУ ООО <ИНСТРОЙСНАБ> НОВЫЙ СКЛАД:\r\n\r\nТерритория УЗТМ, Проспект Космонавтов, 22/1. \r\n\r\nКоординаты: 56.874980,60.602690 \r\n\r\nQR-код с маршрутом: \r\n\r\nПропуск оформляется заранее.",
+  "attachmentFiles": [
+    {
+      "filename": "image001.png",
+      "safeName": "image001.png",
+      "contentType": "image/png",
+      "size": 6163
+    },
+    {
+      "filename": "image002.png",
+      "safeName": "image002.png",
+      "contentType": "image/png",
+      "size": 38287
+    },
+    {
+      "filename": "Карточка ИНСТРОЙСНАБ.doc",
+      "safeName": "Карточка ИНСТРОЙСНАБ.doc",
+      "contentType": "application/msword",
+      "size": 73728
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "166cdf3d-fd9b-4a5e-b4ba-adf011984fa8",
+    "createdAt": "2026-06-01T15:00:45.172Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [],
+      "signals": {
+        "clientScore": 21,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 35,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП)\\s+[\"«]",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal",
+      "sources": {
+        "droppedBrands_noBodyOverlap": [
+          "MTL",
+          "Measurement Technology Limited"
+        ]
+      }
+    },
+    "sender": {
+      "email": "snab8@ingstroysnab.ru",
+      "emailPrimary": "snab8@ingstroysnab.ru",
+      "emailDisplayName": "Флягин Дмитрий",
+      "emailLocal": "snab8",
+      "emailDomain": "ingstroysnab.ru",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Флягин Дмитрий",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.95,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Специалист отдела снабжения",
+      "positionAlt": "Специалист отдела снабжения",
+      "departmentName": "отдела снабжения",
+      "positionSource": "signature",
+      "positionConfidence": 1,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Флягин Дмитрий",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «ИНСТРОЙСНАБ»",
+      "companyAlt": "ООО «ИНСТРОЙСНАБ»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Флягин Дмитрий",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "http://ingstroysnab.ru/>",
+      "cityPhone": "+7 (343) 382-00-94",
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "unknown",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": true,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "6686038895",
+      "kpp": "668601001",
+      "ogrn": null,
+      "legalCardAttached": true,
+      "sources": {
+        "company": "signature",
+        "website": "body",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": "attachment",
+        "ogrn": null,
+        "fullName": "signature",
+        "position": "signature",
+        "department": "body"
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день\nПрошу выставить счёт на:\n\nБАРЬЕР ИСКРОЗАЩИТЫ MTL INSTRUMENTS MTL5514 2 шт\nБАРЬЕР ИСКРОЗАЩИТЫ MTL INSTRUMENTS MTL5526 4 шт\nПЛАТА ОБЪЕДИНИТЕЛЬНАЯ CPY-RS-AI16-KS 1 шт\n\nСпасибо\n\n\n\n\n \n\nС уважением,\nФлягин Дмитрий\nСпециалист отдела снабжения\nООО \"ИНСТРОЙСНАБ\"\n(343) 382-00-94 (многоканальный) доб. 401\n <mailto:snab8@ingstroysnab.ru> snab8@ingstroysnab.ru\n <http://ingstroysnab.ru/> http://ingstroysnab.ru/\n\n <http://ingstroysnab.ru/> \nВНИМАНИЕ! С 1 ФЕВРАЛЯ 2025 ГОДА\nУ ООО <ИНСТРОЙСНАБ> НОВЫЙ СКЛАД:\n\nТерритория УЗТМ, Проспект Космонавтов, 22/1. \n\nКоординаты: 56.874980,60.602690 \n\nQR-код с маршрутом: \n\nПропуск оформляется заранее.\n\n \n\n \n\nС уважением,\nФлягин Дмитрий\nСпециалист отдела снабжения\nООО \"ИНСТРОЙСНАБ\"\n(343) 382-00-94 (многоканальный) доб. 401\n <mailto:snab8@ingstroysnab.ru> snab8@ingstroysnab.ru\n <http://ingstroysnab.ru/> http://ingstroysnab.ru/\n\n <http://ingstroysnab.ru/> \nВНИМАНИЕ! С 1 ФЕВРАЛЯ 2025 ГОДА\nУ ООО <ИНСТРОЙСНАБ> НОВЫЙ СКЛАД:\n\nТерритория УЗТМ, Проспект Космонавтов, 22/1. \n\nКоординаты: 56.874980,60.602690 \n\nQR-код с маршрутом: \n\nПропуск оформляется заранее.",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "CPY-RS-AI16-KS",
+        "MTL5514",
+        "MTL5526"
+      ],
+      "lineItems": [
+        {
+          "article": "CPY-RS-AI16-KS",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "Запрос",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "MTL5514",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "Запрос",
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "MTL5526",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "Запрос",
+          "source": "body",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 3,
+      "detectedBrands": [
+        "MTL",
+        "Measurement Technology Limited"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "CPY-RS-AI16-KS",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "MTL5514",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "MTL5526",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body"
+        ],
+        "names": [],
+        "attachmentsProcessed": [
+          "Карточка ИНСТРОЙСНАБ.doc"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "Запрос",
+      "productLineItems": [],
+      "productNamesClean": [
+        "Запрос"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": 2,
+      "quantityUnit": "шт",
+      "quantitiesClean": [
+        {
+          "value": 2,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 4,
+          "unit": "шт",
+          "source": "inline"
+        },
+        {
+          "value": 1,
+          "unit": "шт",
+          "source": "inline"
+        }
+      ],
+      "totalQuantity": 7,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 3,
+      "totalQty": 6,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.81,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.76,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "signature"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "multiple_brands_detected",
+            "field": "brand",
+            "severity": "low",
+            "values": [
+              "MTL",
+              "Measurement Technology Limited"
+            ]
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "medium",
+        "failureReason": "слабый company; слабый inn; multiple brands detected",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:CPY-RS-AI16-KS, MTL5514, MTL5526 | бренды:MTL, Measurement Technology Limited | компания:ООО «ИНСТРОЙСНАБ» • email:snab8@ingstroysnab.ru",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:CPY-RS-AI16-KS, MTL5514, MTL5526",
+          "бренды:MTL, Measurement Technology Limited",
+          "компания:ООО «ИНСТРОЙСНАБ»",
+          "ИНН:6686038895",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 3,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 6,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7695
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт http://ingstroysnab.ru/> для поиска реквизитов",
+        "Сверить запрос по артикулам: CPY-RS-AI16-KS, MTL5514, MTL5526",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "http://ingstroysnab.ru/>",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "6686038895/668601001",
+      "isFilialByKpp": true
+    },
+    "detectedBrands": [
+      "MTL",
+      "Measurement Technology Limited"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Флягин, добрый день!\n\nСпасибо за заявку по MTL, Measurement Technology Limited.\nАртикулы: CPY-RS-AI16-KS, MTL5514, MTL5526\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Запрос",
+      "attachments": [
+        "image001.png",
+        "image002.png",
+        "Карточка ИНСТРОЙСНАБ.doc"
+      ],
+      "body": "Добрый день\r\nПрошу выставить счёт на:\r\n\r\nБАРЬЕР ИСКРОЗАЩИТЫ MTL INSTRUMENTS MTL5514 2 шт\r\nБАРЬЕР ИСКРОЗАЩИТЫ MTL INSTRUMENTS MTL5526 4 шт\r\nПЛАТА ОБЪЕДИНИТЕЛЬНАЯ CPY-RS-AI16-KS 1 шт\r\n\r\nСпасибо\r\n\r\n\r\n\r\n\r\n \r\n\r\nС уважением,\r\nФлягин Дмитрий\r\nСпециалист отдела снабжения\r\nООО \"ИНСТРОЙСНАБ\"\r\n(343) 382-00-94 (многоканальный) доб. 401\r\n <mailto:snab8@ingstroysnab.ru> snab8@ingstroysnab.ru\r\n <http://ingstroysnab.ru/> http://ingstroysnab.ru/\r\n\r\n <http://ingstroysnab.ru/> \r\nВНИМАНИЕ! С 1 ФЕВРАЛЯ 2025 ГОДА\r\nУ ООО <ИНСТРОЙСНАБ> НОВЫЙ СКЛАД:\r\n\r\nТерритория УЗТМ, Проспект Космонавтов, 22/1. \r\n\r\nКоординаты: 56.874980,60.602690 \r\n\r\nQR-код с маршрутом: \r\n\r\nПропуск оформляется заранее.\r\n\r\n \r\n\r\n \r\n\r\nС уважением,\r\nФлягин Дмитрий\r\nСпециалист отдела снабжения\r\nООО \"ИНСТРОЙСНАБ\"\r\n(343) 382-00-94 (многоканальный) доб. 401\r\n <mailto:snab8@ingstroysnab.ru> snab8@ingstroysnab.ru\r\n <http://ingstroysnab.ru/> http://ingstroysnab.ru/\r\n\r\n <http://ingstroysnab.ru/> \r\nВНИМАНИЕ! С 1 ФЕВРАЛЯ 2025 ГОДА\r\nУ ООО <ИНСТРОЙСНАБ> НОВЫЙ СКЛАД:\r\n\r\nТерритория УЗТМ, Проспект Космонавтов, 22/1. \r\n\r\nКоординаты: 56.874980,60.602690 \r\n\r\nQR-код с маршрутом: \r\n\r\nПропуск оформляется заранее.\r\n\r\n \r\n\r\n \r\n\r\nС уважением,\r\nФлягин Дмитрий\r\nСпециалист отдела снабжения\r\nООО \"ИНСТРОЙСНАБ\"\r\n(343) 382-00-94 (многоканальный) доб. 401\r\n <mailto:snab8@ingstroysnab.ru> snab8@ingstroysnab.ru\r\n <http://ingstroysnab.ru/> http://ingstroysnab.ru/\r\n\r\n <http://ingstroysnab.ru/> \r\nВНИМАНИЕ! С 1 ФЕВРАЛЯ 2025 ГОДА\r\nУ ООО <ИНСТРОЙСНАБ> НОВЫЙ СКЛАД:\r\n\r\nТерритория УЗТМ, Проспект Космонавтов, 22/1. \r\n\r\nКоординаты: 56.874980,60.602690 \r\n\r\nQR-код с маршрутом: \r\n\r\nПропуск оформляется заранее."
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "image001.png",
+          "safeName": "image001.png",
+          "contentType": "image/png",
+          "size": 6163,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "image002.png",
+          "safeName": "image002.png",
+          "contentType": "image/png",
+          "size": 38287,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Карточка ИНСТРОЙСНАБ.doc",
+          "safeName": "Карточка ИНСТРОЙСНАБ.doc",
+          "contentType": "application/msword",
+          "size": 73728,
+          "ext": ".doc",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 2154,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [
+            "6686038895"
+          ],
+          "detectedKpp": [
+            "668601001"
+          ],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 2,
+        "totalBytes": 73728,
+        "totalChars": 2154,
+        "budgetMs": 28,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 2
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-20T19:09:23.064Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 1
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:00:45.186Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

@@ -1,0 +1,1028 @@
+{
+  "messageKey": "081345f6ba7e78132575d5c4616a6321a0452f28",
+  "projectId": "project-4-klvrt-mail",
+  "comments": [
+    "Описание и количество не везде заполнены"
+  ],
+  "subject": "RE: Заявка на з/ч для линии Gualapack. ",
+  "body": "Добавили машины \r\n\r\n \r\n\r\n \r\n\r\nС уважением,\r\n\r\nСоболь Алексей \r\n\r\nЗаместитель начальника отдела закупок и логистики\r\r\n\r\n \r\n\r\n\r\n\r\n \r\n\r\nООО <Белфуд Продакшн>\r\n\r\nул. Филимонова, 25 Г,\r\r\n\r\n220114, Минск, Беларусь\r\r\n\r\nтел: +375 (44) 764-22-03\r\n\r\nE-mail: <mailto:a.sobol@belfood.by> a.sobol@belfood.by\r\n\r\n <http://www.belfood.by/> www.belfood.by\r\n\r\n \r\n\r\n \r\n\r\n \r\n\r\nFrom: a.sobol@belfood.by <a.sobol@belfood.by> \r\nSent: Monday, March 2, 2026 3:42 PM\r\nTo: 'info@siderus.ru' <info@siderus.ru>\r\nSubject: Заявка на з/ч для линии Gualapack. \r\n\r\n \r\n\r\nДобрый день, уважаемые партнеры!\r\nНаша компания по производству детского питания заинтересована в приобретении\r\nз/ч для линий Gualapack. Заявка во вложении. \r\nДополнительно прилагаю шильды оборудования. (4 машины) \r\nПрошу выслать Ваше предложение, указав все коммерческие условия. \r\n\r\nОжидаем обратную связь. \r\nСпасибо! \r\n\r\n \r\n\r\nС уважением,\r\n\r\nСоболь Алексей \r\n\r\nЗаместитель начальника отдела закупок и логистики\r\r\n\r\n \r\n\r\n\r\n\r\n \r\n\r\nООО <Белфуд Продакшн>\r\n\r\nул. Филимонова, 25 Г,\r\r\n\r\n220114, Минск, Беларусь\r\r\n\r\nтел: +375 (44) 764-22-03\r\n\r\nE-mail: <mailto:a.sobol@belfood.by> a.sobol@belfood.by\r\n\r\n <http://www.belfood.by/> www.belfood.by\r\n\r\n \r\n\r\n \r\n\r\n \r\n\r\n\r\n\r\nВнимание! Данное сообщение может содержать конфиденциальную информацию, не подлежащую разглашению и защищенную законодательством РБ. Если настоящее сообщение было получено Вами по ошибке, пожалуйста, проинформируйте об этом отправителя, а затем уничтожьте сообщение, так как в любом случае несанкционированное хранение и использование содержащейся в сообщении информации, в том числе копирование, предоставление, распространение, - запрещено и является незаконным.",
+  "attachmentFiles": [
+    {
+      "filename": "image001.png",
+      "safeName": "image001.png",
+      "contentType": "image/png",
+      "size": 30733
+    },
+    {
+      "filename": "Заявка ГуалаПак_запчасти_ред.09.03.2026.xlsx",
+      "safeName": "Заявка ГуалаПак_запчасти_ред.09.03.2026.xlsx",
+      "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+      "size": 9782
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "81c92226-1c3f-462d-81fb-ffeed8e67101",
+    "createdAt": "2026-06-01T15:06:33.759Z",
+    "mailbox": "robot-mail-siderus@klvrt.ru",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "GUALAPACK"
+      ],
+      "signals": {
+        "clientScore": 11,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 4,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 17,
+            "classifier": "client",
+            "scope": "attachment",
+            "pattern": "реквиз|шильд|артик|sku|label|спецификац|заявк|техзадан",
+            "weight": 2
+          }
+        ]
+      },
+      "brandContext": "normal"
+    },
+    "sender": {
+      "email": "a.sobol@belfood.by",
+      "emailPrimary": "a.sobol@belfood.by",
+      "emailDisplayName": "Соболь Алексей",
+      "emailLocal": "a.sobol",
+      "emailDomain": "belfood.by",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Соболь Алексей",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "body",
+      "fullNameConfidence": 0.9,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": "Заместитель начальника отдела закупок и логистики",
+      "positionAlt": "Заместитель начальника отдела закупок и логистики",
+      "departmentName": "отдела закупок и логистики",
+      "positionSource": "body",
+      "positionConfidence": 0.9,
+      "positionNeedsReview": false,
+      "positionRejected": [
+        {
+          "value": "Соболь Алексей",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "companyName": "ООО «Белфуд Продакшн»",
+      "companyAlt": null,
+      "companyNameSource": "email_domain",
+      "companyNameConfidence": 0.16999999999999996,
+      "companyNameNeedsReview": true,
+      "companyNameRejected": [
+        {
+          "value": "Соболь Алексей",
+          "source": "sender",
+          "reason": "matches_person_hint"
+        }
+      ],
+      "website": "http://www.belfood.by/>",
+      "cityPhone": "+375 44 764-22-03",
+      "mobilePhone": null,
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "BY",
+      "phoneSource": "current_message",
+      "phoneConfidence": 0.8,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "101541947",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": false,
+      "sources": {
+        "company": "company_directory",
+        "website": "body",
+        "phone": "current_message",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "body",
+        "position": "body",
+        "department": "body"
+      }
+    },
+    "lead": {
+      "freeText": "Добавили машины \n\n \n\n \n\nС уважением,\n\nСоболь Алексей \n\nЗаместитель начальника отдела закупок и логистики\r\n\n \n\n\n\n \n\nООО <Белфуд Продакшн>\n\nул. Филимонова, 25 Г,\r\n\n220114, Минск, Беларусь\r\n\nтел: +375 (44) 764-22-03\n\nE-mail: <mailto:a.sobol@belfood.by> a.sobol@belfood.by\n\n <http://www.belfood.by/> www.belfood.by\n\nВложение: Заявка ГуалаПак_запчасти_ред.09.03..xlsx\nPart Name\tPart Number\tQty.\tMachine\nFALSE STRAW 8,65\t3QLVPP-131396\t10\tCHP2H (s/n 16544, 18009, 19202, 20190)\nSPACER\t3QLVPP-131608\t10\tCHP2H (s/n 16544, 18009, 19202, 20190)\nDISTANZIALE\t2QPV1P-134049\t10\tCHP2H (s/n 16544, 18009, 19202, 20190)\nTESTINA AVVITATURA 8,65 BABY\t1WTMBP-123975\t40\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nGAS SPOOL\t1DRM3P-124941\t100\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nLIQUID SPOOL\t1DRM3P-125840\t100\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nCAMPANA INTERMEDIA\t1DRM3P-124927\t4\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nPEEK SPACER\t1DRM3P-123980\t6\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nCYLINDER LOCK\t1DRM3P-124925\t6\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nMAIN BODY WITH GASKET\t1DRM3P-126361\t4\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nGASKET PS-SP 22-31-4,5 H-ECOPUR\tCTNPSSHPUR-E1\t100\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nGASKET S35-P 7-11-3.5 H-ECOPUR\tCTNS35P-HPUR\t100\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nGASKET OR6200\tCTNOR6200\t10\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nGASKET OR3043\tCTNOR3043\t10\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nGIUNTO\t1WSB1P-116964\t12\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nRONDELLA FERMA GHIERA MB1\tCVRRNDMB1\t6\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nSHAFT\t1EAVLP-116887\t24\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nHEAD RESTRAINER SCREW\t1EAVLP-116891\t200\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nASTINA LIVELLO\t1DSRBP-130395\t3\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nASTINA LIVELLO\t1DSRBP-130396\t3\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)\nBOCCOLA CON COLLETTO\t1DSRBP-130399\t6\tCHP2",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "CTNPSSHPUR-E1",
+        "S35-P",
+        "CTNS35P-HPUR",
+        "3QLVPP-131608",
+        "2QPV1P-134049",
+        "1WTMBP-123975",
+        "1DRM3P-124941",
+        "1DRM3P-125840",
+        "1DRM3P-124927",
+        "1DRM3P-123980",
+        "1DRM3P-124925",
+        "1DRM3P-126361",
+        "1WSB1P-116964",
+        "1EAVLP-116887",
+        "1EAVLP-116891",
+        "1DSRBP-130395",
+        "1DSRBP-130396",
+        "1DSRBP-130399",
+        "1DSRBP-130398",
+        "3UPV1P-133882",
+        "2QESLP-121268",
+        "3QSTEP-143362",
+        "CHP2H",
+        "CHP4H",
+        "CTNOR6200",
+        "CTNOR3043",
+        "CVRRNDMB1",
+        "PVL600008M3A",
+        "3QLVPP-131396",
+        "2QMTSP-135473",
+        "3QMT5P-135858",
+        "SP 22-31-4",
+        "HPUR 100",
+        "GASKET OR6200",
+        "GASKET OR3043",
+        "RONDELLA FERMA GHIERA MB1",
+        "GASKET S35-P 7-11-3.5 H-ECOPUR",
+        "OR6200",
+        "OR3043",
+        "MB1"
+      ],
+      "lineItems": [
+        {
+          "article": "3QLVPP-131396",
+          "quantity": 10,
+          "unit": "шт",
+          "descriptionRu": "FALSE STRAW 8,65 3QLVPP-131396",
+          "explicitArticle": true,
+          "sourceLine": "FALSE STRAW 8,65\t3QLVPP-131396\t10\tCHP2H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "3QLVPP-131608",
+          "quantity": 10,
+          "unit": "шт",
+          "descriptionRu": "SPACER 3QLVPP-131608",
+          "explicitArticle": true,
+          "sourceLine": "SPACER\t3QLVPP-131608\t10\tCHP2H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "2QPV1P-134049",
+          "quantity": 10,
+          "unit": "шт",
+          "descriptionRu": "DISTANZIALE 2QPV1P-134049",
+          "explicitArticle": true,
+          "sourceLine": "DISTANZIALE\t2QPV1P-134049\t10\tCHP2H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1WTMBP-123975",
+          "quantity": 40,
+          "unit": "шт",
+          "descriptionRu": "TESTINA AVVITATURA 8,65 BABY 1WTMBP-123975",
+          "explicitArticle": true,
+          "sourceLine": "TESTINA AVVITATURA 8,65 BABY\t1WTMBP-123975\t40\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1DRM3P-124941",
+          "quantity": 100,
+          "unit": "шт",
+          "descriptionRu": "GAS SPOOL 1DRM3P-124941",
+          "explicitArticle": true,
+          "sourceLine": "GAS SPOOL\t1DRM3P-124941\t100\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1DRM3P-125840",
+          "quantity": 100,
+          "unit": "шт",
+          "descriptionRu": "LIQUID SPOOL 1DRM3P-125840",
+          "explicitArticle": true,
+          "sourceLine": "LIQUID SPOOL\t1DRM3P-125840\t100\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1DRM3P-124927",
+          "quantity": 4,
+          "unit": "шт",
+          "descriptionRu": "CAMPANA INTERMEDIA 1DRM3P-124927",
+          "explicitArticle": true,
+          "sourceLine": "CAMPANA INTERMEDIA\t1DRM3P-124927\t4\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1DRM3P-123980",
+          "quantity": 6,
+          "unit": "шт",
+          "descriptionRu": "PEEK SPACER 1DRM3P-123980",
+          "explicitArticle": true,
+          "sourceLine": "PEEK SPACER\t1DRM3P-123980\t6\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1DRM3P-124925",
+          "quantity": 6,
+          "unit": "шт",
+          "descriptionRu": "CYLINDER LOCK 1DRM3P-124925",
+          "explicitArticle": true,
+          "sourceLine": "CYLINDER LOCK\t1DRM3P-124925\t6\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1DRM3P-126361",
+          "quantity": 4,
+          "unit": "шт",
+          "descriptionRu": "MAIN BODY WITH GASKET 1DRM3P-126361",
+          "explicitArticle": true,
+          "sourceLine": "MAIN BODY WITH GASKET\t1DRM3P-126361\t4\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "CTNPSSHPUR-E1",
+          "quantity": 100,
+          "unit": "шт",
+          "descriptionRu": "GASKET PS-SP 22-31-4,5 H-ECOPUR CTNPSSHPUR-E1",
+          "explicitArticle": true,
+          "sourceLine": "GASKET PS-SP 22-31-4,5 H-ECOPUR\tCTNPSSHPUR-E1\t100\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "CTNS35P-HPUR",
+          "quantity": 100,
+          "unit": "шт",
+          "descriptionRu": "GASKET S35-P 7-11-3.5 H-ECOPUR",
+          "explicitArticle": true,
+          "sourceLine": "GASKET S35-P 7-11-3.5 H-ECOPUR\tCTNS35P-HPUR\t100\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "GASKET OR6200",
+          "quantity": 10,
+          "unit": "шт",
+          "descriptionRu": "GASKET OR6200 CTNOR6200",
+          "explicitArticle": true,
+          "sourceLine": "GASKET OR6200\tCTNOR6200\t10\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "GASKET OR3043",
+          "quantity": 10,
+          "unit": "шт",
+          "descriptionRu": "GASKET OR3043 CTNOR3043",
+          "explicitArticle": true,
+          "sourceLine": "GASKET OR3043\tCTNOR3043\t10\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1WSB1P-116964",
+          "quantity": 12,
+          "unit": "шт",
+          "descriptionRu": "GIUNTO 1WSB1P-116964",
+          "explicitArticle": true,
+          "sourceLine": "GIUNTO\t1WSB1P-116964\t12\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "RONDELLA FERMA GHIERA MB1",
+          "quantity": 6,
+          "unit": "шт",
+          "descriptionRu": "RONDELLA FERMA GHIERA MB1 CVRRNDMB1",
+          "explicitArticle": true,
+          "sourceLine": "RONDELLA FERMA GHIERA MB1\tCVRRNDMB1\t6\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1EAVLP-116887",
+          "quantity": 24,
+          "unit": "шт",
+          "descriptionRu": "SHAFT 1EAVLP-116887",
+          "explicitArticle": true,
+          "sourceLine": "SHAFT\t1EAVLP-116887\t24\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1EAVLP-116891",
+          "quantity": 200,
+          "unit": "шт",
+          "descriptionRu": "HEAD RESTRAINER SCREW 1EAVLP-116891",
+          "explicitArticle": true,
+          "sourceLine": "HEAD RESTRAINER SCREW\t1EAVLP-116891\t200\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1DSRBP-130395",
+          "quantity": 3,
+          "unit": "шт",
+          "descriptionRu": "ASTINA LIVELLO 1DSRBP-130395",
+          "explicitArticle": true,
+          "sourceLine": "ASTINA LIVELLO\t1DSRBP-130395\t3\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1DSRBP-130396",
+          "quantity": 3,
+          "unit": "шт",
+          "descriptionRu": "ASTINA LIVELLO 1DSRBP-130396",
+          "explicitArticle": true,
+          "sourceLine": "ASTINA LIVELLO\t1DSRBP-130396\t3\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1DSRBP-130399",
+          "quantity": 6,
+          "unit": "шт",
+          "descriptionRu": "BOCCOLA CON COLLETTO 1DSRBP-130399",
+          "explicitArticle": true,
+          "sourceLine": "BOCCOLA CON COLLETTO\t1DSRBP-130399\t6\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "1DSRBP-130398",
+          "quantity": 6,
+          "unit": "шт",
+          "descriptionRu": "BOCCOLA CON COLLETTO 1DSRBP-130398",
+          "explicitArticle": true,
+          "sourceLine": "BOCCOLA CON COLLETTO\t1DSRBP-130398\t6\tCHP2H, CHP4H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "3UPV1P-133882",
+          "quantity": 10,
+          "unit": "шт",
+          "descriptionRu": "FALSE SPOUT 3UPV1P-133882",
+          "explicitArticle": true,
+          "sourceLine": "FALSE SPOUT\t3UPV1P-133882\t10\tOnly CHP4H s/n 20190",
+          "source": "body"
+        },
+        {
+          "article": "2QESLP-121268",
+          "quantity": 4,
+          "unit": "шт",
+          "descriptionRu": "SPINTORE 2QESLP-121268",
+          "explicitArticle": true,
+          "sourceLine": "SPINTORE\t2QESLP-121268\t4\tCHP2H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "3QSTEP-143362",
+          "quantity": 4,
+          "unit": "шт",
+          "descriptionRu": "SPINTORE DI SCARICO 3QSTEP-143362",
+          "explicitArticle": true,
+          "sourceLine": "SPINTORE DI SCARICO\t3QSTEP-143362\t4\tOnly CHP4H s/n 20190",
+          "source": "body"
+        },
+        {
+          "article": "2QMTSP-135473",
+          "quantity": 3,
+          "unit": "шт",
+          "descriptionRu": "DISCO ROTANTE 8,65 2QMTSP-135473",
+          "explicitArticle": true,
+          "sourceLine": "DISCO ROTANTE 8,65\t2QMTSP-135473\t3\tCHP2H (s/n 16544, 18009, 19202, 20190)",
+          "source": "body"
+        },
+        {
+          "article": "3QMT5P-135858",
+          "quantity": 2,
+          "unit": "шт",
+          "descriptionRu": "DISCO ROTANTE (SACCH 8,65) 3QMT5P-135858",
+          "explicitArticle": true,
+          "sourceLine": "DISCO ROTANTE (SACCH 8,65)\t3QMT5P-135858\t2\tOnly CHP4H s/n 20190",
+          "source": "body"
+        },
+        {
+          "article": "S35-P",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "CHP2H",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "CHP4H",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "CTNOR6200",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "CTNOR3043",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "CVRRNDMB1",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "PVL600008M3A",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "SP 22-31-4",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "HPUR 100",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "GASKET S35-P 7-11-3.5 H-ECOPUR",
+          "quantity": 100,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment:Заявка ГуалаПак_запчасти_ред.09.03.2026.xlsx"
+        }
+      ],
+      "totalPositions": 40,
+      "detectedBrands": [
+        "GUALAPACK"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "CTNPSSHPUR-E1",
+          "name": "GASKET PS-SP 22-31-4,5 H-ECOPUR",
+          "category": null
+        },
+        {
+          "article": "S35-P",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "CTNS35P-HPUR",
+          "name": "GASKET S35-P 7-11-3.5 H-ECOPUR",
+          "category": null
+        },
+        {
+          "article": "3QLVPP-131608",
+          "name": "SPACER",
+          "category": null
+        },
+        {
+          "article": "2QPV1P-134049",
+          "name": "DISTANZIALE",
+          "category": null
+        },
+        {
+          "article": "1WTMBP-123975",
+          "name": "TESTINA AVVITATURA 8,65 BABY",
+          "category": null
+        },
+        {
+          "article": "1DRM3P-124941",
+          "name": "GAS SPOOL",
+          "category": null
+        },
+        {
+          "article": "1DRM3P-125840",
+          "name": "LIQUID SPOOL",
+          "category": null
+        },
+        {
+          "article": "1DRM3P-124927",
+          "name": "CAMPANA INTERMEDIA",
+          "category": null
+        },
+        {
+          "article": "1DRM3P-123980",
+          "name": "PEEK SPACER",
+          "category": null
+        },
+        {
+          "article": "1DRM3P-124925",
+          "name": "CYLINDER LOCK",
+          "category": null
+        },
+        {
+          "article": "1DRM3P-126361",
+          "name": "MAIN BODY WITH GASKET",
+          "category": null
+        },
+        {
+          "article": "1WSB1P-116964",
+          "name": "GIUNTO",
+          "category": null
+        },
+        {
+          "article": "1EAVLP-116887",
+          "name": "SHAFT",
+          "category": null
+        },
+        {
+          "article": "1EAVLP-116891",
+          "name": "HEAD RESTRAINER SCREW",
+          "category": null
+        },
+        {
+          "article": "1DSRBP-130395",
+          "name": "ASTINA LIVELLO",
+          "category": null
+        },
+        {
+          "article": "1DSRBP-130396",
+          "name": "ASTINA LIVELLO",
+          "category": null
+        },
+        {
+          "article": "1DSRBP-130399",
+          "name": "BOCCOLA CON COLLETTO",
+          "category": null
+        },
+        {
+          "article": "1DSRBP-130398",
+          "name": "BOCCOLA CON COLLETTO",
+          "category": null
+        },
+        {
+          "article": "3UPV1P-133882",
+          "name": "FALSE SPOUT",
+          "category": null
+        },
+        {
+          "article": "2QESLP-121268",
+          "name": "SPINTORE",
+          "category": null
+        },
+        {
+          "article": "3QSTEP-143362",
+          "name": "SPINTORE DI SCARICO",
+          "category": null
+        },
+        {
+          "article": "CHP2H",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "CHP4H",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "CTNOR6200",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "CTNOR3043",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "CVRRNDMB1",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "PVL600008M3A",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "3QLVPP-131396",
+          "name": "FALSE STRAW 8,65",
+          "category": null
+        },
+        {
+          "article": "2QMTSP-135473",
+          "name": "DISCO ROTANTE 8,65",
+          "category": null
+        },
+        {
+          "article": "3QMT5P-135858",
+          "name": "DISCO ROTANTE (SACCH 8,65)",
+          "category": null
+        },
+        {
+          "article": "SP 22-31-4",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GASKET OR6200",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "GASKET OR3043",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "RONDELLA FERMA GHIERA MB1",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "attachment",
+          "attachment:Заявка ГуалаПак_запчасти_ред.09.03.2026.xlsx"
+        ],
+        "names": [
+          "body"
+        ],
+        "attachmentsProcessed": [
+          "Заявка ГуалаПак_запчасти_ред.09.03.2026.xlsx"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": true,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [],
+        "completenessScore": 100,
+        "overallConfidence": 0.83,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": "SHAFT 1EAVLP-116887",
+      "productLineItems": [
+        "FALSE STRAW 8,65 3QLVPP-131396",
+        "SPACER 3QLVPP-131608",
+        "DISTANZIALE 2QPV1P-134049",
+        "TESTINA AVVITATURA 8,65 BABY 1WTMBP-123975",
+        "GAS SPOOL 1DRM3P-124941",
+        "LIQUID SPOOL 1DRM3P-125840",
+        "CAMPANA INTERMEDIA 1DRM3P-124927",
+        "PEEK SPACER 1DRM3P-123980",
+        "CYLINDER LOCK 1DRM3P-124925",
+        "MAIN BODY WITH GASKET 1DRM3P-126361",
+        "GASKET PS-SP 22-31-4,5 H-ECOPUR CTNPSSHPUR-E1",
+        "GASKET S35-P 7-11-3.5 H-ECOPUR",
+        "GASKET OR6200 CTNOR6200",
+        "GASKET OR3043 CTNOR3043",
+        "GIUNTO 1WSB1P-116964",
+        "RONDELLA FERMA GHIERA MB1 CVRRNDMB1",
+        "SHAFT 1EAVLP-116887",
+        "HEAD RESTRAINER SCREW 1EAVLP-116891",
+        "ASTINA LIVELLO 1DSRBP-130395",
+        "ASTINA LIVELLO 1DSRBP-130396",
+        "BOCCOLA CON COLLETTO 1DSRBP-130399",
+        "BOCCOLA CON COLLETTO 1DSRBP-130398",
+        "FALSE SPOUT 3UPV1P-133882",
+        "SPINTORE 2QESLP-121268",
+        "SPINTORE DI SCARICO 3QSTEP-143362",
+        "DISCO ROTANTE 8,65 2QMTSP-135473",
+        "DISCO ROTANTE (SACCH 8,65) 3QMT5P-135858"
+      ],
+      "productNamesClean": [
+        "FALSE STRAW 8,65 3QLVPP-131396",
+        "SPACER 3QLVPP-131608",
+        "DISTANZIALE 2QPV1P-134049",
+        "TESTINA AVVITATURA 8,65 BABY 1WTMBP-123975",
+        "GAS SPOOL 1DRM3P-124941",
+        "LIQUID SPOOL 1DRM3P-125840",
+        "CAMPANA INTERMEDIA 1DRM3P-124927",
+        "PEEK SPACER 1DRM3P-123980",
+        "CYLINDER LOCK 1DRM3P-124925",
+        "MAIN BODY WITH GASKET 1DRM3P-126361",
+        "GASKET PS-SP 22-31-4,5 H-ECOPUR CTNPSSHPUR-E1",
+        "GASKET S35-P 7-11-3.5 H-ECOPUR",
+        "GASKET OR6200 CTNOR6200",
+        "GASKET OR3043 CTNOR3043",
+        "GIUNTO 1WSB1P-116964",
+        "RONDELLA FERMA GHIERA MB1 CVRRNDMB1",
+        "SHAFT 1EAVLP-116887",
+        "HEAD RESTRAINER SCREW 1EAVLP-116891",
+        "ASTINA LIVELLO 1DSRBP-130395",
+        "ASTINA LIVELLO 1DSRBP-130396",
+        "BOCCOLA CON COLLETTO 1DSRBP-130399",
+        "BOCCOLA CON COLLETTO 1DSRBP-130398",
+        "FALSE SPOUT 3UPV1P-133882",
+        "SPINTORE 2QESLP-121268",
+        "SPINTORE DI SCARICO 3QSTEP-143362",
+        "DISCO ROTANTE 8,65 2QMTSP-135473",
+        "DISCO ROTANTE (SACCH 8,65) 3QMT5P-135858"
+      ],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [],
+      "positions": 40,
+      "totalQty": 893,
+      "recognitionDiagnostics": {
+        "completenessScore": 100,
+        "overallConfidence": 0.83,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.96,
+            "source": "explicit_article_block"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": true,
+            "confidence": 0.92,
+            "source": "body"
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "current_message"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "company_directory"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый company; слабый inn",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:CTNPSSHPUR-E1, S35-P, CTNS35P-HPUR | бренды:GUALAPACK | компания:ООО «Белфуд Продакшн» • email:a.sobol@belfood.by",
+        "suggestion": "Письмо можно подтвердить как корректно разобранное.",
+        "triggerSignals": [
+          "артикулы:CTNPSSHPUR-E1, S35-P, CTNS35P-HPUR",
+          "бренды:GUALAPACK",
+          "компания:ООО «Белфуд Продакшн»",
+          "ИНН:101541947",
+          "вложения:1",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 34,
+          "attachmentArticles": 1,
+          "matchedRuleCount": 3,
+          "processedAttachments": 1
+        }
+      },
+      "confidence": 0.7885
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт http://www.belfood.by/> для поиска реквизитов",
+        "Сверить запрос по артикулам: CTNPSSHPUR-E1, S35-P, CTNS35P-HPUR, 3QLVPP-131608, 2QPV1P-134049",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "http://www.belfood.by/>",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "BY",
+      "deduplicationKey": "101541947",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "GUALAPACK"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Соболь, добрый день!\n\nСпасибо за заявку по GUALAPACK (40 позиций).\nАртикулы: CTNPSSHPUR-E1, S35-P, CTNS35P-HPUR, 3QLVPP-131608, 2QPV1P-134049\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "RE: Заявка на з/ч для линии Gualapack. ",
+      "attachments": [
+        "image001.png",
+        "Заявка ГуалаПак_запчасти_ред.09.03.2026.xlsx"
+      ],
+      "body": "Добавили машины \r\n\r\n \r\n\r\n \r\n\r\nС уважением,\r\n\r\nСоболь Алексей \r\n\r\nЗаместитель начальника отдела закупок и логистики\r\r\n\r\n \r\n\r\n\r\n\r\n \r\n\r\nООО <Белфуд Продакшн>\r\n\r\nул. Филимонова, 25 Г,\r\r\n\r\n220114, Минск, Беларусь\r\r\n\r\nтел: +375 (44) 764-22-03\r\n\r\nE-mail: <mailto:a.sobol@belfood.by> a.sobol@belfood.by\r\n\r\n <http://www.belfood.by/> www.belfood.by\r\n\r\n \r\n\r\n \r\n\r\n \r\n\r\nFrom: a.sobol@belfood.by <a.sobol@belfood.by> \r\nSent: Monday, March 2, 2026 3:42 PM\r\nTo: 'info@siderus.ru' <info@siderus.ru>\r\nSubject: Заявка на з/ч для линии Gualapack. \r\n\r\n \r\n\r\nДобрый день, уважаемые партнеры!\r\nНаша компания по производству детского питания заинтересована в приобретении\r\nз/ч для линий Gualapack. Заявка во вложении. \r\nДополнительно прилагаю шильды оборудования. (4 машины) \r\nПрошу выслать Ваше предложение, указав все коммерческие условия. \r\n\r\nОжидаем обратную связь. \r\nСпасибо! \r\n\r\n \r\n\r\nС уважением,\r\n\r\nСоболь Алексей \r\n\r\nЗаместитель начальника отдела закупок и логистики\r\r\n\r\n \r\n\r\n\r\n\r\n \r\n\r\nООО <Белфуд Продакшн>\r\n\r\nул. Филимонова, 25 Г,\r\r\n\r\n220114, Минск, Беларусь\r\r\n\r\nтел: +375 (44) 764-22-03\r\n\r\nE-mail: <mailto:a.sobol@belfood.by> a.sobol@belfood.by\r\n\r\n <http://www.belfood.by/> www.belfood.by\r\n\r\n \r\n\r\n \r\n\r\n \r\n\r\n\r\n\r\nВнимание! Данное сообщение может содержать конфиденциальную информацию, не подлежащую разглашению и защищенную законодательством РБ. Если настоящее сообщение было получено Вами по ошибке, пожалуйста, проинформируйте об этом отправителя, а затем уничтожьте сообщение, так как в любом случае несанкционированное хранение и использование содержащейся в сообщении информации, в том числе копирование, предоставление, распространение, - запрещено и является незаконным."
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "image001.png",
+          "safeName": "image001.png",
+          "contentType": "image/png",
+          "size": 30733,
+          "ext": ".png",
+          "status": "skipped",
+          "reason": "ocr_unavailable_image",
+          "extractedChars": 0,
+          "category": "image",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "Заявка ГуалаПак_запчасти_ред.09.03.2026.xlsx",
+          "safeName": "Заявка ГуалаПак_запчасти_ред.09.03.2026.xlsx",
+          "contentType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet",
+          "size": 9782,
+          "ext": ".xlsx",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 2165,
+          "category": "product_request",
+          "detectedArticles": [
+            "3QLVPP-131396",
+            "CHP2H",
+            "16544",
+            "18009",
+            "19202",
+            "20190",
+            "3QLVPP-131608",
+            "2QPV1P-134049",
+            "1WTMBP-123975",
+            "CHP4H",
+            "1DRM3P-124941",
+            "1DRM3P-125840",
+            "1DRM3P-124927",
+            "1DRM3P-123980",
+            "1DRM3P-124925",
+            "1DRM3P-126361",
+            "22-31-4",
+            "CTNPSSHPUR-E1",
+            "S35-P",
+            "7-11-3.5",
+            "CTNS35P-HPUR",
+            "OR6200",
+            "CTNOR6200",
+            "OR3043",
+            "CTNOR3043",
+            "1WSB1P-116964",
+            "MB1",
+            "CVRRNDMB1",
+            "1EAVLP-116887",
+            "1EAVLP-116891"
+          ],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 1,
+        "skippedCount": 1,
+        "totalBytes": 9782,
+        "totalChars": 2165,
+        "budgetMs": 196,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": false,
+      "quotedTextDetected": true,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 1,
+      "attachmentsSkipped": 1
+    },
+    "llmExtraction": {
+      "processedAt": null,
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 2
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T15:06:33.773Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}

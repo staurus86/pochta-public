@@ -1,0 +1,595 @@
+{
+  "messageKey": "2f48eb66b3379ad4512183f9b3c7777f6ace296f",
+  "projectId": "project-3-mailbox-file",
+  "comments": [
+    "нет ИНН, хотя карточка открывается"
+  ],
+  "subject": "Fwd: ТКП_прошу предоставить",
+  "body": "Добрый день, коллеги!\n\nВ настоящее время разрабатываем рабочий проект 11-2026-КСПА-АТХ «Замена уровнемеров позиций LRCA-403, LRCA-404, LRC-407, LRA-408 в цехе №З» для филиала «ПМУ» АО «ОХК «УРАЛХИМ» в городе Перми.\nПроектом предусматривается замена и монтаж уровнемеров (желательно Endess+Hauser) и выносных колонок для них на аппаратах.\n\nПрошу взять «в работу» и предоставить ТКП согласно опросным листам.\n\nКарточка предприятия и опросные листы во вложении.\n\nСпасибо!\nЖду обратную связь.\n\n--\nРусских Ирина Владимировна,\nотдел автоматизации,\nООО \"КСПА\"\nтел. +7(342) 2179572 доб.106\nмоб.тел. 8 908 244 44 81",
+  "attachmentFiles": [
+    {
+      "filename": "Карточка предприятия КСПА альфа.pdf",
+      "safeName": "Карточка предприятия КСПА альфа.pdf",
+      "contentType": "application/pdf",
+      "size": 149675
+    },
+    {
+      "filename": "11-2026-КСПА-АТХ.ОЛ2_LRCA-404_(2).pdf",
+      "safeName": "11-2026-КСПА-АТХ.ОЛ2_LRCA-404_(2).pdf",
+      "contentType": "application/pdf",
+      "size": 235989
+    },
+    {
+      "filename": "11-2026-КСПА-АТХ.ОЛ3_LRCА-407_(2).pdf",
+      "safeName": "11-2026-КСПА-АТХ.ОЛ3_LRCА-407_(2).pdf",
+      "contentType": "application/pdf",
+      "size": 610785
+    },
+    {
+      "filename": "11-2026-КСПА-АТХ.ОЛ4_LRА-408_(1).pdf",
+      "safeName": "11-2026-КСПА-АТХ.ОЛ4_LRА-408_(1).pdf",
+      "contentType": "application/pdf",
+      "size": 386923
+    },
+    {
+      "filename": "11-2026-КСПА-АТХ.ОЛ1_LRCA-403_(1).pdf",
+      "safeName": "11-2026-КСПА-АТХ.ОЛ1_LRCA-403_(1).pdf",
+      "contentType": "application/pdf",
+      "size": 422149
+    }
+  ],
+  "currentAnalysis": {
+    "analysisId": "37f349d7-4701-4a7f-9322-11f518a59c99",
+    "createdAt": "2026-06-01T14:50:52.417Z",
+    "mailbox": "multi-mailbox@project3.local",
+    "classification": {
+      "label": "Клиент",
+      "confidence": 0.95,
+      "detectedBrands": [
+        "Hauser"
+      ],
+      "signals": {
+        "clientScore": 24,
+        "spamScore": 0,
+        "vendorScore": 0,
+        "matchedRules": [
+          {
+            "id": 14,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "наличие\\s+на\\s+складе|сроки\\s+поставки|с\\s+доставкой|просьба\\s+выставить|реквизиты\\s+прилагаются|карточка\\s+предприятия",
+            "weight": 4
+          },
+          {
+            "id": 16,
+            "classifier": "client",
+            "scope": "subject",
+            "pattern": "заявка|rfq|запрос|quotation|коммерческое|кп\\b|предложение",
+            "weight": 4
+          },
+          {
+            "id": 2,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 9,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)",
+            "weight": 3
+          },
+          {
+            "id": 13,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "заявк|коммерческ|прошу|нужн|артикул|шильдик|кол-?во|счет|quotation|rfq|price request|цена(?:\\b|\\s)|цены(?:\\b|\\s)|просим|потребность",
+            "weight": 3
+          },
+          {
+            "id": 33,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "нужен|нужна(?!ш)|просьба|кп|цену|цена|цене|наличии|наличие|в наличии|сообщите|подскажите|помогите|под заказ",
+            "weight": 3
+          },
+          {
+            "id": 35,
+            "classifier": "client",
+            "scope": "body",
+            "pattern": "(?:ООО|АО|ОАО|ЗАО|ПАО|ФГУП|МУП|ГУП)\\s+[\"«]",
+            "weight": 3
+          }
+        ]
+      },
+      "brandContext": "normal",
+      "sources": {
+        "droppedBrands_noBodyOverlap": [
+          "Endress & Hauser"
+        ]
+      }
+    },
+    "sender": {
+      "email": "ruskikh@kspa.pro",
+      "emailPrimary": "ruskikh@kspa.pro",
+      "emailDisplayName": "Русских Ирина Владимировна",
+      "emailLocal": "ruskikh",
+      "emailDomain": "kspa.pro",
+      "emailType": "person_email",
+      "emailDomainType": "corporate",
+      "emailSource": "sender_header",
+      "emailConfidence": 0.9,
+      "emailNeedsReview": false,
+      "emailDeduplicated": false,
+      "emailCanDefinePerson": true,
+      "emailCanDefineCompany": true,
+      "emailRejected": [],
+      "fullName": "Русских Ирина Владимировна",
+      "fullNameAlt": null,
+      "fullNameCompany": null,
+      "fullNameRole": null,
+      "fullNameSource": "signature",
+      "fullNameConfidence": 0.9,
+      "fullNameNeedsReview": false,
+      "fullNameRejected": [],
+      "position": null,
+      "positionAlt": null,
+      "departmentName": null,
+      "positionSource": null,
+      "positionConfidence": 0,
+      "positionNeedsReview": true,
+      "positionRejected": [
+        {
+          "value": "Русских",
+          "source": "sender",
+          "reason": "no_role_word"
+        }
+      ],
+      "companyName": "ООО «КСПА»",
+      "companyAlt": "ООО «КСПА»",
+      "companyNameSource": "signature",
+      "companyNameConfidence": 1,
+      "companyNameNeedsReview": false,
+      "companyNameRejected": [
+        {
+          "value": "Русских Ирина Владимировна",
+          "source": "sender",
+          "reason": "person_like"
+        }
+      ],
+      "website": "https://kspa.pro",
+      "cityPhone": "+7 (342) 217-95-72",
+      "mobilePhone": "+7 (908) 244-44-81",
+      "phoneExt": null,
+      "phoneType": "phone",
+      "phoneCountry": "RU",
+      "phoneSource": "signature",
+      "phoneConfidence": 0.9,
+      "phoneNeedsReview": false,
+      "phoneRecoveredFromCompany": false,
+      "phoneRejected": [],
+      "inn": "5948037949",
+      "kpp": null,
+      "ogrn": null,
+      "legalCardAttached": true,
+      "sources": {
+        "company": "signature",
+        "website": "email_domain",
+        "phone": "signature",
+        "inn": "company_directory",
+        "kpp": null,
+        "ogrn": null,
+        "fullName": "signature",
+        "position": null,
+        "department": null
+      }
+    },
+    "lead": {
+      "freeText": "Добрый день, коллеги!\n\nВ настоящее время разрабатываем рабочий проект 11-2026-КСПА-АТХ «Замена уровнемеров позиций LRCA-403, LRCA-404, LRC-407, LRA-408 в цехе №З» для филиала «ПМУ» АО «ОХК «УРАЛХИМ» в городе Перми.\nПроектом предусматривается замена и монтаж уровнемеров (желательно Endess+Hauser) и выносных колонок для них на аппаратах.\n\nПрошу взять «в работу» и предоставить ТКП согласно опросным листам.\n\nКарточка предприятия и опросные листы во вложении.\n\nСпасибо!\nЖду обратную связь.\n\nВложение: -КСПА-АТХ.ОЛ2_LRCA-404_(2).pdf\n0 G\n0 g\n341.1534 695.8399 12.8336 9.3752 re\nB\n221536\n235617\n\nВложение: -КСПА-АТХ.ОЛ3_LRCА-407_(2).pdf\n0\nEOF\n116\n242080\n267720\n308806\n377592\n394353\n420316\n441582\n462874\ng\n476657\n503067\n516256\n539213\n556635\n1 0 0 RG\n341.5857 694.9753 10.6721 10.6722 re\nS\n571121\n0 G\n0 g\n341.5857 694.9753 10.6721 10.6722 re\nB\n576243\n596528\n610417\n\nВложение: -КСПА-АТХ.ОЛ4_LRА-408_(1).pdf\n0\nEOF\n116\n204924\n268589\n289871\n299187\n325605\n338846\n360234\n380532\n0 G\n0 g\n341.5857 696.2722 11.969 8.5106 re\nB\n386571\n\nВложение: -КСПА-АТХ.ОЛ1_LRCA-403_(1).pdf\n0\nEOF\n116\n192523\n213903\n235074\n256369\n278334\n292074\n309074\n329447\n359531\n0 G\n0 g\n344.6118 697.5623 9.3752 8.5107 re\nB\n380421\n421719",
+      "hasNameplatePhotos": false,
+      "hasArticlePhotos": false,
+      "articles": [
+        "LRCA-403",
+        "LRCA-404",
+        "LRC-407",
+        "LRA-408",
+        "RG 341.5857",
+        "11-2026"
+      ],
+      "lineItems": [
+        {
+          "article": "LRCA-403",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LRCA-404",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LRC-407",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "LRA-408",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "body",
+          "explicitArticle": false
+        },
+        {
+          "article": "RG 341.5857",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment",
+          "explicitArticle": false
+        },
+        {
+          "article": "11-2026",
+          "quantity": null,
+          "unit": "шт",
+          "descriptionRu": null,
+          "source": "attachment_filename",
+          "explicitArticle": false
+        }
+      ],
+      "totalPositions": 6,
+      "detectedBrands": [
+        "Hauser"
+      ],
+      "detectedProductTypes": [],
+      "productNames": [
+        {
+          "article": "LRCA-403",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LRCA-404",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LRC-407",
+          "name": null,
+          "category": null
+        },
+        {
+          "article": "LRA-408",
+          "name": null,
+          "category": null
+        }
+      ],
+      "nomenclatureMatches": [],
+      "urgency": "normal",
+      "attachmentHints": [],
+      "requestType": "Монобрендовая",
+      "sources": {
+        "articles": [
+          "body",
+          "attachment"
+        ],
+        "names": [],
+        "attachmentsProcessed": [
+          "11-2026-КСПА-АТХ.ОЛ2_LRCA-404_(2).pdf",
+          "11-2026-КСПА-АТХ.ОЛ3_LRCА-407_(2).pdf",
+          "11-2026-КСПА-АТХ.ОЛ4_LRА-408_(1).pdf",
+          "11-2026-КСПА-АТХ.ОЛ1_LRCA-403_(1).pdf"
+        ],
+        "brands": [
+          "body"
+        ]
+      },
+      "recognitionSummary": {
+        "article": true,
+        "brand": true,
+        "name": false,
+        "phone": true,
+        "company": true,
+        "inn": true,
+        "parsedAttachment": true,
+        "missing": [
+          "name"
+        ],
+        "completenessScore": 83,
+        "overallConfidence": 0.79,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "hasConflicts": false
+      },
+      "brandContext": "normal",
+      "productNamePrimary": null,
+      "productLineItems": [],
+      "productNamesClean": [],
+      "productNamesRejected": [],
+      "primaryQuantity": null,
+      "quantityUnit": null,
+      "quantitiesClean": [],
+      "totalQuantity": null,
+      "quantityNeedsReview": false,
+      "quantitiesRejected": [
+        {
+          "value": null,
+          "reason": "technical_spec",
+          "sourceLine": "408 в"
+        }
+      ],
+      "positions": 6,
+      "totalQty": 0,
+      "recognitionDiagnostics": {
+        "completenessScore": 83,
+        "overallConfidence": 0.79,
+        "riskLevel": "medium",
+        "primaryIssue": "low_confidence_company",
+        "fields": {
+          "article": {
+            "found": true,
+            "confidence": 0.84,
+            "source": "body"
+          },
+          "brand": {
+            "found": true,
+            "confidence": 0.78,
+            "source": "body"
+          },
+          "name": {
+            "found": false,
+            "confidence": 0,
+            "source": null
+          },
+          "phone": {
+            "found": true,
+            "confidence": 0.9,
+            "source": "signature"
+          },
+          "company": {
+            "found": true,
+            "confidence": 0.7,
+            "source": "signature"
+          },
+          "inn": {
+            "found": true,
+            "confidence": 0.72,
+            "source": "company_directory"
+          }
+        },
+        "conflicts": [],
+        "issues": [
+          {
+            "code": "low_confidence_company",
+            "field": "company",
+            "severity": "medium",
+            "confidence": 0.7
+          },
+          {
+            "code": "low_confidence_inn",
+            "field": "inn",
+            "severity": "medium",
+            "confidence": 0.72
+          },
+          {
+            "code": "missing_name",
+            "field": "name",
+            "severity": "medium"
+          }
+        ]
+      },
+      "recognitionDecision": {
+        "priority": "high",
+        "failureReason": "слабый company; слабый inn; нет name",
+        "decisionReason": "класс:Клиент • conf:95% • сигналы:артикулы:LRCA-403, LRCA-404, LRC-407 | бренды:Hauser | компания:ООО «КСПА» • email:ruskikh@kspa.pro",
+        "suggestion": "Не хватает: наименование. Дополните через быструю коррекцию или запросите у клиента. Добавьте наименование для артикула — закрепите через feedback.",
+        "triggerSignals": [
+          "артикулы:LRCA-403, LRCA-404, LRC-407",
+          "бренды:Hauser",
+          "компания:ООО «КСПА»",
+          "ИНН:5948037949",
+          "вложения:4",
+          "правила:client,client"
+        ],
+        "pipeline": {
+          "bodyArticles": 4,
+          "attachmentArticles": 0,
+          "matchedRuleCount": 7,
+          "processedAttachments": 4
+        }
+      },
+      "confidence": 0.7004999999999999
+    },
+    "crm": {
+      "company": null,
+      "isExistingCompany": false,
+      "curatorMop": "Не назначен",
+      "curatorMoz": "Не назначен",
+      "needsClarification": false,
+      "actions": [
+        "Проверить контактное лицо и домен на совпадение с CRM",
+        "Использовать сайт https://kspa.pro для поиска реквизитов",
+        "Сверить запрос по артикулам: LRCA-403, LRCA-404, LRC-407, LRA-408, RG 341.5857",
+        "Если ИНН не найден, запросить реквизиты ответным письмом",
+        "После получения реквизитов создать карточку клиента и контактное лицо"
+      ],
+      "suggestedReply": null,
+      "inferredWebsite": "https://kspa.pro",
+      "matchMethod": "none",
+      "matchConfidence": 0,
+      "innType": "RU_ORG",
+      "deduplicationKey": "5948037949",
+      "isFilialByKpp": false
+    },
+    "detectedBrands": [
+      "Hauser"
+    ],
+    "intakeFlow": {
+      "parseToFields": true,
+      "requestClarification": false,
+      "createClientInCrm": true,
+      "createRequestInCrm": true,
+      "assignMop": "Не назначен",
+      "assignMoz": "Не назначен",
+      "requestType": "Монобрендовая",
+      "requiresReview": false,
+      "reviewReason": null,
+      "isVendorInquiry": false,
+      "skipCrmSync": false,
+      "flags": [],
+      "syncPriority": "normal"
+    },
+    "suggestedReply": "Русских, добрый день!\n\nСпасибо за заявку по Hauser (6 позиций).\nАртикулы: LRCA-403, LRCA-404, LRC-407, LRA-408, RG 341.5857\nМы подготовим коммерческое предложение и направим в ближайшее время.\n\nС уважением,\nНе назначен",
+    "rawInput": {
+      "subject": "Fwd: ТКП_прошу предоставить",
+      "attachments": [
+        "Карточка предприятия КСПА альфа.pdf",
+        "11-2026-КСПА-АТХ.ОЛ2_LRCA-404_(2).pdf",
+        "11-2026-КСПА-АТХ.ОЛ3_LRCА-407_(2).pdf",
+        "11-2026-КСПА-АТХ.ОЛ4_LRА-408_(1).pdf",
+        "11-2026-КСПА-АТХ.ОЛ1_LRCA-403_(1).pdf"
+      ],
+      "body": "Добрый день, коллеги!\n\nВ настоящее время разрабатываем рабочий проект 11-2026-КСПА-АТХ «Замена уровнемеров позиций LRCA-403, LRCA-404, LRC-407, LRA-408 в цехе №З» для филиала «ПМУ» АО «ОХК «УРАЛХИМ» в городе Перми.\nПроектом предусматривается замена и монтаж уровнемеров (желательно Endess+Hauser) и выносных колонок для них на аппаратах.\n\nПрошу взять «в работу» и предоставить ТКП согласно опросным листам.\n\nКарточка предприятия и опросные листы во вложении.\n\nСпасибо!\nЖду обратную связь.\n\n--\nРусских Ирина Владимировна,\nотдел автоматизации,\nООО \"КСПА\"\nтел. +7(342) 2179572 доб.106\nмоб.тел. 8 908 244 44 81"
+    },
+    "attachmentAnalysis": {
+      "files": [
+        {
+          "filename": "Карточка предприятия КСПА альфа.pdf",
+          "safeName": "Карточка предприятия КСПА альфа.pdf",
+          "contentType": "application/pdf",
+          "size": 149675,
+          "ext": ".pdf",
+          "status": "skipped",
+          "reason": "low_quality_pdf_text",
+          "extractedChars": 0,
+          "category": "requisites",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "11-2026-КСПА-АТХ.ОЛ2_LRCA-404_(2).pdf",
+          "safeName": "11-2026-КСПА-АТХ.ОЛ2_LRCA-404_(2).pdf",
+          "contentType": "application/pdf",
+          "size": 235989,
+          "ext": ".pdf",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 59,
+          "category": "pdf",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "11-2026-КСПА-АТХ.ОЛ3_LRCА-407_(2).pdf",
+          "safeName": "11-2026-КСПА-АТХ.ОЛ3_LRCА-407_(2).pdf",
+          "contentType": "application/pdf",
+          "size": 610785,
+          "ext": ".pdf",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 225,
+          "category": "pdf",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "11-2026-КСПА-АТХ.ОЛ4_LRА-408_(1).pdf",
+          "safeName": "11-2026-КСПА-АТХ.ОЛ4_LRА-408_(1).pdf",
+          "contentType": "application/pdf",
+          "size": 386923,
+          "ext": ".pdf",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 117,
+          "category": "pdf",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        },
+        {
+          "filename": "11-2026-КСПА-АТХ.ОЛ1_LRCA-403_(1).pdf",
+          "safeName": "11-2026-КСПА-АТХ.ОЛ1_LRCA-403_(1).pdf",
+          "contentType": "application/pdf",
+          "size": 422149,
+          "ext": ".pdf",
+          "status": "processed",
+          "reason": null,
+          "extractedChars": 131,
+          "category": "pdf",
+          "detectedArticles": [],
+          "detectedBrands": [],
+          "detectedInn": [],
+          "detectedKpp": [],
+          "detectedOgrn": []
+        }
+      ],
+      "meta": {
+        "processedCount": 4,
+        "skippedCount": 1,
+        "totalBytes": 1805521,
+        "totalChars": 532,
+        "budgetMs": 682,
+        "limits": {
+          "maxFiles": 8,
+          "maxFileBytes": 8388608,
+          "maxTotalBytes": 20971520,
+          "maxExtractedCharsPerFile": 12000,
+          "maxCombinedChars": 24000,
+          "maxBudgetMs": 1500
+        }
+      }
+    },
+    "extractionMeta": {
+      "signatureDetected": true,
+      "quotedTextDetected": false,
+      "autoReplyDetected": false,
+      "attachmentsProcessed": 4,
+      "attachmentsSkipped": 1
+    },
+    "llmExtraction": {
+      "processedAt": "2026-04-21T05:58:24.627Z",
+      "model": "gpt-4o-mini",
+      "requestType": "quotation",
+      "isUrgent": false,
+      "missingForProcessing": [
+        "quantity"
+      ],
+      "newArticlesAdded": 0,
+      "detectionGapsCount": 2
+    },
+    "qualityGate": {
+      "ok": true,
+      "errors": [],
+      "warnings": [],
+      "evaluatedAt": "2026-06-01T14:50:52.434Z"
+    },
+    "llmConfig": {
+      "enabled": true,
+      "model": "gpt-4o-mini",
+      "baseUrl": "https://api.artemox.com/v1",
+      "logSuggestions": true
+    }
+  }
+}
