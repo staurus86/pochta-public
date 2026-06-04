@@ -23,6 +23,11 @@ function isPayloadArticleNoise(article) {
     if (/^\d[\d\s.\-]*[a-z]{1,4}$/.test(a)) return true;
     // Size fraction / thread: "5B/10A", "G1/4.1" — digit ratio or thread size
     if (/^[A-Z]?\d+[A-Za-z]*\/[\d.]+[A-Za-z]*$/.test(a)) return true;
+    // Pure dimensions mistaken for an article: "601.7x605.5x318.4", "48х2х10".
+    // Triggered only with 3+ groups or a decimal group, so integer profile codes
+    // like "40x40" are preserved.
+    if (/^\d+(?:[.,]\d+)?(?:\s?[xхX×*]\s?\d+(?:[.,]\d+)?){1,3}$/.test(a)
+        && (/[.,]/.test(a) || (a.match(/[xхX×*]/g) || []).length >= 2)) return true;
     // Transliterated Cyrillic: first hyphen/space token is 5+ uppercase-only letters
     // e.g. "HYTPOMEP HI 18-35-1", "TEPMOCTAT R5THV2", "PYKAB 72609.925.00.850"
     const firstToken = a.split(/[\s-]/)[0];
@@ -30,6 +35,23 @@ function isPayloadArticleNoise(article) {
     // Russian word fragment attached to digit: "16-ti"
     if (/^\d+-[a-z]{2,}$/.test(a)) return true;
     return false;
+}
+
+// Quantities are sometimes a fragment of the article number that leaked into the qty
+// field (e.g. article "32143-48" → qty 32143) or an out-of-range outlier. Drop those
+// rather than send a bogus count to the manager. A genuine small count (1-9999) that is
+// not embedded in the article digits is kept.
+function sanitizePayloadQuantity(quantity, article) {
+    if (quantity == null) return null;
+    const n = Number(quantity);
+    if (!Number.isFinite(n) || n <= 0) return null;
+    if (n > 10000) return null;
+    const q = String(Math.trunc(n));
+    if (q.length >= 4 && article) {
+        const artDigits = String(article).replace(/\D/g, "");
+        if (artDigits.includes(q)) return null;
+    }
+    return n;
 }
 
 function buildOrderFromMail(lead) {
@@ -45,7 +67,13 @@ function buildOrderFromMail(lead) {
         }
     }
 
-    const brandFallback = detectedBrands.length === 1 ? mainBrand : null;
+    // Broadcast a single detected brand ONLY when there is exactly one real position.
+    // Multiple positions sharing one detected brand → leave brandless rather than stamp
+    // the wrong brand on every line (manager feedback: "бренд из первой строки на все товары").
+    const realPositionCount = lineItems.filter(
+        (i) => i.article && !i.article.startsWith("DESC:") && !isPayloadArticleNoise(i.article)
+    ).length;
+    const brandFallback = (detectedBrands.length === 1 && realPositionCount === 1) ? mainBrand : null;
     const seen = new Set();
     const structured = lineItems
         .filter((item) => item.article && !item.article.startsWith("DESC:") && !isPayloadArticleNoise(item.article))
@@ -56,10 +84,12 @@ function buildOrderFromMail(lead) {
             return true;
         })
         .map((item) => ({
-            brand: articleBrandMap.get(normalizeArticleCode(item.article).toLowerCase()) || brandFallback,
+            brand: item.brand
+                || articleBrandMap.get(normalizeArticleCode(item.article).toLowerCase())
+                || brandFallback,
             desc: item.descriptionRu || null,
             item_number: item.article,
-            quantity: item.quantity != null ? Number(item.quantity) : null
+            quantity: sanitizePayloadQuantity(item.quantity, item.article)
         }));
 
     if (structured.length > 0) return structured;

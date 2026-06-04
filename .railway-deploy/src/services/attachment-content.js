@@ -506,7 +506,7 @@ function parseSharedStrings(xml) {
 function parseWorksheetXml(xml, sharedStrings) {
   const rows = [];
   for (const rowMatch of xml.matchAll(/<row\b[\s\S]*?<\/row>/g)) {
-    const values = [];
+    const cells = [];
     for (const cellMatch of rowMatch[0].matchAll(/<c\b([^>]*)>([\s\S]*?)<\/c>/g)) {
       const attrs = cellMatch[1] || "";
       const body = cellMatch[2] || "";
@@ -522,13 +522,29 @@ function parseWorksheetXml(xml, sharedStrings) {
         }
       }
       value = cleanupCellValue(value);
-      if (value) values.push(value);
+      // Position-aware placement: parse the cell reference (r="B5") so empty/gap
+      // cells keep column alignment instead of collapsing the row.
+      const refMatch = attrs.match(/\br="([A-Z]+)\d+"/);
+      const col = refMatch ? columnRefToIndex(refMatch[1]) : cells.length;
+      cells[col] = value;
     }
-    if (values.length > 0) {
-      rows.push(values.join("\t"));
-    }
+    // Drop trailing empties only; keep interior/leading gaps so indices align.
+    let end = cells.length;
+    while (end > 0 && !cells[end - 1]) end -= 1;
+    if (end === 0) continue;
+    const row = [];
+    for (let i = 0; i < end; i++) row.push(cells[i] || "");
+    rows.push(row.join("\t"));
   }
   return rows;
+}
+
+function columnRefToIndex(letters) {
+  let index = 0;
+  for (let i = 0; i < letters.length; i++) {
+    index = index * 26 + (letters.charCodeAt(i) - 64);
+  }
+  return index - 1;
 }
 
 function cleanupCellValue(value) {
@@ -678,8 +694,15 @@ const HDR_ROWNUM  = /^(?:№|п\/п|поз\.?|n°|pos\.?|#|\d{1,3})$/i; // row c
 
 function extractTabularLineItems(lines, filename) {
   const rows = lines
-    .map((line) => line.split(/\t|;{1,}/).map((cell) => cleanupCellValue(cell)).filter(Boolean))
-    .filter((row) => row.length >= 2);
+    // Keep empty cells so column indices stay aligned with the header row
+    // (position-aware parsing emits "" for gap columns). Trim trailing empties only.
+    .map((line) => {
+      const cells = line.split(/\t|;{1,}/).map((cell) => cleanupCellValue(cell));
+      let end = cells.length;
+      while (end > 0 && !cells[end - 1]) end -= 1;
+      return cells.slice(0, end);
+    })
+    .filter((row) => row.filter(Boolean).length >= 2);
 
   if (rows.length === 0) return [];
 

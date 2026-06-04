@@ -1099,6 +1099,9 @@ export function analyzeEmail(project, payload) {
     extractLead(subjectForExtraction, bodyForExtraction, attachmentContent, project.brands || [], classification.detectedBrands),
     attachmentAnalysis
   );
+  // A structured product spreadsheet, when present, overrides the noisy body-derived
+  // positions (manager feedback: "в экселе чёткие данные, почему берёт из текста").
+  lead = applyStructuredSheetPrimacy(lead, attachmentAnalysis);
   const getConcreteItemScore = (candidateLead) => {
     const articleCount = (candidateLead.articles || []).filter((item) => item && !/^DESC:/i.test(String(item))).length;
     const lineItemCount = (candidateLead.lineItems || []).filter((item) => item?.article && !/^DESC:/i.test(String(item.article))).length;
@@ -1822,30 +1825,22 @@ export function analyzeEmail(project, payload) {
         });
       }
 
-      // Back-fill null-qty lineItems from quantitiesClean when possible:
-      // If all real lineItems lack qty but extractQuantities found valid counts,
-      // assign primaryQuantity to each item (covers "1 article with N qty" and
-      // "M articles with same qty" patterns common in industrial emails).
-      if (
-        Array.isArray(lead.lineItems) &&
-        Array.isArray(lead.quantitiesClean) &&
-        lead.quantitiesClean.length > 0 &&
-        lead.primaryQuantity != null
-      ) {
-        const nullQtyItems = lead.lineItems.filter(
-          (li) => li && !String(li.article || "").toUpperCase().startsWith("DESC:") && li.quantity == null
+      // Quantity assignment for body-derived positions:
+      //  - exactly ONE real body position with no qty → assign the email's primary quantity,
+      //    or default to 1 шт when the client stated none ("по умолчанию 1шт", manager ask).
+      //  - multiple positions → NEVER broadcast a single quantity onto all of them: that
+      //    stamps a wrong count on every line (manager: "здесь сразу видно что неправильно
+      //    количество"). Leave them null for per-row manager entry.
+      // Structured spreadsheet rows carry their own per-row quantity — never overwrite them.
+      if (Array.isArray(lead.lineItems) && lead.positionsSource !== "structured_attachment") {
+        const realItems = lead.lineItems.filter(
+          (li) => li && li.article && !String(li.article).toUpperCase().startsWith("DESC:")
         );
-        const hasAnyQty = lead.lineItems.some(
-          (li) => li && !String(li.article || "").toUpperCase().startsWith("DESC:") && li.quantity != null
-        );
-        // Only backfill when NO lineItem has a quantity yet (avoid overwriting partial data)
-        if (!hasAnyQty && nullQtyItems.length > 0 && nullQtyItems.length <= 15) {
-          const assignQty = lead.primaryQuantity;
-          const assignUnit = lead.quantityUnit || "шт";
-          lead.lineItems = lead.lineItems.map((li) => {
-            if (!li || String(li.article || "").toUpperCase().startsWith("DESC:") || li.quantity != null) return li;
-            return { ...li, quantity: assignQty, unit: li.unit || assignUnit };
-          });
+        if (realItems.length === 1 && realItems[0].quantity == null) {
+          const only = realItems[0];
+          only.quantity = lead.primaryQuantity != null ? lead.primaryQuantity : 1;
+          only.unit = only.unit || lead.quantityUnit || "шт";
+          if (lead.primaryQuantity == null) only.quantityDefaulted = true;
         }
       }
 
@@ -1883,18 +1878,16 @@ export function analyzeEmail(project, payload) {
         }
       }
 
-      // Backfill descriptions in body/articles_synth lineItems from productNamePrimary.
-      // Two cases:
-      //   1. Exactly one clean product name → all undescribed body/synth lineItems get it.
-      //   2. Multiple clean names but only ONE real lineItem → safe to assign the primary.
-      // Multi-product+multi-item is skipped to avoid cross-product mismatches.
+      // Backfill description from productNamePrimary ONLY when there is exactly one real
+      // position. Broadcasting a single product name across many positions produces the
+      // "описание одно на все товары" defect the manager flagged — so multi-position emails
+      // are left to per-row description (KB nomenclature backfill below, or blank).
       if (Array.isArray(lead.lineItems) && lead.productNamePrimary && Array.isArray(lead.productNamesClean)) {
-        const cleanCount = lead.productNamesClean.length;
         const realItems = lead.lineItems.filter(
           (li) => li && !String(li.article || "").toUpperCase().startsWith("DESC:")
         );
         const needsDesc = realItems.filter((li) => !li.descriptionRu && (li.source === "body" || li.source === "articles_synth"));
-        const shouldBackfill = cleanCount === 1 || (realItems.length === 1 && needsDesc.length === 1);
+        const shouldBackfill = realItems.length === 1 && needsDesc.length === 1;
         if (shouldBackfill && needsDesc.length > 0) {
           lead.lineItems = lead.lineItems.map((li) => {
             if (!li || li.descriptionRu || String(li.article || "").toUpperCase().startsWith("DESC:")) return li;
@@ -1937,6 +1930,70 @@ export function analyzeEmail(project, payload) {
       ...(classification.signals.matchedRules || []),
       { id: "articles_post_correction", classifier: "client", scope: "lead", pattern: "articles_detected", weight: 3 }
     ];
+  }
+
+  // Per-row enrichment: pull quantity and brand from EACH position's own source line.
+  // Multi-position emails carry the qty/brand per line ("ART, SIEMENS - 3 шт."); the
+  // line-item builder doesn't always attach them when the article sits mid-line. This
+  // fills only null fields from the row's own text, so positions get correct PER-ROW
+  // data instead of a broadcast value or a blank — directly addressing the manager's
+  // "кол-во не проставлено" / "бренд не заполнен" feedback without cross-row contamination.
+  if (Array.isArray(lead.lineItems)) {
+    const enrichLines = String(bodyForExtraction || body || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+    const findRowLine = (article, descriptionRu) => {
+      if (article) {
+        const a = String(article);
+        const hit = enrichLines.find((l) => l.includes(a));
+        if (hit) return hit;
+      }
+      if (descriptionRu) {
+        const d = String(descriptionRu).slice(0, 28).trim();
+        if (d.length >= 6) {
+          const hit = enrichLines.find((l) => l.includes(d));
+          if (hit) return hit;
+        }
+      }
+      return "";
+    };
+    for (const li of lead.lineItems) {
+      if (!li || String(li.article || "").toUpperCase().startsWith("DESC:")) continue;
+      // Only fills NULL qty/brand from the row's own text, so it is safe for any source —
+      // structured rows already have qty set and are untouched.
+      const lineText = li.sourceLine || findRowLine(li.article, li.descriptionRu) || li.descriptionRu || "";
+      if (!lineText) continue;
+      if (li.quantity == null) {
+        const q = extractQuantities(lineText, { articles: [li.article].filter(Boolean) });
+        if (q.primary && Number(q.primary.value) > 0 && Number(q.primary.value) <= 10000) {
+          li.quantity = q.primary.value;
+          li.unit = li.unit || q.primary.unit || "шт";
+        }
+      }
+      if (!li.brand) {
+        // Restrict to brands that already passed the lead-level grounding gate, so this
+        // never re-introduces a "ghost brand" the pipeline deliberately dropped — it only
+        // maps an already-validated brand to the specific row that mentions it.
+        const validated = new Set((lead.detectedBrands || []).map((b) => String(b).toLowerCase()));
+        if (validated.size) {
+          const lineBrands = detectionKb.filterOwnBrands(detectionKb.detectBrands(lineText, project.brands || []))
+            .filter((b) => validated.has(String(b).toLowerCase()));
+          if (lineBrands.length === 1) li.brand = lineBrands[0];
+        }
+      }
+    }
+
+    // Default qty = 1 шт when the client stated NO quantity ANYWHERE in the email
+    // (manager: "по умолчанию должна проставлять 1шт"). Guarded on a total absence of
+    // qty signal so we never overwrite or guess when the client did specify counts we
+    // simply failed to align per-row — those stay null for manual entry. Structured
+    // spreadsheet rows are excluded (they carry their own quantities).
+    const noQtySignal = lead.primaryQuantity == null
+      && !(Array.isArray(lead.quantitiesClean) && lead.quantitiesClean.length > 0);
+    if (noQtySignal && lead.positionsSource !== "structured_attachment") {
+      for (const li of lead.lineItems) {
+        if (!li || !li.article || String(li.article).toUpperCase().startsWith("DESC:")) continue;
+        if (li.quantity == null) { li.quantity = 1; li.unit = li.unit || "шт"; li.quantityDefaulted = true; }
+      }
+    }
   }
 
   // Post-validate sender fields: normalize INN, fix entity role errors
@@ -3253,6 +3310,7 @@ function mergeAttachmentLeadData(lead, attachmentAnalysis = {}) {
       quantity: item.quantity ?? null,
       unit: item.unit || "шт",
       descriptionRu: item.descriptionRu || null,
+      brand: item.brand || null,
       source: item.source || `attachment:${file.filename || "file"}`
     };
   }));
@@ -3284,6 +3342,7 @@ function mergeAttachmentLeadData(lead, attachmentAnalysis = {}) {
     if ((!existing.quantity || existing.quantity === 1) && item.quantity) existing.quantity = item.quantity;
     if ((!existing.descriptionRu || existing.descriptionRu === existing.article) && item.descriptionRu) existing.descriptionRu = item.descriptionRu;
     if (!existing.unit && item.unit) existing.unit = item.unit;
+    if (!existing.brand && item.brand) existing.brand = item.brand;
     if (!existing.source && item.source) existing.source = item.source;
   }
 
@@ -3320,8 +3379,11 @@ function mergeAttachmentLeadData(lead, attachmentAnalysis = {}) {
   // Collapse separator-only article variants of the SAME item that inflate positions
   // and double quantity, e.g. "PS 6-200-15" alongside "PS6-200-15-1", or
   // "TCTTRAD-25E-63" alongside "TCTTRAD-25E-63-SP". A variant is dropped only when its
-  // fully separator-stripped key is a strict prefix of a longer item's key, so genuinely
-  // distinct codes (S201-C16 vs S203-C25) and same-article conflicts (equal keys) are kept.
+  // fully separator-stripped key is a strict prefix of (or equal to) a longer item's key,
+  // so genuinely distinct codes (S201-C16 vs S203-C25) are preserved.
+  // Only strict prefix-extension is collapsed (one key is a shorter prefix of a longer one).
+  // Equal keys are left untouched so genuine same-article conflict detection (different qty/
+  // name on separate lines) keeps both entries.
   const variantKey = (a) => normalizeArticleCode(String(a || "")).replace(/[\s\-./]+/g, "").toLowerCase();
   const dropVariantPrefixes = (items, getArticle) => {
     const keys = items.map((it) => variantKey(getArticle(it)));
@@ -3339,6 +3401,48 @@ function mergeAttachmentLeadData(lead, attachmentAnalysis = {}) {
   lead.totalPositions = dedupedLineItems.length || dedupedArticles.length;
   lead.sources = buildLeadSources(lead, files);
   lead.recognitionSummary = buildRecognitionSummary(lead, files);
+  return lead;
+}
+
+// When the email carries a PROCESSED structured product SPREADSHEET (.xlsx/.csv/.tsv),
+// that sheet — parsed row-by-row with header-aware column detection — is the ground
+// truth for positions. The email body's tokenized articles are noisy by comparison
+// (over-split codes, broadcast brand/desc), so we REPLACE body-derived line items with
+// the sheet rows. Restricted to true spreadsheets only: .doc/.pdf use loose line-by-line
+// extraction whose rows are not trustworthy enough to override the body. Requisites/
+// invoice files never qualify (they carry no product positions).
+function applyStructuredSheetPrimacy(lead, attachmentAnalysis = {}) {
+  const files = attachmentAnalysis.files || [];
+  const STRUCTURED_EXT = new Set([".xlsx", ".csv", ".tsv"]);
+  const sheetRows = files
+    .filter((f) => f.status === "processed"
+      && f.category !== "requisites" && f.category !== "invoice"
+      && STRUCTURED_EXT.has(f.ext)
+      && Array.isArray(f.lineItems)
+      && f.lineItems.some((it) => it.article || it.descriptionRu))
+    .flatMap((f) => f.lineItems.map((it) => {
+      const article = it.article ? normalizeArticleCode(it.article) : null;
+      const cleanArticle = article && !isObviousArticleNoise(article, it.descriptionRu || "") ? article : null;
+      return {
+        article: cleanArticle,
+        brand: it.brand || null,
+        descriptionRu: it.descriptionRu || null,
+        quantity: it.quantity ?? null,
+        unit: it.unit || "шт",
+        source: it.source || `attachment:${f.filename || "sheet"}`,
+        explicitArticle: Boolean(cleanArticle)
+      };
+    }))
+    .filter((it) => it.article || it.descriptionRu);
+  if (sheetRows.length === 0) return lead;
+
+  lead.lineItems = sheetRows;
+  lead.articles = unique(sheetRows.map((r) => r.article).filter(Boolean));
+  lead.productNames = sheetRows
+    .filter((r) => r.article)
+    .map((r) => ({ article: r.article, name: r.descriptionRu || null, category: null, source: r.source }));
+  lead.totalPositions = sheetRows.length;
+  lead.positionsSource = "structured_attachment";
   return lead;
 }
 
