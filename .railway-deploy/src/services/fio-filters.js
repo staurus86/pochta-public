@@ -398,10 +398,27 @@ function isCourtesyPhrase(value) {
     return COURTESY_PHRASE_RE.test(s);
 }
 
+// Client/system-generated noise that leaks into fullName when the FIO extractor
+// grabs the leading words of a mobile sign-off ("Отправлено из …", "Sent from …")
+// or a quoted-thread attachment marker ("Вложения удалены"). Anchored at the start;
+// the Cyrillic alternatives use a negative lookahead (?![а-яё]) instead of \b (which
+// does not fire after a Cyrillic letter), so single-word surnames sharing a prefix
+// (Отправленко, Вложенов) are NOT rejected.
+const SYSTEM_PHRASE_RE = /^(?:отправлено\s+(?:из|со?)(?![а-яё])|получено\s+(?:из|с)(?![а-яё])|вложени[ея]\s+удал|sent\s+from\b|get\s+outlook\b)/iu;
+
+function isSystemPhrase(value) {
+    const s = safeString(value)
+        .replace(/^[\s,.!:;–—-]+/, "")
+        .replace(/\s+/g, " ")
+        .trim();
+    return SYSTEM_PHRASE_RE.test(s);
+}
+
 export function isBadPersonName(value) {
     const s = safeString(value);
     if (!s) return true;
     if (isCourtesyPhrase(s)) return true;
+    if (isSystemPhrase(s)) return true;
     if (isCompanyLike(s)) return true;
     if (isEmailLike(s)) return true;
     if (isAliasLike(s)) return true;
