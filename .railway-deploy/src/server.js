@@ -1916,6 +1916,21 @@ async function handleApi(req, res, url) {
     return sendJson(res, 200, { ok: true, messageKey });
   }
 
+  // ── CRM bulk export-clear (roll back accidental sends — messages count as never sent) ──
+  const crmExportClearMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/crm-export-clear$/);
+  if (req.method === "POST" && crmExportClearMatch) {
+    const project = await store.getProject(crmExportClearMatch[1]);
+    if (!project) return sendJson(res, 404, { error: "Project not found." });
+    const reqBody = await parseRequestJson(req).catch(() => ({}));
+    const keys = Array.isArray(reqBody?.keys) ? reqBody.keys : [];
+    if (!keys.length) return sendJson(res, 400, { error: "Field 'keys' (array of message keys) is required." });
+    const result = await store.bulkClearExport(project.id, keys, {
+      consumer: reqBody?.consumer || "siderus-crm",
+      note: reqBody?.note || null
+    });
+    return sendJson(res, 200, result);
+  }
+
   // ── CRM bulk resend ──
   const crmResendMatch = url.pathname.match(/^\/api\/projects\/([^/]+)\/crm-resend$/);
   if (req.method === "POST" && crmResendMatch) {

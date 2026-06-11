@@ -200,6 +200,9 @@ export class ProjectsStore {
   }
 
   async persist() {
+    // Strip heavy attachment raw text in-place before writing.
+    // combinedText/articleText per attachment can be 200KB+ each — they are
+    // only needed during extraction and are not used for display.
     for (const project of this.projects) {
       for (const msg of project.recentMessages || []) {
         const att = msg?.analysis?.attachmentAnalysis;
@@ -623,6 +626,46 @@ export class ProjectsStore {
 
     await this.persist();
     return results;
+  }
+
+  // Removes the export record for a consumer from the given messages — used to
+  // roll back accidental bulk sends so the messages count as "never sent".
+  async bulkClearExport(projectId, messageKeys = [], payload = {}) {
+    await this.ensureLoaded();
+    const project = await this.getProject(projectId);
+    if (!project) return null;
+
+    const consumerId = payload.consumer ? String(payload.consumer).trim() : "legacy-default";
+    const clearedAt = new Date().toISOString();
+    const keySet = new Set(messageKeys.map((k) => String(k)));
+    let cleared = 0, missing = 0, untouched = 0;
+
+    for (const message of project.recentMessages || []) {
+      const key = message.messageKey || message.id;
+      if (!keySet.has(key)) continue;
+      keySet.delete(key);
+      const exportsMap = message.integrationExports;
+      if (!exportsMap || !exportsMap[consumerId]) {
+        untouched++;
+        continue;
+      }
+      delete exportsMap[consumerId];
+      if (message.integrationExport && message.integrationExport.consumer === consumerId) {
+        message.integrationExport = null;
+      }
+      if (!message.auditLog) message.auditLog = [];
+      message.auditLog.push({
+        action: "integration_export_cleared",
+        at: clearedAt,
+        consumer: consumerId,
+        note: payload.note ? String(payload.note).trim() : null
+      });
+      cleared++;
+    }
+    missing = keySet.size;
+
+    if (cleared > 0) await this.persist();
+    return { cleared, untouched, missing };
   }
 
   async deleteMessage(projectId, messageKey) {

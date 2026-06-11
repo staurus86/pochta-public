@@ -342,3 +342,35 @@ runTest("normalizes article owners and company history fields from projects json
     await rm(dataDir, { recursive: true, force: true });
   }
 });
+
+runTest("bulkClearExport removes export record so message counts as never sent", async () => {
+  const dataDir = await mkdtemp(path.join(os.tmpdir(), "pochta-store-"));
+
+  try {
+    const store = new ProjectsStore({ dataDir });
+    await store.ensureLoaded();
+
+    const project = await store.createProject({ name: "Clear Export Test", mailbox: "t@example.com" });
+    await store.replaceRecentMessages(project.id, [
+      { messageKey: "sent-1", pipelineStatus: "ready_for_crm", analysis: {} },
+      { messageKey: "sent-2", pipelineStatus: "ready_for_crm", analysis: {} },
+      { messageKey: "unsent-1", pipelineStatus: "ready_for_crm", analysis: {} }
+    ]);
+    await store.acknowledgeMessageExport(project.id, "sent-1", { consumer: "siderus-crm", note: "bulk resend" });
+    await store.acknowledgeMessageExport(project.id, "sent-2", { consumer: "siderus-crm", note: "bulk resend" });
+
+    const result = await store.bulkClearExport(project.id, ["sent-1", "unsent-1", "ghost-1"], { consumer: "siderus-crm", note: "rollback" });
+    assert.deepEqual(result, { cleared: 1, untouched: 1, missing: 1 });
+
+    const reloaded = new ProjectsStore({ dataDir });
+    await reloaded.ensureLoaded();
+    const persisted = await reloaded.getProject(project.id);
+    const sent1 = persisted.recentMessages.find((m) => m.messageKey === "sent-1");
+    const sent2 = persisted.recentMessages.find((m) => m.messageKey === "sent-2");
+    assert.ok(!sent1.integrationExports?.["siderus-crm"], "sent-1 export cleared");
+    assert.ok(sent2.integrationExports?.["siderus-crm"], "sent-2 export kept");
+    assert.equal(sent1.auditLog.at(-1).action, "integration_export_cleared");
+  } finally {
+    await rm(dataDir, { recursive: true, force: true });
+  }
+});
