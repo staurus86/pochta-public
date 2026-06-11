@@ -28,6 +28,7 @@ import { extractPosition as extractPositionV2 } from "./position-extractor.js";
 import { extractPhone as extractPhoneV2 } from "./phone-extractor.js";
 import { extractEmail as extractEmailV2 } from "./email-extractor.js";
 import { parseSenderHeader } from "./email-normalizer.js";
+import { reconstructBodyPositions } from "./body-structure-reconstructor.js";
 
 // Product types database for request type detection and entity extraction
 const __analyzerDir = path.dirname(fileURLToPath(import.meta.url));
@@ -555,6 +556,8 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   "robot", "pressure", "high", "contact", "elektro",
   // Phase 17 / GHOST-4: generic single-token aliases from 15K-brand KB import that match common words.
   "instruments", "smart", "west", "drive", "neo", "mission",
+  // Component-type acronyms, not manufacturers ("Модуль IGBT SKIIP..." → ghost IGBT brand).
+  "igbt",
 ]);
 // Batch D / P13 + Batch E / P17: aliases whose FIRST token is a common generic word — when such
 // an alias has ≥2 tokens (e.g. "Alfa Electric", "Power Innovation", "High Perfection Tech",
@@ -1399,6 +1402,27 @@ export function analyzeEmail(project, payload) {
     );
   }
 
+  // Explicitly labeled manufacturer: "производитель TSUNTIEN" / "(производитель: X)".
+  // The client NAMING the maker is the strongest brand signal there is — KB coverage
+  // is irrelevant (manager feedback: brand stated in the email but left empty because
+  // the alias was missing from the knowledge base). Latin-token gated to avoid
+  // capturing Cyrillic prose after the label.
+  {
+    const labeledBrandSource = `${subject || ""}\n${bodyForExtraction || ""}`;
+    const labeledRe = /(?:производител[ьяюе]|изготовител[ьяюе]|manufacturer|brand|бренд|марка)\s*[:\-—]?\s*[«"(]?\s*([A-Z][A-Za-z0-9&.\-]{2,19})(?![a-z0-9&.-])/g;
+    for (const m of labeledBrandSource.matchAll(labeledRe)) {
+      const candidate = m[1].replace(/[.,]+$/, "");
+      if (candidate.length < 3) continue;
+      if (BRAND_NOISE.has(candidate.toUpperCase())) continue;
+      const already = (lead.detectedBrands || []).some(
+        (b) => String(b).toLowerCase() === candidate.toLowerCase()
+      );
+      if (!already) {
+        lead.detectedBrands = uniqueBrands([...(lead.detectedBrands || []), candidate]);
+      }
+    }
+  }
+
   // Phase-2 brand audit: final sanitization on lead.detectedBrands — strips any
   // residual non-brand tokens (NBR/ISO/VAC/item/Single/P.A.) that slipped past
   // the classification-level sanitize (e.g. from extractLead's own detectBrands
@@ -1932,6 +1956,75 @@ export function analyzeEmail(project, payload) {
     ];
   }
 
+  // Body structure reconstruction: when the body is a flattened table or a numbered
+  // list with per-row quantities, rebuild positions from the structure itself. This is
+  // the pipeline-precedence fix for the manager's "кол-во не указал / разделил на
+  // несколько / описание одно на все" clusters: the reconstructed rows replace the
+  // token-scan output wholesale, so each position carries its own name/qty/article.
+  if (Array.isArray(lead.lineItems) && lead.positionsSource !== "structured_attachment") {
+    // The quoted-reply supplement drops forwarded chains with email headers, so a
+    // table living in the quoted request is absent from bodyForExtraction — fall
+    // back to the raw body for the structure scan.
+    const reconstruction = reconstructBodyPositions(String(bodyForExtraction || body || ""))
+      || (body && body !== bodyForExtraction ? reconstructBodyPositions(String(body)) : null);
+    if (reconstruction) {
+      const validatedBrands = new Set((lead.detectedBrands || []).map((b) => String(b).toLowerCase()));
+      const rows = reconstruction.rows
+        .map((row) => {
+          let article = row.article ? normalizeArticleCode(row.article) : null;
+          if (article && isObviousArticleNoise(article, row.sourceLine || "")) article = null;
+          if (!article) {
+            const fromName = extractArticleFromDescription(row.descriptionRu || "");
+            if (fromName) {
+              const norm = normalizeArticleCode(fromName);
+              if (norm && !isObviousArticleNoise(norm, row.descriptionRu || "")) article = norm;
+            }
+          }
+          const brand = row.brandHint && validatedBrands.has(String(row.brandHint).toLowerCase())
+            ? row.brandHint : null;
+          return {
+            article,
+            quantity: row.quantity,
+            unit: row.unit || "шт",
+            descriptionRu: row.descriptionRu || null,
+            brand,
+            source: "body_structured",
+            explicitArticle: Boolean(article),
+            sourceLine: row.sourceLine || row.descriptionRu || ""
+          };
+        })
+        .filter((r) => r.article
+          || (r.descriptionRu && r.quantity != null)
+          // paired_rows / numbered_list rows are one-product-per-row by construction —
+          // a row without an extractable code is still a real position (name + spec).
+          || (r.descriptionRu && (reconstruction.kind === "paired_rows" || reconstruction.kind === "numbered_list")));
+      const currentRealCount = lead.lineItems.filter(
+        (li) => li && li.article && !String(li.article).toUpperCase().startsWith("DESC:")
+      ).length;
+      // Replace only when the reconstruction is not drastically smaller than the
+      // token-scan output — a confident table beats fragments, but a 2-row parse
+      // must not wipe out a 10-position email.
+      if (rows.length > 0 && rows.length * 2 >= currentRealCount) {
+        lead.lineItems = rows;
+        lead.articles = unique(rows.map((r) => r.article).filter(Boolean));
+        lead.positionsSource = "body_structured";
+        lead.totalPositions = rows.length;
+      }
+    }
+  }
+
+  // Over-split repair: article-like tokens coming from the SAME product sentence are
+  // fragments of ONE position, not separate goods (manager: "она одна, а он всю
+  // информацию разделил на несколько"). Merges same-line fragments, drops spec
+  // continuation lines (Model:/CODE:) and accessory bullets (а)/б)/в)) that describe
+  // the preceding numbered product.
+  if (Array.isArray(lead.lineItems)
+    && lead.positionsSource !== "structured_attachment"
+    && lead.positionsSource !== "body_structured") {
+    lead.lineItems = mergeOverSplitLineItems(lead.lineItems, String(bodyForExtraction || body || ""));
+    lead.totalPositions = Math.max(lead.lineItems.length, 0);
+  }
+
   // Per-row enrichment: pull quantity and brand from EACH position's own source line.
   // Multi-position emails carry the qty/brand per line ("ART, SIEMENS - 3 шт."); the
   // line-item builder doesn't always attach them when the article sits mid-line. This
@@ -1955,12 +2048,29 @@ export function analyzeEmail(project, payload) {
       }
       return "";
     };
+    const realRowCount = lead.lineItems.filter(
+      (li) => li && li.article && !String(li.article).toUpperCase().startsWith("DESC:")
+        && !isObviousArticleNoise(String(li.article), li.sourceLine || "")
+    ).length;
     for (const li of lead.lineItems) {
       if (!li || String(li.article || "").toUpperCase().startsWith("DESC:")) continue;
       // Only fills NULL qty/brand from the row's own text, so it is safe for any source —
       // structured rows already have qty set and are untouched.
-      const lineText = li.sourceLine || findRowLine(li.article, li.descriptionRu) || li.descriptionRu || "";
+      let lineText = li.sourceLine || findRowLine(li.article, li.descriptionRu) || li.descriptionRu || "";
       if (!lineText) continue;
+      // Bare-article row ("ZKXVA5000320" on its own line): the product name sits on the
+      // FOLLOWING line in two-line "code ↵ name" request formats. Pull that neighbour in
+      // as desc/brand context (it has no other article on it, so no cross-row leakage).
+      const bareToken = lineText.replace(/^[>\s*]+/, "").trim();
+      if (li.article && bareToken === String(li.article)) {
+        const idx = enrichLines.findIndex((l) => l === lineText);
+        const next = idx >= 0 ? (enrichLines[idx + 1] || "").replace(/^[>\s*]+/, "").trim() : "";
+        if (next && next.length >= 8 && /[A-Za-zА-ЯЁа-яё]{3,}/.test(next)
+          && !next.includes(String(li.article)) && !/@|https?:\/\//.test(next)) {
+          if (!li.descriptionRu) li.descriptionRu = next.slice(0, 160);
+          lineText = `${lineText} ${next}`;
+        }
+      }
       if (li.quantity == null) {
         const q = extractQuantities(lineText, { articles: [li.article].filter(Boolean) });
         if (q.primary && Number(q.primary.value) > 0 && Number(q.primary.value) <= 10000) {
@@ -1977,6 +2087,18 @@ export function analyzeEmail(project, payload) {
           const lineBrands = detectionKb.filterOwnBrands(detectionKb.detectBrands(lineText, project.brands || []))
             .filter((b) => validated.has(String(b).toLowerCase()));
           if (lineBrands.length === 1) li.brand = lineBrands[0];
+          // Single-position email whose one product line names several KB aliases
+          // (e.g. "IONPURE EVOQUA" — brand family + parent): take the first mention.
+          else if (lineBrands.length > 1 && realRowCount === 1) li.brand = lineBrands[0];
+          // Validated brand absent from the KB alias index (e.g. labeled manufacturer
+          // "производитель TSUNTIEN"): plain word-boundary text match on the row line.
+          else if (!lineBrands.length) {
+            const textHits = (lead.detectedBrands || []).filter((b) => {
+              const word = escapeRegExp(String(b));
+              return new RegExp(`(?<![A-Za-z0-9А-ЯЁа-яё])${word}(?![A-Za-z0-9А-ЯЁа-яё])`, "i").test(lineText);
+            });
+            if (textHits.length === 1) li.brand = textHits[0];
+          }
         }
       }
     }
@@ -1990,7 +2112,10 @@ export function analyzeEmail(project, payload) {
       && !(Array.isArray(lead.quantitiesClean) && lead.quantitiesClean.length > 0);
     if (noQtySignal && lead.positionsSource !== "structured_attachment") {
       for (const li of lead.lineItems) {
-        if (!li || !li.article || String(li.article).toUpperCase().startsWith("DESC:")) continue;
+        if (!li || String(li.article || "").toUpperCase().startsWith("DESC:")) continue;
+        // Article-less rows qualify only when they are reconstructed positions
+        // (one product per row); token-scan leftovers without an article do not.
+        if (!li.article && !(li.source === "body_structured" && li.descriptionRu)) continue;
         if (li.quantity == null) { li.quantity = 1; li.unit = li.unit || "шт"; li.quantityDefaulted = true; }
       }
     }
@@ -5281,6 +5406,132 @@ function extractLineItems(body) {
   return pruneShadowLineItems(items);
 }
 
+const SPEC_CONTINUATION_LINE_RE = /^(?:model|модель|code|код|тип|type|исполнение|серия)\s*[:№#]/i;
+const ACCESSORY_BULLET_LINE_RE = /^[а-еa-f]\)\s/i;
+
+// Repairs over-split positions: multiple article-like tokens extracted from the SAME
+// product sentence are fragments of ONE position. Also drops items that came from
+// spec-continuation lines ("Model: ...", "CODE: ...") and accessory bullets ("б) ...")
+// describing the preceding numbered product. Structured rows never pass through here.
+function mergeOverSplitLineItems(items, bodyText) {
+  if (!Array.isArray(items) || items.length < 2) return items;
+  const lines = String(bodyText || "").split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+  const resolveLine = (item) => {
+    if (item.sourceLine) return item.sourceLine;
+    const a = item.article ? String(item.article) : "";
+    if (a) {
+      const hit = lines.find((l) => l.includes(a));
+      if (hit) return hit;
+    }
+    const d = String(item.descriptionRu || "").slice(0, 28).trim();
+    if (d.length >= 6) {
+      const hit = lines.find((l) => l.includes(d));
+      if (hit) return hit;
+    }
+    return "";
+  };
+
+  const real = [];
+  const passThrough = [];
+  for (const item of items) {
+    if (!item || !item.article || String(item.article).toUpperCase().startsWith("DESC:")) {
+      passThrough.push(item);
+      continue;
+    }
+    real.push({ item, line: resolveLine(item) });
+  }
+  if (real.length < 2) return items;
+
+  const linePos = (line) => lines.findIndex((l) => l === line || l.includes(line) || line.includes(l));
+  const hasNumberedParent = real.some((r) => r.line && NUMBERED_ITEM_PATTERN.test(r.line));
+  const surviving = real.filter((r) => {
+    if (!r.line) return true;
+    if (ACCESSORY_BULLET_LINE_RE.test(r.line) && hasNumberedParent) return false;
+    if (SPEC_CONTINUATION_LINE_RE.test(r.line)) {
+      const myPos = linePos(r.line);
+      const hasEarlierProduct = real.some((o) =>
+        o !== r && o.line && o.line !== r.line
+        && !SPEC_CONTINUATION_LINE_RE.test(o.line)
+        && linePos(o.line) >= 0 && (myPos < 0 || linePos(o.line) < myPos)
+      );
+      if (hasEarlierProduct) return false;
+    }
+    return true;
+  });
+
+  // A gap of pure list punctuation/conjunction between tokens = enumeration of separate
+  // goods (keep apart). A gap with substantive words, or plain space (fragments of one
+  // long code), = one product sentence (merge).
+  const isEnumGap = (gap) => {
+    const cleaned = gap.replace(/[\s,;«»"'()]+/g, " ").trim();
+    if (!/[,;]/.test(gap) && cleaned === "") return false;
+    return cleaned === "" || /^(?:и|and|или|or)$/i.test(cleaned);
+  };
+
+  const groups = new Map();
+  let soloCounter = 0;
+  for (const r of surviving) {
+    const key = r.line && r.line.length <= 260 ? r.line : `__solo_${soloCounter++}`;
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(r);
+  }
+
+  const merged = [];
+  for (const [line, group] of groups) {
+    if (group.length === 1 || line.startsWith("__solo_")) {
+      merged.push(...group.map((g) => g.item));
+      continue;
+    }
+    // NOTE: JS \b is ASCII-only and never matches after Cyrillic — use lookarounds.
+    const qtyMentions = (line.match(/\d+\s*(?:шт|компл|к-т)(?![а-яё])|(?<![а-яё])(?:шт|компл|к-т)\.?\s+\d+/gi) || []).length;
+    if (qtyMentions > 1) {
+      merged.push(...group.map((g) => g.item));
+      continue;
+    }
+    const spans = group
+      .map((g) => ({ g, pos: line.indexOf(String(g.item.article)) }))
+      .filter((s) => s.pos >= 0)
+      .sort((a, b) => a.pos - b.pos);
+    const unresolved = group.filter((g) => !spans.some((s) => s.g === g));
+    if (spans.length < 2) {
+      merged.push(...group.map((g) => g.item));
+      continue;
+    }
+    let enumeration = true;
+    let sawGap = false;
+    for (let i = 1; i < spans.length; i++) {
+      const prev = spans[i - 1];
+      const prevEnd = prev.pos + String(prev.g.item.article).length;
+      if (spans[i].pos < prevEnd) continue;
+      sawGap = true;
+      if (!isEnumGap(line.slice(prevEnd, spans[i].pos))) enumeration = false;
+    }
+    if (sawGap && enumeration) {
+      merged.push(...group.map((g) => g.item));
+      continue;
+    }
+    // Survivor: earliest code-quality span (digits, compact) — earliest junk token
+    // ("Клапан ISO Star -") must not displace the real code on the same line.
+    const codeQuality = (a) => /\d/.test(String(a)) && String(a).length >= 5
+      && (String(a).match(/\s/g) || []).length <= 1;
+    const headSpan = spans.find((s) => codeQuality(s.g.item.article)) || spans[0];
+    const head = { ...headSpan.g.item };
+    for (const s of spans) {
+      if (s === headSpan) continue;
+      const it = s.g.item;
+      if (head.quantity == null && it.quantity != null) {
+        head.quantity = it.quantity;
+        head.unit = it.unit || head.unit;
+      }
+      if (!head.brand && it.brand) head.brand = it.brand;
+      if ((it.descriptionRu || "").length > (head.descriptionRu || "").length) head.descriptionRu = it.descriptionRu;
+    }
+    merged.push(head, ...unresolved.map((g) => g.item));
+  }
+
+  return [...merged, ...passThrough];
+}
+
 function pruneShadowLineItems(items) {
   return items.filter((item, _, allItems) => {
     const article = normalizeArticleCode(item.article);
@@ -6556,6 +6807,17 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   }
   if (STANDARD_TOKEN_PATTERN.test(normalized)) return true;
   if (STANDARD_OR_NORM_PATTERN.test(normalized)) return true;
+  // Network/interface standards mistaken for articles: 100BASE-TX, 10BASE-T, 1000BASE-SX
+  if (/^\d+BASE-?[A-Z]{1,3}\d*$/i.test(normalized)) return true;
+  // Pure dimensions: "601.7x605.5x318.4", "48х2х10" — 3+ groups or a decimal group
+  // (integer pairs like "40x40" stay, they can be profile codes). Mirrors the payload
+  // sanitizer so position counts agree with what is actually sent to CRM.
+  if (/^\d+(?:[.,]\d+)?(?:\s?[xхX×*]\s?\d+(?:[.,]\d+)?){1,3}$/i.test(normalized)
+    && (/[.,]/.test(normalized) || (normalized.match(/[xхX×*]/gi) || []).length >= 2)) return true;
+  // Dimension tail fragment (leading separator left over from a clipped size token): "x605.5x318.4"
+  if (/^[xхX×*]\d+(?:[.,]\d+)?(?:[xхX×*]\d+(?:[.,]\d+)?)+$/i.test(normalized)) return true;
+  // Token harvested from an inline image content-id ("[cid:image001.png@01DC9140.C87CD170]")
+  if (sourceLine && new RegExp(`cid:[^\\s\\]]*${escapeRegExp(normalized)}`, "i").test(sourceLine)) return true;
   if (CLASSIFIER_DOTTED_CODE_PATTERN.test(normalized)) return true;
   if (/^\d{1,6}$/.test(normalized) && !hasStrongArticleContext && !hasBrandAdjacentNumericContext) return true;
   if (/^\d+\.\d{2,}$/.test(normalized)) return true;

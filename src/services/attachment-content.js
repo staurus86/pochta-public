@@ -756,7 +756,27 @@ function extractTabularLineItems(lines, filename) {
     // Guard against the name column being mistaken for the brand column: a brand is a short
     // manufacturer token, never a 35+ char product sentence or a copy of the name itself.
     if (brandIdx === nameIdx || (brand && brand.length > 35) || (brand && brand === cleanupAttachmentName(nameRaw))) brand = "";
-    const descriptionRu = cleanupAttachmentName(nameRaw + (brand ? ` [${brand}]` : ""));
+    // A "brand" cell holding a MODEL string ("NRG 16-50 PN403/4” BSP", "ТМ-510Р.00(0…2,5 МПа)")
+    // is not a manufacturer: digit-heavy, units, parens. Recover the model code as the row's
+    // article (when the sheet gave none) and let it feed the description instead of the brand.
+    let brandModelNote = "";
+    if (brand && (/[()°”„"]|МПа|МПА|BSP|PN\s?\d|G\d\/|L=|Ду\s?\d|Ру\s?\d/i.test(brand)
+      || (brand.match(/\d/g) || []).length > 3
+      || brand.length > 25)) {
+      // Spec position tags ("LS.25.50.10.01") are paragraph numbering, not articles —
+      // the model from this cell is the better article for such rows.
+      const isSpecPositionTag = article && /^[A-ZА-ЯЁ]{1,4}\.\d{1,3}(?:\.\d{1,3}){2,}[А-ЯЁA-Z]?$/i.test(article);
+      if (!article || isSpecPositionTag) {
+        // The model designation leads the cell: "NRG 16-50 PN403/4” BSP" → "NRG 16-50",
+        // "ТМ-510Р.00(0…2,5 МПа)" → "ТМ-510Р.00". Fall back to any code-like token.
+        const model = brand.match(/^([A-Za-zА-ЯЁ]{2,10}[ -]?\d[A-Za-zА-ЯЁ0-9./-]{1,20})/);
+        const recovered = normalizeAttachmentArticle((model && model[1].trim()) || findArticleInText(brand) || "");
+        if (recovered) article = recovered;
+      }
+      brandModelNote = brand;
+      brand = "";
+    }
+    const descriptionRu = cleanupAttachmentName(nameRaw + (brand ? ` [${brand}]` : brandModelNote ? ` [${brandModelNote}]` : ""));
     const quantity = parseAttachmentQuantity(pickRowValue(row, qtyIdx) || "");
     const unit = cleanupAttachmentUnit(pickRowValue(row, unitIdx) || inferUnitFromRow(row) || "шт");
     if (!article && !descriptionRu) continue;
@@ -847,6 +867,11 @@ function normalizeAttachmentArticle(value) {
   const normalized = cleaned.toUpperCase();
   if (!/\d/.test(normalized)) return "";
   if (normalized.includes("@")) return "";
+  // A whole product sentence is never an article — keep it for the name column instead
+  // (rows otherwise lose BOTH article and description and vanish from the payload).
+  if (normalized.length > 30 || (normalized.match(/\s/g) || []).length > 2) return "";
+  // Dimension pair/triple mistaken for an article: 100Х200, 70x85x10
+  if (/^\d+(?:[.,]\d+)?(?:[xхX×*]\d+(?:[.,]\d+)?){1,3}$/i.test(normalized)) return "";
   if (/^(?:ИНН|КПП|ОГРН)$/.test(normalized)) return "";
   if (/^\d{10,15}$/.test(normalized)) return "";
   if (/^(?:8|7)?-?800(?:-\d{1,4}){1,}$/.test(normalized)) return "";

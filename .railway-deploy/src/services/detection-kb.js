@@ -46,6 +46,8 @@ const BRAND_FALSE_POSITIVE_ALIASES = new Set([
   "model", "type", "series", "version", "standard",
   // Phase 17 / GHOST-4: generic single-token aliases from 15K-brand KB import that match common words.
   "instruments", "smart", "west", "drive", "neo", "mission",
+  // Component-type acronyms, not manufacturers ("Модуль IGBT SKIIP..." → ghost IGBT brand).
+  "igbt",
 ]);
 // Aliases that must match as whole words only (prevent substring false positives)
 // "puls" — prevent matching inside "vegapuls"; "foss" — prevent matching inside "danfoss"

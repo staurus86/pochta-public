@@ -70,6 +70,10 @@ export function isPhoneLike(value) {
         // If there are multiple letter-runs AND the digit block is embedded mid-string,
         // it is NOT phone-only.
         if (letterRuns.length >= 2 && digits.length < 11) return false;
+        // Digit-dense industrial names ("Ремкомплект ... MBN 100х200 ... М2200180Х12")
+        // accumulate 11+ digits with no phone formatting: many product words and no
+        // +7/8(xxx) marker means catalog codes, not a contact line.
+        if (letterRuns.length >= 4 && !/(?:\+\d|(?<!\d)8\s*\(\s*\d{3})/.test(s)) return false;
         return true;
     }
     return false;

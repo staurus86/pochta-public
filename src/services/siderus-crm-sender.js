@@ -28,10 +28,12 @@ function isPayloadArticleNoise(article) {
     // like "40x40" are preserved.
     if (/^\d+(?:[.,]\d+)?(?:\s?[xхX×*]\s?\d+(?:[.,]\d+)?){1,3}$/.test(a)
         && (/[.,]/.test(a) || (a.match(/[xхX×*]/g) || []).length >= 2)) return true;
-    // Transliterated Cyrillic: first hyphen/space token is 5+ uppercase-only letters
-    // e.g. "HYTPOMEP HI 18-35-1", "TEPMOCTAT R5THV2", "PYKAB 72609.925.00.850"
+    // Transliterated Cyrillic: first hyphen/space token is 5+ uppercase letters that are
+    // ALL Latin homoglyphs of Cyrillic (АВСЕНКМОРТХУ) — e.g. "HYTPOMEP HI 18-35-1",
+    // "TEPMOCTAT R5THV2", "PYKAB 72609.925.00.850". Tokens with non-homoglyph letters
+    // (R, D, F, G...) are genuine vendor prefixes ("TCTTRAD-25E-63-SP") and stay.
     const firstToken = a.split(/[\s-]/)[0];
-    if (/^[A-Z]{5,}$/.test(firstToken)) return true;
+    if (/^[ABCEHIKMOPTXY]{5,}$/.test(firstToken)) return true;
     // Russian word fragment attached to digit: "16-ti"
     if (/^\d+-[a-z]{2,}$/.test(a)) return true;
     return false;
@@ -63,6 +65,8 @@ function buildOrderFromMail(lead) {
     const articleBrandMap = new Map();
     for (const match of nomenclatureMatches) {
         if (match.article && match.brand) {
+            // KB hygiene: skip catalog-editor noise like "!!!!!!ДУБЛЬ!!!!!!!!Infineon"
+            if (/[!?]{2,}|дубль/i.test(String(match.brand))) continue;
             articleBrandMap.set(normalizeArticleCode(match.article).toLowerCase(), match.brand);
         }
     }
@@ -77,13 +81,17 @@ function buildOrderFromMail(lead) {
     // For positions sourced from a structured spreadsheet, keep name+qty rows even when the
     // sheet has no dedicated article column (article embedded in the name) — those are real
     // positions the manager counts. Body-derived leads keep the strict article requirement.
-    const isStructured = lead.positionsSource === "structured_attachment";
+    const isStructured = lead.positionsSource === "structured_attachment"
+        || lead.positionsSource === "body_structured";
     const seen = new Set();
     const structured = lineItems
         .filter((item) => {
             if (item.article) return !item.article.startsWith("DESC:") && !isPayloadArticleNoise(item.article);
             // Article-less spreadsheet row: keep only if it looks like a real position
             // (has a quantity), so junk/empty cells in messy sheets are not flooded in.
+            // Body-reconstructed rows are one-product-per-row by construction — a name
+            // without quantity is still a position the manager counts.
+            if (lead.positionsSource === "body_structured") return Boolean(item.descriptionRu);
             return isStructured && Boolean(item.descriptionRu) && item.quantity != null;
         })
         .filter((item) => {
