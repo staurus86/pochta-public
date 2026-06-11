@@ -57,3 +57,21 @@ test("payload translit filter: homoglyph-only tokens rejected, vendor prefixes k
     assert.ok(!arts.includes("TIPICTOP T161-160-14"), "translit Тиристор rejected");
     assert.ok(!arts.includes("HYTPOMEP HI 18-35-1"), "translit Нутромер rejected");
 });
+
+test("signature inline-image ids are not articles (payload + analyzer)", async () => {
+    assert.equal(isObviousArticleNoise("signature_2031521182", ""), true);
+    const { buildSiderusCrmPayload } = await import("../src/services/siderus-crm-sender.js");
+    const lead = {
+        lineItems: [
+            { article: "К3-1735-52", quantity: 6, unit: "шт", descriptionRu: "Защёлка" },
+            { article: "signature_2031521182", quantity: 6, unit: "шт", descriptionRu: "" },
+        ],
+    };
+    const payload = buildSiderusCrmPayload(
+        { id: "p", name: "p" },
+        { analysis: { lead, sender: {} }, subject: "t", attachmentFiles: [] }
+    );
+    const arts = payload.order_from_mail.map((r) => r.item_number);
+    assert.ok(arts.includes("К3-1735-52"));
+    assert.ok(!arts.some((a) => /^signature/i.test(a || "")), `signature id leaked: ${arts}`);
+});

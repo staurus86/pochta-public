@@ -18,6 +18,8 @@ function resolveBody(message) {
 function isPayloadArticleNoise(article) {
     if (!article || article.length < 3) return true;
     const a = article.trim();
+    // Inline-image ids from email signatures ("[signature_2031521182]") — never articles
+    if (/^signature[_-]?\d+$/i.test(a)) return true;
     // Pure measurement: "11mm", "0-500ppm" — digit(s) + lowercase unit only
     // Uppercase suffix (e.g. "121CT") means it's a real code, not a unit
     if (/^\d[\d\s.\-]*[a-z]{1,4}$/.test(a)) return true;

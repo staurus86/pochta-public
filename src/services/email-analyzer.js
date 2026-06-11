@@ -6809,6 +6809,8 @@ export function isObviousArticleNoise(code, sourceLine = "", ctx = {}) {
   if (STANDARD_OR_NORM_PATTERN.test(normalized)) return true;
   // Network/interface standards mistaken for articles: 100BASE-TX, 10BASE-T, 1000BASE-SX
   if (/^\d+BASE-?[A-Z]{1,3}\d*$/i.test(normalized)) return true;
+  // Inline-image ids from email signatures ("[signature_2031521182]")
+  if (/^signature[_-]?\d+$/i.test(normalized)) return true;
   // Pure dimensions: "601.7x605.5x318.4", "48х2х10" — 3+ groups or a decimal group
   // (integer pairs like "40x40" stay, they can be profile codes). Mirrors the payload
   // sanitizer so position counts agree with what is actually sent to CRM.
